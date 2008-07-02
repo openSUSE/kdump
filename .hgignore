@@ -8,3 +8,5 @@ CMakeCache.txt
 Makefile
 *.html
 kdumptool/kdumptool
+tags
+config.h

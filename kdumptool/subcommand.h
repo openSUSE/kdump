@@ -20,6 +20,7 @@
 
 #include "optionparser.h"
 #include "global.h"
+#include "optionparser.h"
 
 //{{{ Subcommand ---------------------------------------------------------------
 
@@ -37,13 +38,30 @@
  */
 class Subcommand {
     public:
-        /**
-         * Creates a new Subcommand object.
-         */
-        Subcommand(const char *name, OptionParser *optionparser)
-        throw ();
 
-    public:
+        /**
+         * Returns the name of the subcommand.
+         *
+         * @return the name (string is static, you must copy it if you want
+         *         to modify it)
+         */
+        virtual const char *getName() const
+        throw () = 0;
+
+        /**
+         * Returns a list of options that command understands. This is for
+         * the global option parsing function.
+         */
+        virtual OptionList getOptions() const
+        throw () = 0;
+
+        /**
+         * Parses the command line. This method gets called before the
+         * Subcommand::execute() method gets called.
+         */
+        virtual void parseCommandline(OptionParser *optionparser)
+        throw (KError) = 0;
+
         /**
          * Executes the function.
          *
@@ -52,18 +70,9 @@ class Subcommand {
         virtual void execute()
         throw (KError)  = 0;
 
-        /**
-         * Returns the name of the subcommand.
-         *
-         * @return the name (string is static, you must copy it if you want
-         *         to modify it)
-         */
-        const char *getName() const;
-
-    private:
-        OptionParser    *m_optionparser;
-        const char      *m_name;
 };
+
+typedef std::list<Subcommand *> SubcommandList;
 
 //}}}
 //{{{ SubcommandManager --------------------------------------------------------
@@ -78,7 +87,7 @@ class SubcommandManager {
         /**
          * Returns the only instance of the class.
          */
-        SubcommandManager *instance()
+        static SubcommandManager *instance()
         throw ();
 
         /**
@@ -88,6 +97,15 @@ class SubcommandManager {
          *         @c NULL on failure.
          */
         Subcommand *getSubcommand(const char *name) const
+        throw ();
+
+        /**
+         * Returns a list of all subcommands.
+         *
+         * @return the list which may be empty if no subcommands have been
+         *         registered
+         */
+        SubcommandList getSubcommands() const
         throw ();
 
     protected:

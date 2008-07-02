@@ -21,6 +21,8 @@ add_executable(kdumptool
     optionparser.h
     subcommand.h
     subcommand.cc
+    kdumptool.h
+    kdumptool.cc
     global.h
     debug.cc
     debug.h

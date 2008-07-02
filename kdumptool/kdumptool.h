@@ -16,33 +16,39 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  * 02110-1301, USA.
  */
-#include <iostream>
-#include <cstdlib>
-#include <stdexcept>
+#ifndef KDUMPTOOL_H
+#define KDUMPTOOL_H
 
 #include "global.h"
-#include "kdumptool.h"
+#include "optionparser.h"
 
-using std::cerr;
-using std::cout;
-using std::endl;
+//{{{ KdumpTool ----------------------------------------------------------------
 
-int main(int argc, char *argv[])
-{
-    KdumpTool kdt;
+/**
+ * Main class of the program.
+ */
+class KdumpTool {
 
-    try {
-        kdt.parseCommandline(argc, argv);
-        kdt.execute();
-    } catch (const KError &ke) {
-        cerr << ke.what() << endl;
-        return EXIT_FAILURE;
-    } catch (const std::exception &ex) {
-        cerr << "Fatal exception: " << ex.what() << endl;
-        return EXIT_FAILURE;
-    }
+    public:
+        /**
+         * Parses the command line. This method must be called before the
+         * execute() method is called.
+         */
+        void parseCommandline(int argc, char *argv[])
+        throw (KError);
 
-    return EXIT_SUCCESS;
-}
+        /**
+         * Executes the main program.
+         */
+        void execute()
+        throw (KError);
 
-// vim: set sw=4 ts=4 et:
+    private:
+        OptionParser m_optionParser;
+};
+
+//}}}
+
+#endif /* KDUMPTOOL_H */
+
+// vim: set sw=4 ts=4 fdm=marker et:

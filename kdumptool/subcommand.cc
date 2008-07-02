@@ -17,26 +17,13 @@
  * 02110-1301, USA.
  */
 #include <map>
+#include <list>
 
 #include "subcommand.h"
 
 using std::map;
+using std::list;
 
-//{{{ Subcommand ---------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-Subcommand::Subcommand(const char *name, OptionParser *optionparser)
-    throw ()
-    : m_optionparser(optionparser), m_name(name)
-{}
-
-// -----------------------------------------------------------------------------
-const char *Subcommand::getName() const
-{
-    return m_name;
-}
-
-//}}}
 //{{{ SubcommandManager --------------------------------------------------------
 SubcommandManager *SubcommandManager::m_instance = NULL;
 
@@ -74,6 +61,19 @@ SubcommandManager::SubcommandManager()
     throw ()
 {
     //addSubcommand();
+}
+
+// -----------------------------------------------------------------------------
+list<Subcommand *> SubcommandManager::getSubcommands() const
+    throw ()
+{
+    list<Subcommand *> ret;
+    map<const char *, Subcommand *>::const_iterator it;
+
+    for (it =  m_subcommandMap.begin(); it != m_subcommandMap.end(); ++it)
+        ret.push_back(it->second);
+
+    return ret;
 }
 
 //}}}

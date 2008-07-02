@@ -98,6 +98,8 @@ class Option {
         OptionValue m_value;
 };
 
+typedef std::list<Option> OptionList;
+
 //}}}
 //{{{ OptionParser -------------------------------------------------------------
 

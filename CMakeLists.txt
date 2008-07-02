@@ -26,12 +26,23 @@ cmake_minimum_required(VERSION 2.4)
 set (PACKAGE_STRING "kdump")
 set (PACKAGE_VERSION "0.5.0")
 
+include_directories("${PROJECT_BINARY_DIR}")
+
 #
 # Find programs
 #
 
 FIND_PROGRAM(ASCIIDOC_EXECUTABLE asciidoc)
 SET(ASCIIDOC_OPTIONS -a toclevels=3 -a badges -a toc -a numbered)
+
+#
+# Configure file
+#
+
+configure_file(
+    "${PROJECT_SOURCE_DIR}/config.h.in"
+    "${PROJECT_BINARY_DIR}/config.h"
+)
 
 #
 # Subdirs
