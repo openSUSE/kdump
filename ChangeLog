@@ -1,0 +1,6 @@
+2008-07-02  Bernhard Walle <bwalle@suse.de>
+
+	* start of the redesign (should become version 0.5)
+	* wrote doc/implementation/Implementation_Guide.txt
+
+vim: set ts=8 sw=8 noet:
