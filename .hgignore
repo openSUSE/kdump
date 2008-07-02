@@ -1,0 +1,9 @@
+syntax: glob
+
+*.cmake
+*.make
+*.internal
+CMakeFiles
+CMakeCache.txt
+Makefile
+*.html
