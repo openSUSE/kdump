@@ -17,6 +17,11 @@
 # 02110-1301, USA.
 #
 add_executable(kdumptool
+    optionparser.cc
+    optionparser.h
+    subcommand.h
+    subcommand.cc
+    global.h
     main.cc)
 
 target_link_libraries(pxe-kexec ${EXTRA_LIBS})
