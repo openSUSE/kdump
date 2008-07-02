@@ -22,6 +22,8 @@ add_executable(kdumptool
     subcommand.h
     subcommand.cc
     global.h
+    debug.cc
+    debug.h
     main.cc)
 
 target_link_libraries(pxe-kexec ${EXTRA_LIBS})
