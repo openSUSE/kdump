@@ -627,5 +627,6 @@ Blinking is done in userspace. The blinking is done by the +kdumptool+:
 The command has no options.
 
 //}}}
+//}}}
 
 // vim: set sw=4 ts=4 fdm=marker tw=80: :collapseFolds=1:
