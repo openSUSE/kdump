@@ -16,6 +16,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  * 02110-1301, USA.
  */
+#ifndef GLOBAL_H
+#define GLOBAL_H
+
 #include <stdexcept>
 
 //{{{ ApplicationError ---------------------------------------------------------
@@ -35,5 +38,7 @@ class KError : public std::runtime_error {
 };
 
 //}}}
+
+#endif /* GLOBAL_H */
 
 // vim: set sw=4 ts=4 fdm=marker et:
