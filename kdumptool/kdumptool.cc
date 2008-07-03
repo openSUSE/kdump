@@ -25,6 +25,7 @@
 #include "kdumptool.h"
 #include "config.h"
 #include "subcommand.h"
+#include "debug.h"
 
 using std::list;
 using std::cerr;
@@ -48,6 +49,8 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
         "Prints help output.");
     m_optionParser.addOption("version", 'v', OT_FLAG,
         "Prints version information and exits.");
+    m_optionParser.addOption("debug", 'D', OT_FLAG,
+        "Prints debugging output.");
 
     // add options of the subcommands
     SubcommandList subcommands = SubcommandManager::instance()->getSubcommands();
@@ -60,12 +63,16 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
         throw KError("Error while parsing command line options.");
     }
 
+    // read the global options
     if (m_optionParser.getValue("help").getFlag()) {
         m_optionParser.printHelp(cerr, PROGRAM_VERSION_STRING);
         exit(EXIT_SUCCESS);
     } else if (m_optionParser.getValue("version").getFlag()) {
         cerr << PROGRAM_VERSION_STRING << endl;
         exit(EXIT_SUCCESS);
+    } else if (m_optionParser.getValue("debug").getFlag()) {
+        Debug::debug()->setLevel(Debug::DL_TRACE);
+        Debug::debug()->dbg("Setting debug level to \"TRACE\".");
     }
 
     // parse arguments
