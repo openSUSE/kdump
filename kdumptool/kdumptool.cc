@@ -41,6 +41,12 @@ using std::string;
 //{{{ KdumpTool ----------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
+KdumpTool::KdumpTool()
+    throw ()
+    : m_errorcode(false)
+{}
+
+// -----------------------------------------------------------------------------
 void KdumpTool::parseCommandline(int argc, char *argv[])
     throw (KError)
 {
@@ -93,6 +99,13 @@ void KdumpTool::execute()
     throw (KError)
 {
     m_subcommand->execute();
+}
+
+// -----------------------------------------------------------------------------
+int KdumpTool::getErrorCode() const
+    throw ()
+{
+    return m_subcommand->getErrorCode();
 }
 
 //}}}

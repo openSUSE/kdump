@@ -109,8 +109,10 @@ void IdentifyKernel::execute()
     // is it a kernel?
     //
     KernelType kt = getKernelType(m_kernelImage.c_str());
-    if (kt == KT_NONE)
+    if (kt == KT_NONE) {
+        setErrorCode(NOT_A_KERNEL);
         throw KError("The specified file is not a kernel image.");
+    }
 
     //
     // type checking
@@ -150,8 +152,10 @@ void IdentifyKernel::execute()
 
         if (reloc)
             cout << "Relocatable" << endl;
-        else
+        else {
             cout << "Not relocatable" << endl;
+            setErrorCode(NOT_RELOCATABLE);
+        }
     }
 }
 

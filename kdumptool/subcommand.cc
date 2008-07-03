@@ -22,11 +22,39 @@
 
 #include "subcommand.h"
 #include "identifykernel.h"
+#include "debug.h"
 
 using std::map;
 using std::list;
 using std::string;
 
+
+//{{{ Subcommand ---------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+Subcommand::Subcommand()
+    throw ()
+    : m_errorcode(0)
+{}
+
+// -----------------------------------------------------------------------------
+void Subcommand::setErrorCode(int errorcode)
+    throw ()
+{
+    Debug::debug()->dbg("set error code to %d", errorcode);
+    m_errorcode = errorcode;
+}
+
+// -----------------------------------------------------------------------------
+int Subcommand::getErrorCode() const
+    throw ()
+{
+    Debug::debug()->trace("%s: Returning error code of %d", __FUNCTION__,
+        m_errorcode);
+    return m_errorcode;
+}
+
+//}}}
 //{{{ SubcommandManager --------------------------------------------------------
 SubcommandManager *SubcommandManager::m_instance = NULL;
 

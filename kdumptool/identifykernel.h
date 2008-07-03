@@ -40,6 +40,16 @@ class IdentifyKernel : public Subcommand {
             KT_NONE
         };
 
+        /**
+         * Error codes for IdentifyKernel. The numeric values are for
+         * compatibility.
+         */
+        enum ErrorCode {
+            SUCCESS,
+            NOT_RELOCATABLE = 2,
+            NOT_A_KERNEL = 3
+        };
+
     public:
         /**
          * Creates a new IdentifyKernel object.

@@ -43,6 +43,17 @@ class Subcommand {
     public:
 
         /**
+         * Creates a new subcommand. This is for initialisation.
+         */
+        Subcommand()
+        throw ();
+
+        /**
+         * Empty destructor.
+         */
+        ~Subcommand() {}
+
+        /**
          * Returns the name of the subcommand.
          *
          * @return the name (string is static, you must copy it if you want
@@ -73,6 +84,28 @@ class Subcommand {
         virtual void execute()
         throw (KError)  = 0;
 
+        /**
+         * Sets an error code. As default, -1 (255) is used when an exception
+         * is thrown, and 0 is used on success.
+         *
+         * @param errorcode the error code that should be used
+         */
+        void setErrorCode(int errorcode)
+        throw ();
+
+        /**
+         * Returns the error code.
+         *
+         * @return the error code. When no error code has been set, the function
+         *         returns 0. This means that the caller has to check if an
+         *         exception has occurred, and if that case, transform the
+         *         0 to 255.
+         */
+        int getErrorCode() const
+        throw ();
+
+    private:
+        int m_errorcode;
 };
 
 typedef std::list<Subcommand *> SubcommandList;

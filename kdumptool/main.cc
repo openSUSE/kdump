@@ -27,22 +27,27 @@ using std::cerr;
 using std::cout;
 using std::endl;
 
+// -----------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
     KdumpTool kdt;
+    bool exception = false;
 
     try {
         kdt.parseCommandline(argc, argv);
         kdt.execute();
     } catch (const KError &ke) {
         cerr << ke.what() << endl;
-        return EXIT_FAILURE;
+        exception = true;
     } catch (const std::exception &ex) {
         cerr << "Fatal exception: " << ex.what() << endl;
-        return EXIT_FAILURE;
+        exception = true;
     }
 
-    return EXIT_SUCCESS;
+    if (exception && kdt.getErrorCode() == 0)
+        return -1;
+    else
+        return kdt.getErrorCode();
 }
 
 // vim: set sw=4 ts=4 et:

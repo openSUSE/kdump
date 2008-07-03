@@ -32,6 +32,13 @@ class KdumpTool {
 
     public:
         /**
+         * Creates a new KdumpTool object. Mainly for initialisation.
+         */
+        KdumpTool()
+        throw ();
+
+    public:
+        /**
          * Parses the command line. This method must be called before the
          * execute() method is called.
          */
@@ -44,9 +51,20 @@ class KdumpTool {
         void execute()
         throw (KError);
 
+        /**
+         * Returns the error code. Important: It's optional that a non-zero
+         * error value is set when an exception is thrown. The caller has to
+         * do this himself.
+         *
+         * @return the error code
+         */
+        int getErrorCode() const
+        throw ();
+
     private:
         OptionParser m_optionParser;
         Subcommand *m_subcommand;
+        int m_errorcode;
 };
 
 //}}}
