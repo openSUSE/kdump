@@ -36,6 +36,25 @@ FIND_PROGRAM(ASCIIDOC_EXECUTABLE asciidoc)
 SET(ASCIIDOC_OPTIONS -a toclevels=3 -a badges -a toc -a numbered)
 
 #
+# Find libraries
+#
+set (CMAKE_LIBRARY_PATH /usr/lib64 ${CMAKE_LIBRARY_PATH})
+
+# zlib
+INCLUDE(FindZLIB)
+SET(EXTRA_LIBS ${EXTRA_LIBS} ${ZLIB_LIBRARY})
+INCLUDE_DIRECTORIES( ${ZLIB_INCLUDE_DIR} )
+
+IF(NOT ZLIB_FOUND)
+    MESSAGE(FATAL_ERROR "Zlib not found. Install zlib-devel or something like that")
+ENDIF(NOT ZLIB_FOUND)
+
+# libelf
+FIND_LIBRARY(ELF_LIBRARY NAMES "elf")
+SET(EXTRA_LIBS ${EXTRA_LIBS} ${ELF_LIBRARY})
+
+
+#
 # Configure file
 #
 

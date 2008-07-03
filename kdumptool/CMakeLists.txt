@@ -30,6 +30,6 @@ add_executable(kdumptool
     debug.h
     main.cc)
 
-target_link_libraries(pxe-kexec ${EXTRA_LIBS})
+target_link_libraries(kdumptool ${EXTRA_LIBS})
 
 install (TARGETS kdumptool DESTINATION sbin)
