@@ -127,7 +127,7 @@ class SubcommandManager {
         throw ();
 
     private:
-        std::map<const char *, Subcommand *> m_subcommandMap;
+        std::map<std::string, Subcommand *> m_subcommandMap;
         static SubcommandManager *m_instance;
 };
 

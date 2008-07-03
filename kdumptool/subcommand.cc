@@ -18,12 +18,14 @@
  */
 #include <map>
 #include <list>
+#include <string>
 
 #include "subcommand.h"
 #include "identifykernel.h"
 
 using std::map;
 using std::list;
+using std::string;
 
 //{{{ SubcommandManager --------------------------------------------------------
 SubcommandManager *SubcommandManager::m_instance = NULL;
@@ -32,8 +34,8 @@ SubcommandManager *SubcommandManager::m_instance = NULL;
 Subcommand *SubcommandManager::getSubcommand(const char *name) const
     throw ()
 {
-    map<const char *, Subcommand *>::const_iterator it;
-    it = m_subcommandMap.find(name);
+    map<string, Subcommand *>::const_iterator it;
+    it = m_subcommandMap.find(string(name));
     if (it == m_subcommandMap.end())
         return NULL;
     else
@@ -69,7 +71,7 @@ list<Subcommand *> SubcommandManager::getSubcommands() const
     throw ()
 {
     list<Subcommand *> ret;
-    map<const char *, Subcommand *>::const_iterator it;
+    map<string, Subcommand *>::const_iterator it;
 
     for (it =  m_subcommandMap.begin(); it != m_subcommandMap.end(); ++it)
         ret.push_back(it->second);
