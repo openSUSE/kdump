@@ -20,6 +20,7 @@
 #include <list>
 
 #include "subcommand.h"
+#include "identifykernel.h"
 
 using std::map;
 using std::list;
@@ -60,7 +61,7 @@ SubcommandManager *SubcommandManager::instance()
 SubcommandManager::SubcommandManager()
     throw ()
 {
-    //addSubcommand();
+    addSubcommand(new IdentifyKernel());
 }
 
 // -----------------------------------------------------------------------------

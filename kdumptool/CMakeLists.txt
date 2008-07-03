@@ -23,6 +23,8 @@ add_executable(kdumptool
     subcommand.cc
     kdumptool.h
     kdumptool.cc
+    identifykernel.h
+    identifykernel.cc
     global.h
     debug.cc
     debug.h
