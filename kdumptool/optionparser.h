@@ -39,6 +39,9 @@ enum OptionType {
 class OptionValue {
     public:
         OptionValue();
+        OptionValue(const std::string &name, char letter,
+                OptionType type = OT_FLAG,
+                const std::string &description = "");
 
     public:
         void setType(OptionType type);
@@ -109,6 +112,8 @@ class OptionParser {
         void addOption(const std::string &name, char letter,
                 OptionType type = OT_FLAG,
                 const std::string &description = "");
+        void addSubcommand(const std::string &subcommand,
+                const OptionList &options);
 
         void printHelp(std::ostream &os, const std::string &name) const;
         bool parse(int argc, char *argv[]);
