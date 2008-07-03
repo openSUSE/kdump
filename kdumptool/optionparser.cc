@@ -31,6 +31,7 @@ using std::vector;
 using std::string;
 using std::cout;
 using std::cerr;
+using std::pair;
 using std::endl;
 using std::map;
 using std::list;
@@ -187,6 +188,7 @@ string Option::getPlaceholder() const
 void OptionParser::addOption(Option option)
 {
     m_options.push_back(option);
+    m_globalOptions.push_back(option);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -322,15 +324,24 @@ vector<string> OptionParser::getArgs()
 }
 
 /* -------------------------------------------------------------------------- */
-void OptionParser::printHelp(ostream &os, const string &name) const
+void OptionParser::addSubcommand(const string &name, const OptionList &options)
 {
-    os << name << endl << endl;
-    for (vector<Option>::const_iterator it = m_options.begin();
-            it != m_options.end(); ++it) {
+    m_subcommandOptions.push_back(make_pair(name, options));
+    m_options.insert(m_options.end(), options.begin(), options.end());
+}
+
+// -----------------------------------------------------------------------------
+template <class InputIterator>
+void OptionParser::printHelpForOptionList(ostream &os,
+                                          InputIterator begin,
+                                          InputIterator end,
+                                          const string &indent) const
+{
+    for (InputIterator it = begin; it != end; ++it) {
 
         const Option &opt = *it;
 
-        os << "--" << opt.getLongName();
+        os << indent << "--" << opt.getLongName();
         string placeholder = opt.getPlaceholder();
         if (placeholder.length() > 0)
             os << "=" << opt.getPlaceholder();
@@ -338,7 +349,39 @@ void OptionParser::printHelp(ostream &os, const string &name) const
         if (placeholder.length() > 0)
             os << " " << opt.getPlaceholder();
         os << endl;
-        os << "     " << opt.getDescription() << endl;
+        os << indent << "     " << opt.getDescription() << endl;
+    }
+}
+
+/* -------------------------------------------------------------------------- */
+void OptionParser::printHelp(ostream &os, const string &name) const
+{
+    os << name << endl << endl;
+
+    if (m_subcommandOptions.size() > 0) {
+        os << "Subcommands" << endl;
+        for (StringOptionListVector::const_iterator it = m_subcommandOptions.begin();
+                it != m_subcommandOptions.end(); ++it) {
+            os << endl;
+            os << "   * " << it->first << endl;
+        }
+        os << endl << endl;
+        os << "Global options" << endl << endl;
+    }
+    printHelpForOptionList(os, m_globalOptions.begin(), m_globalOptions.end(),
+        "   ");
+    if (m_subcommandOptions.size() > 0) {
+        os << endl;
+    }
+
+    for (StringOptionListVector::const_iterator it = m_subcommandOptions.begin();
+            it != m_subcommandOptions.end(); ++it) {
+        string optionName = it->first;
+        OptionList options = it->second;
+
+        os << "Options for " << optionName << ":" << endl << endl;
+        printHelpForOptionList(os, options.begin(), options.end(), "   ");
+        os << endl;
     }
 }
 

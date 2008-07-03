@@ -103,6 +103,9 @@ typedef std::list<Option> OptionList;
 //}}}
 //{{{ OptionParser -------------------------------------------------------------
 
+typedef std::pair<std::string, OptionList> StringOptionListPair;
+typedef std::vector<StringOptionListPair> StringOptionListVector;
+
 class OptionParser {
     public:
         void addOption(Option option);
@@ -115,12 +118,31 @@ class OptionParser {
         OptionValue getValue(const std::string &name);
         std::vector<std::string> getArgs();
 
+        /**
+         * That's only for a pretty help for now. That means:
+         *
+         *   program --option argument --option2
+         *   program argument --option --option2
+         *
+         * are equivalent. So it's not legal to use the same option both as
+         * "global option" and as option for a subcommand.
+         */
+        void addSubcommand(const std::string &name, const OptionList &options);
+
     protected:
         Option &findOption(char letter);
+
+        template <class InputIterator>
+        void printHelpForOptionList(std::ostream &os,
+            InputIterator begin, InputIterator end,
+            const std::string &indent = "") const;
 
     private:
         std::vector<Option> m_options;
         std::vector<std::string> m_args;
+        StringOptionListVector m_subcommandOptions;
+        OptionList m_globalOptions;
+
 };
 
 //}}}

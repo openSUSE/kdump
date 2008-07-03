@@ -48,11 +48,7 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
     SubcommandList subcommands = SubcommandManager::instance()->getSubcommands();
     for (SubcommandList::const_iterator it = subcommands.begin();
             it != subcommands.end(); ++it) {
-        OptionList options = (*it)->getOptions();
-        for (OptionList::const_iterator itinner = options.begin();
-                itinner != options.end(); ++itinner) {
-            m_optionParser.addOption(*itinner);
-        }
+        m_optionParser.addSubcommand((*it)->getName(), (*it)->getOptions());
     }
 
     if (!m_optionParser.parse(argc, argv)) {
