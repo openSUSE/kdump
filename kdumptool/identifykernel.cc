@@ -17,6 +17,7 @@
  * 02110-1301, USA.
  */
 #include "subcommand.h"
+#include "debug.h"
 #include "identifykernel.h"
 
 //{{{ IdentifyKernel -----------------------------------------------------------
@@ -52,6 +53,7 @@ void IdentifyKernel::parseCommandline(OptionParser *optionparser)
 void IdentifyKernel::execute()
     throw (KError)
 {
+    Debug::debug()->trace(__FUNCTION__);
 }
 
 // vim: set sw=4 ts=4 fdm=marker et:

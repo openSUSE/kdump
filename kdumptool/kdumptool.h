@@ -21,6 +21,7 @@
 
 #include "global.h"
 #include "optionparser.h"
+#include "subcommand.h"
 
 //{{{ KdumpTool ----------------------------------------------------------------
 
@@ -45,6 +46,7 @@ class KdumpTool {
 
     private:
         OptionParser m_optionParser;
+        Subcommand *m_subcommand;
 };
 
 //}}}

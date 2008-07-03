@@ -19,6 +19,8 @@
 #include <iostream>
 #include <list>
 #include <cstdlib>
+#include <vector>
+#include <string>
 
 #include "kdumptool.h"
 #include "config.h"
@@ -28,6 +30,9 @@ using std::list;
 using std::cerr;
 using std::endl;
 using std::exit;
+using std::vector;
+using std::string;
+
 
 #define PROGRAM_NAME                "kdumptool"
 #define PROGRAM_VERSION_STRING      PROGRAM_NAME " " PACKAGE_VERSION
@@ -62,12 +67,24 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
         cerr << PROGRAM_VERSION_STRING << endl;
         exit(EXIT_SUCCESS);
     }
+
+    // parse arguments
+    vector<string> arguments = m_optionParser.getArgs();
+    if (arguments.size() < 1)
+        throw KError("You must provide a subcommand.");
+
+    m_subcommand = SubcommandManager::instance()->getSubcommand(
+        arguments[0].c_str());
+    if (!m_subcommand)
+        throw KError("Subcommand " + arguments[0] + " does not exist.");
 }
 
 // -----------------------------------------------------------------------------
 void KdumpTool::execute()
     throw (KError)
-{}
+{
+    m_subcommand->execute();
+}
 
 //}}}
 
