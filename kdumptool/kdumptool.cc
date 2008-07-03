@@ -84,6 +84,8 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
         arguments[0].c_str());
     if (!m_subcommand)
         throw KError("Subcommand " + arguments[0] + " does not exist.");
+
+    m_subcommand->parseCommandline(&m_optionParser);
 }
 
 // -----------------------------------------------------------------------------

@@ -21,7 +21,7 @@
 
 #include <stdexcept>
 
-//{{{ ApplicationError ---------------------------------------------------------
+//{{{ KError -------------------------------------------------------------------
 
 /**
  * Standard error class.
@@ -35,6 +35,44 @@ class KError : public std::runtime_error {
          */
         KError(const std::string& string)
             : std::runtime_error(string) {}
+
+};
+
+//}}}
+//{{{ KSystemError -------------------------------------------------------------
+
+/**
+ * Standard error class for system errors that have a valid errno information.
+ */
+class KSystemError : public KError {
+    public:
+        /**
+         * Creates a new object of KError with string as error message.
+         *
+         * @param string the error message
+         * @param errorcode the system error code (errno)
+         */
+        KSystemError(const std::string& string, int errorcode)
+            : KError(string), m_errorcode(errorcode),
+              m_errorstring(string) {}
+
+        /**
+         * Returns a readable error message from the string and the error
+         * code.
+         *
+         * @return Error message in the format 'string (strerror(errorcode))'.
+         */
+        virtual const char *what() const
+        throw ();
+
+        /**
+         * Don't know why that is necessary to avoid compiler errors.
+         */
+        virtual ~KSystemError() throw () {}
+
+    private:
+        int m_errorcode;
+        std::string m_errorstring;
 };
 
 //}}}

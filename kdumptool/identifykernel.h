@@ -23,7 +23,29 @@
 
 //{{{ IdentifyKernel -----------------------------------------------------------
 
+/**
+ * Subcommand to identify a kernel binary.
+ * The source is original from a C source file, so it's not really C++'ish.
+ */
 class IdentifyKernel : public Subcommand {
+
+    public:
+        /**
+         * Type of the kernel.
+         */
+        enum KernelType {
+            KT_ELF,
+            KT_ELF_GZ,
+            KT_X86,
+            KT_NONE
+        };
+
+    public:
+        /**
+         * Creates a new IdentifyKernel object.
+         */
+        IdentifyKernel()
+        throw ();
 
     public:
         /**
@@ -51,10 +73,37 @@ class IdentifyKernel : public Subcommand {
          */
         void execute()
         throw (KError);
+
+    protected:
+        bool isElfFile(const char *filename)
+        throw (KError);
+
+        bool checkElfFile(const char *file)
+        throw (KError);
+
+        bool checkArchFile(const char *file)
+        throw (KError);
+
+        bool isX86Kernel(const char *file)
+        throw (KError);
+
+        bool checkArchFileX86(const char *file)
+        throw (KError);
+
+        bool isArchAlwaysRelocatable(const char *machine)
+        throw ();
+
+        KernelType getKernelType(const char *file)
+        throw (KError);
+
+    private:
+        bool m_checkRelocatable;
+        bool m_checkType;
+        std::string m_kernelImage;
 };
 
 //}}}
 
 #endif /* IDENTIFYKERNEL_H */
 
-// vim: set sw=4 ts=4 fdm=marker et:
+// vim: set sw=4 ts=4 fdm=marker et ft=c++:

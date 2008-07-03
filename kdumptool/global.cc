@@ -16,45 +16,19 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  * 02110-1301, USA.
  */
-#ifndef UTIL_H
-#define UTIL_H
+#include <stdexcept>
+#include <cstring>
+#include <errno.h>
 
-#include <zlib.h>
-
-#include "subcommand.h"
 #include "global.h"
 
-//{{{ Util ---------------------------------------------------------------------
+using std::strerror;
 
-/**
- * Various utility functions.
- */
-class Util {
-
-    public:
-        /**
-         * Returns the architecture.
-         */
-        static std::string getArch()
-        throw (KError);
-
-        /**
-         * Checks if the given architecture is x86.
-         */
-        static bool isX86(const std::string &arch)
-        throw ();
-
-        /**
-         * Checks if the specified file is a gzip compressed file.
-         *
-         * @param file the name of the file
-         */
-        static bool isGzipFile(const char *file)
-        throw (KError);
-};
-
-//}}}
-
-#endif /* UTIL_H */
+// -----------------------------------------------------------------------------
+const char *KSystemError::what() const
+    throw ()
+{
+    return (m_errorstring + " (" + strerror(m_errorcode) + ")").c_str();
+}
 
 // vim: set sw=4 ts=4 fdm=marker et:
