@@ -16,6 +16,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  * 02110-1301, USA.
  */
+#ifndef SUBCOMMAND_H
+#define SUBCOMMAND_H
+
 #include <map>
 
 #include "optionparser.h"
@@ -129,5 +132,7 @@ class SubcommandManager {
 };
 
 //}}}
+
+#endif // SUBCOMMAND_H
 
 // vim: set sw=4 ts=4 et fdm=marker:
