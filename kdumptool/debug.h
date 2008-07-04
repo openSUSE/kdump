@@ -51,6 +51,9 @@ class Debug {
         void setFileHandle(FILE *handle);
         FILE *getFileHandle() const;
 
+        void setUseColor(bool useColor);
+        bool useColor() const;
+
     protected:
         Debug();
 
@@ -60,6 +63,8 @@ class Debug {
     private:
         Level m_debuglevel;
         FILE *m_handle;
+        bool m_useColor;
+        bool m_useColorAuto;
 };
 
 //}}}
