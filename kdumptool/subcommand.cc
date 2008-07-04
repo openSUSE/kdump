@@ -109,4 +109,4 @@ list<Subcommand *> SubcommandManager::getSubcommands() const
 
 //}}}
 
-// vim: set sw=4 ts=4 et fdm=marker:
+// vim: set sw=4 ts=4 et fdm=marker: :collapseFolds=1:

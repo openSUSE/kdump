@@ -184,4 +184,4 @@ bool Debug::isDebugEnabled() const
     return m_debuglevel < DL_NONE;
 }
 
-// vim: set sw=4 ts=4 fdm=marker et:
+// vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

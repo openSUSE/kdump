@@ -31,4 +31,4 @@ const char *KSystemError::what() const
     return (m_errorstring + " (" + strerror(m_errorcode) + ")").c_str();
 }
 
-// vim: set sw=4 ts=4 fdm=marker et:
+// vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

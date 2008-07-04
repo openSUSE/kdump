@@ -168,4 +168,4 @@ class SubcommandManager {
 
 #endif // SUBCOMMAND_H
 
-// vim: set sw=4 ts=4 et fdm=marker:
+// vim: set sw=4 ts=4 et fdm=marker: :collapseFolds=1:

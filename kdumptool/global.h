@@ -79,4 +79,4 @@ class KSystemError : public KError {
 
 #endif /* GLOBAL_H */
 
-// vim: set sw=4 ts=4 fdm=marker et:
+// vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

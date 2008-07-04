@@ -116,4 +116,4 @@ class IdentifyKernel : public Subcommand {
 
 #endif /* IDENTIFYKERNEL_H */
 
-// vim: set sw=4 ts=4 fdm=marker et ft=c++:
+// vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

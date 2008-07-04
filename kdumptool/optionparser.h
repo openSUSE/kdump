@@ -149,4 +149,4 @@ class OptionParser {
 
 #endif /* OPTIONPARSER_H */
 
-// vim: set sw=4 ts=4 fdm=marker et:
+// vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

@@ -50,4 +50,4 @@ int main(int argc, char *argv[])
         return kdt.getErrorCode();
 }
 
-// vim: set sw=4 ts=4 et:
+// vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:
