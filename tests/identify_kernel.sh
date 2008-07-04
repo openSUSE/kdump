@@ -103,4 +103,6 @@ fi
 
 exit $errornumber
 
+# }}}
+
 # vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:
