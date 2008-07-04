@@ -19,4 +19,6 @@
 
 ENABLE_TESTING()
 ADD_TEST(kdumptool_identify_kernel
-         ${CMAKE_CURRENT_SOURCE_DIR}/identify_kernel.sh)
+         ${CMAKE_CURRENT_SOURCE_DIR}/identify_kernel.sh
+         ${CMAKE_BINARY_DIR}/kdumptool/kdumptool
+         ${CMAKE_CURRENT_SOURCE_DIR}/data)
