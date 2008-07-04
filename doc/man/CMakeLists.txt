@@ -22,11 +22,14 @@ ADD_CUSTOM_TARGET(kdumptool_8
     COMMAND
         ${A2X_EXECUTABLE} ${A2X_MAN_OPTIONS}
         -D ${CMAKE_CURRENT_BINARY_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/kdumptool.8.txt &>/dev/null
+        ${CMAKE_CURRENT_SOURCE_DIR}/kdumptool.8.txt &&
+        rm -f ${CMAKE_CURRENT_SOURCE_DIR}/kdumptool.8.xml
     DEPENDS
         kdumptool.8.txt
     COMMENT
         "Building kdumptool(8) manpage"
+    WORKING_DIRECTORY
+        ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 ADD_CUSTOM_TARGET(kdump_5
@@ -34,11 +37,14 @@ ADD_CUSTOM_TARGET(kdump_5
     COMMAND
         ${A2X_EXECUTABLE} ${A2X_MAN_OPTIONS}
         -D ${CMAKE_CURRENT_BINARY_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/kdump.5.txt
+        ${CMAKE_CURRENT_SOURCE_DIR}/kdump.5.txt &&
+        rm -f ${CMAKE_CURRENT_SOURCE_DIR}/kdump.5.xml
     DEPENDS
         kdump.5.txt
     COMMENT
         "Building kdump(5) manpage"
+    WORKING_DIRECTORY
+        ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 

@@ -36,10 +36,11 @@ Bernhard Walle <bwalle@suse.de>
 
 NAME
 ----
-kdumptool -
+kdumptool - df
 
 SYNOPSIS
 --------
+
 df
 
-# vim: set sw=4 ts=4 et:
+// vim: set sw=4 ts=4 et:

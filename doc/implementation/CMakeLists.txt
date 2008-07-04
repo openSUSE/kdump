@@ -18,9 +18,17 @@
 #
 
 ADD_CUSTOM_TARGET(implementation_doc
-        ALL
-        COMMAND ${ASCIIDOC_EXECUTABLE} ${ASCIIDOC_OPTIONS} ${CMAKE_CURRENT_SOURCE_DIR}/Implementation_Guide.txt
-        DEPENDS Implementation_Guide.txt
-        WORKING_DIRECTORY
-        COMMENT "Building implementation documentation")
+    ALL
+    COMMAND
+        ${ASCIIDOC_EXECUTABLE} ${ASCIIDOC_OPTIONS}
+        -o ${CMAKE_CURRENT_BINARY_DIR}/Implementation_Guide.html
+        ${CMAKE_CURRENT_SOURCE_DIR}/Implementation_Guide.txt
+    DEPENDS
+        Implementation_Guide.txt
+    WORKING_DIRECTORY
+        ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT
+        "Building implementation documentation"
+)
 
+# vim: set sw=4 ts=4 et:
