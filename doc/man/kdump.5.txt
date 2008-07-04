@@ -35,10 +35,86 @@ Bernhard Walle <bwalle@suse.de>
 
 NAME
 ----
-kdump - df
+kdump - Configuration of kdump
 
 SYNOPSIS
 --------
+/etc/sysconfig/kdump
+
+DESCRIPTION
+-----------
+This configuration file provides various options for the kdump loading and
+saving process. It's mostly read by *kdumptool*(8) but also by the kdump init
+script.
+
+OPTIONS
+-------
+
+*KDUMP_KERNELVER*::
+    Dummy.
+
+*KDUMP_COMMANDLINE*::
+    Dummy.
+
+*KDUMP_COMMANDLINE_APPEND*::
+    Dummy.
+
+*KEXEC_OPTIONS*::
+    Dummy.
+
+*KDUMP_IMMEDIATE_REBOOT*::
+    Dummy.
+
+*KDUMP_TRANSFER*::
+    Dummy.
+
+*KDUMP_SAVEDIR*::
+    Dummy.
+
+*KDUMP_KEEP_OLD_DUMPS*::
+    Dummy.
+
+*KDUMP_FREE_DISK_SIZE*::
+    Dummy
+
+*KDUMP_VERBOSE*::
+    Dummy.
+
+*KDUMP_DUMPLEVEL*::
+    Dummy.
+
+*KDUMP_DUMPFORMAT*::
+    Dummy.
+
+*KDUMP_CONTINUE_ON_ERROR*::
+    Dummy.
+
+*KDUMP_REQUIRED_PROGRAMS*::
+    Dummy.
+
+*KDUMP_PRESCRIPT*::
+    Dummy.
+
+*KDUMP_POSTSCRIPT*::
+    Dummy.
+
+*KDUMP_COPY_KERNEL*::
+    Dummy.
+
+BUGS
+----
+Please report bugs and enhancement requests at https://bugzilla.novell.com[].
+
+COPYING
+-------
+Copyright (c) 2008 Bernhard Walle <bwalle@suse.de>. Free use of this software is
+granted under the terms of the GNU General Public License (GPL), version 2 or
+later.
+
+SEE ALSO
+--------
+*kexec*(8), *kdump*(5),
+http://en.opensuse.org/Kdump[_http://en.opensuse.org/Kdump_]
 
 
-// vim: set sw=4 ts=4 et:
+// vim: set sw=4 ts=4 et tw=80 fdm=marker: :collapseFolds=1:

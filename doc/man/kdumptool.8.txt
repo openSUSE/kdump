@@ -33,14 +33,121 @@ kdumptool(8)
 ============
 Bernhard Walle <bwalle@suse.de>
 
-
 NAME
 ----
-kdumptool - df
+kdumptool - Binary to support kdump saving and loading
 
 SYNOPSIS
 --------
+*kdumptool* [_global options_] _command_ [_options_] [_arguments_]
 
-df
+DESCRIPTION
+-----------
+*kdumptool* provides various subcommands to support following actions for kdump.
+It can:
 
-// vim: set sw=4 ts=4 et:
+- help to identify a kernel (whether it's relocatable or not, whether it's ELF
+  or x86-style independent of the file name),
+- save a dump over various transports (local file, SSH2, FTP, NFS, SMB),
+- copy the kernel including debugging information from one directory to the
+  dump directory over the same transports as the dump itself,
+- delete old dumps,
+- show the progress over the keyboard LED.
+
+Because most functionality is needed in the _initrd_, the design decision was to
+provide that functionality in one binary without huge dependencies and without
+a scripting language.
+
+To select which functionality is needed, one has to provide a _command_. So, for
+example +kdump save_dump+ and +kdump copy_kernel+ is used to copy the kernel.
+There are *global options* which are valid for all (sub)commands and there are
+*normal options* which are only valid for a specific command. Also, the command
+can take an arbitrary number of *arguments*.
+
+Additional to the command line options described in that manual page, the
+behavior is influenced by configuration options in _/etc/sysconfig/kdump_ (or a
+different configuration file specified with the *-F* (*--configfile*) option.
+Please read *kdump(5)* for documentation about the configuration options.
+
+GLOBAL OPTIONS
+--------------
+
+All option parsing is done via the *getopt_long(5)* command line.
+
+*-h* | *--help*::
+  Shows help output and exits.
+
+*-v* | *--version*::
+  Shows version information and exits.
+
+*-D* | *--debug*::
+  Prints debugging information (to stderr). If the output is redirected to
+  a terminal, then the various levels of debug information are colored. Use
+  *-L* (*--logfile*) to redirect the debug output to a file.
+
+*-L* _filename_ | *--logfile* _filename_::
+  Redirects the debugging output to the logfile specified with _filename_.
+
+*-F* _filename_ | *--configfile* _filename_::
+  Use a different configuration file instead of _/etc/sysconfig/kdump_.
+
+IDENTIFYING A KERNEL
+--------------------
+
+When finding a kernel that is suitable for kdump on the system, it's necessary
+to know if that is a relocatable kernel. Historically, on every platform except
+Itanium (IA64) kdump used a special kernel compiled with another start address.
+That kernel had always "kdump" in its name on SUSE systems. If such a kernel is
+found, that kernel is preferred. However, if there is no such kernel, the kdump
+init script (_/etc/init.d/kdump_) looks for normal kernels that are relocatable.
+
+That subcommand has following syntax:
+
+*kdumptool* [_global options_] *identify_kernel* [_-r_] [_-t_]
+
+It's necessary to provide either _-r_, _-t_ or both.
+
+*-r* | *--relocatable*::
+  Checks if the kernel is relocatable. If it is, it prints the string
+  _Relocatable_ on stdout and exits with error code _0_. If it's not
+  relocatable, then it prints _Not relocatable_ and exits with _2_.
+
+*-t* | *--type*::
+  Prints the type of the kernel. There are following types: _x86_ for the
+  bzImage format, _ELF_ for a normal ELF binary and _ELF gzip_ for gzipped
+  ELF binary.
+
+RETURN VALUE
+------------
+
+*0*::
+  Success.
+
+*255*::
+  Unknown Error.
+
+*2*::
+  Kernel has been identified but is not relocatable.
+
+FILES
+-----
+
+_/etc/sysconfig/kdump_::
+  Configuration file, see *kdump*(5).
+
+BUGS
+----
+Please report bugs and enhancement requests at https://bugzilla.novell.com[].
+
+COPYING
+-------
+Copyright (c) 2008 Bernhard Walle <bwalle@suse.de>. Free use of this software is
+granted under the terms of the GNU General Public License (GPL), version 2 or
+later.
+
+SEE ALSO
+--------
+*kexec*(8), *kdump*(5),
+http://en.opensuse.org/Kdump[_http://en.opensuse.org/Kdump_]
+
+// vim: set sw=4 ts=4 et tw=80 fdm=marker: :collapseFolds=1:
