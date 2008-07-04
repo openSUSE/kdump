@@ -21,6 +21,7 @@
 #include <cstdlib>
 #include <vector>
 #include <string>
+#include <cstdio>
 
 #include "kdumptool.h"
 #include "config.h"
@@ -33,12 +34,20 @@ using std::endl;
 using std::exit;
 using std::vector;
 using std::string;
+using std::fopen;
+using std::fclose;
 
 
 #define PROGRAM_NAME                "kdumptool"
 #define PROGRAM_VERSION_STRING      PROGRAM_NAME " " PACKAGE_VERSION
 
 //{{{ KdumpTool ----------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+static void close_file(int error, void *arg)
+{
+    fclose((FILE *)arg);
+}
 
 // -----------------------------------------------------------------------------
 KdumpTool::KdumpTool()
@@ -57,6 +66,8 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
         "Prints version information and exits.");
     m_optionParser.addOption("debug", 'D', OT_FLAG,
         "Prints debugging output.");
+    m_optionParser.addOption("logfile", 'L', OT_STRING,
+        "Uses the specified logfile for the debugging output.");
 
     // add options of the subcommands
     SubcommandList subcommands = SubcommandManager::instance()->getSubcommands();
@@ -76,10 +87,21 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
     } else if (m_optionParser.getValue("version").getFlag()) {
         cerr << PROGRAM_VERSION_STRING << endl;
         exit(EXIT_SUCCESS);
-    } else if (m_optionParser.getValue("debug").getFlag()) {
-        Debug::debug()->setLevel(Debug::DL_TRACE);
-        Debug::debug()->dbg("Setting debug level to \"TRACE\".");
     }
+
+    // debug messages
+    bool debugEnabled = m_optionParser.getValue("debug").getFlag();
+    if (m_optionParser.getValue("logfile").getType() != OT_INVALID &&
+            debugEnabled) {
+        string filename = m_optionParser.getValue("logfile").getString();
+        FILE *fp = fopen(filename.c_str(), "a");
+        if (fp) {
+            Debug::debug()->setFileHandle(fp);
+            on_exit(close_file, fp);
+        }
+        Debug::debug()->setLevel(Debug::DL_TRACE);
+    } else if (debugEnabled)
+        Debug::debug()->dbg("Setting debug level to \"TRACE\".");
 
     // parse arguments
     vector<string> arguments = m_optionParser.getArgs();
