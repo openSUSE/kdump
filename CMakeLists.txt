@@ -17,6 +17,7 @@
 # 02110-1301, USA.
 #
 PROJECT(kdump CXX)
+INCLUDE(CTest)
 
 #
 # Configuration
@@ -69,6 +70,7 @@ configure_file(
 
 ADD_SUBDIRECTORY(doc)
 ADD_SUBDIRECTORY(kdumptool)
+ADD_SUBDIRECTORY(tests)
 
 
 # vim: set sw=4 ts=4 et:
