@@ -7,3 +7,4 @@ kdumptool/kdumptool
 tags
 config.h
 build
+*.marks
