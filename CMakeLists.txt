@@ -35,6 +35,9 @@ include_directories("${PROJECT_BINARY_DIR}")
 
 FIND_PROGRAM(ASCIIDOC_EXECUTABLE asciidoc)
 SET(ASCIIDOC_OPTIONS -a toclevels=3 -a badges -a toc -a numbered)
+SET(ASCIIDOC_MAN_OPTIONS ${ASCIIDOC_OPTIONS} -d manpage)
+FIND_PROGRAM(A2X_EXECUTABLE a2x)
+SET(A2X_MAN_OPTIONS --doctype=manpage --format=manpage)
 
 #
 # Find libraries
