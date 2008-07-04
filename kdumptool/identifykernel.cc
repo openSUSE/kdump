@@ -185,6 +185,21 @@ bool IdentifyKernel::isElfFile(const char *file)
 }
 
 // -----------------------------------------------------------------------------
+string IdentifyKernel::archFromElfMachine(unsigned long long et_machine)
+    throw ()
+{
+    switch (et_machine) {
+        case EM_386:    return "i386";
+        case EM_PPC:    return "ppc";
+        case EM_PPC64:  return "ppc64";
+        case EM_S390:   return "s390";
+        case EM_IA_64:  return "ia64";
+        case EM_X86_64: return "x86_64";
+        default:        return "unknown";
+    }
+}
+
+// -----------------------------------------------------------------------------
 bool IdentifyKernel::checkElfFile(const char *file)
     throw (KError)
 {
@@ -192,9 +207,6 @@ bool IdentifyKernel::checkElfFile(const char *file)
     gzFile          fp = NULL;
     unsigned char   e_ident[EI_NIDENT];
     int             reloc = false;
-
-    if (isArchAlwaysRelocatable(Util::getArch().c_str()))
-        return true;
 
     fp = gzopen(file, "r");
     if (!fp)
@@ -220,6 +232,8 @@ bool IdentifyKernel::checkElfFile(const char *file)
             throw KSystemError("Couldn't read ELF header", errno);
         }
 
+        m_arch = archFromElfMachine((unsigned long long)hdr.e_machine);
+
         if (hdr.e_type == ET_DYN)
             reloc = true;
     } else if (e_ident[EI_CLASS] == ELFCLASS64) {
@@ -233,11 +247,15 @@ bool IdentifyKernel::checkElfFile(const char *file)
 
         if (hdr.e_type == ET_DYN)
             reloc = true;
+
+        m_arch = archFromElfMachine((unsigned long long)hdr.e_machine);
     }
 
     gzclose(fp);
 
-    return reloc;
+    Debug::debug()->dbg("Detected arch %s", m_arch.c_str());
+
+    return isArchAlwaysRelocatable(m_arch.c_str()) || reloc;
 }
 
 // -----------------------------------------------------------------------------
@@ -385,5 +403,7 @@ IdentifyKernel::KernelType IdentifyKernel::getKernelType(const char *file)
         }
     }
 }
+
+//}}}
 
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

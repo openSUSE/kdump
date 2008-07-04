@@ -25,15 +25,19 @@
 KERNEL_IMAGES=("kernel-bzImage-x86_64"
                "kernel-ELFgz-x86_64"
                "kernel-ELF-x86_64"
+               "kernel-ELFgz-ia64"
+               "kernel-ELF-ia64"
                )
 RELOCATABLE=(  1
                0
                0
+               1
                1 )
 TYPE=(         "x86"
                "ELF gzip"
                "ELF"
-               "ELF gzip" )
+               "ELF gzip"
+               "ELF" )
 
                                                                            # }}}
 
@@ -56,6 +60,8 @@ for kernel in ${KERNEL_IMAGES[@]}; do
     reloc=${RELOCATABLE[$i]}
     type=${TYPE[$i]}
 
+    echo -n "Testing $kernel "
+
     if [ ! -f "$path" ] ; then
         echo "$path" does not exist
         errornumber=$[$errornumber+1]
@@ -67,6 +73,8 @@ for kernel in ${KERNEL_IMAGES[@]}; do
 
     type_output=$($KDUMPTOOL identify_kernel -t $path)
     type_exit=$?
+
+    echo "$reloc_output ($reloc_exit) $type_output ($type_exit)"
 
     if (( $reloc )) ; then
         if [ "$reloc_output" != "Relocatable" ] ; then
@@ -90,6 +98,12 @@ for kernel in ${KERNEL_IMAGES[@]}; do
             errornumber=$[$errornumber+1]
             continue
         fi
+    fi
+
+    if [ "$type_output" != "$type" ] ; then
+        echo "Type should be $type but is $type_output"
+        errornumber=$[$errornumber+1]
+        continue
     fi
 
     i=$[$i+1]

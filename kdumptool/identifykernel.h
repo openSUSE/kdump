@@ -106,10 +106,14 @@ class IdentifyKernel : public Subcommand {
         KernelType getKernelType(const char *file)
         throw (KError);
 
+        std::string archFromElfMachine(unsigned long long et_machine)
+        throw ();
+
     private:
         bool m_checkRelocatable;
         bool m_checkType;
         std::string m_kernelImage;
+        std::string m_arch;
 };
 
 //}}}

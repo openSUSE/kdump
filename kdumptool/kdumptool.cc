@@ -105,7 +105,10 @@ void KdumpTool::execute()
 int KdumpTool::getErrorCode() const
     throw ()
 {
-    return m_subcommand->getErrorCode();
+    if (m_subcommand)
+        return m_subcommand->getErrorCode();
+    else
+        return 0; // use default error because then an exception has been thrown
 }
 
 //}}}
