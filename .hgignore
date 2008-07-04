@@ -1,12 +1,9 @@
 syntax: glob
 
-*.cmake
-*.make
 *.internal
-CMakeFiles
-CMakeCache.txt
 Makefile
 *.html
 kdumptool/kdumptool
 tags
 config.h
+build
