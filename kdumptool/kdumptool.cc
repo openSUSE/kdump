@@ -52,7 +52,7 @@ static void close_file(int error, void *arg)
 // -----------------------------------------------------------------------------
 KdumpTool::KdumpTool()
     throw ()
-    : m_errorcode(false)
+    : m_subcommand(NULL), m_errorcode(false)
 {}
 
 // -----------------------------------------------------------------------------
