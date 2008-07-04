@@ -72,7 +72,8 @@ Please read *kdump(5)* for documentation about the configuration options.
 GLOBAL OPTIONS
 --------------
 
-All option parsing is done via the *getopt_long(5)* command line.
+All option parsing is done via the *getopt_long(5)* function, and therefore
+follows all standard command line parsing rules.
 
 *-h* | *--help*::
   Shows help output and exits.
