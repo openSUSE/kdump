@@ -27,16 +27,19 @@ KERNEL_IMAGES=("kernel-bzImage-x86_64"
                "kernel-ELF-x86_64"
                "kernel-ELFgz-ia64"
                "kernel-ELF-ia64"
+               "kernel-ELF-ppc64"
                )
 RELOCATABLE=(  1
                0
                0
                1
-               1 )
+               1
+               0 )
 TYPE=(         "x86"
                "ELF gzip"
                "ELF"
                "ELF gzip"
+               "ELF"
                "ELF" )
 
                                                                            # }}}
