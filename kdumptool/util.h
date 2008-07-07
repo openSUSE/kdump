@@ -51,9 +51,30 @@ class Util {
          */
         static bool isGzipFile(const char *file)
         throw (KError);
+
+        /**
+         * Frees a vector.
+         */
+        template <typename T>
+        static void freev(T **vector)
+        throw ();
 };
 
 //}}}
+//{{{ Template implementations -------------------------------------------------
+template <typename T>
+void Util::freev(T **vector)
+    throw ()
+{
+    T **p = vector;
+
+    while (*p) {
+        delete[] *p;
+        p++;
+    }
+
+    delete[] vector;
+}
 
 #endif /* UTIL_H */
 
