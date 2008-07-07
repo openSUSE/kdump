@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # (c) 2008, Bernhard Walle <bwalle@suse.de>, SUSE LINUX Products GmbH
 #
@@ -17,14 +18,30 @@
 # 02110-1301, USA.
 #
 
-ENABLE_TESTING()
-ADD_TEST(kdumptool_identify_kernel
-         ${CMAKE_CURRENT_SOURCE_DIR}/identify_kernel.sh
-         ${CMAKE_BINARY_DIR}/kdumptool/kdumptool
-         ${CMAKE_CURRENT_SOURCE_DIR}/data)
+TESTIO=$1
+DIR=$2
 
-ADD_TEST(testio
-         ${CMAKE_CURRENT_SOURCE_DIR}/testio.sh
-         ${CMAKE_BINARY_DIR}/kdumptool/testio
-         ${CMAKE_CURRENT_SOURCE_DIR}/data)
+if [ -z "$DIR" ] || [ -z "$TESTIO" ] ; then
+    echo "Usage: $0 testio directory"
+    exit 1
+fi
 
+errors=0
+$TESTIO $DIR/test.txt $DIR/test.txt.1 $DIR/test.txt.2
+
+cmp $DIR/test.txt $DIR/test.txt.1
+if [ $? -ne 0 ] ; then
+    echo "$DIR/test.txt != $DIR/test.txt.1"
+    errors=$[$errors+1]
+fi
+
+cmp $DIR/test.txt $DIR/test.txt.2
+if [ $? -ne 0 ] ; then
+    echo "$DIR/test.txt != $DIR/test.txt.2"
+    errors=$[$errors+1]
+fi
+
+rm -f $DIR/test.txt.1 $DIR/test.txt.2
+exit $errors
+
+# vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:
