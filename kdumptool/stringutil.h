@@ -54,6 +54,24 @@ class Stringutil {
          */
         static char ** stringv2charv(const StringVector &strv)
         throw (KError);
+
+        /**
+         * Converts a string to a byte vector.
+         *
+         * @param[in] string the string
+         * @return the byte vector
+         */
+        static ByteVector str2bytes(const std::string &string)
+        throw ();
+
+        /**
+         * Converts a byte vector to a string.
+         *
+         * @param[in] bytes the byte vector
+         * @return the string
+         */
+        static std::string bytes2str(const ByteVector &bytes)
+        throw ();
 };
 
 //}}}

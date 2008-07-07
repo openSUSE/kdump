@@ -20,7 +20,17 @@
 #define GLOBAL_H
 
 #include <stdexcept>
+#include <list>
+#include <string>
+#include <vector>
 
+//{{{ Type definitions ---------------------------------------------------------
+
+typedef std::list<std::string> StringList;
+typedef std::vector<std::string> StringVector;
+typedef std::vector<unsigned char> ByteVector;
+
+//}}}
 //{{{ KError -------------------------------------------------------------------
 
 /**

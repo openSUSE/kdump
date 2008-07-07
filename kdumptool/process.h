@@ -122,9 +122,42 @@ class Process {
         void setStderrFile(const char *filename)
         throw (KError);
 
+        /**
+         * Sets the buffer where the bytes from stdin are read from to
+         * @p buffer. This function overwrites the Process::setStdinFd()
+         * and Process::setStdinFile().
+         *
+         * @param[in] buffer a byte vector
+         */
+        void setStdinBuffer(ByteVector *buffer)
+        throw ();
+
+        /**
+         * Sets the buffer where the bytes from stdout are written to.
+         * This function overwrites the Process::setStdoutFd() and
+         * Process::setStdoutFile().
+         *
+         * @param[in] buffer a byte vector
+         */
+        void setStdoutBuffer(ByteVector *buffer)
+        throw ();
+
+        /**
+         * Sets the buffer where the bytes from stdout are written to.
+         * This function overwrites the Process::setStderrFd() and
+         * Process::setStderrFile().
+         *
+         * @param[in] buffer a byte vector
+         */
+        void setStderrBuffer(ByteVector *buffer)
+        throw ();
+
     protected:
         void executeProcess(const std::string &name, const StringVector &args)
         throw (KError);
+
+        void closeFds()
+        throw ();
 
     private:
         int m_stdinFd;
@@ -133,6 +166,9 @@ class Process {
         bool m_needCloseStdin;
         bool m_needCloseStdout;
         bool m_needCloseStderr;
+        ByteVector *m_stdinBuffer;
+        ByteVector *m_stdoutBuffer;
+        ByteVector *m_stderrBuffer;
 };
 
 //}}}

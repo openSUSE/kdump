@@ -46,6 +46,7 @@ using std::fclose;
 // -----------------------------------------------------------------------------
 static void close_file(int error, void *arg)
 {
+    (void)error;
     fclose((FILE *)arg);
 }
 

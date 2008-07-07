@@ -79,4 +79,5 @@ bool Util::isX86(const std::string &arch)
         arch == "i586" || arch == "x86_64";
 }
 
+
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

@@ -16,7 +16,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 #
-add_executable(kdumptool
+
+SET(KDUMPTOOL_SRC
     optionparser.cc
     optionparser.h
     subcommand.h
@@ -37,8 +38,29 @@ add_executable(kdumptool
     global.h
     debug.cc
     debug.h
-    main.cc)
+    main.cc
+)
 
+add_executable(kdumptool ${KDUMPTOOL_SRC})
 target_link_libraries(kdumptool ${EXTRA_LIBS})
+
+SET(TESTIO_SRC
+    optionparser.cc
+    optionparser.h
+    process.h
+    process.cc
+    util.h
+    util.cc
+    stringutil.h
+    stringutil.cc
+    global.cc
+    global.h
+    debug.cc
+    debug.h
+    testio.cc
+)
+
+add_executable(testio ${TESTIO_SRC})
+target_link_libraries(testio ${EXTRA_LIBS})
 
 install (TARGETS kdumptool DESTINATION sbin)

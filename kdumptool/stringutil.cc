@@ -56,6 +56,25 @@ char ** Stringutil::stringv2charv(const StringVector &strv)
     return ret;
 }
 
+/* -------------------------------------------------------------------------- */
+ByteVector Stringutil::str2bytes(const string &string)
+    throw ()
+{
+    ByteVector ret;
+    const char *cstr = string.c_str();
+
+    ret.insert(ret.begin(), cstr, cstr + string.size());
+
+    return ret;
+}
+
+/* -------------------------------------------------------------------------- */
+string Stringutil::bytes2str(const ByteVector &bytes)
+    throw ()
+{
+    return string(bytes.begin(), bytes.end());
+}
+
 //}}}
 
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:
