@@ -28,17 +28,12 @@
 /**
  * Configuration. This is a singleton object. To use it, call
  *
- *   Configuration::config()->readConfig(filename, variables)
+ *   Configuration::config()->readConfig(filename)
  *
  * once. If you didn't call this, you'll get a KError on every attempt to
  * read a value.
  *
- * This configuration parser is shell based. This means, it sources the
- * configuration in a shell (/bin/sh), and prints the evaluated value from
- * that shell. This output is parsed.
- *
- * This mechanism is necessary for the /etc/sysconfig files to be parsed
- * according to the standard.
+ * The actual parsing is done in the ConfigParser class.
  */
 class Configuration {
 
@@ -60,17 +55,192 @@ class Configuration {
          *            is necessary to parse the configuration file could not
          *            be spawned
          */
-        void readFile(const std::string &filename,
-            const StringVector &variables)
+        void readFile(const std::string &filename)
         throw (KError);
 
+        /**
+         * Returns the value of KDUMP_KERNELVER.
+         *
+         * @return the kernel version
+         * @exception KError if Configuration::readFile() was not called
+         */
+        std::string getKernelVersion() const
+        throw (KError);
+
+        /**
+         * Returns the value of KDUMP_COMMANDLINE.
+         *
+         * @return the kernel command line for the kdump kernel
+         * @exception KError if Configuration::readFile() was not called
+         */
+        std::string getCommandLine() const
+        throw (KError);
+
+        /**
+         * Returns the value of KDUMP_COMMANDLINE_APPEND.
+         *
+         * @return the append kernel command line
+         * @exception KError if Configuration::readFile() was not called
+         */
+         std::string getCommandLineAppend() const
+         throw (KError);
+
+         /**
+          * Returns the value of KEXEC_OPTIONS.
+          *
+          * @return the the options for kexec
+          * @exception KError if Configuration::readFile() was not called
+          */
+         std::string getKexecOptions() const
+         throw (KError);
+
+         /**
+          * Returns the value of KDUMP_IMMEDIATE_REBOOT.
+          *
+          * @return the @c true if the system should be rebooted after
+          *         reboot immediately, @c false otherwise
+          * @exception KError if Configuration::readFile() was not called
+          */
+         bool getImmediateReboot() const
+         throw (KError);
+
+         /**
+          * Returns the value of KDUMP_TRANSFER.
+          *
+          * @return the custom transfer script
+          * @exception KError if Configuration::readFile() was not called
+          */
+         std::string getCustomTransfer() const
+         throw (KError);
+
+         /**
+          * Returns the value of KDUMP_SAVEDIR.
+          *
+          * @return the URL where the dump should be saved to
+          * @exception KError if Configuration::readFile() was not called
+          */
+         std::string getSavedir() const
+         throw (KError);
+
+         /**
+          * Returns the value of KDUMP_KEEP_OLD_DUMPS.
+          *
+          * @return the number of old dumps that should be kept
+          * @exception KError if Configuration::readFile() was not called
+          */
+         int getKeepOldDumps() const
+         throw (KError);
+
+         /**
+          * Returns the value of KDUMP_FREE_DISK_SIZE.
+          *
+          * @return the disk size in megabytes that should stay free
+          * @exception KError if Configuration::readFile() was not called
+          */
+         int getFreeDiskSize() const
+         throw (KError);
+
+         /**
+          * Returns the value of KDUMP_VERBOSE.
+          *
+          * @return a bit mask that represents the verbosity
+          * @exception KError if Configuration::readFile() was not called
+          */
+         int getVerbose() const
+         throw (KError);
+
+         /**
+          * Returns the value of KDUMP_DUMPLEVEL.
+          *
+          * @return the dump level (for makedumpfile)
+          * @exception KError if Configuration::readFile() was not called
+          */
+         int getDumpLevel() const
+         throw (KError);
+
+         /**
+          * Returns the value of KDUMP_DUMPFORMAT.
+          *
+          * @return the dump format (@c ELF, @c compressed, @c "")
+          * @exception KError if Configuration::readFile() was not called
+          */
+         std::string getDumpFormat() const
+         throw (KError);
+
+         /**
+          * Returns the value of KDUMP_CONTINUE_ON_ERROR.
+          *
+          * @return @c true if kdump should continue on error, @c false
+          *         otherwise
+          * @exception KError if Configuration::readFile() was not called
+          */
+         bool getContinueOnError() const
+         throw (KError);
+
+         /**
+          * Returns the value of KDUMP_REQUIRED_PROGRAMS.
+          *
+          * @return a space-separated list of required programs
+          * @exception KError if Configuration::readFile() was not called
+          */
+         std::string getRequiredPrograms() const
+         throw (KError);
+
+         /**
+          * Returns the value of KDUMP_PRESCRIPT.
+          *
+          * @return script that should be executed before the dump is saved
+          * @exception KError if Configuration::readFile() was not called
+          */
+         std::string getPrescript() const
+         throw (KError);
+
+         /**
+          * Returns the value of KDUMP_POSTSCRIPT.
+          *
+          * @return the kernel version
+          * @exception KError if Configuration::readFile() was not called
+          */
+         std::string getPostscript() const
+         throw (KError);
+
+         /**
+          * Returns the value of KDUMP_COPY_KERNEL.
+          *
+          * @return @c true if the full kernel should be copied, @c false
+          *         otherwise
+          * @exception KError if Configuration::readFile() was not called
+          */
+         bool getCopyKernel() const
+         throw (KError);
+
     protected:
+        Configuration()
+        throw ();
+
         virtual ~Configuration()
         throw () {}
 
     private:
         static Configuration *m_instance;
-        StringVector m_variables;
+        bool m_readConfig;
+        std::string m_kernelVersion;
+        std::string m_commandLine;
+        std::string m_commandLineAppend;
+        std::string m_kexecOptions;
+        bool m_immediateReboot;
+        std::string m_customTransfer;
+        std::string m_savedir;
+        int m_keepOldDumps;
+        int m_freeDiskSize;
+        int m_verbose;
+        int m_dumpLevel;
+        std::string m_dumpFormat;
+        bool m_continueOnError;
+        std::string m_requiredPrograms;
+        std::string m_prescript;
+        std::string m_postscript;
+        bool m_copyKernel;
 };
 
 //}}}

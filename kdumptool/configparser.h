@@ -108,6 +108,19 @@ class ConfigParser {
         int getIntValue(const std::string &name) const
         throw (KError);
 
+        /**
+         * Returns the value of a boolean configuration option. The parser
+         * tries to convert the string value which can be obtained by
+         * ConfigParser::getValue() to a boolean value.
+         *
+         * @param[in] name the configuration option (case matters)
+         * @return the value as boolean
+         *
+         * @exception KError if the value cannot be found
+         */
+        bool getBoolValue(const std::string &name) const
+        throw (KError);
+
     private:
         std::string m_configFile;
         StringStringMap m_variables;
