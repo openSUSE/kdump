@@ -23,12 +23,14 @@
 #include <list>
 #include <string>
 #include <vector>
+#include <map>
 
 //{{{ Type definitions ---------------------------------------------------------
 
 typedef std::list<std::string> StringList;
 typedef std::vector<std::string> StringVector;
 typedef std::vector<unsigned char> ByteVector;
+typedef std::map<std::string, std::string> StringStringMap;
 
 //}}}
 //{{{ KError -------------------------------------------------------------------

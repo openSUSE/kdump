@@ -28,3 +28,7 @@ ADD_TEST(testio
          ${CMAKE_BINARY_DIR}/kdumptool/testio
          ${CMAKE_CURRENT_SOURCE_DIR}/data)
 
+ADD_TEST(testconfig
+         ${CMAKE_CURRENT_SOURCE_DIR}/testconfig.sh
+         ${CMAKE_BINARY_DIR}/kdumptool/testconfig
+         ${CMAKE_CURRENT_SOURCE_DIR}/data/configuration.txt)

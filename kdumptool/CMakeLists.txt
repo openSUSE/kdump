@@ -28,6 +28,8 @@ SET(KDUMPTOOL_SRC
     identifykernel.cc
     configuration.h
     configuration.cc
+    configparser.h
+    configparser.cc
     process.h
     process.cc
     util.h
@@ -43,6 +45,7 @@ SET(KDUMPTOOL_SRC
 
 add_executable(kdumptool ${KDUMPTOOL_SRC})
 target_link_libraries(kdumptool ${EXTRA_LIBS})
+install (TARGETS kdumptool DESTINATION sbin)
 
 SET(TESTIO_SRC
     optionparser.cc
@@ -63,4 +66,21 @@ SET(TESTIO_SRC
 add_executable(testio ${TESTIO_SRC})
 target_link_libraries(testio ${EXTRA_LIBS})
 
-install (TARGETS kdumptool DESTINATION sbin)
+SET(TESTCONFIG_SRC
+    configparser.cc
+    configparser.h
+    util.h
+    util.cc
+    process.cc
+    process.h
+    stringutil.h
+    stringutil.cc
+    global.cc
+    global.h
+    debug.cc
+    debug.h
+    testconfig.cc
+)
+
+add_executable(testconfig ${TESTCONFIG_SRC})
+target_link_libraries(testconfig ${EXTRA_LIBS})
