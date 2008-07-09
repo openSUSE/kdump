@@ -19,8 +19,8 @@
 #include <iostream>
 #include <string>
 #include <zlib.h>
-#include <libelf/libelf.h>
-#include <libelf/gelf.h>
+#include <libelf.h>
+#include <gelf.h>
 #include <errno.h>
 #include <fcntl.h>
 
