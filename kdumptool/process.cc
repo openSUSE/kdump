@@ -237,7 +237,7 @@ uint8_t Process::execute(const string &name, const StringVector &args)
 
                     if (FD_ISSET(stdin_pipes[1], &write_fds)) {
 
-                        loff_t end_pos = min((long)m_stdinBuffer->size(),
+                        loff_t end_pos = min((loff_t)m_stdinBuffer->size(),
                                              write_pos+BUFSIZ);
 
                         copy(m_stdinBuffer->begin() + write_pos,
