@@ -40,6 +40,8 @@ SET(KDUMPTOOL_SRC
     global.h
     debug.cc
     debug.h
+    urlparser.cc
+    urlparser.h
     main.cc
 )
 
@@ -84,3 +86,23 @@ SET(TESTCONFIG_SRC
 
 add_executable(testconfig ${TESTCONFIG_SRC})
 target_link_libraries(testconfig ${EXTRA_LIBS})
+
+
+SET(TESTURLPARSER_SRC
+    urlparser.cc
+    urlparser.h
+    util.h
+    util.cc
+    process.cc
+    process.h
+    stringutil.h
+    stringutil.cc
+    global.cc
+    global.h
+    debug.cc
+    debug.h
+    testurlparser.cc
+)
+
+add_executable(testurlparser ${TESTURLPARSER_SRC})
+target_link_libraries(testurlparser ${EXTRA_LIBS})

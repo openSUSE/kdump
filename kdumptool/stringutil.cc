@@ -31,6 +31,17 @@ using std::strcpy;
 //{{{ Stringutil ---------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
+int Stringutil::string2number(const std::string &string)
+    throw ()
+{
+    int ret;
+    stringstream ss;
+    ss << string;
+    ss >> ret;
+    return ret;
+}
+
+// -----------------------------------------------------------------------------
 char ** Stringutil::stringv2charv(const StringVector &strv)
     throw (KError)
 {
