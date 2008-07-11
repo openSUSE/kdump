@@ -22,6 +22,7 @@
 
 #include "subcommand.h"
 #include "identifykernel.h"
+#include "ledblink.h"
 #include "debug.h"
 
 using std::map;
@@ -92,6 +93,7 @@ SubcommandManager::SubcommandManager()
     throw ()
 {
     addSubcommand(new IdentifyKernel());
+    addSubcommand(new LedBlink());
 }
 
 // -----------------------------------------------------------------------------

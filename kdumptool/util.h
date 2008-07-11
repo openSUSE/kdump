@@ -58,6 +58,14 @@ class Util {
         template <typename T>
         static void freev(T **vector)
         throw ();
+
+        /**
+         * Makes the current process a daemon running in the background.
+         *
+         * @exception KError if something goes wrong
+         */
+        static void daemonize()
+        throw (KError);
 };
 
 //}}}

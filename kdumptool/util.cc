@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <fcntl.h>
+#include <cstdlib>
 
 #include "global.h"
 #include "util.h"
@@ -79,5 +80,30 @@ bool Util::isX86(const std::string &arch)
         arch == "i586" || arch == "x86_64";
 }
 
+// -----------------------------------------------------------------------------
+void Util::daemonize()
+    throw (KError)
+{
+    int i;
+    int maxfd;
+    pid_t pid;
+
+    pid = fork();
+    if (pid)
+        exit(0);
+    else if (pid < 0)
+        throw KSystemError("fork() failed.", errno);
+
+    if (setsid() < 0)
+        throw KSystemError("Cannot become session leader.", errno);
+
+    chdir("/");
+    umask(0);
+
+    /* close all open file descriptors */
+    maxfd = sysconf(_SC_OPEN_MAX);
+    for(i = maxfd; i > 0; i--)
+       close(i);
+}
 
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:
