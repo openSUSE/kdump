@@ -27,6 +27,7 @@
 #include "config.h"
 #include "subcommand.h"
 #include "debug.h"
+#include "util.h"
 
 using std::list;
 using std::cerr;
@@ -53,7 +54,7 @@ static void close_file(int error, void *arg)
 // -----------------------------------------------------------------------------
 KdumpTool::KdumpTool()
     throw ()
-    : m_subcommand(NULL), m_errorcode(false)
+    : m_subcommand(NULL), m_errorcode(false), m_background(false)
 {}
 
 // -----------------------------------------------------------------------------
@@ -65,6 +66,8 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
         "Prints help output.");
     m_optionParser.addOption("version", 'v', OT_FLAG,
         "Prints version information and exits.");
+    m_optionParser.addOption("background", 'b', OT_FLAG,
+        "Run in the background (daemon mode).");
     m_optionParser.addOption("debug", 'D', OT_FLAG,
         "Prints debugging output.");
     m_optionParser.addOption("logfile", 'L', OT_STRING,
@@ -89,6 +92,10 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
         cerr << PROGRAM_VERSION_STRING << endl;
         exit(EXIT_SUCCESS);
     }
+
+    // background
+    if (m_optionParser.getValue("background").getFlag())
+        m_background = true;
 
     // debug messages
     bool debugEnabled = m_optionParser.getValue("debug").getFlag();
@@ -121,6 +128,11 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
 void KdumpTool::execute()
     throw (KError)
 {
+    if (m_background) {
+        Debug::debug()->dbg("Daemonize");
+        Util::daemonize();
+    }
+
     m_subcommand->execute();
 }
 

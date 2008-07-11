@@ -65,6 +65,7 @@ class KdumpTool {
         OptionParser m_optionParser;
         Subcommand *m_subcommand;
         int m_errorcode;
+        bool m_background;
 };
 
 //}}}
