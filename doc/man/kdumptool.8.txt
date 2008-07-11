@@ -102,11 +102,15 @@ That kernel had always "kdump" in its name on SUSE systems. If such a kernel is
 found, that kernel is preferred. However, if there is no such kernel, the kdump
 init script (_/etc/init.d/kdump_) looks for normal kernels that are relocatable.
 
-That subcommand has following syntax:
+Syntax
+~~~~~~
 
-*kdumptool* [_global options_] *identify_kernel* [_-r_] [_-t_]
+*kdumptool* [_global options_] *identify_kernel* [-r] [-t]
 
-It's necessary to provide either _-r_, _-t_ or both.
+It's necessary to provide either -r, -t or both.
+
+Options
+~~~~~~~
 
 *-r* | *--relocatable*::
   Checks if the kernel is relocatable. If it is, it prints the string
@@ -117,6 +121,26 @@ It's necessary to provide either _-r_, _-t_ or both.
   Prints the type of the kernel. There are following types: _x86_ for the
   bzImage format, _ELF_ for a normal ELF binary and _ELF gzip_ for gzipped
   ELF binary.
+
+LED BLINKING
+------------
+
+To indicate that kdump initrd is booted, the keyboard LEDs should be blinking
+because VGA may be broken when dumping from X. That subcommand is used to
+achieve that.
+
+Syntax
+~~~~~~
+
+*kdumptool* [_global options_] *led_blink* [-i _interval_]
+
+Options
+~~~~~~~
+
+*-i* _interval_ | *--interval* _interval_::
+  Use _interval_ ms for the blink interval instead of the default 250 ms.
+
+The command can only be executed as root.
 
 RETURN VALUE
 ------------
@@ -151,4 +175,4 @@ SEE ALSO
 *kexec*(8), *kdump*(5),
 http://en.opensuse.org/Kdump[_http://en.opensuse.org/Kdump_]
 
-// vim: set sw=4 ts=4 et tw=80 fdm=marker: :collapseFolds=1:
+// vim: set sw=4 ts=4 et tw=80 fdm=marker spelllang=en_gb spell: :collapseFolds=1:
