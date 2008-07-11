@@ -100,9 +100,9 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
             Debug::debug()->setFileHandle(fp);
             on_exit(close_file, fp);
         }
+    }
+    if (debugEnabled)
         Debug::debug()->setLevel(Debug::DL_TRACE);
-    } else if (debugEnabled)
-        Debug::debug()->dbg("Setting debug level to \"TRACE\".");
 
     // parse arguments
     vector<string> arguments = m_optionParser.getArgs();
