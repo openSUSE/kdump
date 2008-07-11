@@ -8,3 +8,5 @@ tags
 config.h
 build
 *.marks
+*.pdf
+*.xml
