@@ -60,6 +60,91 @@ class Terminal {
 };
 
 //}}}
+//{{{ Progress -----------------------------------------------------------------
+
+
+/**
+ * Interface for a progress meter.
+ */
+class Progress {
+
+    public:
+        /**
+         * Destroys a Progress object.
+         */
+        virtual ~Progress() {}
+
+    public:
+        /**
+         * This method has to be called when the operation starts.
+         */
+        virtual void start()
+        throw () = 0;
+
+        /**
+         * This operation has to be called repeadedly.
+         *
+         * @param[in] current the current progress value
+         * @param[in] max the maximum progress value
+         */
+        virtual void progressed(int current, int max)
+        throw () = 0;
+
+        /**
+         * This method has to be called when the operation is finished.
+         * It displays the final 100 %.
+         */
+        virtual void stop()
+        throw () = 0;
+};
+
+//}}}
+//{{{ TerminalProgress ---------------------------------------------------------
+
+/**
+ * Retrieve some information about the terminal.
+ */
+class TerminalProgress : public Progress {
+
+    public:
+        /**
+         * Creates a new object of type TerminalProgress.
+         *
+         * @param[in] name the name of the action that is taking place
+         *            here
+         */
+        TerminalProgress(const std::string &name)
+        throw ();
+
+        /**
+         * This method has to be called when the operation starts.
+         */
+        void start()
+        throw ();
+
+        /**
+         * This operation has to be called repeadedly.
+         *
+         * @param[in] current the current progress value
+         * @param[in] max the maximum progress value
+         */
+        void progressed(int current, int max)
+        throw ();
+
+        /**
+         * This method has to be called when the operation is finished.
+         * It displays the final 100 %.
+         */
+        void stop()
+        throw ();
+
+    private:
+        std::string m_name;
+        int m_linelen;
+        int m_progresslen;
+};
+
+//}}}
 
 #endif /* PROGRESS_H */
 

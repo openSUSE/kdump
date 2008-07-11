@@ -16,11 +16,25 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  * 02110-1301, USA.
  */
+#include <iomanip>
+#include <iostream>
+
 #include <unistd.h>
 #include <termios.h>
 #include <sys/ioctl.h>
 
 #include "progress.h"
+
+#define NAME_MAXLENGTH 30
+#define DEFAULT_WIDTH  80
+
+using std::string;
+using std::setw;
+using std::cout;
+using std::left;
+using std::right;
+using std::endl;
+using std::flush;
 
 //{{{ Terminal -----------------------------------------------------------------
 
@@ -45,5 +59,70 @@ Terminal::Size Terminal::getSize() const
 }
 
 //}}}
+//{{{ TerminalProgress ---------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+TerminalProgress::TerminalProgress(const string &name)
+    throw ()
+    : m_name(name)
+{
+    // truncate the name
+    if (m_name.size() > NAME_MAXLENGTH) {
+        m_name = m_name.substr(0, NAME_MAXLENGTH);
+    }
+
+    Terminal t;
+    m_linelen = t.getSize().width;
+    if (m_linelen == 0)
+        m_linelen = DEFAULT_WIDTH;
+
+    // subtract 1 for the space between string and bar, 1 for the leading
+    // '|' and 1 for the trailing '|', and one space free, 4 for ...%
+    m_progresslen = m_linelen - NAME_MAXLENGTH - 8;
+}
+
+// -----------------------------------------------------------------------------
+void TerminalProgress::start()
+    throw ()
+{
+    cout << "\r" << setw(NAME_MAXLENGTH) << left << m_name << " Starting.";
+}
+
+// -----------------------------------------------------------------------------
+void TerminalProgress::progressed(int current, int max)
+    throw ()
+{
+    int number_of_hashes;
+    int number_of_dashes;
+    int percent;
+
+    percent = current*100/max;
+    number_of_hashes = int(double(current)/max*m_progresslen);
+
+    // normalise
+    if (number_of_hashes > m_progresslen)
+        number_of_hashes = m_progresslen;
+    if (number_of_hashes < 0)
+        number_of_hashes = 0;
+
+    number_of_dashes = m_progresslen - number_of_hashes;
+
+    cout << "\r" << setw(NAME_MAXLENGTH) << left << m_name << " ";
+    cout << "|";
+    for (int i = 0; i < number_of_hashes; i++)
+        cout << '#';
+    for (int i = 0; i < number_of_dashes; i++)
+        cout << '-';
+    cout << "|";
+    cout << setw(3) << right << percent << '%'  << flush;
+}
+
+// -----------------------------------------------------------------------------
+void TerminalProgress::stop()
+    throw ()
+{
+    cout << "\r" << setw(NAME_MAXLENGTH) << left << m_name << " Finished.";
+    cout << endl;
+}
 
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:
