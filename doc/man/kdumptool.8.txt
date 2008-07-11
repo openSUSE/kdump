@@ -81,6 +81,10 @@ follows all standard command line parsing rules.
 *-v* | *--version*::
   Shows version information and exits.
 
+*-b* | *--background*::
+  Run in daemon mode. This option is useful for the *led_blink*
+  subcommand.
+
 *-D* | *--debug*::
   Prints debugging information (to stderr). If the output is redirected to
   a terminal, then the various levels of debug information are colored. Use
@@ -129,6 +133,9 @@ To indicate that kdump initrd is booted, the keyboard LEDs should be blinking
 because VGA may be broken when dumping from X. That subcommand is used to
 achieve that.
 
+The command can only be executed as root. Consider using the *-b*
+(*--background*) option.
+
 Syntax
 ~~~~~~
 
@@ -140,7 +147,6 @@ Options
 *-i* _interval_ | *--interval* _interval_::
   Use _interval_ ms for the blink interval instead of the default 250 ms.
 
-The command can only be executed as root.
 
 RETURN VALUE
 ------------
