@@ -101,6 +101,154 @@ OPTIONS
 *KDUMP_COPY_KERNEL*::
     Dummy.
 
+
+URL FORMAT
+----------
+
+In general, the URL format is
+
+_protocol_://_specification_
+
+where _protocol_ is one of:
+
+* *file*,
+* *ftp*,
+* *sftp* (aliases are *ssh* or *scp*),
+* *nfs*
+* *cifs* (alias is *smb*).
+
+The _specification_ varies for each protocol.
+
+Local files (_file_)
+~~~~~~~~~~~~~~~~~~~~
+
+That type describes a local path.
+
+_Format:_ +file://]_path_+
+
+As shown, the _file_ prefix is optional, i.e. a simple path is still valid.
+The _path_ must start with a leading slash (/), i.e. only absolute paths are
+allowed.
+
+_Examples:_
+
+* +/var/log/dump+
+* +file:///var/log/dump+
+
+
+File Transfer Protocol (_ftp_)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This URL type is used to specify paths on a remote FTP server.
+
+_Format:_ `ftp:// [ _user_ [:_password_]@ ] _hostname_ [:_port_] ] _path_`
+
+The remote _user_ is optional, if no user is specified, anonymous FTP is
+assumed. Even if a username is specified, the _password_ is optional, if no
+password is specified, an empty password is used. When the username is
+"anonymous", then "$USER@$HOSTNAME" is used as password because some FTP
+servers deny anonymous FTP with empty passwords.
+
+_hostname_ can be either a (DNS-)resolvable hostname, with or without a domain
+name, or an IP address in totted decimal format. _port_ can be used to
+specify the remote port, if no port is specified in the URL, the default FTP
+port is used. Finally, _path_ must conform to the same rules as for local
+files (see above).
+
+_Examples:_
+
+* +ftp://neptunium/var/log/dump+
+* +ftp://bwalle@neptunium.suse.de/var/log/dump+
+* +ftp://bwalle:dontsay@strauss.suse.de:123/var/log/dump+
+* +ftp://192.168.0.70/var/log/dump+
+
+
+Secure File Transfer Protocol (_sftp_)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This URL type is used to specify paths on a remote server that is reachable via
+SFTP. It's important that an SFTP server must be running (which is the default
+on SUSE), the *kdumptool* does not use FISH (FIles transferred over SHell
+protocol).
+
+_Format:_ `sftp:// [ _user_ [:_password_]@ ] _hostname_ [:_port_] ] _path_`
+
+It's valid to use the alias "ssh" or "scp" as alias for "sftp" (for backward
+compatibility), but the "sftp" prefix is recommended.
+
+For the elements, see the description of FTP above. Please note that the
+use of an password here is not recommended. The recommended way is to add the
+key where the file should be copied to to the "authorized_keys" file of the
+root user. For example, if you want to save the dump to the "kdump" user of
+the machine "collector", then generate a private/public key pair on "collector"
+with `ssh-keygen -t dsa`. Append the file _id_dsa.pub_ (in _~kdump/.ssh/_)
+to _/root/.ssh/.authorized_keys_.
+
+--------------------------------------------------------------------------------
+tux@earth:~/> ssh kdump@collector
+kdump@collector:~/> ssh-keygen -t dsa
+...
+kdump@collector:~/> exit
+tux@earth:~/> su
+root@earth:/root> scp kdump@collector:~/.ssh/id_dsa.pub /tmp/id_dsa.pub
+root@earth:/root> cat /tmp/dsa.pub >> /root/.ssh/authorized_keys
+--------------------------------------------------------------------------------
+
+Don't use any password to encrypt the key. *kdumptool* is designed to be used
+non-interactively.
+
+_Examples:_
+
+* +sftp://kdump@collector:22/var/log/dump+
+* +sftp://neptunium/var/log/dump+
+* +scp://neptunium/var/log/dump+
+
+
+Network File System (_nfs_)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+NFS is used to specify remote hosts that export their file system via NFS.
+NFS doesn't use username and password. Also, the URL format cannot be used
+to specify options. As default, the _nolock_ option is used.
+
+_Format:_ +nfs://_host_ [:_port:] _path_
+
+_host_ is the hostname, _port_ is optional (should not be used, it is only
+implemented for completeness with the other URL formats). _path_ specifies
+the path that is exported via NFS in _/etc/exports_ (or a subdirectory of a
+path that is exported).
+
+_Examples:_
+
+* +nfs://neptunium/var/log/dump+
+* +nfs://10.10.2.120/var/log/dump
+
+
+Common Internet File System (_cifs_)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+CIFS is used to specify remote hosts that export a file system via CIFS,
+also known as SMB (although they are technically different, CIFS is the
+successor of SMB). This could be a Microsoft Windows server, or a Samba
+Server running on Unix or MacOS.
+
+_Format:_ +cifs:// [_user_ [:_password_] @] _host_ _path_
+
+Although it's technically not 100 % correct, _smb_ is used as an alias for
+_cifs_, so the program will always return _cifs_ even if you specify _smb_.
+
+The parts of the URL are described in the FTP section above.
+
+*Note:* You have to use the slash as path separator, not the backslash as on
+Microsoft Windows.
+
+_Examples:_
+
+* +cifs://neptunium/var/log/dump+
+* +cifs://bwalle:dontsay@neptunium:/var/log/dump+
+* +smb://bwalle@192.168.0.70:/var/log+
+
+
 BUGS
 ----
 Please report bugs and enhancement requests at https://bugzilla.novell.com[].
