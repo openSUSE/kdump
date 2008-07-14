@@ -42,6 +42,8 @@ SET(KDUMPTOOL_SRC
     debug.h
     urlparser.cc
     urlparser.h
+    dataprovider.cc
+    dataprovider.h
     ledblink.cc
     ledblink.h
     progress.cc

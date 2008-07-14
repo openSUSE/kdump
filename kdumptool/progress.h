@@ -82,12 +82,15 @@ class Progress {
         throw () = 0;
 
         /**
-         * This operation has to be called repeadedly.
+         * This operation has to be called repeadedly. We use 64 bit integers
+         * because that function may be used in file access functions that that
+         * can be 64 bit large (on 32 bit systems with Large File Support).
          *
          * @param[in] current the current progress value
          * @param[in] max the maximum progress value
          */
-        virtual void progressed(int current, int max)
+        virtual void progressed(unsigned long long current,
+                                unsigned long long max)
         throw () = 0;
 
         /**
@@ -128,7 +131,8 @@ class TerminalProgress : public Progress {
          * @param[in] current the current progress value
          * @param[in] max the maximum progress value
          */
-        void progressed(int current, int max)
+        void progressed(unsigned long long current,
+                        unsigned long long max)
         throw ();
 
         /**

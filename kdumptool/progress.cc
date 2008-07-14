@@ -89,7 +89,8 @@ void TerminalProgress::start()
 }
 
 // -----------------------------------------------------------------------------
-void TerminalProgress::progressed(int current, int max)
+void TerminalProgress::progressed(unsigned long long current,
+                                  unsigned long long max)
     throw ()
 {
     int number_of_hashes;
@@ -124,5 +125,7 @@ void TerminalProgress::stop()
     cout << "\r" << setw(NAME_MAXLENGTH) << left << m_name << " Finished.";
     cout << endl;
 }
+
+//}}}
 
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:
