@@ -30,6 +30,7 @@
 #include "urlparser.h"
 #include "util.h"
 #include "fileutil.h"
+#include "stringutil.h"
 
 using std::fopen;
 using std::fread;
@@ -50,6 +51,9 @@ void FileTransfer::perform(DataProvider *dataprovider,
     char *buffer = new char[buffersize];
     bool prepared = false;
 
+    Debug::debug()->trace("FileTransfer::perform(%p, %s, %s)",
+        dataprovider, target_url, target_file);
+
     try {
         dataprovider->prepare();
         prepared = true;
@@ -65,16 +69,15 @@ void FileTransfer::perform(DataProvider *dataprovider,
             if (read_data == buffersize && Util::isZero(buffer, buffersize)) {
                 int ret = fseek(fp, buffersize, SEEK_CUR);
                 if (ret != 0)
-                    throw KSystemError("fseek() failed.", errno);
+                    throw KSystemError("FileTransfer::perform: fseek() failed.",
+                        errno);
             } else {
-                int ret = fwrite(buffer, buffersize, 1, fp);
-                if (ret != 0)
-                    throw KSystemError("write() failed.", errno);
+                int ret = fwrite(buffer, 1, read_data, fp);
+                if (ret != read_data)
+                    throw KSystemError("FileTransfer::perform: fwrite() failed"
+                        " with " + Stringutil::number2string(ret) +  ".", errno);
             }
         }
-
-        dataprovider->finish();
-
     } catch (...) {
         close(fp);
         if (prepared)
@@ -107,7 +110,7 @@ FILE *FileTransfer::open(const char *target_url, const char *target_file,
 
     string file = FileUtil::pathconcat(dir, target_file);
 
-    FILE *fp = fopen(file.c_str(), "r");
+    FILE *fp = fopen(file.c_str(), "w");
     if (!fp)
         throw KSystemError("Error in fopen for " + file, errno);
 
