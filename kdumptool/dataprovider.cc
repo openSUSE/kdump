@@ -106,8 +106,6 @@ void FileDataProvider::prepare()
 size_t FileDataProvider::getData(char *buffer, size_t maxread)
     throw (KError)
 {
-    Debug::debug()->trace("FileDataProvider::getData(%d)", maxread);
-
     if (!m_file)
         throw KError("File " + m_filename + " not opened.");
 
@@ -117,7 +115,7 @@ size_t FileDataProvider::getData(char *buffer, size_t maxread)
 
     Progress *p = getProgress();
     if (p)
-        p->progressed(fseek(m_file, SEEK_CUR, 0), m_fileSize);
+        p->progressed(ftell(m_file), m_fileSize);
 
     return ret;
 }
@@ -128,8 +126,10 @@ void FileDataProvider::finish()
 {
     Debug::debug()->trace("FileDataProvider::finish");
 
-    fclose(m_file);
-    m_file = NULL;
+    if (m_file) {
+        fclose(m_file);
+        m_file = NULL;
+    }
     AbstractDataProvider::finish();
 }
 
@@ -146,8 +146,6 @@ BufferDataProvider::BufferDataProvider(const ByteVector &data)
 size_t BufferDataProvider::getData(char *buffer, size_t maxread)
     throw (KError)
 {
-    Debug::debug()->trace("BufferDataProvider::getData(%d)", maxread);
-
     size_t size = min((unsigned long long)maxread,
                       m_data.size() - m_currentPos);
 
@@ -187,8 +185,6 @@ void ProcessDataProvider::prepare()
 size_t ProcessDataProvider::getData(char *buffer, size_t maxread)
     throw (KError)
 {
-    Debug::debug()->trace("ProcessDataProvider::getData(%d)", maxread);
-
     if (!m_processFile)
         throw KError("Process " + m_cmdline + " not started.");
 
