@@ -66,6 +66,16 @@ class Util {
          */
         static void daemonize()
         throw (KError);
+
+        /**
+         * Checks if the buffer is entirely zero.
+         *
+         * @param[in] buffer the buffer to check
+         * @param[in] size the size of the buffer
+         * @return @c true if all bytes are zero, @c false if not
+         */
+        static bool isZero(const char *buffer, size_t size)
+        throw ();
 };
 
 //}}}

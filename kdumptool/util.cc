@@ -106,4 +106,15 @@ void Util::daemonize()
        close(i);
 }
 
+// -----------------------------------------------------------------------------
+bool Util::isZero(const char *buffer, size_t size)
+    throw ()
+{
+    for (size_t i = 0; i < size; i++)
+        if (buffer[i] != 0)
+            return false;
+
+    return true;
+}
+
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:
