@@ -64,7 +64,7 @@ Terminal::Size Terminal::getSize() const
 // -----------------------------------------------------------------------------
 TerminalProgress::TerminalProgress(const string &name)
     throw ()
-    : m_name(name)
+    : m_name(name), m_lastUpdate(0)
 {
     // truncate the name
     if (m_name.size() > NAME_MAXLENGTH) {
@@ -85,6 +85,7 @@ TerminalProgress::TerminalProgress(const string &name)
 void TerminalProgress::start()
     throw ()
 {
+    clearLine();
     cout << "\r" << setw(NAME_MAXLENGTH) << left << m_name << " Starting.";
 }
 
@@ -96,6 +97,10 @@ void TerminalProgress::progressed(unsigned long long current,
     int number_of_hashes;
     int number_of_dashes;
     int percent;
+
+    time_t now = time(NULL);
+    if (now <= m_lastUpdate)
+        return;
 
     percent = current*100/max;
     number_of_hashes = int(double(current)/max*m_progresslen);
@@ -116,14 +121,24 @@ void TerminalProgress::progressed(unsigned long long current,
         cout << '-';
     cout << "|";
     cout << setw(3) << right << percent << '%'  << flush;
+
+    m_lastUpdate = now;
 }
 
 // -----------------------------------------------------------------------------
 void TerminalProgress::stop()
     throw ()
 {
+    clearLine();
     cout << "\r" << setw(NAME_MAXLENGTH) << left << m_name << " Finished.";
     cout << endl;
+}
+
+// -----------------------------------------------------------------------------
+void TerminalProgress::clearLine()
+    throw ()
+{
+    cout << "\r" << setw(m_linelen) << " ";
 }
 
 //}}}

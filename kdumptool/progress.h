@@ -19,6 +19,8 @@
 #ifndef PROGRESS_H
 #define PROGRESS_H
 
+#include <ctime>
+
 #include "global.h"
 
 //{{{ Terminal -----------------------------------------------------------------
@@ -142,10 +144,15 @@ class TerminalProgress : public Progress {
         void stop()
         throw ();
 
+    protected:
+        void clearLine()
+        throw ();
+
     private:
         std::string m_name;
         int m_linelen;
         int m_progresslen;
+        time_t m_lastUpdate;
 };
 
 //}}}
