@@ -24,6 +24,7 @@
 #include "dataprovider.h"
 #include "global.h"
 #include "progress.h"
+#include "debug.h"
 
 using std::fopen;
 using std::fread;
@@ -43,6 +44,7 @@ AbstractDataProvider::AbstractDataProvider()
 void AbstractDataProvider::prepare()
     throw (KError)
 {
+    Debug::debug()->trace("AbstractDataProvider::prepare");
     if (m_progress)
         m_progress->start();
 }
@@ -51,6 +53,7 @@ void AbstractDataProvider::prepare()
 void AbstractDataProvider::finish()
     throw (KError)
 {
+    Debug::debug()->trace("AbstractDataProvider::finish");
     if (m_progress)
         m_progress->stop();
 }
@@ -59,6 +62,7 @@ void AbstractDataProvider::finish()
 void AbstractDataProvider::setProgress(Progress *progress)
     throw ()
 {
+    Debug::debug()->trace("AbstractDataProvider::setProgress, p=%p", progress);
     m_progress = progress;
 }
 
@@ -82,6 +86,8 @@ FileDataProvider::FileDataProvider(const char *filename)
 void FileDataProvider::prepare()
     throw (KError)
 {
+    Debug::debug()->trace("FileDataProvider::prepare");
+
     m_file = fopen(m_filename.c_str(), "r");
     if (!m_file)
         throw KSystemError("Cannot open file " + m_filename, errno);
@@ -98,6 +104,8 @@ void FileDataProvider::prepare()
 size_t FileDataProvider::getData(char *buffer, size_t maxread)
     throw (KError)
 {
+    Debug::debug()->trace("FileDataProvider::getData(%d)", maxread);
+
     if (!m_file)
         throw KError("File " + m_filename + " not opened.");
 
@@ -116,6 +124,8 @@ size_t FileDataProvider::getData(char *buffer, size_t maxread)
 void FileDataProvider::finish()
     throw (KError)
 {
+    Debug::debug()->trace("FileDataProvider::finish");
+
     fclose(m_file);
     m_file = NULL;
     AbstractDataProvider::finish();
@@ -134,6 +144,8 @@ BufferDataProvider::BufferDataProvider(const ByteVector &data)
 size_t BufferDataProvider::getData(char *buffer, size_t maxread)
     throw (KError)
 {
+    Debug::debug()->trace("BufferDataProvider::getData(%d)", maxread);
+
     size_t size = min((unsigned long long)maxread,
                       m_data.size() - m_currentPos);
 
@@ -162,6 +174,8 @@ ProcessDataProvider::ProcessDataProvider(const char *cmdline)
 void ProcessDataProvider::prepare()
     throw (KError)
 {
+    Debug::debug()->trace("ProcessDataProvider::prepare");
+
     m_processFile = popen(m_cmdline.c_str(), "r");
     if (!m_processFile)
         throw KSystemError("Could not start process " + m_cmdline, errno);
@@ -171,6 +185,8 @@ void ProcessDataProvider::prepare()
 size_t ProcessDataProvider::getData(char *buffer, size_t maxread)
     throw (KError)
 {
+    Debug::debug()->trace("ProcessDataProvider::getData(%d)", maxread);
+
     if (!m_processFile)
         throw KError("Process " + m_cmdline + " not started.");
 
@@ -185,6 +201,8 @@ size_t ProcessDataProvider::getData(char *buffer, size_t maxread)
 void ProcessDataProvider::finish()
     throw (KError)
 {
+    Debug::debug()->trace("ProcessDataProvider::finish");
+
     pclose(m_processFile);
     m_processFile = NULL;
 }
