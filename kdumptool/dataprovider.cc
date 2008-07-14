@@ -93,7 +93,9 @@ void FileDataProvider::prepare()
         throw KSystemError("Cannot open file " + m_filename, errno);
 
     // get the file size
-    m_fileSize = fseek(m_file, 0, SEEK_END);
+    if (fseek(m_file, 0, SEEK_END) != 0)
+        throw KSystemError("Cannot seek to end in file " + m_filename, errno);
+    m_fileSize = ftell(m_file);
     if (fseek(m_file, 0, SEEK_SET) != 0)
         throw KSystemError("Cannot seek to 0 in file " + m_filename, errno);
 
