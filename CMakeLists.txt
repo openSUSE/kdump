@@ -30,6 +30,12 @@ set (PACKAGE_VERSION "0.5.0")
 
 include_directories("${PROJECT_BINARY_DIR}")
 
+
+#
+# Defines
+#
+ADD_DEFINITIONS(-D_FILE_OFFSET_BITS=64)
+
 #
 # Find programs
 #
