@@ -109,8 +109,9 @@ size_t FileDataProvider::getData(char *buffer, size_t maxread)
     if (!m_file)
         throw KError("File " + m_filename + " not opened.");
 
+    errno = 0;
     size_t ret = fread(buffer, 1, maxread, m_file);
-    if (ret < 0)
+    if (ret == 0 && errno != 0)
         throw KSystemError("Error reading from " + m_filename, errno);
 
     Progress *p = getProgress();
@@ -153,7 +154,7 @@ size_t BufferDataProvider::getData(char *buffer, size_t maxread)
     if (size <= 0)
         return 0;
 
-    for (int i = 0; i < size; i++)
+    for (unsigned int i = 0; i < size; i++)
         buffer[i] = m_data[i+m_currentPos];
 
     m_currentPos += size;
@@ -167,7 +168,7 @@ size_t BufferDataProvider::getData(char *buffer, size_t maxread)
 // -----------------------------------------------------------------------------
 ProcessDataProvider::ProcessDataProvider(const char *cmdline)
     throw ()
-    : m_cmdline(NULL), m_processFile(NULL)
+    : m_cmdline(cmdline), m_processFile(NULL)
 {}
 
 // -----------------------------------------------------------------------------
@@ -188,8 +189,9 @@ size_t ProcessDataProvider::getData(char *buffer, size_t maxread)
     if (!m_processFile)
         throw KError("Process " + m_cmdline + " not started.");
 
+    errno = 0;
     size_t ret = fread(buffer, 1, maxread, m_processFile);
-    if (ret < 0)
+    if (ret == 0 && errno != 0)
         throw KSystemError("Error reading from " + m_cmdline, errno);
 
     return ret;
