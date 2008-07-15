@@ -132,6 +132,14 @@ class URLParser {
         std::string getPath() const
         throw ();
 
+        /**
+         * Returns the URL.
+         *
+         * @return the URL as string
+         */
+        std::string getURL() const
+        throw ();
+
     public:
 
         /**
@@ -172,6 +180,7 @@ class URLParser {
 
     private:
         bool m_parsed;
+        std::string m_url;
         Protocol m_protocol;
         std::string m_hostname;
         std::string m_password;

@@ -100,6 +100,8 @@ void URLParser::parseURL(const std::string &url)
     if (url.size() == 0)
         throw KError("URL must be longer than 0 characters.");
 
+    m_url = url;
+
     // local files that don't have URL syntax
     // we support that for backward-compatibility
     if (url[0] == '/') {
@@ -249,28 +251,28 @@ URLParser::Protocol URLParser::getProtocol() const
 }
 
 // -----------------------------------------------------------------------------
-std::string URLParser::getProtocolAsString() const
+string URLParser::getProtocolAsString() const
     throw ()
 {
     return protocol2string(m_protocol);
 }
 
 // -----------------------------------------------------------------------------
-std::string URLParser::getUsername() const
+string URLParser::getUsername() const
     throw ()
 {
     return m_username;
 }
 
 // -----------------------------------------------------------------------------
-std::string URLParser::getPassword() const
+string URLParser::getPassword() const
     throw ()
 {
     return m_password;
 }
 
 // -----------------------------------------------------------------------------
-std::string URLParser::getHostname() const
+string URLParser::getHostname() const
     throw ()
 {
     return m_hostname;
@@ -284,10 +286,17 @@ int URLParser::getPort() const
 }
 
 // -----------------------------------------------------------------------------
-std::string URLParser::getPath() const
+string URLParser::getPath() const
     throw ()
 {
     return m_path;
+}
+
+// -----------------------------------------------------------------------------
+string URLParser::getURL() const
+    throw ()
+{
+    return m_url;
 }
 
 //}}}
