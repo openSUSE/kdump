@@ -19,16 +19,42 @@
 #include <stdexcept>
 #include <cstring>
 #include <errno.h>
+#include <sys/socket.h>
+#include <netdb.h>
 
 #include "global.h"
 
+#define MAXERROR 4096
+
 using std::strerror;
+using std::string;
 
 // -----------------------------------------------------------------------------
 const char *KSystemError::what() const
     throw ()
 {
-    return (m_errorstring + " (" + strerror(m_errorcode) + ")").c_str();
+    static char buffer[MAXERROR];
+
+    string errorstring = m_errorstring + " (" + strerror(m_errorcode) + ")";
+
+    strncpy(buffer, errorstring.c_str(), MAXERROR);
+    buffer[MAXERROR-1] = 0;
+
+    return buffer;
+}
+
+/* -------------------------------------------------------------------------- */
+const char *KNetError::what() const
+    throw ()
+{
+    static char buffer[MAXERROR];
+
+    string errorstring = m_errorstring + " (" + hstrerror(m_errorcode) + ")";
+
+    strncpy(buffer, errorstring.c_str(), MAXERROR);
+    buffer[MAXERROR-1] = 0;
+
+    return buffer;
 }
 
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

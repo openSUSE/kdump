@@ -88,6 +88,45 @@ class KSystemError : public KError {
 };
 
 //}}}
+//{{{ KNetError ----------------------------------------------------------------
+
+/**
+ * Standard error class for network errors that store the error information
+ * in a variable called h_errno.
+ */
+class KNetError : public KError {
+    public:
+
+        /**
+         * Creates a new object of KError with string as error message.
+         *
+         * @param[in] string the error message
+         * @param[in] errorcode the value of h_errno
+         */
+        KNetError(const std::string &string, int errorcode)
+            : KError(string), m_errorcode(errorcode),
+              m_errorstring(string) {}
+
+        /**
+         * Returns a readable error message from the string and the error code.
+         *
+         * @return Error message in the format 'string (strerror(errorcode))'.
+         */
+        virtual const char *what() const
+        throw ();
+
+        /**
+         * Do't know why that is necessary to avoid compiler errors.
+         */
+        virtual ~KNetError() throw () {}
+
+    private:
+        int m_errorcode;
+        std::string m_errorstring;
+};
+
+//}}}
+
 
 #endif /* GLOBAL_H */
 
