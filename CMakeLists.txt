@@ -69,6 +69,15 @@ IF(NOT LIBELF_FOUND)
     MESSAGE(FATAL_ERROR "libelf not found. Install libelf-devel or something like that")
 ENDIF(NOT LIBELF_FOUND)
 
+# libcurl
+INCLUDE(FindCURL)
+SET(EXTRA_LIBS ${CURL_LIBRARIES})
+INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIRS})
+
+IF(NOT CURL_FOUND)
+    MESSAGE(FATAL_ERROR "CURL not found. Install curl-devel or something like that")
+ENDIF(NOT CURL_FOUND)
+
 #
 # Configure file
 #
