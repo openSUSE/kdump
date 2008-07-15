@@ -199,7 +199,41 @@ class FTPTransfer : public URLTransfer {
 };
 
 //}}}
+//{{{ SFTPTransfer -------------------------------------------------------------
 
+/**
+ * Transfers a file to SFTP (upload).
+ */
+class SFTPTransfer : public URLTransfer {
+
+    public:
+
+        /**
+         * Creates a SFTPTransfer object.
+         *
+         * @exception KError when initialising the underlying library fails
+         */
+        SFTPTransfer(const char *target_url)
+        throw (KError);
+
+        /**
+         * Destroys a SFTPTransfer object.
+         */
+        ~SFTPTransfer()
+        throw ();
+
+        /**
+         * Transfers the file.
+         *
+         * @see Transfer::perform()
+         */
+        void perform(DataProvider *dataprovider,
+                     const char *target_file)
+        throw (KError);
+
+};
+
+//}}}
 
 #endif /* TRANSFER_H */
 
