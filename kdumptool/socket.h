@@ -43,6 +43,13 @@ class Socket {
             ST_UCP      /**< IPv4 and UDP */
         };
 
+        /**
+         * Some default ports.
+         */
+        enum DefaultPort {
+            DP_SSH = 22 /**< Secure Shell */
+        };
+
     public:
 
         /**
