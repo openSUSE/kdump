@@ -78,6 +78,15 @@ IF(NOT CURL_FOUND)
     MESSAGE(FATAL_ERROR "CURL not found. Install curl-devel or something like that")
 ENDIF(NOT CURL_FOUND)
 
+# libssh2
+INCLUDE(Findlibssh2)
+SET(EXTRA_LIBS ${LIBSSH2_LIBRARIES})
+INCLUDE_DIRECTORIES(${LIBSSH2_INCLUDE_DIRS})
+
+IF(NOT LIBSSH2_FOUND)
+    MESSAGE(FATAL_ERROR "libssh2 not found. Install libssh2-devel or something like that")
+ENDIF(NOT LIBSSH2_FOUND)
+
 #
 # Configure file
 #
