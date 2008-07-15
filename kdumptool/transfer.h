@@ -23,9 +23,12 @@
 #include <cstdarg>
 
 #include <curl/curl.h>
+#include <libssh2.h>
+#include <libssh2_sftp.h>
 
 #include "global.h"
 #include "urlparser.h"
+#include "socket.h"
 
 class DataProvider;
 
@@ -230,6 +233,22 @@ class SFTPTransfer : public URLTransfer {
         void perform(DataProvider *dataprovider,
                      const char *target_file)
         throw (KError);
+
+    protected:
+        void close()
+        throw ();
+
+        void mkdir(const std::string &dir, bool recursive)
+        throw (KError);
+
+        bool exists(const std::string &file)
+        throw (KError);
+
+    private:
+        LIBSSH2_SESSION *m_sshSession;
+        LIBSSH2_SFTP *m_sftp;
+        Socket *m_socket;
+        char m_buffer[BUFSIZ];
 
 };
 

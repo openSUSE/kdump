@@ -24,6 +24,10 @@
 #include <sys/stat.h>
 #include <cstring>
 
+#include <curl/curl.h>
+#include <libssh2.h>
+#include <libssh2_sftp.h>
+
 #include "dataprovider.h"
 #include "global.h"
 #include "debug.h"
@@ -32,6 +36,7 @@
 #include "util.h"
 #include "fileutil.h"
 #include "stringutil.h"
+#include "socket.h"
 
 using std::fopen;
 using std::fread;
@@ -320,6 +325,206 @@ void FTPTransfer::open(DataProvider *dataprovider,
     err = curl_easy_setopt(m_curl, CURLOPT_READDATA, dataprovider);
     if (err != CURLE_OK)
         throw KError(string("CURL error: ") + m_curlError);
+}
+
+//}}}
+//{{{ SFTPTransfer -------------------------------------------------------------
+
+/* -------------------------------------------------------------------------- */
+SFTPTransfer::SFTPTransfer(const char *target_url)
+    throw (KError)
+    : URLTransfer(target_url), m_sshSession(NULL), m_sftp(NULL), m_socket(NULL)
+{
+    Debug::debug()->trace("SFTPTransfer::SFTPTransfer(%s)", target_url);
+
+    m_sshSession = libssh2_session_init();
+    if (!m_sshSession)
+        throw KError("libssh2_session_init() failed.");
+
+    // set blocking
+    libssh2_session_set_blocking(m_sshSession, 1);
+
+    // create the socket and connect
+    URLParser &parser = getURLParser();
+
+    // get the correct port
+    int port = parser.getPort();
+    if (port <= 0)
+        port = Socket::DP_SSH;
+
+    m_socket = new Socket(parser.getHostname().c_str(), port, Socket::ST_TCP);
+    int fd = m_socket->connect();
+
+    // start it up
+    int ret = libssh2_session_startup(m_sshSession, fd);
+    if (ret != 0) {
+        close();
+        throw KError("libssh2_session_startup() failed with "+
+            Stringutil::number2string(ret) +".");
+    }
+
+    // get the fingerprint for debugging
+    // XXX: compare the fingerprint
+    const char *fingerprint = libssh2_hostkey_hash(m_sshSession,
+        LIBSSH2_HOSTKEY_HASH_MD5);
+    Debug::debug()->info("SSH fingerprint: %s",
+        Stringutil::bytes2hexstr(fingerprint, 16, true).c_str());
+
+    string username = parser.getUsername();
+    string password = parser.getPassword();
+
+    ret = libssh2_userauth_password(m_sshSession, username.c_str(),
+        password.c_str());
+    if (ret != 0) {
+        close();
+        throw KError("libssh2_userauth_password() failed with "+
+            Stringutil::number2string(ret) + ".");
+    }
+
+    // XXX: public key
+
+    // SFTP session
+    m_sftp = libssh2_sftp_init(m_sshSession);
+    if (!m_sftp) {
+        close();
+        throw KError("libssh2_sftp_init() failed with "+
+            Stringutil::number2string(ret) + ".");
+    }
+
+    mkdir(parser.getPath(), true);
+}
+
+/* -------------------------------------------------------------------------- */
+SFTPTransfer::~SFTPTransfer()
+    throw ()
+{
+    Debug::debug()->trace("SFTPTransfer::~SFTPTransfer()");
+
+    close();
+}
+
+// -----------------------------------------------------------------------------
+bool SFTPTransfer::exists(const string &file)
+    throw (KError)
+{
+    Debug::debug()->trace("SFTPTransfer::exists(%s)", file.c_str());
+
+    LIBSSH2_SFTP_ATTRIBUTES attrs;
+    int ret = libssh2_sftp_stat(m_sftp, file.c_str(), &attrs);
+
+    if (ret != 0) {
+        int errorcode = libssh2_sftp_last_error(m_sftp);
+        if (errorcode == LIBSSH2_FX_NO_SUCH_FILE)
+            return false;
+        else
+            throw KSFTPError("libssh2_sftp_stat on " + file + " failed.",
+                errorcode);
+    }
+
+    return true;
+}
+
+// -----------------------------------------------------------------------------
+void SFTPTransfer::mkdir(const string &dir, bool recursive)
+    throw (KError)
+{
+    Debug::debug()->trace("SFTPTransfer::mkdir(%s, %d)",
+        dir.c_str(), int(recursive));
+
+    if (!recursive) {
+        if (!exists(dir)) {
+            int ret = libssh2_sftp_mkdir(m_sftp, dir.c_str(), 0755);
+            if (ret != 0)
+                throw KSFTPError("mkdir of " + dir + " failed.",
+                    libssh2_sftp_last_error(m_sftp));
+        }
+    } else {
+        string directory = dir;
+
+        // remove trailing '/' if there are any
+        while (directory[directory.size()-1] == '/')
+            directory = directory.substr(0, directory.size()-1);
+
+        string::size_type current_slash = 0;
+
+        while (true) {
+            current_slash = directory.find('/', current_slash+1);
+            if (current_slash == string::npos) {
+                mkdir(directory, false);
+                break;
+            }
+
+            mkdir(directory.substr(0, current_slash), false);
+        }
+    }
+}
+
+/* -------------------------------------------------------------------------- */
+void SFTPTransfer::perform(DataProvider *dataprovider, const char *target_file)
+    throw (KError)
+{
+    Debug::debug()->trace("SFTPTransfer::perform(%p, %s)",
+        dataprovider, target_file);
+
+    bool prepared = false;
+
+
+    LIBSSH2_SFTP_HANDLE  *handle = NULL;
+    string file = FileUtil::pathconcat(getURLParser().getPath(), target_file);
+
+    Debug::debug()->dbg("Using target file %s.", file.c_str());
+
+    try {
+        handle = libssh2_sftp_open(m_sftp, file.c_str(),
+            LIBSSH2_FXF_WRITE|LIBSSH2_FXF_CREAT|LIBSSH2_FXF_TRUNC, 0644);
+        if (!handle)
+            throw KSFTPError("Cannot create file " + file + " remotely.",
+                libssh2_sftp_last_error(m_sftp));
+
+        dataprovider->prepare();
+        prepared = true;
+
+        while (true) {
+            size_t read_data = dataprovider->getData(m_buffer, BUFSIZ);
+
+            // finished?
+            if (read_data == 0)
+                break;
+
+            size_t ret = libssh2_sftp_write(handle, m_buffer, read_data);
+            if (ret != read_data)
+                throw KSFTPError("SFTPTransfer::perform: "
+                    "libssh2_sftp_write() failed.",
+                    libssh2_sftp_last_error(m_sftp));
+        }
+    } catch (...) {
+        if (handle)
+            libssh2_sftp_close(handle);
+        close();
+        if (prepared)
+            dataprovider->finish();
+        throw;
+    }
+
+    if (handle)
+        libssh2_sftp_close(handle);
+    dataprovider->finish();
+}
+
+
+/* -------------------------------------------------------------------------- */
+void SFTPTransfer::close()
+    throw ()
+{
+    Debug::debug()->trace("SFTPTransfer::close()");
+
+    if (m_sshSession) {
+        libssh2_session_disconnect(m_sshSession, "Normal Shutdown.");
+        libssh2_session_free(m_sshSession);
+        m_sshSession = NULL;
+    }
+    delete m_socket;
+    m_socket = NULL;
 }
 
 //}}}
