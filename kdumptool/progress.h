@@ -98,8 +98,10 @@ class Progress {
         /**
          * This method has to be called when the operation is finished.
          * It displays the final 100 %.
+         *
+         * @param[in] success @c true on success, @c false on failure
          */
-        virtual void stop()
+        virtual void stop(bool success=true)
         throw () = 0;
 };
 
@@ -140,8 +142,10 @@ class TerminalProgress : public Progress {
         /**
          * This method has to be called when the operation is finished.
          * It displays the final 100 %.
+         *
+         * @param[in] success @c true on success, @c false on failure
          */
-        void stop()
+        void stop(bool success=true)
         throw ();
 
     protected:

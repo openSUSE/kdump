@@ -126,11 +126,15 @@ void TerminalProgress::progressed(unsigned long long current,
 }
 
 // -----------------------------------------------------------------------------
-void TerminalProgress::stop()
+void TerminalProgress::stop(bool success)
     throw ()
 {
+    const char *finish_msg = success
+        ? " Finished."
+        : " Failed.";
+
     clearLine();
-    cout << "\r" << setw(NAME_MAXLENGTH) << left << m_name << " Finished.";
+    cout << "\r" << setw(NAME_MAXLENGTH) << left << m_name << finish_msg;
     cout << endl;
 }
 
