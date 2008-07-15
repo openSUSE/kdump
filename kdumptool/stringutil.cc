@@ -92,15 +92,15 @@ string Stringutil::bytes2str(const ByteVector &bytes)
 }
 
 // -----------------------------------------------------------------------------
-string Stringutil::bytes2hexstr(const char *bytes, size_t len, bool spaces)
+string Stringutil::bytes2hexstr(const char *bytes, size_t len, bool colons)
     throw ()
 {
     stringstream ss;
 
     for (int i = 0; i < len; i++) {
-        ss << setw(2) << setfill('0') << hex << bytes[i];
-        if (spaces)
-            ss << " ";
+        ss << setw(2) << setfill('0') << hex << int(int(bytes[i]) & 0xff);
+        if (colons && i != (len-1))
+            ss << ":";
     }
 
     return ss.str();

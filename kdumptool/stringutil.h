@@ -93,7 +93,7 @@ class Stringutil {
          * @return the hex string
          */
         static std::string bytes2hexstr(const char *bytes, size_t len,
-            bool spaces = false)
+            bool colons = false)
         throw ();
 };
 
