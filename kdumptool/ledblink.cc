@@ -51,6 +51,8 @@ void led_exit_handler(int signo, void *data)
 {
     int fd = (unsigned long)data;
 
+    (void)signo;
+
     // reset the LEDs to show the state of the keyboard
     int counter = 0;
     ioctl(fd, KDGKBLED, &counter);

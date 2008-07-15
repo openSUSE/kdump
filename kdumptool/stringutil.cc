@@ -97,7 +97,7 @@ string Stringutil::bytes2hexstr(const char *bytes, size_t len, bool colons)
 {
     stringstream ss;
 
-    for (int i = 0; i < len; i++) {
+    for (size_t i = 0; i < len; i++) {
         ss << setw(2) << setfill('0') << hex << int(int(bytes[i]) & 0xff);
         if (colons && i != (len-1))
             ss << ":";
