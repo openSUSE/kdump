@@ -79,6 +79,15 @@ class Socket {
         throw (KError);
 
         /**
+         * Returns the current file descriptor (form the last Socket::connect()
+         * call or -1 of there's no open connection.
+         *
+         * @return the file descriptor
+         */
+        int getCurrentFd() const
+        throw ();
+
+        /**
          * Closes the connection.
          */
         void close()

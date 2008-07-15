@@ -109,6 +109,13 @@ void Socket::close()
     }
 }
 
+/* -------------------------------------------------------------------------- */
+int Socket::getCurrentFd() const
+    throw ()
+{
+    return m_currentFd;
+}
+
 //}}}
 
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:
