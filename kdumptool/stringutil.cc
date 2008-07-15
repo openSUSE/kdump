@@ -20,6 +20,8 @@
 #include <sstream>
 #include <errno.h>
 #include <cstring>
+#include <sstream>
+#include <iomanip>
 
 #include "stringutil.h"
 #include "global.h"
@@ -27,6 +29,9 @@
 using std::string;
 using std::stringstream;
 using std::strcpy;
+using std::hex;
+using std::setfill;
+using std::setw;
 
 //{{{ Stringutil ---------------------------------------------------------------
 
@@ -84,6 +89,21 @@ string Stringutil::bytes2str(const ByteVector &bytes)
     throw ()
 {
     return string(bytes.begin(), bytes.end());
+}
+
+// -----------------------------------------------------------------------------
+string Stringutil::bytes2hexstr(const char *bytes, size_t len, bool spaces)
+    throw ()
+{
+    stringstream ss;
+
+    for (int i = 0; i < len; i++) {
+        ss << setw(2) << setfill('0') << hex << bytes[i];
+        if (spaces)
+            ss << " ";
+    }
+
+    return ss.str();
 }
 
 //}}}
