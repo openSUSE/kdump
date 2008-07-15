@@ -48,6 +48,8 @@ SET(KDUMPTOOL_SRC
     fileutil.h
     transfer.cc
     transfer.h
+    socket.cc
+    socket.h
     ledblink.cc
     ledblink.h
     progress.cc
