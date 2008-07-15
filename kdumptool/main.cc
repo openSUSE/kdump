@@ -22,6 +22,9 @@
 
 #include "global.h"
 #include "kdumptool.h"
+#include "transfer.h"
+#include "dataprovider.h"
+#include "progress.h"
 
 using std::cerr;
 using std::cout;
@@ -35,7 +38,13 @@ int main(int argc, char *argv[])
 
     try {
         kdt.parseCommandline(argc, argv);
-        kdt.execute();
+        //kdt.execute();
+
+        TerminalProgress tp("/boot/vmlinuz");
+        FileDataProvider dp("/mounts/dist/install/openSUSE-11.0-RC1-Live/openSUSE-11.0-RC1-GNOME-LiveCD-i386.iso");
+        dp.setProgress(&tp);
+        FTPTransfer filetransfer("ftp://localhost/incoming");
+        filetransfer.perform(&dp, "vmlinux");
     } catch (const KError &ke) {
         cerr << ke.what() << endl;
         exception = true;

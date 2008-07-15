@@ -22,7 +22,10 @@
 #include <cstdio>
 #include <cstdarg>
 
+#include <curl/curl.h>
+
 #include "global.h"
+#include "urlparser.h"
 
 class DataProvider;
 
@@ -60,10 +63,46 @@ class Transfer {
          * @exception KError on any error
          */
         virtual void perform(DataProvider *dataprovider,
-                             const char *target_url,
                              const char *target_file)
         throw (KError) = 0;
 
+};
+
+//}}}
+//{{{ URLTransfer --------------------------------------------------------------
+
+/**
+ * Base class for all Transfer implementations that unifies URL handling.
+ */
+class URLTransfer : public Transfer {
+
+    public:
+
+        /**
+         * Destructor.
+         */
+        virtual ~URLTransfer()
+        throw () {}
+
+        /**
+         * Creates a new URLTransfer object.
+         *
+         * @param[in] url the URL
+         * @throw KError if parsing the URL failed
+         */
+        URLTransfer(const char *url)
+        throw (KError);
+
+        /**
+         * Returns the URL parser.
+         *
+         * @return reference to the URL parser.
+         */
+        URLParser &getURLParser()
+        throw (KError);
+
+    private:
+        URLParser m_urlParser;
 };
 
 //}}}
@@ -72,9 +111,24 @@ class Transfer {
 /**
  * Transfers files.
  */
-class FileTransfer : public Transfer {
+class FileTransfer : public URLTransfer {
 
     public:
+
+        /**
+         * Creates a new FileTransfer object.
+         *
+         * @param[in] target_url the directory
+         * @throw KError if parsing the URL or creating the directory failed
+         */
+        FileTransfer(const char *target_url)
+        throw (KError);
+
+        /**
+         * Destroys a FileTransfer object.
+         */
+        ~FileTransfer()
+        throw ();
 
         /**
          * Transfers the file.
@@ -88,15 +142,64 @@ class FileTransfer : public Transfer {
 
     protected:
 
-        FILE *open(const char *target_url, const char *target_file,
-                   size_t *buffersize)
+        FILE *open(const char *target_file)
         throw (KError);
 
         void close(FILE *fp)
         throw ();
+
+    private:
+        size_t m_bufferSize;
+        char *m_buffer;
 };
 
 //}}}
+//{{{ FTPTransfer --------------------------------------------------------------
+
+/**
+ * Transfers a file to FTP (upload).
+ */
+class FTPTransfer : public URLTransfer {
+
+    public:
+
+        /**
+         * Creates a global FTPTransfer object.
+         *
+         * @exception KError when initialising the underlying library fails
+         */
+        FTPTransfer(const char *target_url)
+        throw (KError);
+
+        /**
+         * Destroys a FTPTransfer object.
+         */
+        ~FTPTransfer()
+        throw ();
+
+        /**
+         * Transfers the file.
+         *
+         * @see Transfer::perform()
+         */
+        void perform(DataProvider *dataprovider,
+                     const char *target_file)
+        throw (KError);
+
+    protected:
+
+        void open(DataProvider *dataprovider,
+                   const char *target_file)
+        throw (KError);
+
+    private:
+        char m_curlError[CURL_ERROR_SIZE];
+        static bool curl_global_inititalised;
+        CURL *m_curl;
+};
+
+//}}}
+
 
 #endif /* TRANSFER_H */
 
