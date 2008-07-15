@@ -22,12 +22,17 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
+#include <libssh2.h>
+#include <libssh2_sftp.h>
+
 #include "global.h"
 
 #define MAXERROR 4096
 
 using std::strerror;
 using std::string;
+
+//{{{ KSystemError -------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
 const char *KSystemError::what() const
@@ -43,6 +48,9 @@ const char *KSystemError::what() const
     return buffer;
 }
 
+//}}}
+//{{{ KNetError ----------------------------------------------------------------
+
 /* -------------------------------------------------------------------------- */
 const char *KNetError::what() const
     throw ()
@@ -56,5 +64,107 @@ const char *KNetError::what() const
 
     return buffer;
 }
+
+//}}}
+
+//{{{ KSFTPError ---------------------------------------------------------------
+
+/* -------------------------------------------------------------------------- */
+const char *KSFTPError::what() const
+    throw ()
+{
+    static char buffer[MAXERROR];
+
+    string errorstring = m_errorstring + " (" +
+            getStringForCode(m_errorcode) + ")";
+
+    strncpy(buffer, errorstring.c_str(), MAXERROR);
+    buffer[MAXERROR-1] = 0;
+
+    return buffer;
+}
+
+/* -------------------------------------------------------------------------- */
+string KSFTPError::getStringForCode(int code) const
+    throw ()
+{
+    const char *msg;
+
+    switch (code) {
+        case LIBSSH2_FX_OK:
+            msg = "OK";
+
+        case LIBSSH2_FX_EOF:
+            msg = "End of file";
+
+        case LIBSSH2_FX_NO_SUCH_FILE:
+            msg = "No such file";
+
+        case LIBSSH2_FX_PERMISSION_DENIED:
+            msg = "Permission denied";
+
+        case LIBSSH2_FX_FAILURE:
+            msg = "Failure";
+
+        case LIBSSH2_FX_BAD_MESSAGE:
+            msg = "Bad message";
+
+        case LIBSSH2_FX_NO_CONNECTION:
+            msg = "No connection";
+
+        case LIBSSH2_FX_CONNECTION_LOST:
+            msg = "Connection lost";
+
+        case LIBSSH2_FX_OP_UNSUPPORTED:
+            msg = "Operation unsupported";
+
+        case LIBSSH2_FX_INVALID_HANDLE:
+            msg = "Invalid handle";
+
+        case LIBSSH2_FX_NO_SUCH_PATH:
+            msg = "No such path";
+
+        case LIBSSH2_FX_FILE_ALREADY_EXISTS:
+            msg = "File already exists";
+
+        case LIBSSH2_FX_WRITE_PROTECT:
+            msg = "Write protect";
+
+        case LIBSSH2_FX_NO_MEDIA:
+            msg = "No media";
+
+        case LIBSSH2_FX_NO_SPACE_ON_FILESYSTEM:
+            msg = "No space on file system";
+
+        case LIBSSH2_FX_QUOTA_EXCEEDED:
+            msg = "Quote exceeded";
+
+        case LIBSSH2_FX_UNKNOWN_PRINCIPLE:
+            msg = "Unknown principle";
+
+        case LIBSSH2_FX_LOCK_CONFLICT:
+            msg = "Lock conflict";
+
+        case LIBSSH2_FX_DIR_NOT_EMPTY:
+            msg = "Directory not empty";
+
+        case LIBSSH2_FX_NOT_A_DIRECTORY:
+            msg = "Not a directory";
+
+        case LIBSSH2_FX_INVALID_FILENAME:
+            msg = "Invalid file name";
+
+        case LIBSSH2_FX_LINK_LOOP:
+            msg = "Link loop";
+
+        default:
+            msg = "Unknown error";
+    }
+
+    return string(msg);
+}
+
+
+//}}}
 
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

@@ -116,7 +116,7 @@ class KNetError : public KError {
         throw ();
 
         /**
-         * Do't know why that is necessary to avoid compiler errors.
+         * Don't know why that is necessary to avoid compiler errors.
          */
         virtual ~KNetError() throw () {}
 
@@ -126,7 +126,47 @@ class KNetError : public KError {
 };
 
 //}}}
+//{{{ KSFTPError ---------------------------------------------------------------
 
+/**
+ * Standard error class for SFTP (libssh2) errors.
+ */
+class KSFTPError : public KError {
+    public:
+
+        /**
+         * Creates a new object of KSFTPError with string as error message.
+         *
+         * @param[in] string the error message
+         * @param[in] errorcode the value of the sftp_sftp_get_last_error()
+         */
+        KSFTPError(const std::string &string, int errorcode)
+            : KError(string), m_errorcode(errorcode),
+              m_errorstring(string) {}
+
+        /**
+         * Returns a readable error message from the string and the error code.
+         *
+         * @return Error message in the format 'string (strerror(errorcode))'.
+         */
+        virtual const char *what() const
+        throw ();
+
+        /**
+         * Don't know why that is necessary to avoid compiler errors.
+         */
+        virtual ~KSFTPError() throw () {}
+
+    protected:
+        std::string getStringForCode(int code) const
+        throw ();
+
+    private:
+        int m_errorcode;
+        std::string m_errorstring;
+};
+
+//}}}
 
 #endif /* GLOBAL_H */
 
