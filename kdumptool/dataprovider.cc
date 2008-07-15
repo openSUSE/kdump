@@ -37,7 +37,7 @@ using std::copy;
 // -----------------------------------------------------------------------------
 AbstractDataProvider::AbstractDataProvider()
     throw ()
-    : m_progress(NULL)
+    : m_progress(NULL), m_error(false)
 {}
 
 // -----------------------------------------------------------------------------
@@ -55,7 +55,7 @@ void AbstractDataProvider::finish()
 {
     Debug::debug()->trace("AbstractDataProvider::finish");
     if (m_progress)
-        m_progress->stop();
+        m_progress->stop(!getError());
 }
 
 // -----------------------------------------------------------------------------
@@ -71,6 +71,20 @@ Progress *AbstractDataProvider::getProgress() const
     throw ()
 {
     return m_progress;
+}
+
+// -----------------------------------------------------------------------------
+void AbstractDataProvider::setError(bool error)
+    throw ()
+{
+    m_error = error;
+}
+
+// -----------------------------------------------------------------------------
+bool AbstractDataProvider::getError() const
+    throw ()
+{
+    return m_error;
 }
 
 //}}}
@@ -111,8 +125,10 @@ size_t FileDataProvider::getData(char *buffer, size_t maxread)
 
     errno = 0;
     size_t ret = fread(buffer, 1, maxread, m_file);
-    if (ret == 0 && errno != 0)
+    if (ret == 0 && errno != 0) {
+        setError(true);
         throw KSystemError("Error reading from " + m_filename, errno);
+    }
 
     Progress *p = getProgress();
     if (p)
@@ -191,8 +207,10 @@ size_t ProcessDataProvider::getData(char *buffer, size_t maxread)
 
     errno = 0;
     size_t ret = fread(buffer, 1, maxread, m_processFile);
-    if (ret == 0 && errno != 0)
+    if (ret == 0 && errno != 0) {
+        setError(true);
         throw KSystemError("Error reading from " + m_cmdline, errno);
+    }
 
     return ret;
 }

@@ -76,6 +76,14 @@ class DataProvider {
         throw (KError) = 0;
 
         /**
+         * Sets the error flag
+         *
+         * @param[in] error @c true on error, @c false on success
+         */
+        virtual void setError(bool error)
+        throw () = 0;
+
+        /**
          * Sets a progress notifier. The caller has to delete @p progress,
          * not this implementation.
          *
@@ -132,8 +140,25 @@ class AbstractDataProvider : public DataProvider {
         Progress *getProgress() const
         throw ();
 
+        /**
+         * Sets the error flag
+         *
+         * @param[in] error @c true on error, @c false on success
+         */
+        void setError(bool error)
+        throw ();
+
+        /**
+         * Returns the error flag.
+         *
+         * @return the error flag
+         */
+        bool getError() const
+        throw ();
+
     private:
         Progress *m_progress;
+        bool m_error;
 };
 
 //}}}
