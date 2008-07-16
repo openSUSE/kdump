@@ -40,8 +40,8 @@ Configuration *Configuration::config()
 Configuration::Configuration()
     throw ()
     : m_readConfig(false), m_kernelVersion(""), m_commandLine(""),
-      m_commandLineAppend(""), m_kexecOptions(""), m_immediateReboot(true),
-      m_customTransfer(""), m_savedir("/var/log/dump"),
+      m_commandLineAppend(""), m_kexecOptions(""), m_makedumpfileOptions(""),
+      m_immediateReboot(true), m_customTransfer(""), m_savedir("/var/log/dump"),
       m_keepOldDumps(0), m_freeDiskSize(64), m_verbose(0), m_dumpLevel(0),
       m_dumpFormat("compressed"), m_continueOnError(true),
       m_requiredPrograms(""), m_prescript(""), m_postscript(""),
@@ -57,6 +57,7 @@ void Configuration::readFile(const string &filename)
     cp.addVariable("KDUMP_COMMANDLINE");
     cp.addVariable("KDUMP_COMMANDLINE_APPEND");
     cp.addVariable("KEXEC_OPTIONS");
+    cp.addVariable("MAKEDUMPFILE_OPTIONS");
     cp.addVariable("KDUMP_IMMEDIATE_REBOOT");
     cp.addVariable("KDUMP_TRANSFER");
     cp.addVariable("KDUMP_SAVEDIR");
@@ -76,6 +77,7 @@ void Configuration::readFile(const string &filename)
     m_commandLine = cp.getValue("KDUMP_COMMANDLINE");
     m_commandLineAppend = cp.getValue("KDUMP_COMMANDLINE_APPEND");
     m_kexecOptions = cp.getValue("KEXEC_OPTIONS");
+    m_makedumpfileOptions = cp.getValue("MAKEDUMPFILE_OPTIONS");
     m_immediateReboot = cp.getBoolValue("KDUMP_IMMEDIATE_REBOOT");
     m_customTransfer = cp.getValue("KDUMP_TRANSFER");
     m_savedir = cp.getValue("KDUMP_SAVEDIR");
@@ -135,6 +137,15 @@ std::string Configuration::getKexecOptions() const
     return m_kexecOptions;
 }
 
+// -----------------------------------------------------------------------------
+string Configuration::getMakedumpfileOptions() const
+    throw (KError)
+{
+    if (!m_readConfig)
+        throw KError("Configuration has not been read.");
+
+    return m_makedumpfileOptions;
+}
 
 // -----------------------------------------------------------------------------
 bool Configuration::getImmediateReboot() const

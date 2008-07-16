@@ -95,6 +95,15 @@ class Configuration {
          throw (KError);
 
          /**
+          * Returns the value of MAKEDUMPFILE_OPTIONS.
+          *
+          * @return the options for makedumpfile
+          * @exception KError if Configuration::readFile() was not called
+          */
+         std::string getMakedumpfileOptions() const
+         throw (KError);
+
+         /**
           * Returns the value of KDUMP_IMMEDIATE_REBOOT.
           *
           * @return the @c true if the system should be rebooted after
@@ -228,6 +237,7 @@ class Configuration {
         std::string m_commandLine;
         std::string m_commandLineAppend;
         std::string m_kexecOptions;
+        std::string m_makedumpfileOptions;
         bool m_immediateReboot;
         std::string m_customTransfer;
         std::string m_savedir;
