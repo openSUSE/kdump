@@ -136,6 +136,9 @@ uint8_t Process::execute(const string &name, const StringVector &args)
     pid_t child;
     int status = 0;
 
+    Debug::debug()->trace("Process::execute(%s, %s)",
+        name.c_str(), Stringutil::vector2string(args, ":").c_str());
+
     //
     // setup pipes for stdin, stderr, stdout if we use buffers
     //
@@ -379,13 +382,6 @@ void Process::executeProcess(const string &name, const StringVector &args)
     StringVector fullV = args;
     fullV.insert(fullV.begin(), name);
     char **vector = Stringutil::stringv2charv(fullV);
-
-    string s;
-    for (StringVector::const_iterator it = args.begin();
-            it != args.end(); ++it)
-        s += *it + " ";
-
-    Debug::debug()->dbg("Executing %s %s", name.c_str(), s.c_str());
 
     int ret = execvp(name.c_str(), vector);
     Util::freev(vector);
