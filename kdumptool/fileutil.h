@@ -79,6 +79,63 @@ class FileUtil {
         static std::string pathconcat(const std::string &a,
                                       const std::string &b)
         throw ();
+
+        /**
+         * Mounts a file system to a given mountpoint.
+         *
+         * @param[in] device the device or a CIFS share or a NFS target
+         *            (like //hostname/sharename for CIFS or hostname:directory
+         *            for NFS
+         * @param[in] mountpoint the local path where the file system should
+         *            be mounted
+         * @param[in] fs the file system (can be empty)
+         * @param[in] options a list of options (without the "-o")
+         *
+         * @exception KError if the mount did not succeed
+         */
+         static void mount(const std::string &device,
+                           const std::string &mountpoint,
+                           const std::string &fs,
+                           const StringVector &options)
+         throw (KError);
+
+         /**
+          * Mounts a NFS directory. That function checks with "showmount"
+          * before which directories are actually exported and mounts the
+          * correct directory.
+          *
+          * That function was implemented because mount does not terminate
+          * if you mount a directory that does not exist. So for example,
+          * if /a/b/c is exported and you mount /a/b/c/d, then the mount
+          * succeeds if /a/b/c/d exists, but it does not even terminate if
+          * /a/b/c/d does not exist.
+          *
+          * @param[in] host remote host
+          * @param[in] dir directory to mount
+          * @param[in] mountpoint the local path where the file system should
+          *            be mounted
+          * @param[in] options a list of mount options (without the "-o")
+          * @param[out] mountdir the directory that is actually used to
+          *             mount the @p dir (i.e. a subset of @p dir)
+          *
+          * @exception KError if the mount did not succeed.
+          */
+         static void nfsmount(const std::string &host,
+                               const std::string &dir,
+                               const std::string &mountpoint,
+                               const StringVector &options,
+                               std::string &mountdir)
+         throw (KError);
+
+         /**
+          * Unmounts a file system from the given mountpoint.
+          *
+          * @param[in] mountpoint the mount point
+          *
+          * @exception KError if the mount did not succeed.
+          */
+         static void umount(const std::string &device)
+         throw (KError);
 };
 
 //}}}
