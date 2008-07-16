@@ -87,8 +87,10 @@ FileTransfer::FileTransfer(const char *target_url)
         throw KSystemError("stat() on " + dir + " failed.", errno);
 
     m_bufferSize = mystat.st_size;
-    if (m_bufferSize == 0)
+    if (m_bufferSize == 0) {
+        Debug::debug()->dbg("Buffer size of stat() is zero. Using %d.", BUFSIZ);
         m_bufferSize = BUFSIZ;
+    }
 
     m_buffer = new char[m_bufferSize];
 }
@@ -112,6 +114,7 @@ void FileTransfer::perform(DataProvider *dataprovider,
     Debug::debug()->trace("FileTransfer::perform(%p, %s)",
         dataprovider, target_file);
 
+    bool last_was_sparse = false;
     try {
         dataprovider->prepare();
         prepared = true;
@@ -130,12 +133,31 @@ void FileTransfer::perform(DataProvider *dataprovider,
                 if (ret != 0)
                     throw KSystemError("FileTransfer::perform: fseek() failed.",
                         errno);
+                last_was_sparse = true;
             } else {
                 size_t ret = fwrite(m_buffer, 1, read_data, fp);
                 if (ret != read_data)
                     throw KSystemError("FileTransfer::perform: fwrite() failed"
                         " with " + Stringutil::number2string(ret) +  ".", errno);
+                last_was_sparse = false;
             }
+        }
+
+        if (last_was_sparse) {
+
+            loff_t old_offset = ftell(fp);
+
+            // write something
+            int ret = fputc('\0', fp);
+            if (ret == EOF)
+                throw KSystemError("Unable to write.", errno);
+
+            // truncate the file
+            rewind(fp);
+            ret = ftruncate(fileno(fp), old_offset);
+            Debug::debug()->dbg("ftruncate=%lld", old_offset);
+            if (ret != 0)
+                throw KSystemError("Unable to set the file position.", errno);
         }
     } catch (...) {
         close(fp);
@@ -144,6 +166,8 @@ void FileTransfer::perform(DataProvider *dataprovider,
         throw;
     }
 
+    Debug::debug()->dbg("last_was_sparse %d",
+        last_was_sparse);
     close(fp);
     dataprovider->finish();
 }
@@ -586,6 +610,84 @@ void NFSTransfer::close()
     throw (KError)
 {
     Debug::debug()->trace("NFSTransfer::close()");
+    if (m_mountpoint.size() > 0) {
+        FileUtil::umount(m_mountpoint);
+        m_mountpoint.clear();
+    }
+}
+
+//}}}
+//{{{ CIFSTransfer -------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+CIFSTransfer::CIFSTransfer(const char *target_url)
+    throw (KError)
+    : URLTransfer(target_url), m_mountpoint(""), m_fileTransfer(NULL)
+{
+    URLParser &parser = getURLParser();
+
+    string share = parser.getPath();
+    share = Stringutil::ltrim(share, "/");
+    string::size_type first_slash = share.find("/");
+    if (first_slash == string::npos)
+        throw KError("Path ("+ parser.getPath() +") must contain a \"/\".");
+    share = share.substr(0, first_slash);
+
+    StringVector options;
+    if (parser.getUsername().size() > 0) {
+        options.push_back("user=" + parser.getUsername());
+        if (parser.getPassword().size() > 0)
+            options.push_back("password=" + parser.getPassword());
+    }
+    if (parser.getPort() != -1) {
+        options.push_back("port=" + Stringutil::number2string(parser.getPort()));
+    }
+
+    FileUtil::mount("//" + parser.getHostname() + "/" + share,
+        DEFAULT_MOUNTPOINT, "cifs", options);
+    m_mountpoint = DEFAULT_MOUNTPOINT;
+
+    string rest = parser.getPath();
+    string::size_type shareBegin = rest.find(share);
+    if (shareBegin == string::npos) {
+        close();
+        throw KError("Internal error in CIFSTransfer::CIFSTransfer.");
+    }
+    rest = rest.substr(shareBegin + share.size());
+    string prefix = FileUtil::pathconcat(m_mountpoint, rest);
+
+    Debug::debug()->dbg("Mountpoint: %s, Rest: %s, Prefix: %s",
+        m_mountpoint.c_str(), rest.c_str(), prefix.c_str());
+
+    m_fileTransfer = new FileTransfer(("file://" + prefix).c_str());
+}
+
+// -----------------------------------------------------------------------------
+CIFSTransfer::~CIFSTransfer()
+    throw ()
+{
+    Debug::debug()->trace("CIFSTransfer::~CIFSTransfer()");
+
+    try {
+        close();
+    } catch (const KError &kerror) {
+        Debug::debug()->info("Error: %s", kerror.what());
+    }
+}
+
+// -----------------------------------------------------------------------------
+void CIFSTransfer::perform(DataProvider *dataprovider,
+                          const char *target_file)
+    throw (KError)
+{
+    m_fileTransfer->perform(dataprovider, target_file);
+}
+
+// -----------------------------------------------------------------------------
+void CIFSTransfer::close()
+    throw (KError)
+{
+    Debug::debug()->trace("CIFSTransfer::close()");
     if (m_mountpoint.size() > 0) {
         FileUtil::umount(m_mountpoint);
         m_mountpoint.clear();

@@ -296,7 +296,48 @@ class NFSTransfer : public URLTransfer {
 };
 
 //}}}
+//{{{ CIFSTransfer -------------------------------------------------------------
 
+/**
+ * Transfers a file over CIFS (SMB).
+ */
+class CIFSTransfer : public URLTransfer {
+
+    public:
+
+        /**
+         * Creates a CIFSTransfer object.
+         *
+         * @exception KError when mounting the share failes
+         */
+        CIFSTransfer(const char *target_url)
+        throw (KError);
+
+        /**
+         * Destroys a CIFSTransfer object.
+         */
+        ~CIFSTransfer()
+        throw ();
+
+        /**
+         * Transfers the file.
+         *
+         * @see Transfer::perform()
+         */
+        void perform(DataProvider *dataprovider,
+                     const char *target_file)
+        throw (KError);
+
+    protected:
+        void close()
+        throw (KError);
+
+    private:
+        std::string m_mountpoint;
+        FileTransfer *m_fileTransfer;
+};
+
+//}}}
 
 #endif /* TRANSFER_H */
 
