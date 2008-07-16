@@ -21,6 +21,8 @@
 
 #include "subcommand.h"
 
+class Transfer;
+
 //{{{ SaveDump -----------------------------------------------------------------
 
 /**
@@ -33,6 +35,12 @@ class SaveDump : public Subcommand {
          * Creates a new SaveDump object.
          */
         SaveDump()
+        throw ();
+
+        /**
+         * Deletes a SaveDump object.
+         */
+        ~SaveDump()
         throw ();
 
     public:
@@ -62,8 +70,20 @@ class SaveDump : public Subcommand {
         void execute()
         throw (KError);
 
+    protected:
+        void saveDump()
+        throw (KError);
+
+        void copyMakedumpfile()
+        throw (KError);
+
+        void generateInfo()
+        throw (KError);
+
     private:
         std::string m_dump;
+        Transfer *m_transfer;
+        bool m_usedMakedumpfile;
 };
 
 //}}}

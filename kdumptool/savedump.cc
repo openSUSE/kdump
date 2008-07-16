@@ -18,26 +18,44 @@
  */
 #include <iostream>
 #include <string>
-#include <zlib.h>
-#include <libelf.h>
-#include <gelf.h>
 #include <errno.h>
-#include <fcntl.h>
+#include <memory>
+#include <sstream>
 
 #include "subcommand.h"
 #include "debug.h"
 #include "savedump.h"
 #include "util.h"
+#include "fileutil.h"
+#include "transfer.h"
+#include "configuration.h"
+#include "dataprovider.h"
+#include "progress.h"
 
 using std::string;
+using std::cout;
+using std::endl;
+using std::auto_ptr;
+using std::stringstream;
 
 //{{{ IdentifyKernel -----------------------------------------------------------
 
 // -----------------------------------------------------------------------------
 SaveDump::SaveDump()
     throw ()
-    : m_dump(DEFAULT_DUMP)
-{}
+    : m_dump(DEFAULT_DUMP), m_transfer(NULL), m_usedMakedumpfile(false)
+{
+    Debug::debug()->trace("SaveDump::SaveDump()");
+}
+
+// -----------------------------------------------------------------------------
+SaveDump::~SaveDump()
+    throw ()
+{
+    Debug::debug()->trace("SaveDump::~SaveDump()");
+
+    delete m_transfer;
+}
 
 // -----------------------------------------------------------------------------
 const char *SaveDump::getName() const
@@ -78,8 +96,116 @@ void SaveDump::execute()
     throw (KError)
 {
     Debug::debug()->trace(__FUNCTION__);
+    Configuration *config = Configuration::config();
+
+    // check if the dump file actually exists
+    if (!FileUtil::exists(m_dump))
+        throw KError("The dump file " + m_dump + " does not exist.");
+
+    // build the transfer object
+    m_transfer = URLTransfer::getTransfer(config->getSavedir().c_str());
+
+    try {
+        saveDump();
+    } catch (const KError &error) {
+        setErrorCode(1);
+        if (config->getContinueOnError())
+            cout << error.what() << endl;
+        else
+            throw;
+    }
+
+    try {
+        if (m_usedMakedumpfile)
+            copyMakedumpfile();
+    } catch (const KError &error) {
+        setErrorCode(1);
+        if (config->getContinueOnError())
+            cout << error.what() << endl;
+        else
+            throw;
+    }
+
+    try {
+        generateInfo();
+    } catch (const KError &error) {
+        setErrorCode(1);
+        if (config->getContinueOnError())
+            cout << error.what() << endl;
+        else
+            throw;
+    }
+}
+
+// -----------------------------------------------------------------------------
+void SaveDump::saveDump()
+    throw (KError)
+{
+    Configuration *config = Configuration::config();
+
+    // build the data provider object
+    int dumplevel = config->getDumpLevel();
+    if (dumplevel < 0 || dumplevel > 31) {
+        Debug::debug()->info("Dumplevel %d is invalid. Using 0.", dumplevel);
+        dumplevel = 0;
+    }
+
+    // dump format
+    string dumpformat = config->getDumpFormat();
+    DataProvider *provider;
+
+    bool useElf = strcasecmp(dumpformat.c_str(), "elf") == 0;
+    bool useCompressed = strcasecmp(dumpformat.c_str(), "compressed") == 0;
+    string name;
+
+    if (useElf && dumplevel == 0) {
+        // use file source?
+        provider = new FileDataProvider(m_dump.c_str());
+        name = "vmcore";
+    } else {
+        // use makedumpfile
+        stringstream cmdline;
+        cmdline << "makedumpfile";
+        cmdline << config->getMakedumpfileOptions() << " ";
+        cmdline << "-d " << config->getDumpLevel() << " ";
+        // flattened
+        cmdline << "-F ";
+        if (useElf)
+            cmdline << "-E ";
+        if (useCompressed)
+            cmdline << "-c ";
+        cmdline << m_dump;
+
+        Debug::debug()->dbg("Command line: %s", cmdline.str().c_str());
+        name = "vmcore.flattened";
+        provider = new ProcessDataProvider(cmdline.str().c_str());
+        m_usedMakedumpfile = true;
+    }
+
+    try {
+        TerminalProgress progress("Saving dump");
+        provider->setProgress(&progress);
+        m_transfer->perform(provider, name.c_str());
+    } catch (...) {
+        delete provider;
+        throw;
+    }
+}
+
+// -----------------------------------------------------------------------------
+void SaveDump::copyMakedumpfile()
+    throw (KError)
+{
 
 }
+
+// -----------------------------------------------------------------------------
+void SaveDump::generateInfo()
+    throw (KError)
+{
+
+}
+
 
 //}}}
 
