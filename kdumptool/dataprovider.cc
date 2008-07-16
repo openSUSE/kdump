@@ -25,6 +25,7 @@
 #include "global.h"
 #include "progress.h"
 #include "debug.h"
+#include "stringutil.h"
 
 using std::fopen;
 using std::fread;
@@ -185,7 +186,10 @@ size_t BufferDataProvider::getData(char *buffer, size_t maxread)
 ProcessDataProvider::ProcessDataProvider(const char *cmdline)
     throw ()
     : m_cmdline(cmdline), m_processFile(NULL)
-{}
+{
+    Debug::debug()->trace("ProcessDataProvider::ProcessDataProvider(%s)",
+        m_cmdline.c_str());
+}
 
 // -----------------------------------------------------------------------------
 void ProcessDataProvider::prepare()
@@ -221,8 +225,12 @@ void ProcessDataProvider::finish()
 {
     Debug::debug()->trace("ProcessDataProvider::finish");
 
-    pclose(m_processFile);
+    int err = pclose(m_processFile);
     m_processFile = NULL;
+
+    if (WEXITSTATUS(err) != 0)
+        throw KError(m_cmdline + " failed (" +
+            Stringutil::number2string(WEXITSTATUS(err)) +").");
 }
 
 //}}}
