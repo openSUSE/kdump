@@ -62,6 +62,9 @@ OPTIONS
 *KEXEC_OPTIONS*::
     Dummy.
 
+*MAKEDUMPFILE_OPTIONS*::
+    Dummy.
+
 *KDUMP_IMMEDIATE_REBOOT*::
     Dummy.
 
