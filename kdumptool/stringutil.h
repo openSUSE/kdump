@@ -95,6 +95,73 @@ class Stringutil {
         static std::string bytes2hexstr(const char *bytes, size_t len,
             bool colons = false)
         throw ();
+
+        /**
+         * Remove trailing or leading stuff.
+         *
+         * @param[in] string the string
+         * @param[in] chars the characters to remove (default: white space)
+         * @return the trimmed string
+         */
+        static std::string trim(const std::string &string,
+                                const char *chars = " \t\n")
+        throw ();
+
+        /**
+         * Removes trailing stuff. (Left trim.)
+         *
+         * @param[in] string the string to trim
+         * @param[in] chars the characters to remove (default: white space)
+         * @return the trimmed string
+         */
+        static std::string ltrim(const std::string &string,
+                                const char *chars = " \t\n")
+        throw();
+
+        /**
+         * Removes leading stuff. (Left trim.)
+         *
+         * @param[in] string the string to trim
+         * @param[in] chars the characters to remove (default: white space)
+         * @return the trimmed string
+         */
+        static std::string rtrim(const std::string &string,
+                                const char *chars = " \t\n")
+        throw();
+
+        /**
+         * Converts a string vector to a string.
+         *
+         * @param[in] begin start of the sequence
+         * @param[in] end end of the sequence
+         *
+         * @return the string
+         */
+        static std::string vector2string(const StringVector &vector,
+                                         const char *delimiter = " ")
+        throw ();
+
+        /**
+         * Splits lines.
+         *
+         * @param[in] string a multiline string
+         * @return the lines (with "\n" removed)
+         */
+        static StringVector splitlines(const std::string &string)
+        throw ();
+
+        /**
+         * Checks if @p long_string starts with @p part.
+         *
+         * @param[in] long_string the long string
+         * @param[in] part the string part
+         * @return @c true if @p long_string starts with @p part, @c false
+         *         otherwise
+         */
+        static bool startsWith(const std::string &long_string,
+                               const std::string &part)
+        throw ();
+
 };
 
 //}}}

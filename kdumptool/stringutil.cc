@@ -25,6 +25,7 @@
 
 #include "stringutil.h"
 #include "global.h"
+#include "debug.h"
 
 using std::string;
 using std::stringstream;
@@ -104,6 +105,80 @@ string Stringutil::bytes2hexstr(const char *bytes, size_t len, bool colons)
     }
 
     return ss.str();
+}
+
+// -----------------------------------------------------------------------------
+string Stringutil::trim(const std::string &string, const char *chars)
+    throw ()
+{
+    string::size_type start = string.find_first_not_of(chars);
+    if (start == string::npos)
+        return "";
+
+    string::size_type end = string.find_last_not_of(chars);
+
+    return string.substr(start, end-start+1);
+}
+
+// -----------------------------------------------------------------------------
+string Stringutil::ltrim(const std::string &string, const char *chars)
+    throw ()
+{
+    string::size_type start = string.find_first_not_of(chars);
+    if (start == string::npos)
+        return "";
+
+    return string.substr(start);
+}
+
+// -----------------------------------------------------------------------------
+string Stringutil::rtrim(const std::string &string, const char *chars)
+    throw ()
+{
+    string::size_type end = string.find_last_not_of(chars);
+    if (end == string::npos)
+        return "";
+
+    return string.substr(0, end+1);
+}
+
+// -----------------------------------------------------------------------------
+string Stringutil::vector2string(const StringVector &vector,
+                                 const char *delimiter)
+    throw ()
+{
+    string ret;
+
+    for (size_t i = 0; i < vector.size(); i++) {
+        ret += vector[i];
+        if (i != vector.size() - 1)
+            ret += delimiter;
+    }
+
+    return ret;
+}
+
+// -----------------------------------------------------------------------------
+StringVector Stringutil::splitlines(const string &str)
+    throw ()
+{
+    StringVector ret;
+    stringstream ss;
+    ss << str;
+
+    string s;
+    while (getline(ss, s))
+        ret.push_back(s);
+
+    return ret;
+}
+
+// -----------------------------------------------------------------------------
+bool Stringutil::startsWith(const string &long_string,
+                            const string &part)
+    throw ()
+{
+    return strncmp(long_string.c_str(), part.c_str(), part.size()) == 0;
 }
 
 //}}}
