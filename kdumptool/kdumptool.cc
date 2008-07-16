@@ -28,6 +28,7 @@
 #include "subcommand.h"
 #include "debug.h"
 #include "util.h"
+#include "configuration.h"
 
 using std::list;
 using std::cerr;
@@ -41,6 +42,7 @@ using std::fclose;
 
 #define PROGRAM_NAME                "kdumptool"
 #define PROGRAM_VERSION_STRING      PROGRAM_NAME " " PACKAGE_VERSION
+#define DEFAULT_CONFIG              "/etc/sysconfig/kdump"
 
 //{{{ KdumpTool ----------------------------------------------------------------
 
@@ -54,7 +56,8 @@ static void close_file(int error, void *arg)
 // -----------------------------------------------------------------------------
 KdumpTool::KdumpTool()
     throw ()
-    : m_subcommand(NULL), m_errorcode(false), m_background(false)
+    : m_subcommand(NULL), m_errorcode(false), m_background(false),
+      m_configfile(DEFAULT_CONFIG)
 {}
 
 // -----------------------------------------------------------------------------
@@ -72,6 +75,8 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
         "Prints debugging output.");
     m_optionParser.addOption("logfile", 'L', OT_STRING,
         "Uses the specified logfile for the debugging output.");
+    m_optionParser.addOption("configfile", 'F', OT_STRING,
+        "Use the specified configuration file instead of " DEFAULT_CONFIG " .");
 
     // add options of the subcommands
     SubcommandList subcommands = SubcommandManager::instance()->getSubcommands();
@@ -111,6 +116,10 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
     if (debugEnabled)
         Debug::debug()->setLevel(Debug::DL_TRACE);
 
+    // configuration file
+    if (m_optionParser.getValue("configfile").getType() != OT_INVALID)
+        m_configfile = m_optionParser.getValue("configfile").getString();
+
     // parse arguments
     vector<string> arguments = m_optionParser.getArgs();
     if (arguments.size() < 1)
@@ -122,6 +131,16 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
         throw KError("Subcommand " + arguments[0] + " does not exist.");
 
     m_subcommand->parseCommandline(&m_optionParser);
+}
+
+// -----------------------------------------------------------------------------
+void KdumpTool::readConfiguration()
+    throw (KError)
+{
+    Debug::debug()->trace("KdumpTool::readConfiguration");
+
+    Configuration *config = Configuration::config();
+    config->readFile(m_configfile);
 }
 
 // -----------------------------------------------------------------------------

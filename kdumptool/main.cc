@@ -39,6 +39,7 @@ int main(int argc, char *argv[])
 
     try {
         kdt.parseCommandline(argc, argv);
+        kdt.readConfiguration();
         kdt.execute();
     } catch (const KError &ke) {
         cerr << ke.what() << endl;

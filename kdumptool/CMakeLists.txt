@@ -54,6 +54,8 @@ SET(KDUMPTOOL_SRC
     ledblink.h
     progress.cc
     progress.h
+    savedump.cc
+    savedump.h
     main.cc
 )
 

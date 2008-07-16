@@ -19,6 +19,8 @@
 #ifndef KDUMPTOOL_H
 #define KDUMPTOOL_H
 
+#include <string>
+
 #include "global.h"
 #include "optionparser.h"
 #include "subcommand.h"
@@ -46,6 +48,14 @@ class KdumpTool {
         throw (KError);
 
         /**
+         * Reads the configuration.
+         *
+         * @exception KError if reading the configuration failed
+         */
+        void readConfiguration()
+        throw (KError);
+
+        /**
          * Executes the main program.
          */
         void execute()
@@ -66,6 +76,7 @@ class KdumpTool {
         Subcommand *m_subcommand;
         int m_errorcode;
         bool m_background;
+        std::string m_configfile;
 };
 
 //}}}

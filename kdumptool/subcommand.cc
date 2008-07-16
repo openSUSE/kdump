@@ -24,6 +24,7 @@
 #include "identifykernel.h"
 #include "ledblink.h"
 #include "debug.h"
+#include "savedump.h"
 
 using std::map;
 using std::list;
@@ -93,6 +94,7 @@ SubcommandManager::SubcommandManager()
     throw ()
 {
     addSubcommand(new IdentifyKernel());
+    addSubcommand(new SaveDump());
     addSubcommand(new LedBlink());
 }
 

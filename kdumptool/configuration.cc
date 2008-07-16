@@ -278,5 +278,6 @@ bool Configuration::getCopyKernel() const
     return m_copyKernel;
 }
 
+//}}}
 
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

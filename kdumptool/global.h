@@ -25,6 +25,12 @@
 #include <vector>
 #include <map>
 
+
+//{{{ Constants ----------------------------------------------------------------
+
+#define DEFAULT_DUMP        "/proc/vmcore"
+
+//}}}
 //{{{ Type definitions ---------------------------------------------------------
 
 typedef std::list<std::string> StringList;
