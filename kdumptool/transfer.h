@@ -104,6 +104,18 @@ class URLTransfer : public Transfer {
         URLParser &getURLParser()
         throw (KError);
 
+        /**
+         * Returns a Transfer object suitable to the provided URL.
+         *
+         * @param[in] url the URL
+         * @return the Transfer object
+         *
+         * @exception KError if parsing the URL failed or there's no
+         *            implementation for that class.
+         */
+        static Transfer *getTransfer(const char *url)
+        throw (KError);
+
     private:
         URLParser m_urlParser;
 };

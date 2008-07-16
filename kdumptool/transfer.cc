@@ -64,9 +64,45 @@ URLParser &URLTransfer::getURLParser()
     return m_urlParser;
 }
 
+// -----------------------------------------------------------------------------
+Transfer *URLTransfer::getTransfer(const char *url)
+    throw (KError)
+{
+    Debug::debug()->trace("URLTransfer::getTransfer(%s)", url);
+
+    URLParser parser;
+    parser.parseURL(url);
+
+    switch (parser.getProtocol()) {
+        case URLParser::PROT_FILE:
+            Debug::debug()->dbg("Returning FileTransfer");
+            return new FileTransfer(url);
+
+        case URLParser::PROT_FTP:
+            Debug::debug()->dbg("Returning FTPTransfer");
+            return new FTPTransfer(url);
+
+        case URLParser::PROT_SFTP:
+            Debug::debug()->dbg("Returning SFTPTransfer");
+            return new SFTPTransfer(url);
+
+        case URLParser::PROT_NFS:
+            Debug::debug()->dbg("Returning NFSTransfer");
+            return new NFSTransfer(url);
+
+        case URLParser::PROT_CIFS:
+            Debug::debug()->dbg("Returning CIFSTransfer");
+            return new CIFSTransfer(url);
+
+        default:
+            throw KError("Unknown protocol.");
+    }
+}
+
 //}}}
 //{{{ FileTransfer -------------------------------------------------------------
 
+// -----------------------------------------------------------------------------
 FileTransfer::FileTransfer(const char *target_url)
     throw (KError)
     : URLTransfer(target_url), m_buffer(NULL)
