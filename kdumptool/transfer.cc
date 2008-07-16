@@ -155,7 +155,6 @@ void FileTransfer::perform(DataProvider *dataprovider,
             // truncate the file
             rewind(fp);
             ret = ftruncate(fileno(fp), old_offset);
-            Debug::debug()->dbg("ftruncate=%lld", old_offset);
             if (ret != 0)
                 throw KSystemError("Unable to set the file position.", errno);
         }
@@ -166,8 +165,6 @@ void FileTransfer::perform(DataProvider *dataprovider,
         throw;
     }
 
-    Debug::debug()->dbg("last_was_sparse %d",
-        last_was_sparse);
     close(fp);
     dataprovider->finish();
 }

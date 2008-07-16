@@ -25,6 +25,7 @@
 #include "transfer.h"
 #include "dataprovider.h"
 #include "progress.h"
+#include "stringutil.h"
 
 using std::cerr;
 using std::cout;
@@ -43,7 +44,10 @@ int main(int argc, char *argv[])
         TerminalProgress tp("/boot/vmlinuz");
         FileDataProvider dp("/mounts/dist/install/openSUSE-11.0-RC1-Live/openSUSE-11.0-RC1-GNOME-LiveCD-i386.iso");
         dp.setProgress(&tp);
-        FTPTransfer filetransfer("ftp://localhost/incoming");
+        //SFTPTransfer filetransfer("sftp://root:n0vel!onl4%@localhost/tmp/a/b/c");
+
+        CIFSTransfer filetransfer("cifs://bwalle:com.desoft@localhost/bwalle/df");
+        //NFSTransfer filetransfer("nfs://stravinsky/extern/bwalle/test.iso");
         filetransfer.perform(&dp, "vmlinux");
     } catch (const KError &ke) {
         cerr << ke.what() << endl;
