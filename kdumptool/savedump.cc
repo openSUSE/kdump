@@ -196,7 +196,36 @@ void SaveDump::saveDump()
 void SaveDump::copyMakedumpfile()
     throw (KError)
 {
+    StringList paths;
 
+    paths.push_back("/bin/makedumpfile-R.pl");
+    paths.push_back("/sbin/makedumpfile-R.pl");
+    paths.push_back("/usr/bin/makedumpfile-R.pl");
+    paths.push_back("/usr/sbin/makedumpfile-R.pl");
+    paths.push_back("/usr/local/bin/makedumpfile-R.pl");
+    paths.push_back("/usr/local/sbin/makedumpfile-R.pl");
+    paths.push_back("/root/bin/makedumpfile-R.pl");
+
+    string makedumpfile_binary;
+
+    for (StringList::const_iterator it = paths.begin();
+            it != paths.end(); ++it) {
+        if (FileUtil::exists(*it)) {
+            makedumpfile_binary = *it;
+            break;
+        }
+    }
+
+    if (makedumpfile_binary.size() == 0)
+        throw KError("makedumpfile-R.pl not found.");
+
+    auto_ptr<DataProvider> provider(
+        new FileDataProvider(makedumpfile_binary.c_str())
+    );;
+
+    TerminalProgress progress("Saving makedumpfile-R.pl");
+    provider->setProgress(&progress);
+    m_transfer->perform(provider.get(), "makedumpfile-R.pl");
 }
 
 // -----------------------------------------------------------------------------
