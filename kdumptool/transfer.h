@@ -139,7 +139,6 @@ class FileTransfer : public URLTransfer {
          * @see Transfer::perform()
          */
         void perform(DataProvider *dataprovider,
-                     const char *target_url,
                      const char *target_file)
         throw (KError);
 
@@ -253,6 +252,51 @@ class SFTPTransfer : public URLTransfer {
 };
 
 //}}}
+//{{{ NFSTransfer -------------------------------------------------------------
+
+/**
+ * Transfers a file over NFS.
+ */
+class NFSTransfer : public URLTransfer {
+
+    public:
+
+        /**
+         * Creates a NFSTransfer object.
+         *
+         * @exception KError when mounting the share failes
+         */
+        NFSTransfer(const char *target_url)
+        throw (KError);
+
+        /**
+         * Destroys a SFTPTransfer object.
+         */
+        ~NFSTransfer()
+        throw ();
+
+        /**
+         * Transfers the file.
+         *
+         * @see Transfer::perform()
+         */
+        void perform(DataProvider *dataprovider,
+                     const char *target_file)
+        throw (KError);
+
+    protected:
+        void close()
+        throw (KError);
+
+    private:
+        std::string m_mountpoint;
+        std::string m_rest;
+        std::string m_prefix;
+        FileTransfer *m_fileTransfer;
+};
+
+//}}}
+
 
 #endif /* TRANSFER_H */
 

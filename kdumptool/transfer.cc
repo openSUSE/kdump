@@ -45,6 +45,8 @@ using std::string;
 using std::copy;
 using std::strlen;
 
+#define DEFAULT_MOUNTPOINT "/mnt"
+
 //{{{ URLTransfer --------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
@@ -100,7 +102,6 @@ FileTransfer::~FileTransfer()
 
 // -----------------------------------------------------------------------------
 void FileTransfer::perform(DataProvider *dataprovider,
-                           const char *target_url,
                            const char *target_file)
     throw (KError)
 {
@@ -108,8 +109,8 @@ void FileTransfer::perform(DataProvider *dataprovider,
 
     bool prepared = false;
 
-    Debug::debug()->trace("FileTransfer::perform(%p, %s, %s)",
-        dataprovider, target_url, target_file);
+    Debug::debug()->trace("FileTransfer::perform(%p, %s)",
+        dataprovider, target_file);
 
     try {
         dataprovider->prepare();
@@ -525,6 +526,70 @@ void SFTPTransfer::close()
     }
     delete m_socket;
     m_socket = NULL;
+}
+
+//}}}
+//{{{ NFSTransfer --------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+NFSTransfer::NFSTransfer(const char *target_url)
+    throw (KError)
+    : URLTransfer(target_url), m_mountpoint(""), m_fileTransfer(NULL)
+{
+    // mount the NFS share
+    StringVector options;
+    options.push_back("nolock");
+
+    URLParser &parser = getURLParser();
+
+    string mountedDir;
+    FileUtil::nfsmount(parser.getHostname(), parser.getPath(),
+        DEFAULT_MOUNTPOINT, options, mountedDir);
+
+
+    m_mountpoint = DEFAULT_MOUNTPOINT;
+    m_rest = parser.getPath();
+    m_rest.replace(m_rest.begin(), m_rest.begin() + mountedDir.size(), "");
+    m_rest = Stringutil::ltrim(m_rest, "/");
+
+    m_prefix = FileUtil::pathconcat(m_mountpoint, m_rest);
+
+    Debug::debug()->dbg("Mountpoint: %s, Rest: %s, Prefix: $s",
+        m_mountpoint.c_str(), m_rest.c_str(), m_prefix.c_str());
+
+    m_fileTransfer = new FileTransfer(("file://" + m_prefix).c_str());
+}
+
+// -----------------------------------------------------------------------------
+NFSTransfer::~NFSTransfer()
+    throw ()
+{
+    Debug::debug()->trace("NFSTransfer::~NFSTransfer()");
+
+    try {
+        close();
+    } catch (const KError &kerror) {
+        Debug::debug()->info("Error: %s", kerror.what());
+    }
+}
+
+// -----------------------------------------------------------------------------
+void NFSTransfer::perform(DataProvider *dataprovider,
+                          const char *target_file)
+    throw (KError)
+{
+    m_fileTransfer->perform(dataprovider, target_file);
+}
+
+// -----------------------------------------------------------------------------
+void NFSTransfer::close()
+    throw (KError)
+{
+    Debug::debug()->trace("NFSTransfer::close()");
+    if (m_mountpoint.size() > 0) {
+        FileUtil::umount(m_mountpoint);
+        m_mountpoint.clear();
+    }
 }
 
 //}}}
