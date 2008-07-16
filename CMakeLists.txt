@@ -35,6 +35,7 @@ include_directories("${PROJECT_BINARY_DIR}")
 # Defines
 #
 ADD_DEFINITIONS(-D_FILE_OFFSET_BITS=64)
+ADD_DEFINITIONS(-Wall -W -Wno-unused-parameter)
 
 #
 # Find programs
