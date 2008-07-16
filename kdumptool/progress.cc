@@ -24,6 +24,7 @@
 #include <sys/ioctl.h>
 
 #include "progress.h"
+#include "debug.h"
 
 #define NAME_MAXLENGTH 30
 #define DEFAULT_WIDTH  80
@@ -101,6 +102,10 @@ void TerminalProgress::progressed(unsigned long long current,
     time_t now = time(NULL);
     if (now <= m_lastUpdate)
         return;
+    if (current == 0 && max == 0) {
+        Debug::debug()->dbg("TerminalProgress::progressed: current==0 and max==0");
+        return;
+    }
 
     percent = current*100/max;
     number_of_hashes = int(double(current)/max*m_progresslen);
