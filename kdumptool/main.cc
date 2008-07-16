@@ -39,16 +39,7 @@ int main(int argc, char *argv[])
 
     try {
         kdt.parseCommandline(argc, argv);
-        //kdt.execute();
-
-        TerminalProgress tp("/boot/vmlinuz");
-        FileDataProvider dp("/mounts/dist/install/openSUSE-11.0-RC1-Live/openSUSE-11.0-RC1-GNOME-LiveCD-i386.iso");
-        dp.setProgress(&tp);
-        //SFTPTransfer filetransfer("sftp://root:n0vel!onl4%@localhost/tmp/a/b/c");
-
-        CIFSTransfer filetransfer("cifs://bwalle:com.desoft@localhost/bwalle/df");
-        //NFSTransfer filetransfer("nfs://stravinsky/extern/bwalle/test.iso");
-        filetransfer.perform(&dp, "vmlinux");
+        kdt.execute();
     } catch (const KError &ke) {
         cerr << ke.what() << endl;
         exception = true;
