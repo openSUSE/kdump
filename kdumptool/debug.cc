@@ -187,6 +187,7 @@ void Debug::vmsg(Debug::Level level, const char *msg, va_list list)
     }
 
     vfprintf(m_handle, newmsg, list);
+    fflush(m_handle);
 
     delete[] newmsg;
 }
