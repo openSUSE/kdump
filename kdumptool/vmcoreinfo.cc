@@ -205,7 +205,7 @@ ByteVector Vmcoreinfo::readVmcoreinfoFromNotes(const char *buffer, size_t size,
 
     unsigned long long offset_vmcoreinfo = 0, size_vmcoreinfo = 0;
 
-    while (offset < size) {
+    while (offset < loff_t(size)) {
 
         loff_t add_offset;
 
