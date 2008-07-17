@@ -173,6 +173,31 @@ Options
   Use _interval_ ms for the blink interval instead of the default 250 ms.
 
 
+PRINTING VMCOREINFO
+-------------------
+
+In current kernel versions (starting from 2.6.25), the _/proc/vmcore_ has a new
+PT_NOTE section called *VMCOREINFO*. This is a textual representation of
+key/value pairs read from *makedumpfile* to get some parameters of the running
+kernel in the crashed environment. This mechanism replaces the old *VMCOREINFO
+file*.
+
+Syntax
+~~~~~~
+
+*kdumptool* [_global options_] *read_vmcoreinfo* [-u _dumpfile_] [_key_]
+
+When no _key_ is specified, this command just prints all key/value pairs in the
+form _KEY=VALUE_. The order is random and has nothing to do with the order
+the values appear in the PT_NOTE section.
+
+Options
+~~~~~~~
+
+*-u* _dumpfile_ | *--dump* _dumpfile_::
+  Don't use _/proc/vmcore_ as dump file but _dumpfile_. This is mostly for
+  debugging.
+
 RETURN VALUE
 ------------
 
@@ -203,7 +228,7 @@ later.
 
 SEE ALSO
 --------
-*kexec*(8), *kdump*(5),
+*kexec*(8), *kdump*(5), *makedumpfile*(8),
 http://en.opensuse.org/Kdump[_http://en.opensuse.org/Kdump_]
 
 // vim: set sw=4 ts=4 et tw=80 fdm=marker spelllang=en_gb spell: :collapseFolds=1:
