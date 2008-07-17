@@ -24,6 +24,8 @@
 
 #include "global.h"
 
+#define ISO_DATETIME "%Y-%m-%d-%H:%M"
+
 //{{{ Stringutil ---------------------------------------------------------------
 
 /**
@@ -168,7 +170,7 @@ class Stringutil {
          * @param[in] formatstring strftime(3)-like format string
          * @return the formatted output
          */
-        std::string formatCurrentTime(const char *formatstring)
+        static std::string formatCurrentTime(const char *formatstring)
         throw ();
 };
 
