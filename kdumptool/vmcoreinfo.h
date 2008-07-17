@@ -34,6 +34,20 @@ class Vmcoreinfo {
     public:
 
         /**
+         * Creates a new Vmcoreinfo object.
+         *
+         * @exception KError if the libelf library is out of date
+         */
+        Vmcoreinfo()
+        throw (KError);
+
+        /**
+         * Deletes the Vmcoreinfo object.
+         */
+        virtual ~Vmcoreinfo()
+        throw () {}
+
+        /**
          * Reads the vmcoreinfo from a ELF file as NOTES section.
          *
          * @param[in] elf_file the ELF file
@@ -49,7 +63,7 @@ class Vmcoreinfo {
          * @return the value for @p key
          * @exception KError if the value has not been found
          */
-        std::string getStringValue(const char *key)
+        std::string getStringValue(const char *key) const
         throw (KError);
 
         /**
@@ -59,12 +73,15 @@ class Vmcoreinfo {
          * @return the value for @p key
          * @exception KError if the value has not been found
          */
-        int getIntValue(const char *key)
+        int getIntValue(const char *key) const
         throw (KError);
-
 
     protected:
         ByteVector readElfNote(const char *file)
+        throw (KError);
+
+        ByteVector readVmcoreinfoFromNotes(const char *buffer, size_t size,
+                                           bool isElf64)
         throw (KError);
 
     private:
