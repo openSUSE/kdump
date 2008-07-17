@@ -181,6 +181,17 @@ class Stringutil {
          */
         static std::string formatCurrentTime(const char *formatstring)
         throw ();
+
+        /**
+         * Formats the given Unix time as specified in @p formatstring.
+         *
+         * @param[in] formatstring strftime(3)-like format string
+         * @param[in] Unix time stamp
+         * @return the formatted output
+         */
+        static std::string formatUnixTime(const char *formatstring,
+                                          time_t value)
+        throw ();
 };
 
 //}}}

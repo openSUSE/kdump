@@ -194,16 +194,22 @@ bool Stringutil::startsWith(const string &long_string,
 }
 
 // -----------------------------------------------------------------------------
-string Stringutil::formatCurrentTime(const char *formatstring)
+string Stringutil::formatUnixTime(const char *formatstring, time_t value)
     throw ()
 {
     char buffer[BUFSIZ];
 
-    time_t now = time(NULL);
     struct tm mytime;
-    strftime(buffer, BUFSIZ, formatstring, localtime_r(&now, &mytime));
+    strftime(buffer, BUFSIZ, formatstring, localtime_r(&value, &mytime));
 
     return string(buffer);
+}
+
+// -----------------------------------------------------------------------------
+string Stringutil::formatCurrentTime(const char *formatstring)
+    throw ()
+{
+    return formatUnixTime(formatstring, time(NULL));
 }
 
 //}}}
