@@ -32,6 +32,7 @@
 #include "dataprovider.h"
 #include "progress.h"
 #include "stringutil.h"
+#include "vmcoreinfo.h"
 
 using std::string;
 using std::cout;
@@ -246,7 +247,58 @@ void SaveDump::copyMakedumpfile()
 void SaveDump::generateInfo()
     throw (KError)
 {
+    Debug::debug()->trace("SaveDump::generateInfo");
+    Configuration *config = Configuration::config();
 
+    // get crashing time and also get the crashing kernel release
+    string crashtime, crashrelease;
+
+    Vmcoreinfo vm;
+    try {
+        vm.readFromELF(m_dump.c_str());
+        unsigned long long time = vm.getLLongValue("CRASHTIME");
+
+        crashtime = Stringutil::formatUnixTime("%Y-%m-%d %H:%M (%z)", time);
+        crashrelease = vm.getStringValue("OSRELEASE");
+
+    } catch (const KError &err) {
+        // no fatal error
+        Debug::debug()->info("Reading VMCOREINFO failed: %s", err.what());
+    }
+
+    Debug::debug()->dbg("Using crashtime: %s, crashrelease: %s",
+        crashtime.c_str(), crashrelease.c_str());
+
+    stringstream ss;
+
+    ss << "Kernel crashdump" << endl;
+    ss << "----------------" << endl;
+    ss << endl;
+
+    if (crashtime.size() > 0)
+        ss << "Crash time     : " << crashtime << endl;
+    if (crashrelease.size() > 0)
+        ss << "Kernel version : " << crashrelease << endl;
+    ss << "Dump level     : "
+       << Stringutil::number2string(config->getDumpLevel()) << endl;
+    ss << "Dump format    : " << config->getDumpFormat() << endl;
+    ss << endl;
+
+    if (m_useMakedumpfile && !m_usedDirectSave) {
+        ss << "NOTE:" << endl;
+        ss << "This dump was saved in makedumpfile flattened format." << endl;
+        ss << "To read the dump with crash, run" << endl;
+        ss << "    mv vmcore vmcore.flattened" << endl;
+        ss << "    perl makedumpfile-R.pl vmcore < vmcore.flattened" << endl;
+        ss << "    rm vmcore.flattend" << endl;
+    }
+
+
+    TerminalProgress progress("Generating README");
+    ByteVector bv = Stringutil::str2bytes(ss.str());
+    BufferDataProvider provider(bv);
+    provider.setProgress(&progress);
+    m_transfer->perform(&provider, "README.txt", NULL);
 }
 
 
