@@ -270,6 +270,17 @@ int Vmcoreinfo::getIntValue(const char *key) const
     return Stringutil::string2number(getStringValue(key));
 }
 
+// -----------------------------------------------------------------------------
+StringList Vmcoreinfo::getKeys() const
+    throw ()
+{
+    StringList ret;
+    for (StringStringMap::const_iterator it = m_map.begin();
+            it != m_map.end(); ++it)
+        ret.push_back(it->first);
+    return ret;
+}
+
 //}}}
 
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

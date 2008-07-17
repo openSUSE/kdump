@@ -57,6 +57,15 @@ class Vmcoreinfo {
         throw (KError);
 
         /**
+         * Gets all keys.
+         *
+         * @return a list of keys
+         */
+        StringList getKeys() const
+        throw ();
+
+
+        /**
          * Returns a value.
          *
          * @param[in] the key
