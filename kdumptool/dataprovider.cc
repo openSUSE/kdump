@@ -32,6 +32,7 @@ using std::fread;
 using std::fclose;
 using std::min;
 using std::copy;
+using std::string;
 
 //{{{ AbstractDataProvider -----------------------------------------------------
 
@@ -197,12 +198,14 @@ size_t BufferDataProvider::getData(char *buffer, size_t maxread)
 //{{{ ProcessDataProvider ------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-ProcessDataProvider::ProcessDataProvider(const char *cmdline)
+ProcessDataProvider::ProcessDataProvider(const char *pipe_cmdline,
+                                         const char *direct_cmdline)
     throw ()
-    : m_cmdline(cmdline), m_processFile(NULL)
+    : m_pipeCmdline(pipe_cmdline), m_directCmdline(direct_cmdline),
+      m_processFile(NULL)
 {
-    Debug::debug()->trace("ProcessDataProvider::ProcessDataProvider(%s)",
-        m_cmdline.c_str());
+    Debug::debug()->trace("ProcessDataProvider::ProcessDataProvider(%s, %s)",
+        pipe_cmdline, direct_cmdline);
 }
 
 // -----------------------------------------------------------------------------
@@ -211,9 +214,9 @@ void ProcessDataProvider::prepare()
 {
     Debug::debug()->trace("ProcessDataProvider::prepare");
 
-    m_processFile = popen(m_cmdline.c_str(), "r");
+    m_processFile = popen(m_pipeCmdline.c_str(), "r");
     if (!m_processFile)
-        throw KSystemError("Could not start process " + m_cmdline, errno);
+        throw KSystemError("Could not start process " + m_pipeCmdline, errno);
 }
 
 // -----------------------------------------------------------------------------
@@ -221,13 +224,13 @@ size_t ProcessDataProvider::getData(char *buffer, size_t maxread)
     throw (KError)
 {
     if (!m_processFile)
-        throw KError("Process " + m_cmdline + " not started.");
+        throw KError("Process " + m_pipeCmdline + " not started.");
 
     errno = 0;
     size_t ret = fread(buffer, 1, maxread, m_processFile);
     if (ret == 0 && errno != 0) {
         setError(true);
-        throw KSystemError("Error reading from " + m_cmdline, errno);
+        throw KSystemError("Error reading from " + m_pipeCmdline, errno);
     }
 
     return ret;
@@ -243,7 +246,29 @@ void ProcessDataProvider::finish()
     m_processFile = NULL;
 
     if (WEXITSTATUS(err) != 0)
-        throw KError(m_cmdline + " failed (" +
+        throw KError(m_pipeCmdline + " failed (" +
+            Stringutil::number2string(WEXITSTATUS(err)) +").");
+}
+
+// -----------------------------------------------------------------------------
+bool ProcessDataProvider::canSaveToFile() const
+    throw ()
+{
+    return true;
+}
+
+// -----------------------------------------------------------------------------
+void ProcessDataProvider::saveToFile(const char *target)
+    throw (KError)
+{
+    Debug::debug()->trace("ProcessDataProvider::saveToFile(%s)", target);
+
+    string cmdline = m_directCmdline + " " + target;
+    Debug::debug()->trace("Executing '%s'", cmdline.c_str());
+
+    int err = system(cmdline.c_str());
+    if (WEXITSTATUS(err) != 0)
+        throw KError("Running " + m_directCmdline + " failed (" +
             Stringutil::number2string(WEXITSTATUS(err)) +").");
 }
 

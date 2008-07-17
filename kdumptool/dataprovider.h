@@ -299,9 +299,29 @@ class ProcessDataProvider : public AbstractDataProvider {
          * Creates a new BufferDataProvider object.
          *
          * @param[in] data the buffer
+         * @param[in] add_cmdline additional parameters when the
+         *            ProcessDataProvider::saveToFile() shortcut is used
          */
-        ProcessDataProvider(const char *cmdline)
+        ProcessDataProvider(const char *cmdline, const char *add_cmdline="")
         throw ();
+
+        /**
+         * Returns @c true.
+         *
+         * @return @c true
+         */
+        bool canSaveToFile() const
+        throw ();
+
+        /**
+         * Runs the process with @c target as last parameter to save the
+         * stuff to a file directly.
+         *
+         * @param[in] target the target file
+         * @param KError if saving to the file failed
+         */
+        void saveToFile(const char *target)
+        throw (KError);
 
         /**
          * Starts the process
@@ -328,7 +348,8 @@ class ProcessDataProvider : public AbstractDataProvider {
         throw (KError);
 
     private:
-        std::string m_cmdline;
+        std::string m_pipeCmdline;
+        std::string m_directCmdline;
         FILE *m_processFile;
 };
 
