@@ -126,6 +126,31 @@ Options
   bzImage format, _ELF_ for a normal ELF binary and _ELF gzip_ for gzipped
   ELF binary.
 
+
+DUMP SAVING
+-----------
+
+This command is used to save the dump to the specified _KDUMP_DUMPDIR_
+in the configuration file with _KDUMP_DUMPLEVEL_ in _KDUMP_DUMPFORMAT_.
+
+When _KDUMP_DUMPFORMAT_ is not "ELF" and the _KDUMP_DUMPLEVEL_ is not 0, the
+*makedumpfile* tool will be used to save the dump. For NFS and CIFS, kernel
+support of mounting these shares is required. For NFS, the *showmount* tool
+is required to check the exported file systems first.
+
+Syntax
+~~~~~~
+
+*kdumptool* [_global options_] *save_dump* [-u _dumpfile_]
+
+Options
+~~~~~~~
+
+*-u* _dumpfile_ | *--dump* _dumpfile_::
+  Don't use _/proc/vmcore_ as dump file but _dumpfile_. This is mostly for
+  debugging.
+
+
 LED BLINKING
 ------------
 
