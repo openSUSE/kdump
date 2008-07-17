@@ -36,6 +36,7 @@ using std::left;
 using std::right;
 using std::endl;
 using std::flush;
+using std::ostream;
 
 //{{{ Terminal -----------------------------------------------------------------
 
@@ -57,6 +58,17 @@ Terminal::Size Terminal::getSize() const
     sz.height = winsize.ws_row;
 
     return sz;
+}
+
+// -----------------------------------------------------------------------------
+void Terminal::printLine(ostream &os) const
+    throw ()
+{
+    int width = getSize().width - 1;
+
+    for (int i = 0; i < width; i++)
+        os << '-';
+    os << endl;
 }
 
 //}}}

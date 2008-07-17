@@ -19,6 +19,7 @@
 #ifndef PROGRESS_H
 #define PROGRESS_H
 
+#include <iostream>
 #include <ctime>
 
 #include "global.h"
@@ -58,6 +59,12 @@ class Terminal {
          *         the standard output is no terminal but redirected to a file)
          */
         Size getSize() const
+        throw ();
+
+        /**
+         * Prints a horizontal line, as large as the terminal.
+         */
+        void printLine(std::ostream &os = std::cout) const
         throw ();
 };
 
