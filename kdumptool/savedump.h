@@ -83,7 +83,8 @@ class SaveDump : public Subcommand {
     private:
         std::string m_dump;
         Transfer *m_transfer;
-        bool m_usedMakedumpfile;
+        bool m_usedDirectSave;
+        bool m_useMakedumpfile;
 };
 
 //}}}

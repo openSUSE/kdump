@@ -44,7 +44,8 @@ using std::stringstream;
 // -----------------------------------------------------------------------------
 SaveDump::SaveDump()
     throw ()
-    : m_dump(DEFAULT_DUMP), m_transfer(NULL), m_usedMakedumpfile(false)
+    : m_dump(DEFAULT_DUMP), m_transfer(NULL), m_usedDirectSave(false),
+      m_useMakedumpfile(false)
 {
     Debug::debug()->trace("SaveDump::SaveDump()");
 }
@@ -108,7 +109,7 @@ void SaveDump::execute()
     string savedir = config->getSavedir();
     savedir = FileUtil::pathconcat(savedir,
         Stringutil::formatCurrentTime(ISO_DATETIME));
-    m_transfer = URLTransfer::getTransfer(config->getSavedir().c_str());
+    m_transfer = URLTransfer::getTransfer(savedir.c_str());
 
     cout << "Saving dump to " << savedir << "." << endl;
 
@@ -123,7 +124,7 @@ void SaveDump::execute()
     }
 
     try {
-        if (m_usedMakedumpfile)
+        if (!m_usedDirectSave && m_useMakedumpfile)
             copyMakedumpfile();
     } catch (const KError &error) {
         setErrorCode(1);
@@ -163,42 +164,41 @@ void SaveDump::saveDump()
 
     bool useElf = strcasecmp(dumpformat.c_str(), "elf") == 0;
     bool useCompressed = strcasecmp(dumpformat.c_str(), "compressed") == 0;
-    string name;
 
     if (useElf && dumplevel == 0) {
         // use file source?
         provider = new FileDataProvider(m_dump.c_str());
-        name = "vmcore";
+        m_useMakedumpfile = false;
     } else {
         // use makedumpfile
         stringstream cmdline;
         cmdline << "makedumpfile";
         cmdline << config->getMakedumpfileOptions() << " ";
         cmdline << "-d " << config->getDumpLevel() << " ";
-        // flattened
-        cmdline << "-F ";
         if (useElf)
             cmdline << "-E ";
         if (useCompressed)
             cmdline << "-c ";
         cmdline << m_dump;
 
-        Debug::debug()->dbg("Command line: %s", cmdline.str().c_str());
-        name = "vmcore.flattened";
-        provider = new ProcessDataProvider(cmdline.str().c_str());
-        m_usedMakedumpfile = true;
+        string directCmdline = cmdline.str();
+        string pipeCmdline = cmdline.str() + " -F"; // flattened format
+
+        provider = new ProcessDataProvider(pipeCmdline.c_str(),
+            directCmdline.c_str());
+        m_useMakedumpfile = true;
     }
 
     try {
         Terminal terminal;
-        if (m_usedMakedumpfile) {
+        if (m_useMakedumpfile) {
             cout << "Saving dump using makedumpfile" << endl;
             terminal.printLine();
         }
         TerminalProgress progress("Saving dump");
         provider->setProgress(&progress);
-        m_transfer->perform(provider, name.c_str());
-        if (m_usedMakedumpfile)
+        m_transfer->perform(provider, "vmcore", &m_usedDirectSave);
+        if (m_useMakedumpfile)
             terminal.printLine();
     } catch (...) {
         delete provider;
@@ -239,7 +239,7 @@ void SaveDump::copyMakedumpfile()
 
     TerminalProgress progress("Saving makedumpfile-R.pl");
     provider->setProgress(&progress);
-    m_transfer->perform(provider.get(), "makedumpfile-R.pl");
+    m_transfer->perform(provider.get(), "makedumpfile-R.pl", NULL);
 }
 
 // -----------------------------------------------------------------------------
