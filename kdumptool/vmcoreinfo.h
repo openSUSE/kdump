@@ -1,0 +1,78 @@
+/*
+ * (c) 2008, Bernhard Walle <bwalle@suse.de>, SUSE LINUX Products GmbH
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301, USA.
+ */
+#ifndef VMCOREINFO_H
+#define VMCOREINFO_H
+
+#include <iostream>
+#include <ctime>
+
+#include "global.h"
+
+//{{{ Vmcoreinfo ---------------------------------------------------------------
+
+/**
+ * Represents the VMCOREINFO of makedumpfile.
+ */
+class Vmcoreinfo {
+
+    public:
+
+        /**
+         * Reads the vmcoreinfo from a ELF file as NOTES section.
+         *
+         * @param[in] elf_file the ELF file
+         * @exception KError if reading the vmcoreinfo failed
+         */
+        void readFromELF(const char *elf_file)
+        throw (KError);
+
+        /**
+         * Returns a value.
+         *
+         * @param[in] the key
+         * @return the value for @p key
+         * @exception KError if the value has not been found
+         */
+        std::string getStringValue(const char *key)
+        throw (KError);
+
+        /**
+         * Returns an integer value.
+         *
+         * @param[in] the key
+         * @return the value for @p key
+         * @exception KError if the value has not been found
+         */
+        int getIntValue(const char *key)
+        throw (KError);
+
+
+    protected:
+        ByteVector readElfNote(const char *file)
+        throw (KError);
+
+    private:
+        StringStringMap m_map;
+};
+
+//}}}
+
+#endif /* VMCOREINFO_H */
+
+// vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

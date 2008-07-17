@@ -56,6 +56,8 @@ SET(KDUMPTOOL_SRC
     progress.h
     savedump.cc
     savedump.h
+    vmcoreinfo.cc
+    vmcoreinfo.h
     main.cc
 )
 
