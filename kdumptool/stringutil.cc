@@ -49,6 +49,17 @@ int Stringutil::string2number(const std::string &string)
 }
 
 // -----------------------------------------------------------------------------
+long long Stringutil::string2llong(const std::string &string)
+    throw ()
+{
+    long long ret;
+    stringstream ss;
+    ss << string;
+    ss >> ret;
+    return ret;
+}
+
+// -----------------------------------------------------------------------------
 char ** Stringutil::stringv2charv(const StringVector &strv)
     throw (KError)
 {

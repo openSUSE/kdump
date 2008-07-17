@@ -54,6 +54,15 @@ class Stringutil {
         throw ();
 
         /**
+         * Parses a number.
+         *
+         * @param[in] string string that should be parsed
+         * @return the number
+         */
+        static long long string2llong(const std::string &string)
+        throw ();
+
+        /**
          * Converts an C++ string vector to an C string array (dynamically
          * allocated)
          *
