@@ -24,6 +24,7 @@
 
 #include <libssh2.h>
 #include <libssh2_sftp.h>
+#include <gelf.h>
 
 #include "global.h"
 
@@ -66,7 +67,6 @@ const char *KNetError::what() const
 }
 
 //}}}
-
 //{{{ KSFTPError ---------------------------------------------------------------
 
 /* -------------------------------------------------------------------------- */
@@ -164,6 +164,23 @@ string KSFTPError::getStringForCode(int code) const
     return string(msg);
 }
 
+
+//}}}
+//{{{ KELFError ----------------------------------------------------------------
+
+/* -------------------------------------------------------------------------- */
+const char *KELFError::what() const
+    throw ()
+{
+    static char buffer[MAXERROR];
+
+    string errorstring = m_errorstring + " (" + elf_errmsg(m_errorcode) + ")";
+
+    strncpy(buffer, errorstring.c_str(), MAXERROR);
+    buffer[MAXERROR-1] = 0;
+
+    return buffer;
+}
 
 //}}}
 

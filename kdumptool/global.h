@@ -175,6 +175,43 @@ class KSFTPError : public KError {
 };
 
 //}}}
+//{{{ KELFError ----------------------------------------------------------------
+
+/**
+ * Standard error class for libelf error.
+ */
+class KELFError : public KError {
+    public:
+
+        /**
+         * Creates a new object of KELFError with string as error message.
+         *
+         * @param[in] string the error message
+         * @param[in] errorcode the value of elf_errno()
+         */
+        KELFError(const std::string &string, int errorcode)
+            : KError(string), m_errorcode(errorcode),
+              m_errorstring(string) {}
+
+        /**
+         * Returns a readable error message from the string and the error code.
+         *
+         * @return Error message in the format 'string (strerror(errorcode))'.
+         */
+        virtual const char *what() const
+        throw ();
+
+        /**
+         * Don't know why that is necessary to avoid compiler errors.
+         */
+        virtual ~KELFError() throw () {}
+
+    private:
+        int m_errorcode;
+        std::string m_errorstring;
+};
+
+//}}}
 
 #endif /* GLOBAL_H */
 
