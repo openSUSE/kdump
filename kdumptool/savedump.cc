@@ -31,6 +31,7 @@
 #include "configuration.h"
 #include "dataprovider.h"
 #include "progress.h"
+#include "stringutil.h"
 
 using std::string;
 using std::cout;
@@ -38,7 +39,7 @@ using std::endl;
 using std::auto_ptr;
 using std::stringstream;
 
-//{{{ IdentifyKernel -----------------------------------------------------------
+//{{{ SaveDump -----------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
 SaveDump::SaveDump()
@@ -103,7 +104,13 @@ void SaveDump::execute()
         throw KError("The dump file " + m_dump + " does not exist.");
 
     // build the transfer object
+    // prepend a time stamp to the save dir
+    string savedir = config->getSavedir();
+    savedir = FileUtil::pathconcat(savedir,
+        Stringutil::formatCurrentTime(ISO_DATETIME));
     m_transfer = URLTransfer::getTransfer(config->getSavedir().c_str());
+
+    cout << "Saving dump to " << savedir << "." << endl;
 
     try {
         saveDump();
@@ -183,9 +190,16 @@ void SaveDump::saveDump()
     }
 
     try {
+        Terminal terminal;
+        if (m_usedMakedumpfile) {
+            cout << "Saving dump using makedumpfile" << endl;
+            terminal.printLine();
+        }
         TerminalProgress progress("Saving dump");
         provider->setProgress(&progress);
         m_transfer->perform(provider, name.c_str());
+        if (m_usedMakedumpfile)
+            terminal.printLine();
     } catch (...) {
         delete provider;
         throw;
