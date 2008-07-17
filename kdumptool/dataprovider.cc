@@ -42,6 +42,20 @@ AbstractDataProvider::AbstractDataProvider()
 {}
 
 // -----------------------------------------------------------------------------
+bool AbstractDataProvider::canSaveToFile() const
+    throw ()
+{
+    return false;
+}
+
+// -----------------------------------------------------------------------------
+void AbstractDataProvider::saveToFile(const char *target)
+    throw (KError)
+{
+    throw KError("That DataProvider cannot save to a file.");
+}
+
+// -----------------------------------------------------------------------------
 void AbstractDataProvider::prepare()
     throw (KError)
 {

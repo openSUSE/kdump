@@ -53,6 +53,29 @@ class DataProvider {
         throw (KError) = 0;
 
         /**
+         * This method is called to check if the data provider itself is able
+         * to save to a file. That makes sense for an external process that
+         * accepts a file as last parameter. Saving to a file for that process
+         * is much faster than using a pipe.
+         *
+         * @return @c true if the process is capable of saving the contents
+         *            to a file, @c false otherwise.
+         */
+        virtual bool canSaveToFile() const
+        throw () = 0;
+
+        /**
+         * If DataProvider::canSaveToFile() returns @c true, that method
+         * saves the contents that the DataProvider provides to a file.
+         *
+         * @param[in] target the file where the contents should be saved to
+         * @exception KError if saving failed or DataProvider::canSaveToFile()
+         *            returns @c false.
+         */
+        virtual void saveToFile(const char *target)
+        throw (KError) = 0;
+
+        /**
          * This method gets called repeatedly
          *
          * @param[in] buffer the buffer where the data should be written to
@@ -139,6 +162,26 @@ class AbstractDataProvider : public DataProvider {
          */
         Progress *getProgress() const
         throw ();
+
+        /**
+         * Returns @c false as default implementation.
+         *
+         * @return @c false
+         * @see DataProvider::canSaveToFile()
+         */
+        bool canSaveToFile() const
+        throw ();
+
+        /**
+         * Throws a KError.
+         *
+         * @param[in] target the target file (does not matter)
+         * @exception KError always because DataProvider::canSaveToFile()
+         *            returns @c false in AbstractDataProvider.
+         * @see DataProvider::saveToFile().
+         */
+        void saveToFile(const char *target)
+        throw (KError);
 
         /**
          * Sets the error flag
