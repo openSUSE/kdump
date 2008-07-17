@@ -271,6 +271,13 @@ int Vmcoreinfo::getIntValue(const char *key) const
 }
 
 // -----------------------------------------------------------------------------
+int Vmcoreinfo::getLLongValue(const char *key) const
+    throw (KError)
+{
+    return Stringutil::string2llong(getStringValue(key));
+}
+
+// -----------------------------------------------------------------------------
 StringList Vmcoreinfo::getKeys() const
     throw ()
 {

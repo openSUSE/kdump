@@ -85,6 +85,16 @@ class Vmcoreinfo {
         int getIntValue(const char *key) const
         throw (KError);
 
+        /**
+         * Returns an integer value.
+         *
+         * @param[in] the key
+         * @return the value for @p key
+         * @exception KError if the value has not been found
+         */
+        int getLLongValue(const char *key) const
+        throw (KError);
+
     protected:
         ByteVector readElfNote(const char *file)
         throw (KError);
