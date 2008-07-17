@@ -162,6 +162,14 @@ class Stringutil {
                                const std::string &part)
         throw ();
 
+        /**
+         * Formats the current time as specified in @p formatstring.
+         *
+         * @param[in] formatstring strftime(3)-like format string
+         * @return the formatted output
+         */
+        std::string formatCurrentTime(const char *formatstring)
+        throw ();
 };
 
 //}}}

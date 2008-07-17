@@ -22,6 +22,7 @@
 #include <cstring>
 #include <sstream>
 #include <iomanip>
+#include <ctime>
 
 #include "stringutil.h"
 #include "global.h"
@@ -179,6 +180,19 @@ bool Stringutil::startsWith(const string &long_string,
     throw ()
 {
     return strncmp(long_string.c_str(), part.c_str(), part.size()) == 0;
+}
+
+// -----------------------------------------------------------------------------
+string Stringutil::formatCurrentTime(const char *formatstring)
+    throw ()
+{
+    char buffer[BUFSIZ];
+
+    time_t now = time(NULL);
+    struct tm mytime;
+    strftime(buffer, BUFSIZ, formatstring, localtime_r(&now, &mytime));
+
+    return string(buffer);
 }
 
 //}}}
