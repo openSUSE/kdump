@@ -25,6 +25,7 @@
 #include "ledblink.h"
 #include "debug.h"
 #include "savedump.h"
+#include "read_vmcoreinfo.h"
 
 using std::map;
 using std::list;
@@ -96,6 +97,7 @@ SubcommandManager::SubcommandManager()
     addSubcommand(new IdentifyKernel());
     addSubcommand(new SaveDump());
     addSubcommand(new LedBlink());
+    addSubcommand(new ReadVmcoreinfo());
 }
 
 // -----------------------------------------------------------------------------

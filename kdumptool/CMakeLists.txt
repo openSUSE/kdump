@@ -58,6 +58,8 @@ SET(KDUMPTOOL_SRC
     savedump.h
     vmcoreinfo.cc
     vmcoreinfo.h
+    read_vmcoreinfo.cc
+    read_vmcoreinfo.h
     main.cc
 )
 
