@@ -140,15 +140,49 @@ FileTransfer::~FileTransfer()
 
 // -----------------------------------------------------------------------------
 void FileTransfer::perform(DataProvider *dataprovider,
-                           const char *target_file)
+                           const char *target_file,
+                           bool *directSave)
     throw (KError)
 {
+    Debug::debug()->trace("FileTransfer::perform(%p, %s)",
+        dataprovider, target_file);
+
+    string fullTarget = FileUtil::pathconcat(
+        getURLParser().getPath(), target_file);
+
+    if (dataprovider->canSaveToFile()) {
+        performFile(dataprovider, fullTarget.c_str());
+        if (directSave)
+            *directSave = true;
+    } else {
+        performPipe(dataprovider, fullTarget.c_str());
+        if (directSave)
+            *directSave = false;
+    }
+}
+
+// -----------------------------------------------------------------------------
+void FileTransfer::performFile(DataProvider *dataprovider,
+                               const char *target_file)
+    throw (KError)
+{
+    Debug::debug()->trace("FileTransfer::performFile(%p, %s)",
+        dataprovider, target_file);
+
+    dataprovider->saveToFile(target_file);
+}
+
+// -----------------------------------------------------------------------------
+void FileTransfer::performPipe(DataProvider *dataprovider,
+                               const char *target_file)
+    throw (KError)
+{
+    Debug::debug()->trace("FileTransfer::performPipe(%p, %s)",
+        dataprovider, target_file);
+
     FILE *fp = open(target_file);
 
     bool prepared = false;
-
-    Debug::debug()->trace("FileTransfer::perform(%p, %s)",
-        dataprovider, target_file);
 
     bool last_was_sparse = false;
     try {
@@ -211,11 +245,9 @@ FILE *FileTransfer::open(const char *target_file)
 {
     Debug::debug()->trace("FileTransfer::open(%s)", target_file);
 
-    string file = FileUtil::pathconcat(getURLParser().getPath(), target_file);
-
-    FILE *fp = fopen(file.c_str(), "w");
+    FILE *fp = fopen(target_file, "w");
     if (!fp)
-        throw KSystemError("Error in fopen for " + file, errno);
+        throw KSystemError("Error in fopen for " + string(target_file), errno);
 
     return fp;
 }
@@ -319,6 +351,11 @@ FTPTransfer::FTPTransfer(const char *target_url)
     if (err != CURLE_OK)
         throw KError(string("CURL error: ") + m_curlError);
 
+    // create directory
+    err = curl_easy_setopt(m_curl, CURLOPT_FTP_CREATE_MISSING_DIRS, 1);
+    if (err != CURLE_OK)
+        throw KError(string("CURL error: " ) + m_curlError);
+
     // read function
     err = curl_easy_setopt(m_curl, CURLOPT_READFUNCTION, curl_readfunction);
     if (err != CURLE_OK)
@@ -340,12 +377,15 @@ FTPTransfer::~FTPTransfer()
 
 // -----------------------------------------------------------------------------
 void FTPTransfer::perform(DataProvider *dataprovider,
-                          const char *target_file)
+                          const char *target_file,
+                          bool *directSave)
     throw (KError)
 {
     Debug::debug()->trace("FTPTransfer::perform(%p, %s)",
         dataprovider, target_file);
 
+    if (directSave)
+        *directSave = false;
     open(dataprovider, target_file);
 
     try {
@@ -518,14 +558,17 @@ void SFTPTransfer::mkdir(const string &dir, bool recursive)
 }
 
 /* -------------------------------------------------------------------------- */
-void SFTPTransfer::perform(DataProvider *dataprovider, const char *target_file)
+void SFTPTransfer::perform(DataProvider *dataprovider,
+                           const char *target_file,
+                           bool *directSave)
     throw (KError)
 {
     Debug::debug()->trace("SFTPTransfer::perform(%p, %s)",
         dataprovider, target_file);
 
     bool prepared = false;
-
+    if (directSave)
+        *directSave = false;
 
     LIBSSH2_SFTP_HANDLE  *handle = NULL;
     string file = FileUtil::pathconcat(getURLParser().getPath(), target_file);
@@ -632,10 +675,11 @@ NFSTransfer::~NFSTransfer()
 
 // -----------------------------------------------------------------------------
 void NFSTransfer::perform(DataProvider *dataprovider,
-                          const char *target_file)
+                          const char *target_file,
+                          bool *directSave)
     throw (KError)
 {
-    m_fileTransfer->perform(dataprovider, target_file);
+    m_fileTransfer->perform(dataprovider, target_file, directSave);
 }
 
 // -----------------------------------------------------------------------------
@@ -710,10 +754,11 @@ CIFSTransfer::~CIFSTransfer()
 
 // -----------------------------------------------------------------------------
 void CIFSTransfer::perform(DataProvider *dataprovider,
-                          const char *target_file)
+                          const char *target_file,
+                          bool *directSave)
     throw (KError)
 {
-    m_fileTransfer->perform(dataprovider, target_file);
+    m_fileTransfer->perform(dataprovider, target_file, directSave);
 }
 
 // -----------------------------------------------------------------------------

@@ -63,10 +63,13 @@ class Transfer {
          * @param[in] target_url the URL for the target directory, i.e. without
          *            the file name
          * @param[in] target_file the actual file name for the target
+         * @param[out] directSave if the transfer used
+         *             DataProvider::saveToFile()
          * @exception KError on any error
          */
         virtual void perform(DataProvider *dataprovider,
-                             const char *target_file)
+                             const char *target_file,
+                             bool *directSave)
         throw (KError) = 0;
 
 };
@@ -151,10 +154,19 @@ class FileTransfer : public URLTransfer {
          * @see Transfer::perform()
          */
         void perform(DataProvider *dataprovider,
-                     const char *target_file)
+                     const char *target_file,
+                     bool *directSave)
         throw (KError);
 
     protected:
+
+        void performFile(DataProvider *dataprovider,
+                         const char *target_file)
+        throw (KError);
+
+        void performPipe(DataProvider *dataprovider,
+                         const char *target_file)
+        throw (KError);
 
         FILE *open(const char *target_file)
         throw (KError);
@@ -197,7 +209,8 @@ class FTPTransfer : public URLTransfer {
          * @see Transfer::perform()
          */
         void perform(DataProvider *dataprovider,
-                     const char *target_file)
+                     const char *target_file,
+                     bool *directSave)
         throw (KError);
 
     protected:
@@ -242,7 +255,8 @@ class SFTPTransfer : public URLTransfer {
          * @see Transfer::perform()
          */
         void perform(DataProvider *dataprovider,
-                     const char *target_file)
+                     const char *target_file,
+                     bool *directSave)
         throw (KError);
 
     protected:
@@ -293,7 +307,8 @@ class NFSTransfer : public URLTransfer {
          * @see Transfer::perform()
          */
         void perform(DataProvider *dataprovider,
-                     const char *target_file)
+                     const char *target_file,
+                     bool *directSave)
         throw (KError);
 
     protected:
@@ -337,7 +352,8 @@ class CIFSTransfer : public URLTransfer {
          * @see Transfer::perform()
          */
         void perform(DataProvider *dataprovider,
-                     const char *target_file)
+                     const char *target_file,
+                     bool *directSave)
         throw (KError);
 
     protected:
