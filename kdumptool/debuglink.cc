@@ -146,7 +146,7 @@ void Debuglink::readDebuglink()
 }
 
 // -----------------------------------------------------------------------------
-string Debuglink::findDebugfile()
+string Debuglink::findDebugfile(const char *prefix)
     throw (KError)
 {
     Debug::debug()->trace("Debuglink::findDebugfile()");
@@ -176,7 +176,8 @@ string Debuglink::findDebugfile()
     } catch (const KError &err) {}
 
     // 3rd: GLOBALDEBUGDIR/EXECDIR/DEBUGFILE
-    path = FileUtil::pathconcat(GLOBALDEBUGDIR, FileUtil::dirname(m_filename));
+    path = FileUtil::pathconcat(prefix, GLOBALDEBUGDIR,
+        FileUtil::dirname(m_filename));
     path = FileUtil::pathconcat(path, m_debuglink);
     try {
         uint32_t crc = calcCrc(path);

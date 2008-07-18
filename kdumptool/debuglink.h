@@ -63,10 +63,11 @@ class Debuglink {
         /**
          * Finds the debuginfo file on the system.
          *
+         * @param[in] prefix add that prefix to global path names
          * @return the path to the debuginfo file
          * @exception KError if something went wrong
          */
-        std::string findDebugfile()
+        std::string findDebugfile(const char *prefix="")
         throw (KError);
 
         /**
