@@ -107,7 +107,14 @@ string FileUtil::dirname(const string &file)
 string FileUtil::pathconcat(const string &a, const string &b)
     throw ()
 {
-    return a + "/" + b;
+    return a + PATH_SEPARATOR + b;
+}
+
+// -----------------------------------------------------------------------------
+string FileUtil::pathconcat(const string &a, const string &b, const string &c)
+    throw ()
+{
+    return a + PATH_SEPARATOR + b + PATH_SEPARATOR + c;
 }
 
 // -----------------------------------------------------------------------------
