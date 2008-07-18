@@ -420,7 +420,7 @@ string SaveDump::findKernel()
 
     // 1: vmlinux
     binary = FileUtil::pathconcat(m_rootdir, "/boot",
-                                  "vmlinux" + m_crashrelease);
+                                  "vmlinux-" + m_crashrelease);
     Debug::debug()->dbg("Trying %s", binary.c_str());
     if (FileUtil::exists(binary))
         return binary;
@@ -433,7 +433,7 @@ string SaveDump::findKernel()
 
     // 3: vmlinuz (check if ELF file)
     binary = FileUtil::pathconcat(m_rootdir, "/boot",
-                                  "vmlinuz" + m_crashrelease);
+                                  "vmlinuz-" + m_crashrelease);
     Debug::debug()->dbg("Trying %s", binary.c_str());
     if (FileUtil::exists(binary) && IdentifyKernel::isElfFile(binary.c_str()))
         return binary;
