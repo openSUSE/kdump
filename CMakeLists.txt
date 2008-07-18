@@ -101,8 +101,8 @@ configure_file(
 # Subdirs
 #
 
-ADD_SUBDIRECTORY(doc)
 ADD_SUBDIRECTORY(kdumptool)
+ADD_SUBDIRECTORY(doc)
 ADD_SUBDIRECTORY(tests)
 
 

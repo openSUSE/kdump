@@ -17,18 +17,33 @@
 # 02110-1301, USA.
 #
 
-ADD_CUSTOM_TARGET(implementation_doc
-    ALL
+ADD_CUSTOM_COMMAND(
+    OUTPUT
+        ${CMAKE_CURRENT_BINARY_DIR}/Implementation_Guide.html
     COMMAND
         ${ASCIIDOC_EXECUTABLE} ${ASCIIDOC_OPTIONS}
         -o ${CMAKE_CURRENT_BINARY_DIR}/Implementation_Guide.html
         ${CMAKE_CURRENT_SOURCE_DIR}/Implementation_Guide.txt
     DEPENDS
-        Implementation_Guide.txt
+        ${CMAKE_CURRENT_SOURCE_DIR}/Implementation_Guide.txt
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_BINARY_DIR}
-    COMMENT
-        "Building implementation documentation"
+)
+
+#
+# we need to make a target out of the two ADD_CUSTOM_COMMAND() calls
+# because otherwise cmake ignores the manpages
+ADD_CUSTOM_TARGET(
+    implementation_doc
+    DEPENDS
+        ${CMAKE_CURRENT_BINARY_DIR}/Implementation_Guide.html
+)
+
+#
+# always build the manpages before building the program
+ADD_DEPENDENCIES(
+    kdumptool
+    implementation_doc
 )
 
 # vim: set sw=4 ts=4 et:
