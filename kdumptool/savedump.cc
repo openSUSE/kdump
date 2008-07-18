@@ -81,6 +81,9 @@ OptionList SaveDump::getOptions() const
         "Use the specified dump instead of " DEFAULT_DUMP "."));
     list.push_back(Option("root", 'R', OT_STRING,
         "Use the specified root directory instead of /."));
+    list.push_back(Option("kernelversion", 'k', OT_STRING,
+        "Use the specified kernel version instead of auto-detection via "
+        "VMCOREINFO."));
 
     return list;
 
@@ -96,9 +99,11 @@ void SaveDump::parseCommandline(OptionParser *optionparser)
         m_dump = optionparser->getValue("dump").getString();
     if (optionparser->getValue("root").getType() != OT_INVALID)
         m_rootdir = optionparser->getValue("root").getString();
+    if (optionparser->getValue("kernelversion").getType() != OT_INVALID)
+        m_crashrelease = optionparser->getValue("kernelversion").getString();
 
-    Debug::debug()->dbg("dump: %s, root: %s",
-        m_dump.c_str(), m_rootdir.c_str());
+    Debug::debug()->dbg("dump: %s, root: %s, crashrelease: %s",
+        m_dump.c_str(), m_rootdir.c_str(), m_crashrelease.c_str());
 }
 
 // -----------------------------------------------------------------------------
@@ -326,7 +331,10 @@ void SaveDump::fillVmcoreinfo()
     unsigned long long time = vm.getLLongValue("CRASHTIME");
 
     m_crashtime = Stringutil::formatUnixTime("%Y-%m-%d %H:%M (%z)", time);
-    m_crashrelease = vm.getStringValue("OSRELEASE");
+
+    // don't overwrite m_crashrelease from command line
+    if (m_crashrelease.size() == 0)
+        m_crashrelease = vm.getStringValue("OSRELEASE");
 
     Debug::debug()->dbg("Using crashtime: %s, crashrelease: %s",
         m_crashtime.c_str(), m_crashrelease.c_str());

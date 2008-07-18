@@ -145,7 +145,7 @@ is required to check the exported file systems first.
 Syntax
 ~~~~~~
 
-*kdumptool* [_global options_] *save_dump* [-u _dumpfile_] [-R _rootdir_]
+*kdumptool* [_global options_] *save_dump* [-u _dumpfile_] [-R _root_] [-k _ver_]
 
 Options
 ~~~~~~~
@@ -154,10 +154,15 @@ Options
   Don't use _/proc/vmcore_ as dump file but _dumpfile_. This is mostly for
   debugging.
 
-*-R* _rootdir_ | *--root* _rootdir_::
-  Use _rootdir_ instead of _/_ as root directory. That option is useful in
+*-R* _root_ | *--root* _root_::
+  Use _root_ instead of _/_ as root directory. That option is useful in
   initrd where the system root is not mounted to _/_ but needs to be mounted
   externally.
+
+*-k* _version_ | *--kernelversion* _version_::
+  Use _version_ as kernel version (which is necessary if the dump saving process
+  also copies the kernel binary) instead of the auto-detected one via
+  VMCOREINFO.
 
 LED BLINKING
 ------------
