@@ -84,10 +84,17 @@ class IdentifyKernel : public Subcommand {
         void execute()
         throw (KError);
 
-    protected:
-        bool isElfFile(const char *filename)
+        /**
+         * Checks if @p filename is an ELF file.
+         *
+         * @param[in] filename the file to check
+         * @return @c true if it's an ELF file, @c false otherwise
+         * @exception KError if opening the file failed
+         */
+        static bool isElfFile(const char *filename)
         throw (KError);
 
+    protected:
         bool checkElfFile(const char *file)
         throw (KError);
 
