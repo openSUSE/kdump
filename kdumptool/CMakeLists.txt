@@ -54,6 +54,8 @@ SET(KDUMPTOOL_SRC
     ledblink.h
     progress.cc
     progress.h
+    debuglink.cc
+    debuglink.h
     savedump.cc
     savedump.h
     vmcoreinfo.cc

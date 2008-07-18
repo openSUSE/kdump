@@ -31,6 +31,7 @@
 #define DEFAULT_DUMP        "/proc/vmcore"
 #define LINE                "---------------------------------------" \
                             "---------------------------------------"
+#define GLOBALDEBUGDIR      "/usr/lib/debug"
 
 //}}}
 //{{{ Type definitions ---------------------------------------------------------
