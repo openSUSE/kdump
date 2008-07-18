@@ -80,6 +80,9 @@ class SaveDump : public Subcommand {
         void generateInfo()
         throw (KError);
 
+        void generateRearrange()
+        throw (KError);
+
     private:
         std::string m_dump;
         Transfer *m_transfer;

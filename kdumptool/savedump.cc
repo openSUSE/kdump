@@ -234,13 +234,46 @@ void SaveDump::copyMakedumpfile()
     if (makedumpfile_binary.size() == 0)
         throw KError("makedumpfile-R.pl not found.");
 
-    auto_ptr<DataProvider> provider(
-        new FileDataProvider(makedumpfile_binary.c_str())
-    );;
-
+    FileDataProvider provider(makedumpfile_binary.c_str());
     TerminalProgress progress("Saving makedumpfile-R.pl");
-    provider->setProgress(&progress);
-    m_transfer->perform(provider.get(), "makedumpfile-R.pl", NULL);
+    provider.setProgress(&progress);
+    m_transfer->perform(&provider, "makedumpfile-R.pl", NULL);
+
+    generateRearrange();
+}
+
+// -----------------------------------------------------------------------------
+void SaveDump::generateRearrange()
+    throw (KError)
+{
+    // and also generate a "rearrange" script
+    stringstream ss;
+
+    ss << "#!/bin/sh" << endl;
+    ss << endl;
+    ss << "# rename the flattened vmcore" << endl;
+    ss << "mv vmcore vmcore.flattened || exit 1" << endl;
+    ss << endl;
+    ss << "# unflatten" << endl;
+    ss << "perl makedumpfile-R.pl vmcore < vmcore.flattened || exit 1 " << endl;
+    ss << endl;
+    ss << "# delete the original dump" << endl;
+    ss << "rm vmcore.flattened || exit 1 " << endl;
+    ss << endl;
+    ss << "# delete the perl script" << endl;
+    ss << "rm makedumpfile-R.pl || exit 1 " << endl;
+    ss << endl;
+    ss << "# delete myself" << endl;
+    ss << "rm \"$0\" || exit 1 " << endl;
+    ss << endl;
+    ss << "exit 0" << endl;
+    ss << "# EOF" << endl;
+
+    TerminalProgress progress2("Generating rearrange script");
+    ByteVector bv = Stringutil::str2bytes(ss.str());
+    BufferDataProvider provider2(bv);
+    provider2.setProgress(&progress2);
+    m_transfer->perform(&provider2, "rearrange.sh", NULL);
 }
 
 // -----------------------------------------------------------------------------
@@ -251,7 +284,7 @@ void SaveDump::generateInfo()
     Configuration *config = Configuration::config();
 
     // get crashing time and also get the crashing kernel release
-    string crashtime, crashrelease;
+    string crashtime, crashrelease, domainhost;
 
     Vmcoreinfo vm;
     try {
@@ -260,7 +293,6 @@ void SaveDump::generateInfo()
 
         crashtime = Stringutil::formatUnixTime("%Y-%m-%d %H:%M (%z)", time);
         crashrelease = vm.getStringValue("OSRELEASE");
-
     } catch (const KError &err) {
         // no fatal error
         Debug::debug()->info("Reading VMCOREINFO failed: %s", err.what());
@@ -279,6 +311,7 @@ void SaveDump::generateInfo()
         ss << "Crash time     : " << crashtime << endl;
     if (crashrelease.size() > 0)
         ss << "Kernel version : " << crashrelease << endl;
+    ss << "Host           : " << Util::getHostDomain() << endl;
     ss << "Dump level     : "
        << Stringutil::number2string(config->getDumpLevel()) << endl;
     ss << "Dump format    : " << config->getDumpFormat() << endl;
@@ -287,10 +320,8 @@ void SaveDump::generateInfo()
     if (m_useMakedumpfile && !m_usedDirectSave) {
         ss << "NOTE:" << endl;
         ss << "This dump was saved in makedumpfile flattened format." << endl;
-        ss << "To read the dump with crash, run" << endl;
-        ss << "    mv vmcore vmcore.flattened" << endl;
-        ss << "    perl makedumpfile-R.pl vmcore < vmcore.flattened" << endl;
-        ss << "    rm vmcore.flattend" << endl;
+        ss << "To read the dump with crash, run \"sh rearrange.sh\" before."
+           << endl;
     }
 
 
