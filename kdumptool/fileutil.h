@@ -56,7 +56,7 @@ class FileUtil {
          * @param[in] path the path for which the base name should be provided
          * @return the base name
          */
-        static std::string basename(const std::string &file)
+        static std::string baseName(const std::string &file)
         throw ();
 
         /**

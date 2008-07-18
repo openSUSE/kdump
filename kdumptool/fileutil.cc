@@ -82,7 +82,7 @@ bool FileUtil::exists(const string &file)
 }
 
 // -----------------------------------------------------------------------------
-string FileUtil::basename(const string &file)
+string FileUtil::baseName(const string &file)
     throw ()
 {
     // modification of the arguments is allowed
