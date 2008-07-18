@@ -87,11 +87,9 @@ string FileUtil::basename(const string &file)
 {
     // modification of the arguments is allowed
     char *path = strdup(file.c_str());
-
-    const char *ret = ::basename(path);
+    string ret(::basename(path));
     free(path);
-
-    return string(ret);
+    return ret;
 }
 
 // -----------------------------------------------------------------------------
@@ -100,11 +98,9 @@ string FileUtil::dirname(const string &file)
 {
     // modification of the arguments is allowed
     char *path = strdup(file.c_str());
-
-    const char *ret = ::dirname(path);
+    string ret(::dirname(path));
     free(path);
-
-    return string(ret);
+    return ret;
 }
 
 // -----------------------------------------------------------------------------
