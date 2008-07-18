@@ -92,6 +92,9 @@ class SaveDump : public Subcommand {
         std::string findKernel()
         throw (KError);
 
+        std::string findMapfile()
+        throw (KError);
+
     private:
         std::string m_dump;
         Transfer *m_transfer;

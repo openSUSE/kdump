@@ -383,7 +383,14 @@ void SaveDump::copyKernel()
 {
     Debug::debug()->trace("SaveDump::copyKernel()");
 
+    string mapfile = findMapfile();
     string kernel = findKernel();
+
+    // mapfile
+    TerminalProgress mapProgress("Copying System.map");
+    FileDataProvider mapProvider(mapfile.c_str());
+    mapProvider.setProgress(&mapProgress);
+    m_transfer->perform(&mapProvider, FileUtil::baseName(mapfile).c_str());
 
     TerminalProgress kernelProgress("Copying kernel");
     FileDataProvider kernelProvider(kernel.c_str());
@@ -414,8 +421,6 @@ string SaveDump::findKernel()
 {
     Debug::debug()->trace("SaveDump::findKernel()");
 
-    string ret;
-
     // find the kernel binary
     string binary;
 
@@ -440,6 +445,22 @@ string SaveDump::findKernel()
         return binary;
 
     throw KError("No kernel image found in " +
+        FileUtil::pathconcat(m_rootdir, "/boot"));
+}
+
+// -----------------------------------------------------------------------------
+string SaveDump::findMapfile()
+    throw (KError)
+{
+    Debug::debug()->trace("SaveDump::findMapfile()");
+
+    string map = FileUtil::pathconcat(m_rootdir, "/boot",
+                                      "System.map-" + m_crashrelease);
+    Debug::debug()->dbg("Trying %s", map.c_str());
+    if (FileUtil::exists(map))
+        return map;
+
+    throw KError("No System.map found in " +
         FileUtil::pathconcat(m_rootdir, "/boot"));
 }
 
