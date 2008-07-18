@@ -528,13 +528,8 @@ Copying the kernel
 ^^^^^^^^^^^^^^^^^^
 
 After the dump is saved, if +KDUMP_COPY_KERNEL+ is true, the +save_dump+ call
-itself calls
-
-    kdumptool copy_kernel targetdir
-
-where +targetdir+ is of course read from +KDUMP_SAVEDIR+. It's necessary to
-implement that as one command to be able to use one connection to the remote
-host.
+itself saves the kernel to the dump directory. It's necessary to implement that
+as one command to be able to use one connection to the remote host.
 
 
 Deleting the dump
