@@ -66,7 +66,7 @@ OptionList ReadVmcoreinfo::getOptions() const
 {
     OptionList list;
 
-    list.push_back(Option("dumpfile", 'u', OT_STRING,
+    list.push_back(Option("dump", 'u', OT_STRING,
         "Use the specified dump instead of " DEFAULT_DUMP "."));
 
     return list;
@@ -78,8 +78,8 @@ void ReadVmcoreinfo::parseCommandline(OptionParser *optionparser)
 {
     Debug::debug()->trace("ReadVmcoreinfo::parseCommandline(%p)", optionparser);
 
-    if (optionparser->getValue("dumpfile").getType() != OT_INVALID)
-        m_file = optionparser->getValue("dumpfile").getString();
+    if (optionparser->getValue("dump").getType() != OT_INVALID)
+        m_file = optionparser->getValue("dump").getString();
 
     if (optionparser->getArgs().size() == 2)
         m_option = optionparser->getArgs()[1];
