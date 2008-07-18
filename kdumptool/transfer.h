@@ -69,7 +69,7 @@ class Transfer {
          */
         virtual void perform(DataProvider *dataprovider,
                              const char *target_file,
-                             bool *directSave)
+                             bool *directSave=NULL)
         throw (KError) = 0;
 
 };
