@@ -83,11 +83,23 @@ class SaveDump : public Subcommand {
         void generateRearrange()
         throw (KError);
 
+        void fillVmcoreinfo()
+        throw (KError);
+
+        void copyKernel()
+        throw (KError);
+
+        std::string findKernel()
+        throw (KError);
+
     private:
         std::string m_dump;
         Transfer *m_transfer;
         bool m_usedDirectSave;
         bool m_useMakedumpfile;
+        std::string m_crashtime;
+        std::string m_crashrelease;
+        std::string m_rootdir;
 };
 
 //}}}

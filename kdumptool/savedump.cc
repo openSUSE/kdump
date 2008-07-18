@@ -33,6 +33,8 @@
 #include "progress.h"
 #include "stringutil.h"
 #include "vmcoreinfo.h"
+#include "identifykernel.h"
+#include "debuglink.h"
 
 using std::string;
 using std::cout;
@@ -77,6 +79,8 @@ OptionList SaveDump::getOptions() const
 
     list.push_back(Option("dump", 'u', OT_STRING,
         "Use the specified dump instead of " DEFAULT_DUMP "."));
+    list.push_back(Option("root", 'R', OT_STRING,
+        "Use the specified root directory instead of /."));
 
     return list;
 
@@ -90,8 +94,11 @@ void SaveDump::parseCommandline(OptionParser *optionparser)
 
     if (optionparser->getValue("dump").getType() != OT_INVALID)
         m_dump = optionparser->getValue("dump").getString();
+    if (optionparser->getValue("root").getType() != OT_INVALID)
+        m_rootdir = optionparser->getValue("root").getString();
 
-    Debug::debug()->dbg("dump = " + m_dump);
+    Debug::debug()->dbg("dump: %s, root: %s",
+        m_dump.c_str(), m_rootdir.c_str());
 }
 
 // -----------------------------------------------------------------------------
@@ -110,9 +117,21 @@ void SaveDump::execute()
     string savedir = config->getSavedir();
     savedir = FileUtil::pathconcat(savedir,
         Stringutil::formatCurrentTime(ISO_DATETIME));
-    m_transfer = URLTransfer::getTransfer(savedir.c_str());
 
-    cout << "Saving dump to " << savedir << "." << endl;
+    // root dir support
+    URLParser parser;
+    parser.parseURL(savedir.c_str());
+
+    if (m_rootdir.size() == 0 && parser.getProtocol() == URLParser::PROT_FILE)
+        m_transfer = URLTransfer::getTransfer(savedir.c_str());
+    else {
+        Debug::debug()->dbg("Using root dir support for Transfer (%s)",
+            m_rootdir.c_str());
+
+        string newUrl = parser.getProtocolAsString() + "://" +
+            FileUtil::pathconcat(m_rootdir, parser.getPath());;
+        m_transfer = URLTransfer::getTransfer(newUrl.c_str());
+    }
 
     // save the dump
     try {
@@ -137,9 +156,28 @@ void SaveDump::execute()
             throw;
     }
 
+    try {
+        fillVmcoreinfo();
+    } catch (const KError &error) {
+        Debug::debug()->info("Error when reading VMCOREINFO: %s",
+            error.what());
+    }
+
     // generate the README file
     try {
         generateInfo();
+    } catch (const KError &error) {
+        setErrorCode(1);
+        if (config->getContinueOnError())
+            cout << error.what() << endl;
+        else
+            throw;
+    }
+
+    // copy kernel
+    try {
+        if (config->getCopyKernel())
+            copyKernel();
     } catch (const KError &error) {
         setErrorCode(1);
         if (config->getContinueOnError())
@@ -280,29 +318,26 @@ void SaveDump::generateRearrange()
 }
 
 // -----------------------------------------------------------------------------
+void SaveDump::fillVmcoreinfo()
+    throw (KError)
+{
+    Vmcoreinfo vm;
+    vm.readFromELF(m_dump.c_str());
+    unsigned long long time = vm.getLLongValue("CRASHTIME");
+
+    m_crashtime = Stringutil::formatUnixTime("%Y-%m-%d %H:%M (%z)", time);
+    m_crashrelease = vm.getStringValue("OSRELEASE");
+
+    Debug::debug()->dbg("Using crashtime: %s, crashrelease: %s",
+        m_crashtime.c_str(), m_crashrelease.c_str());
+}
+
+// -----------------------------------------------------------------------------
 void SaveDump::generateInfo()
     throw (KError)
 {
     Debug::debug()->trace("SaveDump::generateInfo");
     Configuration *config = Configuration::config();
-
-    // get crashing time and also get the crashing kernel release
-    string crashtime, crashrelease, domainhost;
-
-    Vmcoreinfo vm;
-    try {
-        vm.readFromELF(m_dump.c_str());
-        unsigned long long time = vm.getLLongValue("CRASHTIME");
-
-        crashtime = Stringutil::formatUnixTime("%Y-%m-%d %H:%M (%z)", time);
-        crashrelease = vm.getStringValue("OSRELEASE");
-    } catch (const KError &err) {
-        // no fatal error
-        Debug::debug()->info("Reading VMCOREINFO failed: %s", err.what());
-    }
-
-    Debug::debug()->dbg("Using crashtime: %s, crashrelease: %s",
-        crashtime.c_str(), crashrelease.c_str());
 
     stringstream ss;
 
@@ -310,10 +345,10 @@ void SaveDump::generateInfo()
     ss << "----------------" << endl;
     ss << endl;
 
-    if (crashtime.size() > 0)
-        ss << "Crash time     : " << crashtime << endl;
-    if (crashrelease.size() > 0)
-        ss << "Kernel version : " << crashrelease << endl;
+    if (m_crashtime.size() > 0)
+        ss << "Crash time     : " << m_crashtime << endl;
+    if (m_crashrelease.size() > 0)
+        ss << "Kernel version : " << m_crashrelease << endl;
     ss << "Host           : " << Util::getHostDomain() << endl;
     ss << "Dump level     : "
        << Stringutil::number2string(config->getDumpLevel()) << endl;
@@ -335,6 +370,70 @@ void SaveDump::generateInfo()
     m_transfer->perform(&provider, "README.txt", NULL);
 }
 
+// -----------------------------------------------------------------------------
+void SaveDump::copyKernel()
+    throw (KError)
+{
+    Debug::debug()->trace("SaveDump::copyKernel()");
+
+    string kernel = findKernel();
+
+    TerminalProgress kernelProgress("Copying kernel");
+    FileDataProvider kernelProvider(kernel.c_str());
+    kernelProvider.setProgress(&kernelProgress);
+    m_transfer->perform(&kernelProvider, FileUtil::baseName(kernel).c_str());
+
+    // try to find debugging information
+    try {
+        Debuglink dbg(kernel.c_str());
+        string debuglink = dbg.findDebugfile(m_rootdir.c_str());
+        Debug::debug()->dbg("Found debuginfo file: %s", debuglink.c_str());
+
+        TerminalProgress debugkernelProgress("Copying kernel.debug");
+        FileDataProvider debugkernelProvider(debuglink.c_str());
+        debugkernelProvider.setProgress(&debugkernelProgress);
+        m_transfer->perform(&debugkernelProvider,
+            FileUtil::baseName(debuglink).c_str());
+
+    } catch (const KError &err) {
+        Debug::debug()->info("Cannot find debug information: %s", err.what());
+    }
+}
+
+// -----------------------------------------------------------------------------
+string SaveDump::findKernel()
+    throw (KError)
+{
+    Debug::debug()->trace("SaveDump::findKernel()");
+
+    string ret;
+
+    // find the kernel binary
+    string binary;
+
+    // 1: vmlinux
+    binary = FileUtil::pathconcat(m_rootdir, "/boot",
+                                  "vmlinux" + m_crashrelease);
+    Debug::debug()->dbg("Trying %s", binary.c_str());
+    if (FileUtil::exists(binary))
+        return binary;
+
+    // 2: vmlinux.gz
+    binary += ".gz";
+    Debug::debug()->dbg("Trying %s", binary.c_str());
+    if (FileUtil::exists(binary))
+        return binary;
+
+    // 3: vmlinuz (check if ELF file)
+    binary = FileUtil::pathconcat(m_rootdir, "/boot",
+                                  "vmlinuz" + m_crashrelease);
+    Debug::debug()->dbg("Trying %s", binary.c_str());
+    if (FileUtil::exists(binary) && IdentifyKernel::isElfFile(binary.c_str()))
+        return binary;
+
+    throw KError("No kernel image found in " +
+        FileUtil::pathconcat(m_rootdir, "/boot"));
+}
 
 //}}}
 
