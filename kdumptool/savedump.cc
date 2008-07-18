@@ -393,6 +393,7 @@ void SaveDump::copyKernel()
     // try to find debugging information
     try {
         Debuglink dbg(kernel.c_str());
+        dbg.readDebuglink();
         string debuglink = dbg.findDebugfile(m_rootdir.c_str());
         Debug::debug()->dbg("Found debuginfo file: %s", debuglink.c_str());
 

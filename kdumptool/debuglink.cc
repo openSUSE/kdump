@@ -151,6 +151,9 @@ string Debuglink::findDebugfile(const char *prefix)
 {
     Debug::debug()->trace("Debuglink::findDebugfile()");
 
+    if (m_debuglink.size() == 0)
+        throw KError("Debuglink::readDebuglink() not called.");
+
     // 1st: EXECDIR/DEBUGFILE
     string path = FileUtil::pathconcat(FileUtil::dirname(m_filename),
         m_debuglink);
