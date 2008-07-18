@@ -117,4 +117,17 @@ bool Util::isZero(const char *buffer, size_t size)
     return true;
 }
 
+// -----------------------------------------------------------------------------
+string Util::getHostDomain()
+    throw (KError)
+{
+    struct utsname my_utsname;
+    int ret = uname(&my_utsname);
+    if (ret != 0)
+        throw KSystemError("uname() failed.", errno);
+
+    return string(my_utsname.nodename) + "." + string(my_utsname.domainname);
+}
+
+
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

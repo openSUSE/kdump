@@ -76,6 +76,16 @@ class Util {
          */
         static bool isZero(const char *buffer, size_t size)
         throw ();
+
+        /**
+         * Returns the system hostname and domainname in the form
+         * hostname.domainname.
+         *
+         * @return the hostname.domainname pair
+         * @exception KError if providing the hostname and domainname failed
+         */
+        static std::string getHostDomain()
+        throw (KError);
 };
 
 //}}}
@@ -93,6 +103,8 @@ void Util::freev(T **vector)
 
     delete[] vector;
 }
+
+//}}}
 
 #endif /* UTIL_H */
 
