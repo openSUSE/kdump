@@ -127,16 +127,15 @@ void SaveDump::execute()
     URLParser parser;
     parser.parseURL(savedir.c_str());
 
-    if (m_rootdir.size() == 0 && parser.getProtocol() == URLParser::PROT_FILE)
-        m_transfer = URLTransfer::getTransfer(savedir.c_str());
-    else {
+    if (m_rootdir.size() != 0 && parser.getProtocol() == URLParser::PROT_FILE)
         Debug::debug()->dbg("Using root dir support for Transfer (%s)",
             m_rootdir.c_str());
 
         string newUrl = parser.getProtocolAsString() + "://" +
             FileUtil::pathconcat(m_rootdir, parser.getPath());;
         m_transfer = URLTransfer::getTransfer(newUrl.c_str());
-    }
+    } else
+        m_transfer = URLTransfer::getTransfer(savedir.c_str());
 
     // save the dump
     try {
