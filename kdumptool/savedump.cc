@@ -114,6 +114,7 @@ void SaveDump::execute()
 
     cout << "Saving dump to " << savedir << "." << endl;
 
+    // save the dump
     try {
         saveDump();
     } catch (const KError &error) {
@@ -124,6 +125,7 @@ void SaveDump::execute()
             throw;
     }
 
+    // copy the makedumpfile-R.pl
     try {
         if (!m_usedDirectSave && m_useMakedumpfile)
             copyMakedumpfile();
@@ -135,6 +137,7 @@ void SaveDump::execute()
             throw;
     }
 
+    // generate the README file
     try {
         generateInfo();
     } catch (const KError &error) {
