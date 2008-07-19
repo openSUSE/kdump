@@ -105,5 +105,15 @@ ADD_SUBDIRECTORY(kdumptool)
 ADD_SUBDIRECTORY(doc)
 ADD_SUBDIRECTORY(tests)
 
+#
+# Configuration
+#
+INSTALL(FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/sysconfig.kdump
+    DESTINATION
+        /var/adm/fillup-templates/
+)
+
+
 
 # vim: set sw=4 ts=4 et:

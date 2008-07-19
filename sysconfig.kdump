@@ -1,0 +1,225 @@
+## Path:        System/Kernel/Kdump
+## Description: Crash Dump Configuration
+
+## Type:	string
+## Default:	"kdump"
+## ServiceRestart:	kdump
+#
+# Kernel Version string for the -kdump kernel, such as 2.6.16-5-kdump
+# If no version is specified, then the init script will try to find a
+# kdump kernel with the same version number as the running kernel.
+# The init script will use a kernel named:
+# /boot/vmlinux-$KDUMP_KERNELVER
+# Using "kdump" will default to the most recently installed kdump kernel.
+#
+KDUMP_KERNELVER=""
+
+## Type:	string
+## Default:	""
+## ServiceRestart:	kdump
+#
+# The kdump commandline is the command line that needs to be passed off to
+# the kdump kernel.  This will likely match the contents of the grub kernel
+# line.  For example:
+#   KDUMP_COMMANDLINE="ro root=LABEL=/"
+# If a command line is not specified, the default will be taken from
+# /proc/cmdline
+#
+KDUMP_COMMANDLINE=""
+
+## Type:        string
+## Default:     ""
+## ServiceRestart:     kdump
+#
+# Set this variable if you only want to _append_ values to the default
+# command line string. The string gets also appended if KDUMP_COMMANDLINE
+# is set.
+#
+KDUMP_COMMANDLINE_APPEND="maxcpus=1 "
+
+## Type:	string
+## Default:	""
+## ServiceRestart:	kdump
+#
+# Additional arguments passed to kexec.  For example, to generate
+# ELF32 dump on x86-64 to allow i386 systems to read dump, set
+# "--elf32-core-headers" here.
+# 
+# Keep this empty in most cases.
+#
+KEXEC_OPTIONS="--args-linux "
+
+## Type:	list(1,2,3,5,s)
+## Default:	1
+## ServiceRestart:	kdump
+#
+# The run-level to boot the kdump kernel.  The default is "1".
+# If you need networks in the kdump environment, set "3".
+#
+KDUMP_RUNLEVEL="1"
+
+## Type:	yesno
+## Default:	yes
+#
+# Immediately reboot after saving the core in the kdump kernel?
+# This option is ignored when KDUMP_DUMPDEV is set to a non-empty
+# value. Use "yes" or "no". Default is "yes".
+#
+KDUMP_IMMEDIATE_REBOOT="yes"
+
+## Type:	string
+## Default:	""
+#
+# A script or command executed to process and transfer the dump image.
+# It can read the dump image either via /proc/vmcore or /dev/oldmem.
+#
+# Keeping this empty will use the default dumper, which copies the vmcore
+# file to $KDUMP_SAVEDIR with some system checks.
+#
+KDUMP_TRANSFER=""
+
+## Type:	string
+## Default:	"file:///var/log/dump"
+#
+# Which directory should the dumps be saved in by the default dumper?
+# This can be:
+#
+#   - a local file, for example "file:///var/log/dump" (or, deprecated,
+#     just "/var/log/dump")
+#   - a FTP server, for example "ftp://user:password@host/var/log/dump"
+#   - a SSH server, for example "ssh://user@host/var/log/dump"
+#     please create a user that needs no password or set up public key
+#     authorization for the root user of the system -- or you have to enter
+#     the password on the serial console as the VGA console may not work!
+#   - a NFS share, for example "nfs://server:/export:/var/log/dump"
+#   - a CIFS (SMB) share, for example
+#     "cifs://user:password@host:/share/var/log/dump"
+#
+# For the exact URLs, see kdump-url_parser(8) manual page. Or use the
+# YaST2 kdump module to configure this if you're unsure.
+KDUMP_SAVEDIR="file:///var/log/dump"
+
+## Type:	integer
+## Default:	5
+#
+# Specifies how many old dumps are kept.  If the number of dump files
+# exceeds this number, older dumps are removed.
+#
+# You can prevent the automatic removal by setting zero to this.
+# Set KDUMP_KEEP_OLD_DUMPS to "-2" is you want to delete all old
+# dumps before saving the new dump.
+#
+# The default value is 5.
+#
+KDUMP_KEEP_OLD_DUMPS=5
+
+## Type:	integer
+## Default:	64
+#
+# Specifies the minimal free disk space (in MB unit) on the dump
+# partition.  If the free disk space is less than the sum of this
+# value and memory size, the default dumper won't save vmcore file
+# in order to keep the system sane.
+# 
+# Setting zero forces to dump without check.
+# The default value is 64MB.
+#
+KDUMP_FREE_DISK_SIZE=64
+
+## Type:        string
+## Default:     ""
+#
+#
+# Specifies the dump device that is used for saving the dump with the kdump
+# kernel. The dump device normally is a disk partition. You don't need to
+# specify a dump device here. Then the dump is written to KDUMP_SAVEDIR when
+# booting from the kdump kernel.
+#
+# If KDUMP_DUMPDEV points to a device file, the dump is written to that device
+# when running the kdump kernel. The advantage over writing the dump to
+# disk immediately is that you don't have to mount the root file system (which
+# may be corrupted!) just to write the dump. So if the root file system is
+# corrupted, you have the chance to fix the file system manually and reboot the
+# system without loosing the dump information. On the first normal boot which
+# is able to successfully mount the root file system, the dump is saved to
+# KDUMP_SAVEDIR as usual.
+#
+# Important: The KDUMP_DUMPDEV is overwritten by kdump, so don't use it for
+# saving any data. Also don't use the currently used swap partition.
+#
+KDUMP_DUMPDEV=""
+
+## Type:        integer
+## Default:     3
+#
+# Determines if kdump uses verbose output. This value is a bitmask:
+#
+# 1: kdump command line is written to system log when executing
+#    /etc/init.d/kdump
+# 2: progress is written to stdout while dumping 
+# 4: kdump command line is written so standard output when executing
+#    /etc/init.d/kdump
+# 8: Debugging for kdump transfer script
+KDUMP_VERBOSE=3
+
+## Type:        integer
+## Default:     0
+#
+# Determines the dump level. If KDUMP_DUMPLEVEL != 0, then makedumpfile
+# is used to strip pages that may not be necessary for analysing. 0 means
+# no stripping, and 31 is the maximum dump level, i.e. 0 produces the
+# largest dump files and 31 the smallest.
+#
+# The following table from makedumpfile(8) shows what each dump level
+# means:
+#                 dump | zero | cache|cache  | user | free
+#                level | page | page |private| data | page
+#               -------+------+------+-------+------+------
+#                    0 |      |      |       |      |
+#                    1 |  X   |      |       |      |
+#                    2 |      |  X   |       |      |
+#                    3 |  X   |  X   |       |      |
+#                    4 |      |  X   |  X    |      |
+#                    5 |  X   |  X   |  X    |      |
+#                    6 |      |  X   |  X    |      |
+#                    7 |  X   |  X   |  X    |      |
+#                    8 |      |      |       |  X   |
+#                    9 |  X   |      |       |  X   |
+#                   10 |      |  X   |       |  X   |
+#                   11 |  X   |  X   |       |  X   |
+#                   12 |      |  X   |  X    |  X   |
+#                   13 |  X   |  X   |  X    |  X   |
+#                   14 |      |  X   |  X    |  X   |
+#                   15 |  X   |  X   |  X    |  X   |
+#                   16 |      |      |       |      |  X
+#                   17 |  X   |      |       |      |  X
+#                   18 |      |  X   |       |      |  X
+#                   19 |  X   |  X   |       |      |  X
+#                   20 |      |  X   |  X    |      |  X
+#                   21 |  X   |  X   |  X    |      |  X
+#                   22 |      |  X   |  X    |      |  X
+#                   23 |  X   |  X   |  X    |      |  X
+#                   24 |      |      |       |  X   |  X
+#                   25 |  X   |      |       |  X   |  X
+#                   26 |      |  X   |       |  X   |  X
+#                   27 |  X   |  X   |       |  X   |  X
+#                   28 |      |  X   |  X    |  X   |  X
+#                   29 |  X   |  X   |  X    |  X   |  X
+#                   30 |      |  X   |  X    |  X   |  X
+#                   31 |  X   |  X   |  X    |  X   |  X
+KDUMP_DUMPLEVEL=0
+
+## Type:        string
+## Default:     "ELF"
+#
+# This variable specifies the dump format.
+#
+# "ELF" has the advantage that it's a standard format and GDB can be used to
+# analyse the dumps. The disadvantage is that the dump files are larger.
+#
+# "compressed" is the kdump compressed format (see makedumpfile(8)) that
+# produces small dumps. However, only "crash" can analyse the dumps and
+# you need makedumpfile to have installed (but you need it anyway if you
+# set KDUMP_DUMPLEVEL != 0 before).
+KDUMP_DUMPFORMAT="ELF"
+
