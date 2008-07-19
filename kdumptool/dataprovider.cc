@@ -122,12 +122,20 @@ void FileDataProvider::prepare()
     if (!m_file)
         throw KSystemError("Cannot open file " + m_filename, errno);
 
-    // get the file size
-    if (fseek(m_file, 0, SEEK_END) != 0)
-        throw KSystemError("Cannot seek to end in file " + m_filename, errno);
-    m_fileSize = ftell(m_file);
-    if (fseek(m_file, 0, SEEK_SET) != 0)
-        throw KSystemError("Cannot seek to 0 in file " + m_filename, errno);
+    // get the file size, we need to use the raw Unix interface
+    // because the ftell() function does not support large files on i386
+    int fd = fileno(m_file);
+    if (fd < 0)
+        throw KSystemError("fileno() failed with " + m_filename + ".", errno);
+
+    m_fileSize = lseek(fd, 0, SEEK_END);
+    if (m_fileSize == (off_t)-1)
+        throw KSystemError("lseek() failed with " + m_filename + ".", errno);
+
+    // and back to the beginning
+    int ret = lseek(fd, 0, SEEK_SET);
+    if (ret == (off_t)-1)
+        throw KSystemError("lseek() failed with " + m_filename + ".", errno);
 
     AbstractDataProvider::prepare();
 }
@@ -148,7 +156,7 @@ size_t FileDataProvider::getData(char *buffer, size_t maxread)
 
     Progress *p = getProgress();
     if (p)
-        p->progressed(ftell(m_file), m_fileSize);
+        p->progressed(lseek(fileno(m_file), 0, SEEK_CUR), m_fileSize);
 
     return ret;
 }
