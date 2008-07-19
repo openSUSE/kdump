@@ -35,7 +35,7 @@ KDUMP_COMMANDLINE=""
 # command line string. The string gets also appended if KDUMP_COMMANDLINE
 # is set.
 #
-KDUMP_COMMANDLINE_APPEND="maxcpus=1 "
+KDUMP_COMMANDLINE_APPEND=""
 
 ## Type:	string
 ## Default:	""
@@ -44,10 +44,10 @@ KDUMP_COMMANDLINE_APPEND="maxcpus=1 "
 # Additional arguments passed to kexec.  For example, to generate
 # ELF32 dump on x86-64 to allow i386 systems to read dump, set
 # "--elf32-core-headers" here.
-# 
+#
 # Keep this empty in most cases.
 #
-KEXEC_OPTIONS="--args-linux "
+KEXEC_OPTIONS=""
 
 ## Type:	list(1,2,3,5,s)
 ## Default:	1
@@ -120,7 +120,7 @@ KDUMP_KEEP_OLD_DUMPS=5
 # partition.  If the free disk space is less than the sum of this
 # value and memory size, the default dumper won't save vmcore file
 # in order to keep the system sane.
-# 
+#
 # Setting zero forces to dump without check.
 # The default value is 64MB.
 #
@@ -156,7 +156,7 @@ KDUMP_DUMPDEV=""
 #
 # 1: kdump command line is written to system log when executing
 #    /etc/init.d/kdump
-# 2: progress is written to stdout while dumping 
+# 2: progress is written to stdout while dumping
 # 4: kdump command line is written so standard output when executing
 #    /etc/init.d/kdump
 # 8: Debugging for kdump transfer script
@@ -223,3 +223,4 @@ KDUMP_DUMPLEVEL=0
 # set KDUMP_DUMPLEVEL != 0 before).
 KDUMP_DUMPFORMAT="ELF"
 
+# vim: set ft=sh:
