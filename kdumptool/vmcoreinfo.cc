@@ -101,7 +101,8 @@ ByteVector Vmcoreinfo::readElfNote(const char *file)
     GElf_Xword size = 0;
     char *buffer = NULL;
     bool isElf64;
-    void *map;
+    void *map = MAP_FAILED;
+    char *map_copy = NULL;
 
     try {
         // open the file
@@ -114,12 +115,29 @@ ByteVector Vmcoreinfo::readElfNote(const char *file)
         // whole file which fails for dumps on 32 bit systems because they
         // can be larger then the address space
         map = mmap(NULL, ELF_HEADER_MAPSIZE, PROT_READ, MAP_PRIVATE, fd, 0);
-        if (map == MAP_FAILED)
-            throw KSystemError("Unable to do mapping", errno);
+        if (map != MAP_FAILED) {
+            elf = elf_memory(reinterpret_cast<char *>(map), ELF_HEADER_MAPSIZE);
+            if (!elf)
+                throw KError("Vmcoreinfo: elf_begin() failed.");
 
-        elf = elf_memory(reinterpret_cast<char *>(map), ELF_HEADER_MAPSIZE);
-        if (!elf)
-            throw KError("Vmcoreinfo: elf_begin() failed.");
+        } else {
+            // currently, mmap() on /proc/vmcore does not work
+            // so copy it to memory
+            map_copy = new char[ELF_HEADER_MAPSIZE];
+
+            for (size_t already_read = 0; already_read < ELF_HEADER_MAPSIZE; ) {
+
+                size_t currently_read = read(fd, map_copy+already_read, BUFSIZ);
+                if (currently_read == 0)
+                    throw KSystemError("Error when reading from dump.", errno);
+
+                already_read += currently_read;
+            }
+
+            elf = elf_memory(map_copy, ELF_HEADER_MAPSIZE);
+            if (!elf)
+                throw KError("Vmcoreinfo: elf_begin() failed.");
+        }
 
         // check the type
         Elf_Kind ek = elf_kind(elf);
@@ -174,7 +192,8 @@ ByteVector Vmcoreinfo::readElfNote(const char *file)
                 Stringutil::number2string(size) +
                 " bytes.", errno);
     } catch (...) {
-        if (map)
+        delete[] map_copy;
+        if (map != MAP_FAILED)
             munmap(map, ELF_HEADER_MAPSIZE);
         if (elf)
             elf_end(elf);
@@ -186,7 +205,8 @@ ByteVector Vmcoreinfo::readElfNote(const char *file)
         throw;
     }
 
-    if (map)
+    delete[] map_copy;
+    if (map != MAP_FAILED)
         munmap(map, ELF_HEADER_MAPSIZE);
     if (elf)
         elf_end(elf);
