@@ -22,6 +22,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <cerrno>
+#include <sys/mman.h>
 
 #include <libelf.h>
 #include <gelf.h>
@@ -45,6 +46,7 @@ using std::endl;
 
 #define VMCOREINFO_NOTE_NAME        "VMCOREINFO"
 #define VMCOREINFO_NOTE_NAME_BYTES  (sizeof(VMCOREINFO_NOTE_NAME))
+#define ELF_HEADER_MAPSIZE          (1*1024*1024)
 
 //{{{ Vmcoreinfo ---------------------------------------------------------------
 
@@ -99,6 +101,7 @@ ByteVector Vmcoreinfo::readElfNote(const char *file)
     GElf_Xword size = 0;
     char *buffer = NULL;
     bool isElf64;
+    void *map;
 
     try {
         // open the file
@@ -107,7 +110,14 @@ ByteVector Vmcoreinfo::readElfNote(const char *file)
             throw KSystemError("Vmcoreinfo: Cannot open " +
                 string(file) + ".", errno);
 
-        elf = elf_begin(fd, ELF_C_READ, NULL);
+        // memory-map by hand because the default implementation maps the
+        // whole file which fails for dumps on 32 bit systems because they
+        // can be larger then the address space
+        map = mmap(NULL, ELF_HEADER_MAPSIZE, PROT_READ, MAP_PRIVATE, fd, 0);
+        if (map == MAP_FAILED)
+            throw KSystemError("Unable to do mapping", errno);
+
+        elf = elf_memory(reinterpret_cast<char *>(map), ELF_HEADER_MAPSIZE);
         if (!elf)
             throw KError("Vmcoreinfo: elf_begin() failed.");
 
@@ -164,6 +174,8 @@ ByteVector Vmcoreinfo::readElfNote(const char *file)
                 Stringutil::number2string(size) +
                 " bytes.", errno);
     } catch (...) {
+        if (map)
+            munmap(map, ELF_HEADER_MAPSIZE);
         if (elf)
             elf_end(elf);
         if (fd > 0)
@@ -174,6 +186,8 @@ ByteVector Vmcoreinfo::readElfNote(const char *file)
         throw;
     }
 
+    if (map)
+        munmap(map, ELF_HEADER_MAPSIZE);
     if (elf)
         elf_end(elf);
     if (fd > 0)
