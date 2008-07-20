@@ -46,7 +46,7 @@ using std::endl;
 
 #define VMCOREINFO_NOTE_NAME        "VMCOREINFO"
 #define VMCOREINFO_NOTE_NAME_BYTES  (sizeof(VMCOREINFO_NOTE_NAME))
-#define ELF_HEADER_MAPSIZE          (1*1024*1024)
+#define ELF_HEADER_MAPSIZE          (100*1024)
 
 //{{{ Vmcoreinfo ---------------------------------------------------------------
 
@@ -102,7 +102,7 @@ ByteVector Vmcoreinfo::readElfNote(const char *file)
     char *buffer = NULL;
     bool isElf64;
     void *map = MAP_FAILED;
-    char *map_copy = NULL;
+    char map_copy[ELF_HEADER_MAPSIZE];
 
     try {
         // open the file
@@ -123,7 +123,6 @@ ByteVector Vmcoreinfo::readElfNote(const char *file)
         } else {
             // currently, mmap() on /proc/vmcore does not work
             // so copy it to memory
-            map_copy = new char[ELF_HEADER_MAPSIZE];
 
             for (size_t already_read = 0; already_read < ELF_HEADER_MAPSIZE; ) {
 
@@ -192,7 +191,6 @@ ByteVector Vmcoreinfo::readElfNote(const char *file)
                 Stringutil::number2string(size) +
                 " bytes.", errno);
     } catch (...) {
-        delete[] map_copy;
         if (map != MAP_FAILED)
             munmap(map, ELF_HEADER_MAPSIZE);
         if (elf)
@@ -205,7 +203,6 @@ ByteVector Vmcoreinfo::readElfNote(const char *file)
         throw;
     }
 
-    delete[] map_copy;
     if (map != MAP_FAILED)
         munmap(map, ELF_HEADER_MAPSIZE);
     if (elf)
