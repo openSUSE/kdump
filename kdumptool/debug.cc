@@ -16,6 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  * 02110-1301, USA.
  */
+#include <iostream>
 #include <cstdio>
 #include <cstdarg>
 #include <cstring>
@@ -34,6 +35,7 @@ using std::strcat;
 using std::strlen;
 using std::string;
 using std::endl;
+using std::cerr;
 
 #define ANSI_COLOR_NORMAL   "\e[0m"
 #define ANSI_COLOR_RED      "\e[31m"
@@ -53,7 +55,10 @@ Debug *Debug::debug()
 Debug::Debug()
     : m_stderrLevel(DL_INFO), m_handle(NULL), m_useColor(false),
       m_useColorAuto(true)
-{}
+{
+    cerr.sync_with_stdio(true);
+}
+
 
 // -----------------------------------------------------------------------------
 void Debug::setStderrLevel(Debug::Level level)
