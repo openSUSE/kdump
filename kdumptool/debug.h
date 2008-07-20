@@ -45,14 +45,16 @@ class Debug {
         void msg(Debug::Level level, const char *msg, ...);
         void vmsg(Debug::Level level, const char *msg, std::va_list args);
 
-        void setLevel(Debug::Level level);
-        Debug::Level getLevel() const;
+        void setStderrLevel(Debug::Level level);
+        Debug::Level getStderrLevel() const;
+
         bool isDebugEnabled() const;
+
         void setFileHandle(FILE *handle);
         FILE *getFileHandle() const;
 
-        void setUseColor(bool useColor);
-        bool useColor() const;
+        void setStderrUseColor(bool useColor);
+        bool getStderrUseColor() const;
 
     protected:
         Debug();
@@ -61,7 +63,7 @@ class Debug {
         static Debug *m_instance;
 
     private:
-        Level m_debuglevel;
+        Level m_stderrLevel;
         FILE *m_handle;
         bool m_useColor;
         bool m_useColorAuto;

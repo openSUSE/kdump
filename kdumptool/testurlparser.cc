@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 
     url = argv[1];
 
-    Debug::debug()->setLevel(Debug::DL_TRACE);
+    Debug::debug()->setStderrLevel(Debug::DL_TRACE);
     try {
         URLParser urlp;
         urlp.parseURL(url);

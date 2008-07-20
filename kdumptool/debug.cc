@@ -51,23 +51,20 @@ Debug *Debug::debug()
 
 // -----------------------------------------------------------------------------
 Debug::Debug()
-    : m_debuglevel(DL_NONE), m_handle(stderr), m_useColor(false),
+    : m_stderrLevel(DL_INFO), m_handle(NULL), m_useColor(false),
       m_useColorAuto(true)
 {}
 
 // -----------------------------------------------------------------------------
-void Debug::setLevel(Debug::Level level)
+void Debug::setStderrLevel(Debug::Level level)
 {
-    m_debuglevel = level;
+    m_stderrLevel = level;
 }
 
 // -----------------------------------------------------------------------------
 void Debug::setFileHandle(FILE *handle)
 {
-    if (!handle)
-        m_handle = stderr;
-    else
-        m_handle = handle;
+    m_handle = handle;
 }
 
 // -----------------------------------------------------------------------------
@@ -139,73 +136,85 @@ void Debug::msg(Debug::Level level, const char *msg, ...)
 void Debug::vmsg(Debug::Level level, const char *msg, va_list list)
 {
     // if the global debug level is too small, then just do nothing
-    if (level < m_debuglevel)
+    if (level < m_stderrLevel && !m_handle)
         return;
 
-    stringstream newss;
+    stringstream stderrss, filess;
 
     // prepend dump level
     switch (level) {
         case DL_TRACE:
-            if (useColor())
-                newss << ANSI_COLOR_GREEN;
-            newss << "TRACE: ";
+            if (getStderrUseColor())
+                stderrss << ANSI_COLOR_GREEN;
+            stderrss << "TRACE: ";
+            filess << "TRACE: ";
             break;
 
         case DL_INFO:
-            if (useColor())
-                newss <<  ANSI_COLOR_RED;
-            newss << "INFO: ";
+            if (getStderrUseColor())
+                stderrss <<  ANSI_COLOR_RED;
+            stderrss << "INFO: ";
+            filess << "INFO: ";
             break;
 
         case DL_DEBUG:
-            if (useColor())
-                newss << ANSI_COLOR_YELLOW;
-            newss << "DEBUG: ";
+            if (getStderrUseColor())
+                stderrss << ANSI_COLOR_YELLOW;
+            stderrss << "DEBUG: ";
+            filess << "DEBUG: ";
             break;
 
         default:    // make the compiler happy
             break;
     }
-    newss << msg;
+    stderrss << msg;
+    filess << msg;
 
     // append "all attributes off" if we use color
-    if (useColor())
-        newss << ANSI_COLOR_NORMAL;
+    if (getStderrUseColor())
+        stderrss << ANSI_COLOR_NORMAL;
 
     // append '\n' if there's no one at the end
-    string news = newss.str();
-    if (news[news.size()-1] != '\n')
-        newss << endl;
+    stderrss << endl;
+    filess << endl;
 
-    vfprintf(m_handle, newss.str().c_str(), list);
-    fflush(m_handle);
+    // if the level is below the stderrLevel, then print to stderr
+    if (level >= m_stderrLevel) {
+        vfprintf(stderr, stderrss.str().c_str(), list);
+        fflush(stderr);
+    }
+
+    // and if a file handle was set, print everything to file
+    if (m_handle) {
+        vfprintf(m_handle, filess.str().c_str(), list);
+        fflush(m_handle);
+    }
 }
 
 // -----------------------------------------------------------------------------
-Debug::Level Debug::getLevel() const
+Debug::Level Debug::getStderrLevel() const
 {
-    return m_debuglevel;
+    return m_stderrLevel;
 }
 
 // -----------------------------------------------------------------------------
 bool Debug::isDebugEnabled() const
 {
-    return m_debuglevel < DL_NONE;
+    return m_stderrLevel < DL_INFO;
 }
 
 // -----------------------------------------------------------------------------
-void Debug::setUseColor(bool useColor)
+void Debug::setStderrUseColor(bool useColor)
 {
     m_useColor = useColor;
     m_useColorAuto = false;
 }
 
 // -----------------------------------------------------------------------------
-bool Debug::useColor() const
+bool Debug::getStderrUseColor() const
 {
     if (m_useColorAuto)
-        return isatty(STDERR_FILENO) && m_handle == stderr;
+        return isatty(STDERR_FILENO);
     else
         return m_useColor;
 }

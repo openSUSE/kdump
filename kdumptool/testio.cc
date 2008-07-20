@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
     output1 = argv[2];
     output2 = argv[3];
 
-    Debug::debug()->setLevel(Debug::DL_TRACE);
+    Debug::debug()->setStderrLevel(Debug::DL_TRACE);
     try {
         // args for cat
         StringVector v;

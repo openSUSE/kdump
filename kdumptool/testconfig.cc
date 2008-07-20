@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     string configfile = argv[1];
     string name = argv[2];
 
-    Debug::debug()->setLevel(Debug::DL_TRACE);
+    Debug::debug()->setStderrLevel(Debug::DL_TRACE);
     try {
         ConfigParser cp(configfile);
         cp.addVariable(name);

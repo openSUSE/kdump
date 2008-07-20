@@ -112,10 +112,9 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
             Debug::debug()->setFileHandle(fp);
             on_exit(close_file, fp);
         }
-        Debug::debug()->setLevel(Debug::DL_TRACE);
         Debug::debug()->dbg("STARTUP ----------------------------------");
     } else if (debugEnabled)
-        Debug::debug()->setLevel(Debug::DL_TRACE);
+        Debug::debug()->setStderrLevel(Debug::DL_TRACE);
 
     // configuration file
     if (m_optionParser.getValue("configfile").getType() != OT_INVALID)
