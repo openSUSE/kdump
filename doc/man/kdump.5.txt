@@ -50,59 +50,131 @@ script.
 OPTIONS
 -------
 
-*KDUMP_KERNELVER*::
-    Dummy.
+The file format consits of shell variables (which means that the configuration
+file is actually parsed by a *sh*(1) compatible shell) that are described below.
+It's recommended to use a pair of double quotes to assign values to that
+variables.
 
-*KDUMP_COMMANDLINE*::
-    Dummy.
 
-*KDUMP_COMMANDLINE_APPEND*::
-    Dummy.
+KDUMP_KERNELVER
+~~~~~~~~~~~~~~~
 
-*KEXEC_OPTIONS*::
-    Dummy.
+Dummy.
 
-*MAKEDUMPFILE_OPTIONS*::
-    Dummy.
 
-*KDUMP_IMMEDIATE_REBOOT*::
-    Dummy.
+KDUMP_COMMANDLINE
+~~~~~~~~~~~~~~~~~
 
-*KDUMP_TRANSFER*::
-    Dummy.
+Dummy.
 
-*KDUMP_SAVEDIR*::
-    Dummy.
 
-*KDUMP_KEEP_OLD_DUMPS*::
-    Dummy.
+KDUMP_COMMANDLINE_APPEND
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-*KDUMP_FREE_DISK_SIZE*::
-    Dummy
+Dummy.
 
-*KDUMP_VERBOSE*::
-    Dummy.
 
-*KDUMP_DUMPLEVEL*::
-    Dummy.
+KEXEC_OPTIONS
+~~~~~~~~~~~~~
 
-*KDUMP_DUMPFORMAT*::
-    Dummy.
+Dummy.
 
-*KDUMP_CONTINUE_ON_ERROR*::
-    Dummy.
 
-*KDUMP_REQUIRED_PROGRAMS*::
-    Dummy.
+MAKEDUMPFILE_OPTIONS
+~~~~~~~~~~~~~~~~~~~~
 
-*KDUMP_PRESCRIPT*::
-    Dummy.
+Dummy.
 
-*KDUMP_POSTSCRIPT*::
-    Dummy.
 
-*KDUMP_COPY_KERNEL*::
-    Dummy.
+KDUMP_IMMEDIATE_REBOOT
+~~~~~~~~~~~~~~~~~~~~~~
+
+Dummy.
+
+
+KDUMP_TRANSFER
+~~~~~~~~~~~~~~
+
+Dummy.
+
+
+KDUMP_SAVEDIR
+~~~~~~~~~~~~~
+
+Dummy.
+
+
+KDUMP_KEEP_OLD_DUMPS
+~~~~~~~~~~~~~~~~~~~~
+
+Dummy.
+
+
+KDUMP_FREE_DISK_SIZE
+~~~~~~~~~~~~~~~~~~~~
+
+Dummy
+
+
+KDUMP_VERBOSE
+~~~~~~~~~~~~~
+
+Dummy.
+
+
+KDUMP_DUMPLEVEL
+~~~~~~~~~~~~~~~
+
+Dummy.
+
+
+KDUMP_DUMPFORMAT
+~~~~~~~~~~~~~~~~
+
+Dummy.
+
+
+KDUMP_CONTINUE_ON_ERROR
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Dummy.
+
+
+KDUMP_REQUIRED_PROGRAMS
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Dummy.
+
+
+KDUMP_PRESCRIPT
+~~~~~~~~~~~~~~~
+
+Dummy.
+
+
+KDUMP_POSTSCRIPT
+~~~~~~~~~~~~~~~~
+
+Dummy.
+
+
+KDUMP_COPY_KERNEL
+~~~~~~~~~~~~~~~~~
+
+Dummy.
+
+
+KDUMPTOOL_FLAGS
+~~~~~~~~~~~~~~~
+
+This is a space-separated list of flags to tweak the run-time behaviour of
+*kdumptool*(8). Currently, only one flag is supported:
+
+*NOSPARSE*::
+  Disable the creation of sparse-files. This flag is for debugging purposes,
+  e.g. if the file system or network protocol has problems with sparse files.
+  Because SFTP and FTP are not mounted, that option has no meaning when saving
+  the dump to SFTP and FTP.
 
 
 URL FORMAT

@@ -45,7 +45,7 @@ Configuration::Configuration()
       m_keepOldDumps(0), m_freeDiskSize(64), m_verbose(0), m_dumpLevel(0),
       m_dumpFormat("compressed"), m_continueOnError(true),
       m_requiredPrograms(""), m_prescript(""), m_postscript(""),
-      m_copyKernel("")
+      m_copyKernel(""), m_kdumptoolFlags("")
 {}
 
 /* -------------------------------------------------------------------------- */
@@ -71,6 +71,7 @@ void Configuration::readFile(const string &filename)
     cp.addVariable("KDUMP_PRESCRIPT");
     cp.addVariable("KDUMP_POSTSCRIPT");
     cp.addVariable("KDUMP_COPY_KERNEL");
+    cp.addVariable("KDUMPTOOL_FLAGS");
     cp.parse();
 
     m_kernelVersion = cp.getValue("KDUMP_KERNELVER");
@@ -91,6 +92,7 @@ void Configuration::readFile(const string &filename)
     m_prescript = cp.getValue("KDUMP_PRESCRIPT");
     m_postscript = cp.getValue("KDUMP_POSTSCRIPT");
     m_copyKernel = cp.getBoolValue("KDUMP_COPY_KERNEL");
+    m_kdumptoolFlags = cp.getValue("KDUMPTOOL_FLAGS");
 
     m_readConfig = true;
 }
@@ -287,6 +289,28 @@ bool Configuration::getCopyKernel() const
         throw KError("Configuration has not been read.");
 
     return m_copyKernel;
+}
+
+// -----------------------------------------------------------------------------
+std::string Configuration::getKdumptoolFlags() const
+    throw (KError)
+{
+    if (!m_readConfig)
+        throw KError("Configuration has not been read.");
+
+    return m_kdumptoolFlags;
+}
+
+// -----------------------------------------------------------------------------
+bool Configuration::kdumptoolContainsFlag(const std::string &flag)
+    throw (KError)
+{
+    if (!m_readConfig)
+        throw KError("Configuration has not been read.");
+
+    string value = getKdumptoolFlags();
+    string::size_type pos = value.find(flag);
+    return pos != string::npos;
 }
 
 //}}}

@@ -223,6 +223,25 @@ class Configuration {
          bool getCopyKernel() const
          throw (KError);
 
+         /**
+          * Returns the value of KDUMPTOOL_FLAGS.
+          *
+          * @return the flags
+          * @exception KError if Configuration::readFile() was not called
+          */
+         std::string getKdumptoolFlags() const
+         throw (KError);
+
+         /**
+          * Checks if KDUMPTOOL_FLAGS contains @p flag.
+          *
+          * @return @c true if KDUMPTOOL_FLAGS contains the flag and @c false
+          *         otherwise
+          * @exception KError if Configuration::readFile() was not called
+          */
+         bool kdumptoolContainsFlag(const std::string &flag)
+         throw (KError);
+
     protected:
         Configuration()
         throw ();
@@ -251,6 +270,7 @@ class Configuration {
         std::string m_prescript;
         std::string m_postscript;
         bool m_copyKernel;
+        std::string m_kdumptoolFlags;
 };
 
 //}}}

@@ -37,6 +37,7 @@
 #include "fileutil.h"
 #include "stringutil.h"
 #include "socket.h"
+#include "configuration.h"
 
 using std::fopen;
 using std::fread;
@@ -181,6 +182,10 @@ void FileTransfer::performPipe(DataProvider *dataprovider,
         dataprovider, target_file);
 
     FILE *fp = open(target_file);
+    bool sparse = !Configuration::config()->kdumptoolContainsFlag("NOSPARSE");
+    if (!sparse)
+        Debug::debug()->info("Creation of sparse files disabled in "
+            "configuration.");
 
     bool prepared = false;
 
@@ -197,7 +202,7 @@ void FileTransfer::performPipe(DataProvider *dataprovider,
                 break;
 
             // sparse files
-            if (read_data == m_bufferSize &&
+            if (sparse && read_data == m_bufferSize &&
                     Util::isZero(m_buffer, m_bufferSize)) {
                 int ret = fseek(fp, m_bufferSize, SEEK_CUR);
                 if (ret != 0)
