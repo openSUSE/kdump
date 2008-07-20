@@ -20,19 +20,20 @@
 #include <cstdarg>
 #include <cstring>
 #include <string>
+#include <sstream>
 
 #include "debug.h"
-
-using std::strcat;
-using std::strlen;
-using std::string;
 
 // -----------------------------------------------------------------------------
 Debug *Debug::m_instance = NULL;
 
-using std::strlen;
 using std::memset;
 using std::strcat;
+using std::stringstream;
+using std::strcat;
+using std::strlen;
+using std::string;
+using std::endl;
 
 #define ANSI_COLOR_NORMAL   "\e[0m"
 #define ANSI_COLOR_RED      "\e[31m"
@@ -141,55 +142,44 @@ void Debug::vmsg(Debug::Level level, const char *msg, va_list list)
     if (level < m_debuglevel)
         return;
 
-    size_t len = strlen(msg) + 30;
-    char *newmsg = new char[len];
-    if (!newmsg)
-        return;
-    memset(newmsg, 0, len);
+    stringstream newss;
 
     // prepend dump level
     switch (level) {
         case DL_TRACE:
             if (useColor())
-                strcat(newmsg, ANSI_COLOR_GREEN "TRACE: ");
-            else
-                strcat(newmsg, "TRACE: ");
+                newss << ANSI_COLOR_GREEN;
+            newss << "TRACE: ";
             break;
 
         case DL_INFO:
             if (useColor())
-                strcat(newmsg, ANSI_COLOR_RED "INFO: ");
-            else
-                strcat(newmsg, "INFO: ");
+                newss <<  ANSI_COLOR_RED;
+            newss << "INFO: ";
             break;
 
         case DL_DEBUG:
             if (useColor())
-                strcat(newmsg, ANSI_COLOR_YELLOW "DEBUG: ");
-            else
-                strcat(newmsg, "DEBUG: ");
+                newss << ANSI_COLOR_YELLOW;
+            newss << "DEBUG: ";
             break;
 
         default:    // make the compiler happy
             break;
     }
-    strcat(newmsg, msg);
+    newss << msg;
 
     // append "all attributes off" if we use color
     if (useColor())
-        strcat(newmsg, ANSI_COLOR_NORMAL);
+        newss << ANSI_COLOR_NORMAL;
 
     // append '\n' if there's no one at the end
-    len = strlen(newmsg);
-    if (newmsg[len-1] != '\n') {
-        newmsg[len++] = '\n';
-        newmsg[len] = '\0';
-    }
+    string news = newss.str();
+    if (news[news.size()-1] != '\n')
+        newss << endl;
 
-    vfprintf(m_handle, newmsg, list);
+    vfprintf(m_handle, newss.str().c_str(), list);
     fflush(m_handle);
-
-    delete[] newmsg;
 }
 
 // -----------------------------------------------------------------------------
