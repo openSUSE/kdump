@@ -106,12 +106,18 @@ ADD_SUBDIRECTORY(doc)
 ADD_SUBDIRECTORY(tests)
 
 #
-# Configuration
+# Configuration and Udev
 #
 INSTALL(FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/sysconfig.kdump
     DESTINATION
         /var/adm/fillup-templates/
+)
+
+INSTALL(FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/70-kdump.rules
+    DESTINATION
+        /etc/udev/rules.d
 )
 
 #

@@ -1,0 +1,12 @@
+#
+# Kdump core headers needs to be regnerated if the CPUs or memory changes.
+# For this, reload kdump.
+#
+# Novell Bug #389658
+#
+
+SUBSYSTEM=="cpu", ACTION=="online", PROGRAM="/etc/init.d/kdump try-restart"
+SUBSYSTEM=="cpu", ACTION=="offline", PROGRAM="/etc/init.d/kdump try-restart"
+SUBSYSTEM=="memory", ACTION=="add", PROGRAM="/etc/init.d/kdump try-restart"
+SUBSYSTEM=="memory", ACTION=="remove", PROGRAM="/etc/init.d/kdump try-restart"
+
