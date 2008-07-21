@@ -50,7 +50,7 @@ script.
 OPTIONS
 -------
 
-The file format consits of shell variables (which means that the configuration
+The file format consists of shell variables (which means that the configuration
 file is actually parsed by a *sh*(1) compatible shell) that are described below.
 It's recommended to use a pair of double quotes to assign values to that
 variables.
@@ -59,109 +59,302 @@ variables.
 KDUMP_KERNELVER
 ~~~~~~~~~~~~~~~
 
-Dummy.
+Kernel Version string for the -kdump kernel, such as "2.6.25-5-kdump".
+The init script will use a kernel named _/boot/vmlinu[zx]-$KDUMP_KERNELVER_.
+Using "kdump" will default to the most recently installed kdump kernel
+(to which the symbolic link _/boot/vmlinuz-kdump_ points).
+
+If no version is specified, then the init script will try to find a
+kdump kernel with the following algorithm:
+
+. Use $(uname -r)-kdump
+. If that doesn't exist, use -kdump
+. If that doesn't exist, use $(uname -r)
+. If that doesn't exist, use ""
+
+On each item, it tries:
+
+. /boot/*vmlinuz
+. /boot/*vmlinux
+. /boot/*vmlinux.gz
+
+If the name does not contain "kdump", the kernel is checked for relocatability 
+using _kdumptool identify_dump_.
+
+Default is "".
 
 
 KDUMP_COMMANDLINE
 ~~~~~~~~~~~~~~~~~
 
-Dummy.
+Command line used to boot the kdump kernel. By default, the _/etc/init.d/kdump_
+script tries to build a command line automatically from the command line of the
+running system, preserving root partition, serial console, etc. If you manually
+create a command line, make sure to include:
+
+* the _root_ parameter,
+* any _console_ parameters (for serial console),
+* _maxcpus=1_,
+* _irqpoll_,
+* _reset_devices_.
+
+The last three parameters are special for kdump and should always be included,
+if you don't have a good reason to exclude them.
+
+If you just want have an own command line parameter to be added additionally,
+use KDUMP_COMMANDLINE_APPEND.
+
+Default is "".
 
 
 KDUMP_COMMANDLINE_APPEND
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Dummy.
+This variable describes all command line parameters that are passed to the kdump
+kernel additionally to the default parameters. See also KDUMP_COMMANDLINE.
 
+Default is "".
 
 KEXEC_OPTIONS
 ~~~~~~~~~~~~~
 
-Dummy.
+Additional options for *kexec*(8).
+
+Default is "" except on IA64 where it is "--noio".
 
 
 MAKEDUMPFILE_OPTIONS
 ~~~~~~~~~~~~~~~~~~~~
 
-Dummy.
+Additional options for *makedumpfile*(8). makedumpfile will be used to save the
+dump if KDUMP_DUMPLEVEL is non-zero or KDUMP_DUMPFORMAT is not _ELF_.
+Normally, you don't have to specify any options here, but you may be asked in
+Bugzilla to add the _-D_ option for debugging.
+
+Default is "".
 
 
 KDUMP_IMMEDIATE_REBOOT
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Dummy.
+Immediately reboot after saving the core in the kdump kernel? Use "yes" or "no".
 
+Default is "yes".
 
 KDUMP_TRANSFER
 ~~~~~~~~~~~~~~
 
-Dummy.
+A script or command executed to process and transfer the dump image.
+It can read the dump image either via /proc/vmcore or /dev/oldmem. Most other
+variables will have no effect if you use a custom command here.
+
+It's important that all requirements including that script itself are included
+in KDUMP_REQUIRED_PROGRAMS.
+
+It's strongly recommended that the default mechanism is used, it should provide
+everything that is needed, together with KDUMP_PRESCRIPT and
+KDUMP_POSTSCRIPT. We can't support problems with using that variable.
+
+Default: "".
 
 
 KDUMP_SAVEDIR
 ~~~~~~~~~~~~~
 
-Dummy.
+The directory where dumps are saved to. If the directory does not exist, it will
+be created. The directory is a URL and must conform to the syntax described in
+the section "URL FORMAT" below. If the directory does not exist, it will be
+created. (That is true for all targets, even network targets. Of course the user
+must have the permission to create directories.)
+
+Below that directory, for each dump a directory with a time stamp in the
+following format will be created: "YYYY-MM-TT-HH:MM". That directory contains
+the dump and various other files, depending which dump target will be used and
+which dump settings are made.
+
+If KDUMP_COPY_KERNEL is set, that directory will also contain the kernel.
+
+Default: "file:///var/log/dump".
 
 
 KDUMP_KEEP_OLD_DUMPS
 ~~~~~~~~~~~~~~~~~~~~
 
-Dummy.
+Number of old dumps to keep. That variable is only honored on local directories
+(i.e., if KDUMP_SAVEDIR starts with _file_) because we think it's bad from a
+security point of view if other hosts delete stuff (that may be from another
+hosts) on a dump server. The deletion process takes place before the dumps are
+saved. So if you specify 3 here, then after the dump has been saved, 4 dumps are
+on disk.
+
+Set that variable to "0" to disable the deletion of dumps entirely, and set
+that variable to "-1" to delete all dumps, i.e. then only the just saved dump is
+on disk.
+
+Default: "5"
 
 
 KDUMP_FREE_DISK_SIZE
 ~~~~~~~~~~~~~~~~~~~~
 
-Dummy
+Don't save the dump (or delete it afterwards) if after saving the dump less than
+KDUMP_FREE_DISK_SIZE megabytes are free. Because when dump compression or dump
+filtering (see KDUMP_DUMPLEVEL and KDUMP_DUMPFORMAT) is used, we don't know in
+advance how large the dump will be, we have to delete the dump after saving it.
+
+That option applies only to local file systems, i.e. KDUMP_SAVEDIR must start
+with _file_.
+
+Default: "64"
 
 
 KDUMP_VERBOSE
 ~~~~~~~~~~~~~
 
-Dummy.
+Bit mask of several options that set the verbosity of the dump process. To apply
+several options, you have to add their value. The options are:
+
+1::
+  kdump command line is written to system log when executing /etc/init.d/kdump.
+
+2:: 
+  Progress is written to stdout while dumping.
+
+4::
+  kdump command line is written so standard output when executing
+  /etc/init.d/kdump.
+
+8::
+  Debugging for kdump transfer mechanism. That is executed in initrd and
+  generates lots of output. However, it's very useful if something does not
+  work.
+
+So, for example, if you want to have the command line on stdout when loading the
+kernel and also in the system log, just use KDUMP_VERBOSE = 5 (i.e. 1 + 4).
+
+Default: "3".
 
 
 KDUMP_DUMPLEVEL
 ~~~~~~~~~~~~~~~
 
-Dummy.
+Determines the dump level. If KDUMP_DUMPLEVEL is non-zero, then
+*makedumpfile*(8) is used to strip pages that may not be necessary for
+analysing. 0 means no stripping, and 31 is the maximum dump level, i.e.
+0 produces the largest dump files and 31 the smallest.
+
+The following table from makedumpfile(8) shows what each dump level means:
+
+           dump | zero | cache|cache  | user | free
+          level | page | page |private| data | page
+         -------+------+------+-------+------+------
+              0 |      |      |       |      |
+              1 |  X   |      |       |      |
+              2 |      |  X   |       |      |
+              3 |  X   |  X   |       |      |
+              4 |      |  X   |  X    |      |
+              5 |  X   |  X   |  X    |      |
+              6 |      |  X   |  X    |      |
+              7 |  X   |  X   |  X    |      |
+              8 |      |      |       |  X   |
+              9 |  X   |      |       |  X   |
+             10 |      |  X   |       |  X   |
+             11 |  X   |  X   |       |  X   |
+             12 |      |  X   |  X    |  X   |
+             13 |  X   |  X   |  X    |  X   |
+             14 |      |  X   |  X    |  X   |
+             15 |  X   |  X   |  X    |  X   |
+             16 |      |      |       |      |  X
+             17 |  X   |      |       |      |  X
+             18 |      |  X   |       |      |  X
+             19 |  X   |  X   |       |      |  X
+             20 |      |  X   |  X    |      |  X
+             21 |  X   |  X   |  X    |      |  X
+             22 |      |  X   |  X    |      |  X
+             23 |  X   |  X   |  X    |      |  X
+             24 |      |      |       |  X   |  X
+             25 |  X   |      |       |  X   |  X
+             26 |      |  X   |       |  X   |  X
+             27 |  X   |  X   |       |  X   |  X
+             28 |      |  X   |  X    |  X   |  X
+             29 |  X   |  X   |  X    |  X   |  X
+             30 |      |  X   |  X    |  X   |  X
+             31 |  X   |  X   |  X    |  X   |  X
+
+Default: "0"
 
 
 KDUMP_DUMPFORMAT
 ~~~~~~~~~~~~~~~~
 
-Dummy.
+This variable specifies the dump format.
+
+
+*ELF*::
+  _ELF_ has the advantage that it's a standard format and GDB can be used to
+  analyse the dumps. The disadvantage is that the dump files are larger.
+
+*compressed*::
+  _compressed_ is the kdump compressed format that produces small dumps, see
+  *makedumpfile*(8).  However, only *crash*(8) can analyse the dumps and
+  makedumpfile must be installed (but you need it anyway if you set
+  KDUMP_DUMPLEVEL to non-zero before).
+
+Default: "compressed"
 
 
 KDUMP_CONTINUE_ON_ERROR
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Dummy.
+By default, *kdumptool*(8) copies multiple files with the _save_dump_ action.
+Set that value to _1_ to make kdumptool trying to save the next file even if
+saving the previous file failed, or set that to _0_ to let the program
+immediately abort.
+
+Default: "0"
 
 
 KDUMP_REQUIRED_PROGRAMS
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Dummy.
+This is a space-separated list of programs (full path) that are required by
+KDUMP_TRANSFER, KDUMP_PRESCRIPT or KDUMP_POSTSCRIPT. Dynamic libraries that are
+required by that programs don't have to be included as they are resolved
+automatically. However, it's necessary to include other runtime requirements
+because it's not possible to resolve them automatically.
+
+Default: ""
 
 
 KDUMP_PRESCRIPT
 ~~~~~~~~~~~~~~~
 
-Dummy.
+Program that is executed before taking the dump. You have to include that
+program in KDUMP_REQUIRED_PROGRAMS.
+
+Default: ""
 
 
 KDUMP_POSTSCRIPT
 ~~~~~~~~~~~~~~~~
 
-Dummy.
+Program that is executed after taking the dump and before the system is
+rebooted. You have to include that program in KDUMP_POSTSCRIPT.
+
+Default: ""
 
 
 KDUMP_COPY_KERNEL
 ~~~~~~~~~~~~~~~~~
 
-Dummy.
+Not only copy the dump to KDUMP_SAVEDIR but also the installed kernel. Valid
+values are "yes" and "no". If you want to have the debugging information also
+copied, which is required to open the program, you also have to install the
+_kernel-<flavour>-debuginfo_ package.
+
+Modules are not copied, only the kernel image and the debugging file.
+
+Default: "yes"
 
 
 KDUMPTOOL_FLAGS
@@ -175,6 +368,8 @@ This is a space-separated list of flags to tweak the run-time behaviour of
   e.g. if the file system or network protocol has problems with sparse files.
   Because SFTP and FTP are not mounted, that option has no meaning when saving
   the dump to SFTP and FTP.
+
+Default: ""
 
 
 URL FORMAT
@@ -265,7 +460,8 @@ kdump@collector:~/> ssh-keygen -t dsa
 ...
 kdump@collector:~/> exit
 tux@earth:~/> su
-root@earth:/root> scp kdump@collector:~/.ssh/id_dsa.pub /tmp/id_dsa.pub
+root@earth:/root> scp kdump@collector:~/.ssh/id_dsa.pub \
+                  /tmp/id_dsa.pub
 root@earth:/root> cat /tmp/dsa.pub >> /root/.ssh/authorized_keys
 --------------------------------------------------------------------------------
 
@@ -296,7 +492,7 @@ path that is exported).
 _Examples:_
 
 * +nfs://neptunium/var/log/dump+
-* +nfs://10.10.2.120/var/log/dump
+* +nfs://10.10.2.120/var/log/dump+
 
 
 Common Internet File System (_cifs_)
@@ -336,7 +532,7 @@ later.
 
 SEE ALSO
 --------
-*kexec*(8), *kdump*(5),
+*kexec*(8), *kdump*(5), *makedumpfile*(8)
 http://en.opensuse.org/Kdump[_http://en.opensuse.org/Kdump_]
 
 
