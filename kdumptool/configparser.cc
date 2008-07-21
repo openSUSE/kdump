@@ -134,7 +134,8 @@ bool ConfigParser::getBoolValue(const std::string &name) const
 {
     string value = getValue(name);
 
-    return !(value == "0" || value == "false" || value == "FALSE");
+    return !(value == "0" || value == "false" || value == "FALSE" ||
+             value == "no" || value == "NO");
 }
 
 //}}}
