@@ -26,6 +26,7 @@
 #include "debug.h"
 #include "savedump.h"
 #include "read_vmcoreinfo.h"
+#include "deletedumps.h"
 
 using std::map;
 using std::list;
@@ -98,6 +99,7 @@ SubcommandManager::SubcommandManager()
     addSubcommand(new SaveDump());
     addSubcommand(new LedBlink());
     addSubcommand(new ReadVmcoreinfo());
+    addSubcommand(new DeleteDumps());
 }
 
 // -----------------------------------------------------------------------------
