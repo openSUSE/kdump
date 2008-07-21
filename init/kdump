@@ -92,8 +92,6 @@ function check_boot_kernel()
     local kstr
     local dash=${kdump_kver:+-}
 
-    echo >&2 check_boot_kernel=$kdump_kver
-
     kstr="${BOOTDIR}/vmlinuz${dash}${kdump_kver}"
     if check_kernel $kstr ; then
 	echo $kstr
