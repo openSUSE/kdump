@@ -83,6 +83,17 @@ using _kdumptool identify_dump_.
 
 Default is "".
 
+Initrd
+^^^^^^
+
+For the initrd, if the kernel name already contains "kdump", then the initrd
+_/boot/initrd-<kernelver>_ is used. Else, we use
+_/boot/initrd-<kernelver>-kdump_ (the kernel flavour is not replaced, so for
+example this means _/boot/initrd-2.6.25.9-0.2-default-kdump_. This is because
+the initrd used for kdump always has to be special, and it makes no sense to
+load the normal initrd that would not save the dump.
+
+
 
 KDUMP_COMMANDLINE
 ~~~~~~~~~~~~~~~~~
