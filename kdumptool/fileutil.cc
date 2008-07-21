@@ -23,6 +23,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <libgen.h>
+#include <dirent.h>
 
 #include "dataprovider.h"
 #include "global.h"
@@ -217,6 +218,94 @@ void FileUtil::umount(const std::string &mountpoint)
     if (ret != 0) {
         string error = Stringutil::trim(Stringutil::bytes2str(stderrBuffer));
         throw KError("umount failed: " + error);
+    }
+}
+
+// -----------------------------------------------------------------------------
+static int filter_dots(const struct dirent *d)
+{
+    if (strcmp(d->d_name, ".") == 0)
+        return 0;
+    if (strcmp(d->d_name, "..") == 0)
+        return 0;
+    else
+        return 1;
+}
+
+// -----------------------------------------------------------------------------
+static int filter_dots_and_nondirs(const struct dirent *d)
+{
+    if (strcmp(d->d_name, ".") == 0)
+        return 0;
+    if (strcmp(d->d_name, "..") == 0)
+        return 0;
+    else
+        return d->d_type == DT_DIR;
+}
+
+// -----------------------------------------------------------------------------
+StringVector FileUtil::listdir(const std::string &dir, bool onlyDirs)
+    throw (KError)
+{
+    Debug::debug()->trace("FileUtil::listdir(%s)", dir.c_str());
+
+    int (*filterfunction)(const struct dirent *);
+    if (onlyDirs)
+        filterfunction = filter_dots_and_nondirs;
+    else
+        filterfunction = filter_dots;
+
+    StringVector v;
+    struct dirent **namelist;
+    int count = scandir(dir.c_str(), &namelist, filter_dots, alphasort);
+    if (count < 0)
+        throw KSystemError("Cannot scan directory " + dir + ".", errno);
+
+    for (int i = 0; i < count; i++) {
+        v.push_back(namelist[i]->d_name);
+        free(namelist[i]);
+    }
+    free(namelist);
+
+    return v;
+}
+
+// -----------------------------------------------------------------------------
+void FileUtil::rmdir(const std::string &dir, bool recursive)
+    throw (KError)
+{
+    Debug::debug()->trace("FileUtil::rmdir(%s, %d)", dir.c_str(), recursive);
+
+    if (recursive) {
+        DIR *dirptr = opendir(dir.c_str());
+        if (!dirptr)
+            throw KSystemError("Cannot opendir(" + dir + ").", errno);
+        struct dirent *ptr;
+        try {
+            while ((ptr = readdir(dirptr)) != NULL) {
+                if (strcmp(ptr->d_name, ".") == 0 ||
+                        strcmp(ptr->d_name, "..") == 0)
+                    continue;
+                if (ptr->d_type == DT_DIR)
+                    rmdir(pathconcat(dir, ptr->d_name).c_str(), true);
+                else {
+                    Debug::debug()->trace("Calling remove(%s)", ptr->d_name);
+                    int ret = ::remove(pathconcat(dir, ptr->d_name).c_str());
+                    if (ret != 0)
+                        throw KSystemError("Cannot remove " +
+                            string(ptr->d_name) + ".", errno);
+                }
+            }
+        } catch (...) {
+            closedir(dirptr);
+            throw;
+        }
+        closedir(dirptr);
+        rmdir(dir, false);
+    } else {
+        int ret = ::rmdir(dir.c_str());
+        if (ret != 0)
+            throw KSystemError("Cannot rmdir(" + dir + ").", errno);
     }
 }
 

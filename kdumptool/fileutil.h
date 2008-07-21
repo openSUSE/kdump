@@ -149,6 +149,30 @@ class FileUtil {
           */
          static void umount(const std::string &device)
          throw (KError);
+
+         /**
+          * Gets the sorted list of the contents of the specified directory.
+          * The contents is sorted alphabetically, and "." and ".." entries
+          * are omitted.
+          *
+          * @param[in] dir the directory to list
+          * @param[in] @c true if only dirs should be included in the directory
+          *            list, @c false if all files should be included
+          * @exception KError if something went wrong
+          */
+         static StringVector listdir(const std::string &dir, bool onlyDirs)
+         throw (KError);
+
+         /**
+          * Delete the specified directory.
+          *
+          * @param[in] dir the name of the directory
+          * @param[in] recursive @c true if all contents of non-empty
+          *            directories should be deleted, @c false otherwise
+          * @exception KError if something went wrong
+          */
+         static void rmdir(const std::string &dir, bool recursive)
+         throw (KError);
 };
 
 //}}}
