@@ -2,15 +2,13 @@
 ## Description: Crash Dump Configuration
 
 ## Type:	string
-## Default:	"kdump"
+## Default:	""
 ## ServiceRestart:	kdump
 #
-# Kernel Version string for the -kdump kernel, such as 2.6.16-5-kdump
-# If no version is specified, then the init script will try to find a
-# kdump kernel with the same version number as the running kernel.
-# The init script will use a kernel named:
-# /boot/vmlinux-$KDUMP_KERNELVER
-# Using "kdump" will default to the most recently installed kdump kernel.
+# Kernel Version string for the -kdump kernel. Use an empty string to
+# auto-detect a suitable kernel.
+#
+# See also: kdump(5).
 #
 KDUMP_KERNELVER=""
 
@@ -19,11 +17,12 @@ KDUMP_KERNELVER=""
 ## ServiceRestart:	kdump
 #
 # The kdump commandline is the command line that needs to be passed off to
-# the kdump kernel.  This will likely match the contents of the grub kernel
-# line.  For example:
-#   KDUMP_COMMANDLINE="ro root=LABEL=/"
-# If a command line is not specified, the default will be taken from
-# /proc/cmdline
+# the kdump kernel. If a command line is not specified, the default will be
+# taken from /proc/cmdline and adjusted.
+#
+# WARNING: There are a few options that always should be passed to the kdump
+# kernel. See kdump(5) for details. Don't use that variable, consider using
+# KDUMP_COMMANDLINE_APPEND instead.
 #
 KDUMP_COMMANDLINE=""
 
@@ -35,35 +34,27 @@ KDUMP_COMMANDLINE=""
 # command line string. The string gets also appended if KDUMP_COMMANDLINE
 # is set.
 #
+# See also: kdump(5).
+#
 KDUMP_COMMANDLINE_APPEND=""
 
 ## Type:	string
 ## Default:	""
 ## ServiceRestart:	kdump
 #
-# Additional arguments passed to kexec.  For example, to generate
-# ELF32 dump on x86-64 to allow i386 systems to read dump, set
-# "--elf32-core-headers" here.
+# Additional arguments passed to kexec. Normally you don't have to modify
+# the default here.
 #
-# Keep this empty in most cases.
+# See also: kdump(5).
 #
 KEXEC_OPTIONS=""
-
-## Type:	list(1,2,3,5,s)
-## Default:	1
-## ServiceRestart:	kdump
-#
-# The run-level to boot the kdump kernel.  The default is "1".
-# If you need networks in the kdump environment, set "3".
-#
-KDUMP_RUNLEVEL="1"
 
 ## Type:	yesno
 ## Default:	yes
 #
 # Immediately reboot after saving the core in the kdump kernel?
-# This option is ignored when KDUMP_DUMPDEV is set to a non-empty
-# value. Use "yes" or "no". Default is "yes".
+#
+# See also: kdump(5).
 #
 KDUMP_IMMEDIATE_REBOOT="yes"
 
@@ -73,8 +64,10 @@ KDUMP_IMMEDIATE_REBOOT="yes"
 # A script or command executed to process and transfer the dump image.
 # It can read the dump image either via /proc/vmcore or /dev/oldmem.
 #
-# Keeping this empty will use the default dumper, which copies the vmcore
-# file to $KDUMP_SAVEDIR with some system checks.
+# WARNING: Setting that option will make most of the other configuration
+# options useless. Don't use that option. It's also not supported.
+#
+# See also: kdump(5).
 #
 KDUMP_TRANSFER=""
 
@@ -87,16 +80,14 @@ KDUMP_TRANSFER=""
 #   - a local file, for example "file:///var/log/dump" (or, deprecated,
 #     just "/var/log/dump")
 #   - a FTP server, for example "ftp://user:password@host/var/log/dump"
-#   - a SSH server, for example "ssh://user@host/var/log/dump"
-#     please create a user that needs no password or set up public key
-#     authorization for the root user of the system -- or you have to enter
-#     the password on the serial console as the VGA console may not work!
-#   - a NFS share, for example "nfs://server:/export:/var/log/dump"
+#   - a SSH server, for example "ssh://user:password@host/var/log/dump"
+#   - a NFS share, for example "nfs://server/export/var/log/dump"
 #   - a CIFS (SMB) share, for example
-#     "cifs://user:password@host:/share/var/log/dump"
+#     "cifs://user:password@host/share/var/log/dump"
 #
-# For the exact URLs, see kdump-url_parser(8) manual page. Or use the
-# YaST2 kdump module to configure this if you're unsure.
+# See also: kdump(5) which contains an exact specification for the URL format.
+# Consider using the "yast2 kdump" module if you are unsure.
+#
 KDUMP_SAVEDIR="file:///var/log/dump"
 
 ## Type:	integer
@@ -106,48 +97,25 @@ KDUMP_SAVEDIR="file:///var/log/dump"
 # exceeds this number, older dumps are removed.
 #
 # You can prevent the automatic removal by setting zero to this.
-# Set KDUMP_KEEP_OLD_DUMPS to "-2" is you want to delete all old
+# Set KDUMP_KEEP_OLD_DUMPS to "-1" is you want to delete all old
 # dumps before saving the new dump.
 #
-# The default value is 5.
+# See also: kdump(5).
 #
 KDUMP_KEEP_OLD_DUMPS=5
 
 ## Type:	integer
 ## Default:	64
 #
-# Specifies the minimal free disk space (in MB unit) on the dump
-# partition.  If the free disk space is less than the sum of this
-# value and memory size, the default dumper won't save vmcore file
-# in order to keep the system sane.
+# Specifies the minimal free disk space (in MB unit) on the dump partition.
+# If the free disk space is less than the sum of this value and memory size,
+# we won't save vmcore file in order to keep the system sane.
 #
 # Setting zero forces to dump without check.
-# The default value is 64MB.
+#
+# See also: kdump(5).
 #
 KDUMP_FREE_DISK_SIZE=64
-
-## Type:        string
-## Default:     ""
-#
-#
-# Specifies the dump device that is used for saving the dump with the kdump
-# kernel. The dump device normally is a disk partition. You don't need to
-# specify a dump device here. Then the dump is written to KDUMP_SAVEDIR when
-# booting from the kdump kernel.
-#
-# If KDUMP_DUMPDEV points to a device file, the dump is written to that device
-# when running the kdump kernel. The advantage over writing the dump to
-# disk immediately is that you don't have to mount the root file system (which
-# may be corrupted!) just to write the dump. So if the root file system is
-# corrupted, you have the chance to fix the file system manually and reboot the
-# system without loosing the dump information. On the first normal boot which
-# is able to successfully mount the root file system, the dump is saved to
-# KDUMP_SAVEDIR as usual.
-#
-# Important: The KDUMP_DUMPDEV is overwritten by kdump, so don't use it for
-# saving any data. Also don't use the currently used swap partition.
-#
-KDUMP_DUMPDEV=""
 
 ## Type:        integer
 ## Default:     3
@@ -159,68 +127,98 @@ KDUMP_DUMPDEV=""
 # 2: progress is written to stdout while dumping
 # 4: kdump command line is written so standard output when executing
 #    /etc/init.d/kdump
-# 8: Debugging for kdump transfer script
+# 8: Debugging while saving dump.
+#
+# See also: kdump(5).
+#
 KDUMP_VERBOSE=3
 
 ## Type:        integer
 ## Default:     0
 #
-# Determines the dump level. If KDUMP_DUMPLEVEL != 0, then makedumpfile
+# Determines the dump level. If KDUMP_DUMPLEVEL non-zero 0, then makedumpfile
 # is used to strip pages that may not be necessary for analysing. 0 means
 # no stripping, and 31 is the maximum dump level, i.e. 0 produces the
 # largest dump files and 31 the smallest.
 #
-# The following table from makedumpfile(8) shows what each dump level
-# means:
-#                 dump | zero | cache|cache  | user | free
-#                level | page | page |private| data | page
-#               -------+------+------+-------+------+------
-#                    0 |      |      |       |      |
-#                    1 |  X   |      |       |      |
-#                    2 |      |  X   |       |      |
-#                    3 |  X   |  X   |       |      |
-#                    4 |      |  X   |  X    |      |
-#                    5 |  X   |  X   |  X    |      |
-#                    6 |      |  X   |  X    |      |
-#                    7 |  X   |  X   |  X    |      |
-#                    8 |      |      |       |  X   |
-#                    9 |  X   |      |       |  X   |
-#                   10 |      |  X   |       |  X   |
-#                   11 |  X   |  X   |       |  X   |
-#                   12 |      |  X   |  X    |  X   |
-#                   13 |  X   |  X   |  X    |  X   |
-#                   14 |      |  X   |  X    |  X   |
-#                   15 |  X   |  X   |  X    |  X   |
-#                   16 |      |      |       |      |  X
-#                   17 |  X   |      |       |      |  X
-#                   18 |      |  X   |       |      |  X
-#                   19 |  X   |  X   |       |      |  X
-#                   20 |      |  X   |  X    |      |  X
-#                   21 |  X   |  X   |  X    |      |  X
-#                   22 |      |  X   |  X    |      |  X
-#                   23 |  X   |  X   |  X    |      |  X
-#                   24 |      |      |       |  X   |  X
-#                   25 |  X   |      |       |  X   |  X
-#                   26 |      |  X   |       |  X   |  X
-#                   27 |  X   |  X   |       |  X   |  X
-#                   28 |      |  X   |  X    |  X   |  X
-#                   29 |  X   |  X   |  X    |  X   |  X
-#                   30 |      |  X   |  X    |  X   |  X
-#                   31 |  X   |  X   |  X    |  X   |  X
+# See kdump(5) or makedumpfile(8) for a full description what that different
+# dump levels mean.
+#
 KDUMP_DUMPLEVEL=0
 
-## Type:        string
-## Default:     "ELF"
+## Type:        list(,compressed,ELF)
+## Default:     "compressed"
 #
 # This variable specifies the dump format.
 #
-# "ELF" has the advantage that it's a standard format and GDB can be used to
-# analyse the dumps. The disadvantage is that the dump files are larger.
-#
-# "compressed" is the kdump compressed format (see makedumpfile(8)) that
-# produces small dumps. However, only "crash" can analyse the dumps and
-# you need makedumpfile to have installed (but you need it anyway if you
-# set KDUMP_DUMPLEVEL != 0 before).
+# See also: kdump(5).
 KDUMP_DUMPFORMAT="ELF"
 
-# vim: set ft=sh:
+## Type:        boolean
+## Default:     false
+#
+# By default, kdumptool(8) copies multiple files with the save_dump action.
+# Set that value to "true" to make kdumptool trying to save the next file even
+# if saving the previous file failed, or set that to "false" to let the program
+# immediately abort.
+#
+# See also: kdump(5).
+#
+KDUMP_CONTINUE_ON_ERROR="false"
+
+## Type:        string
+## Default:     ""
+#
+# This is a space-separated list of programs (full path) that are required by
+# KDUMP_TRANSFER, KDUMP_PRESCRIPT or KDUMP_POSTSCRIPT.
+#
+# Dynamic libraries that are required by that programs don't have to be included
+# as they are resolved automatically. However, it's necessary to include other
+# runtime requirements because it's not possible to resolve them automatically.
+#
+# See also: kdump(5).
+#
+KDUMP_REQUIRED_PROGRAMS=""
+
+## Type:        string
+## Default:     ""
+#
+# Program that is executed before taking the dump. You have to include that
+# program in KDUMP_REQUIRED_PROGRAMS.
+#
+# See also: kdump(5).
+#
+KDUMP_PRESCRIPT=""
+
+## Type:        string
+## Default:     ""
+#
+# Program that is executed after taking the dump and before the system is
+# rebooted. You have to include that program in KDUMP_POSTSCRIPT.
+#
+# See also: kdump(5).
+#
+KDUMP_POSTSCRIPT=""
+
+## Type:        yesno
+## Default:     "yes"
+#
+# Not only copy the dump to KDUMP_SAVEDIR but also the installed kernel.
+# If the debugging information is installed, also the debug information will
+# be copied. But only the kernel is copied, not all modules.
+#
+# See also: kdump(5).
+#
+KDUMP_COPY_KERNEL="yes"
+
+## Type:        string(NOSPARSE)
+## Default:     ""
+#
+# Space-separated list of flags to tweak the run-time behaviour of kdumptool.
+# Currently, only one flag is supported: NOSPARSE to disable creation of sparse
+# files.
+#
+# See also: kdump(5).
+#
+KDUMPTOOL_FLAGS=""
+
