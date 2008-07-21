@@ -107,7 +107,8 @@ create a command line, make sure to include:
 * any _console_ parameters (for serial console),
 * _maxcpus=1_,
 * _irqpoll_,
-* _reset_devices_.
+* _reset_devices_,
+* _elevator=deadline_ to save the memory footprint.
 
 The last three parameters are special for kdump and should always be included,
 if you don't have a good reason to exclude them.
