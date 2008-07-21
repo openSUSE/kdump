@@ -104,6 +104,7 @@ configure_file(
 ADD_SUBDIRECTORY(kdumptool)
 ADD_SUBDIRECTORY(doc)
 ADD_SUBDIRECTORY(tests)
+ADD_SUBDIRECTORY(init)
 
 #
 # Configuration and Udev
