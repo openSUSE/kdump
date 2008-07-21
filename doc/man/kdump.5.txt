@@ -78,7 +78,7 @@ On each item, it tries:
 . /boot/*vmlinux
 . /boot/*vmlinux.gz
 
-If the name does not contain "kdump", the kernel is checked for relocatability 
+If the name does not contain "kdump", the kernel is checked for relocatability
 using _kdumptool identify_dump_.
 
 Default is "".
@@ -217,7 +217,7 @@ several options, you have to add their value. The options are:
 1::
   kdump command line is written to system log when executing /etc/init.d/kdump.
 
-2:: 
+2::
   Progress is written to stdout while dumping.
 
 4::
@@ -307,11 +307,11 @@ KDUMP_CONTINUE_ON_ERROR
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 By default, *kdumptool*(8) copies multiple files with the _save_dump_ action.
-Set that value to _1_ to make kdumptool trying to save the next file even if
-saving the previous file failed, or set that to _0_ to let the program
+Set that value to _true_ to make kdumptool trying to save the next file even if
+saving the previous file failed, or set that to _false_ to let the program
 immediately abort.
 
-Default: "0"
+Default: "false"
 
 
 KDUMP_REQUIRED_PROGRAMS
