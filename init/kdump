@@ -1,0 +1,316 @@
+#!/bin/bash
+#
+#  Copyright 2005 Red Hat, Inc.
+#  Author:  Jeff Moyer <jmoyer@redhat.com>
+#  Modifications for SUSE from Chris Mason <mason@suse.com>
+#                              Takashi Iwai <tiwai@suse.de>
+#                              Bernhard Walle <bwalle@suse.de>
+#
+#  kdump
+#
+#  Description:  The kdump init script provides the support necessary for
+#  		 loading a kdump kernel into memory at system bootup time.
+#
+#
+# /etc/init.d/kdump
+### BEGIN INIT INFO
+# Provides:       kdump
+# Required-Start: boot.localfs $remote_fs
+# Should-Start:
+# Required-Stop:
+# Default-Start:  1 2 3 5
+# Default-Stop:
+# Short-Description: kdump boot configuration
+# Description:    This script loads the kdump kernel on startup.
+### END INIT INFO
+
+. /etc/sysconfig/kdump
+. /etc/rc.status
+
+KEXEC=/sbin/kexec
+BOOTDIR="/boot"
+
+#
+# Checks if currently a kdump kernel is loaded.
+#
+# Returns: 0 (true) if a kdump kernel is loaded,
+#          1 (false) if the kdump kernel is not loaded and
+#          -1 (false) if the feature is not implemented (too old kernel)
+function kdump_kernel_loaded()
+{
+    if [ -r /sys/kernel/kexec_crash_loaded ]; then
+	if [ "$(cat /sys/kernel/kexec_crash_loaded)" = "1" ]; then
+	    return 0
+	else
+	    return 1
+	fi
+    else
+	return -1
+    fi
+}
+
+#
+# Checks if a given kernel image is relocatable.
+#
+# Returns: 0 (true) if the kernel image is relocatable
+#          1 (false) if the kernel image is not relocatable
+function is_relocatable()
+{
+    local image=$1
+
+    kdumptool identify_kernel -r "$image"
+}
+
+# checks if the kernel $1 is suitable for kdump
+# 1. the kernel must exist
+# 2. if it doesn't contain "*kdump*" in its name, it
+#    must be relocatable
+function check_kernel()
+{
+    local kernel=$1
+
+    # check if the file exists
+    if [ ! -f "$kernel" ] ; then
+	return 1
+    fi
+
+    # if it doesn't contain 'kdump' in the name,
+    # check for relocatability
+    if [[ $(basename "$kernel") != *kdump* ]] &&
+	    ! is_relocatable "$kernel" &>/dev/null ; then
+    	return 1
+    fi
+
+    return 0
+}
+
+# print the available kdump kernel path
+# empty if no matching file is found
+function check_boot_kernel()
+{
+    local kdump_kver=$1
+    local kstr
+    local dash=${kdump_kver:+-}
+
+    echo >&2 check_boot_kernel=$kdump_kver
+
+    kstr="${BOOTDIR}/vmlinuz${dash}${kdump_kver}"
+    if check_kernel $kstr ; then
+	echo $kstr
+	return
+    fi
+
+    kstr="${BOOTDIR}/vmlinux${dash}${kdump_kver}"
+    if check_kernel $kstr ; then
+	echo $kstr
+	return
+    fi
+
+    kstr="${BOOTDIR}/vmlinux${dash}${kdump_kver}.gz"
+    if check_kernel $kstr ; then
+	echo $kstr
+	return
+    fi
+}
+
+# Find the kdump kerel. Try following algorithm
+#
+#        1. Use $(uname -r)-kdump
+#        2. If that doesn't exist, use -kdump
+#        3. If that doesn't exist, use $(uname -r)
+#        4. If that doesn't exist, use ""
+#
+# Always try the files in following order:
+#        1. /boot/*vmlinuz
+#        2. /boot/*vmlinux
+#        3. /boot/*vmlinux.gz
+#
+function find_boot_kernel()
+{
+    local kdump_kver=
+
+    # <version>-kdump first
+    kdump_kver=$(uname -r | sed -e's/-[^-]*$//g')
+    if [ -n "$(check_boot_kernel $kdump_kver)" ] ; then
+    	echo "$kdump_kver"
+	return
+    fi
+
+    # kdump then
+    kdump_kver=kdump
+    if [ -n "$(check_boot_kernel $kdump_kver)" ] ; then
+    	echo "$kdump_kver"
+	return
+    fi
+
+    # <version> then
+    kdump_kver=$(uname -r)
+    if [ -n "$(check_boot_kernel $kdump_kver)" ] ; then
+    	echo "$kdump_kver"
+	return
+    fi
+
+    # and nothing finally
+    kdump_kver=
+    if [ -n "$(check_boot_kernel $kdump_kver)" ] ; then
+    	echo "$kdump_kver"
+	return
+    fi
+}
+
+#
+# Returns the initrd for the kernel. If the kernel already contains
+# "kdump", then return "/boot/initrd-<kernelver>", else return
+# "/boot/initrd-<kernelver>-kdump".
+function find_initrd ()
+{
+    local kdump_kver=$1
+
+    if [[ "$kdump_kver" == *kdump* ]] ; then
+	echo "${BOOTDIR}/initrd${kdump_kver}"
+    else
+    	echo "${BOOTDIR}/initrd${kdump_kver:+-}${kdump_kver}-kdump"
+    fi
+}
+
+#
+# Builds the kdump command line from KDUMP_COMMANDLINE.
+function build_kdump_commandline()
+{
+    local commandline="$KDUMP_COMMANDLINE"
+
+    if [ -z "$commandline" ]; then
+	commandline=`cat /proc/cmdline | \
+	    sed -e 's/crashkernel=[0-9]\+[mM]\(@[0-9]\+[Mm]\?\)\?//g' \
+	        -e 's/ *splash=[^ ]*/ /g' \
+	        -e 's/ *mem=[^ ]*/ /g' \
+	        -e 's/ *BOOT_IMAGE=[^ ]* / /g' \
+	        -e 's/ *showopts/ /g'`
+	# Use deadline for saving the memory footprint
+	commandline="$commandline elevator=deadline sysrq=1 reset_devices"
+	case `uname -i` in
+	i?86|x86_64|ia64)
+	    commandline="$commandline irqpoll"
+            ;;
+	esac
+    fi
+
+    commandline="$KDUMP_COMMANDLINE $KDUMP_COMMANDLINE_APPEND"
+
+    echo "$commandline"
+}
+
+#
+# Load the kdump kerel specified in /etc/sysconfig/kdump
+function load_kdump()
+{
+    echo -n "Loading kdump "
+    if [ -z "$KDUMP_KERNELVER" ]; then
+	kdump_kver=$(find_boot_kernel)
+    else
+	kdump_kver="$KDUMP_KERNELVER"
+    fi
+
+    kdump_kernel=$(check_boot_kernel $kdump_kver)
+
+    if [ -z "$kdump_kernel" -o ! -f "$kdump_kernel" ]; then
+	echo -n ": No kdump kernel image found for kernel $kdump_kver."
+	rc_status -s
+	rc_failed 6
+	rc_exit
+    fi
+
+    kdump_initrd=$(find_initrd "$kdump_kver")
+
+    if [ ! -f $kdump_initrd ]; then
+	echo -n ": No kdump initial ramdisk found."
+	echo "Tried to locate ${kdump_initrd}"
+	rc_status -s
+	rc_failed 6
+	rc_exit
+    fi
+
+    local kdump_commandline=$(build_kdump_commandline)
+
+    # remove `--args-linux' for x86 type kernel files here
+    if [ "$(kdumptool identify_kernel -t "$kdump_kernel")" = "x86" ] ; then
+	KEXEC_OPTIONS=$(echo $KEXEC_OPTIONS | sed -e 's/--args-linux//g')
+    fi
+
+    KEXEC_CALL="$KEXEC -p $kdump_kernel --append=\"$kdump_commandline\""
+    KEXEC_CALL="$KEXEC_CALL --initrd=$kdump_initrd $KEXEC_OPTIONS"
+
+    result=$(eval "$KEXEC_CALL" 2>&1)
+    rc_check
+
+    # print stderr in any case to show warnings that normally
+    # would be supressed (bnc#374185)
+    echo "$result"
+
+    if rc_status ; then
+	echo 1 > /proc/sys/kernel/panic_on_oops
+
+	# does not exist on all architectures (only i386/x86_64)
+	if [ -f /proc/sys/kernel/unknown_nmi_panic ] ; then
+	    echo 1 > /proc/sys/kernel/unknown_nmi_panic
+	fi
+    fi
+
+    if [ $(($KDUMP_VERBOSE & 4)) -gt 0 ] ; then
+	echo "Loading kdump kernel: $KEXEC_CALL"
+    fi
+    if [ $(($KDUMP_VERBOSE & 1)) -gt 0 ] ; then
+	if rc_status ; then
+	    logger -i -t kdump "Loaded kdump kernel: $KEXEC_CALL, Result: $result"
+	else
+	    logger -i -t kdump \
+		"FAILED to load kdump kernel: $KEXEC_CALL, Result: $result"
+	fi
+    fi
+
+    rc_status -v
+}
+
+
+case "$1" in
+  start)
+	load_kdump
+	;;
+  stop)
+	if [ "$RUNLEVEL" != "" ]; then
+	    echo -n "Not unloading kdump during runlevel changes"
+	    rc_status -s
+	else
+	    echo -n "Unloading kdump"
+	    $KEXEC -p -u
+	    rc_status -v
+	fi
+	;;
+  status)
+  	kdump_kernel_loaded
+	case $? in
+	     0)	    echo "kdump kernel loaded" 		;;
+	     1)     echo "kdump kernel not loaded"	;;
+	    -1)     echo "not implemented"		;;
+	esac
+	;;
+  restart|reload)
+	$0 stop
+	$0 start
+	;;
+  condrestart|try-restart)
+  	if kdump_kernel_loaded ; then
+  	    $0 start
+	else
+	    rc_reset
+        fi
+	rc_status
+	;;
+  *)
+	echo $"Usage: $0 {start|stop|status|restart|reload|try-reload}"
+	exit 1
+esac
+
+exit $?
+
+# vim: set ts=8 sw=4 sts=4 noet:
