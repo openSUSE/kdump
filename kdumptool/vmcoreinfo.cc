@@ -43,6 +43,7 @@
 using std::string;
 using std::cout;
 using std::endl;
+using std::min;
 
 #define VMCOREINFO_NOTE_NAME        "VMCOREINFO"
 #define VMCOREINFO_NOTE_NAME_BYTES  (sizeof(VMCOREINFO_NOTE_NAME))
@@ -126,7 +127,9 @@ ByteVector Vmcoreinfo::readElfNote(const char *file)
 
             for (size_t already_read = 0; already_read < ELF_HEADER_MAPSIZE; ) {
 
-                size_t currently_read = read(fd, map_copy+already_read, BUFSIZ);
+                size_t to_read = min(size_t(BUFSIZ),
+                    size_t(ELF_HEADER_MAPSIZE-already_read));
+                size_t currently_read = read(fd, map_copy+already_read, to_read);
                 if (currently_read == 0)
                     throw KSystemError("Error when reading from dump.", errno);
 
@@ -190,6 +193,8 @@ ByteVector Vmcoreinfo::readElfNote(const char *file)
             throw KSystemError("Vmcoreinfo: Unable to read " +
                 Stringutil::number2string(size) +
                 " bytes.", errno);
+    } catch (const std::bad_alloc &ex) {
+        Debug::debug()->info("bad_allo");
     } catch (...) {
         if (map != MAP_FAILED)
             munmap(map, ELF_HEADER_MAPSIZE);
