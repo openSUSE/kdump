@@ -22,8 +22,8 @@
 #include <string>
 #include <stdint.h>
 
-#include <libelf/libelf.h>
-#include <libelf/gelf.h>
+#include <libelf.h>
+#include <gelf.h>
 
 #include "global.h"
 
