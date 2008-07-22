@@ -193,8 +193,6 @@ ByteVector Vmcoreinfo::readElfNote(const char *file)
             throw KSystemError("Vmcoreinfo: Unable to read " +
                 Stringutil::number2string(size) +
                 " bytes.", errno);
-    } catch (const std::bad_alloc &ex) {
-        Debug::debug()->info("bad_allo");
     } catch (...) {
         if (map != MAP_FAILED)
             munmap(map, ELF_HEADER_MAPSIZE);
