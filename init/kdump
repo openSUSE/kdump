@@ -193,7 +193,7 @@ function build_kdump_commandline()
 	esac
     fi
 
-    commandline="$KDUMP_COMMANDLINE $KDUMP_COMMANDLINE_APPEND"
+    commandline="$commandline $KDUMP_COMMANDLINE_APPEND"
 
     echo "$commandline"
 }
