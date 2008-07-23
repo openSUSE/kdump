@@ -68,6 +68,12 @@ while getopts "i:hfqk:" name ; do
         q)  QUIET=1
             ;;
 
+        K)  KERNEL=$OPTARG
+            ;;
+
+        I)  INITRD=$OPTARG
+            ;;
+
         i)  MKINITRD_EXTRA_PARAMS=$OPTARG
             ;;
 
@@ -80,9 +86,13 @@ shift $(($OPTIND -1))
 
                                                                            # }}}
 
-KERNEL=/boot/vmlinuz-$KERNELVERSION
-if ! [ -f "$KERNEL" ] ; then
-    KERNEL=/boot/vmlinux-$KERNELVERSION
+#
+# if we don't have specified -K <file>, then get the kernel from the version
+if [ -z "$KERNEL" ] then
+    KERNEL=/boot/vmlinuz-$KERNELVERSION
+    if ! [ -f "$KERNEL" ] ; then
+        KERNEL=/boot/vmlinux-$KERNELVERSION
+    fi
 fi
 
 if ! [ -f "$KERNEL" ] ; then
@@ -90,9 +100,14 @@ if ! [ -f "$KERNEL" ] ; then
     exit 1
 fi
 
-INITRD=/boot/initrd-$KERNELVERSION
-if ! echo $KERNELVERSION | grep -q kdump ; then
-    INITRD=$INITRD-kdump
+#
+# if we don't have specified -I <file>, then get the kernel from the version
+if [ -z "$INITRD" ] ; then
+    INITRD=/boot/initrd-$KERNELVERSION
+
+    if ! echo $KERNELVERSION | grep -q kdump ; then
+        INITRD=$INITRD-kdump
+    fi
 fi
 
 #
@@ -105,8 +120,6 @@ if (( ! $FORCE )) ; then
         exit 0
     fi
 fi
-
-
 
 #
 # network configuration
