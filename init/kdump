@@ -199,6 +199,27 @@ function build_kdump_commandline()
 }
 
 #
+# Builds the kexec options from KEXEC_OPTIONS
+# Parameters: 1) kernel
+function build_kexec_options()
+{
+    local kdump_kernel=$1
+    local options=$KEXEC_OPTIONS
+
+    # remove `--args-linux' for x86 type kernel files here
+    if [ "$(kdumptool identify_kernel -t "$kdump_kernel")" = "x86" ] ; then
+        options=$(echo $options | sed -e 's/--args-linux//g')
+    fi
+
+    # add --noio on ia64
+    if [ "$(uname -i)" = "ia64" ] ; then
+        options="$options --noio"
+    fi
+
+    echo "$options"
+}
+
+#
 # Load the kdump kerel specified in /etc/sysconfig/kdump
 function load_kdump()
 {
@@ -232,14 +253,10 @@ function load_kdump()
     fi
 
     local kdump_commandline=$(build_kdump_commandline)
-
-    # remove `--args-linux' for x86 type kernel files here
-    if [ "$(kdumptool identify_kernel -t "$kdump_kernel")" = "x86" ] ; then
-        KEXEC_OPTIONS=$(echo $KEXEC_OPTIONS | sed -e 's/--args-linux//g')
-    fi
+    local kexec_options=$(build_kexec_options)
 
     KEXEC_CALL="$KEXEC -p $kdump_kernel --append=\"$kdump_commandline\""
-    KEXEC_CALL="$KEXEC_CALL --initrd=$kdump_initrd $KEXEC_OPTIONS"
+    KEXEC_CALL="$KEXEC_CALL --initrd=$kdump_initrd $kexec_options"
 
     result=$(eval "$KEXEC_CALL" 2>&1)
     rc_check
