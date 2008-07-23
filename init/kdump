@@ -188,7 +188,7 @@ function build_kdump_commandline()
         commandline="$commandline elevator=deadline sysrq=1 reset_devices"
         case `uname -i` in
         i?86|x86_64|ia64)
-            commandline="$commandline irqpoll"
+            commandline="$commandline irqpoll maxcpus=1"
             ;;
         esac
     fi
