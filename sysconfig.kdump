@@ -152,7 +152,7 @@ KDUMP_DUMPLEVEL=0
 # This variable specifies the dump format.
 #
 # See also: kdump(5).
-KDUMP_DUMPFORMAT="ELF"
+KDUMP_DUMPFORMAT="compressed"
 
 ## Type:        boolean
 ## Default:     false
