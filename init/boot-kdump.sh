@@ -67,37 +67,37 @@ fi
 # start LED blinking in background
 kdumptool ledblink --background
 
-#
-# verbose output if requested
-if (( $KDUMP_VERBOSE & 8 )) ; then
-    KDUMPTOOL_OPTIONS="$KDUMPTOOL_OPTIONS -D"
-fi
+if [ -n "$KDUMP_TRANSFER" ] ; then
+    echo "Running $KDUMP_TRANSFER"
+    eval "$KDUMP_TRANSFER"
+else
 
-#
-# prescript
-if [ -n "$KDUMP_PRESCRIPT" ] ; then
-    echo "Running $KDUMP_PRESCRIPT"
-    eval "$KDUMP_PRESCRIPT"
+    #
+    # prescript
+    if [ -n "$KDUMP_PRESCRIPT" ] ; then
+        echo "Running $KDUMP_PRESCRIPT"
+        eval "$KDUMP_PRESCRIPT"
+        continue_error $?
+    fi
+
+    #
+    # delete old dumps
+    kdumptool delete_dumps $KDUMPTOOL_OPTIONS
     continue_error $?
-fi
 
-#
-# delete old dumps
-kdumptool delete_dumps $KDUMPTOOL_OPTIONS
-continue_error $?
+    #
+    # save the dump
+    read hostname < /etc/hostname.kdump
+    kdumptool save_dump --root=/root \
+        --fqdn=$hostname $KDUMPTOOL_OPTIONS
 
-#
-# save the dump
-read hostname < /etc/hostname.kdump
-kdumptool save_dump --root=/root \
-    --fqdn=$hostname $KDUMPTOOL_OPTIONS
-
-#
-# postscript
-if [ -n "$KDUMP_POSTSCRIPT" ] ; then
-    echo "Running $KDUMP_POSTSCRIPT"
-    eval "$KDUMP_POSTSCRIPT"
-    continue_error $?
+    #
+    # postscript
+    if [ -n "$KDUMP_POSTSCRIPT" ] ; then
+        echo "Running $KDUMP_POSTSCRIPT"
+        eval "$KDUMP_POSTSCRIPT"
+        continue_error $?
+    fi
 fi
 
 handle_exit
