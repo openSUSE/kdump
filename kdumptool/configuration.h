@@ -39,6 +39,17 @@ class Configuration {
 
     public:
         /**
+         * Verbosity flags.
+         */
+        enum VerbosityFlags {
+             VERB_LOG_CMDLINE       = (1<<0),
+             VERB_PROGRESS          = (1<<1),
+             VERB_STDOUT_CMDLINE    = (1<<2),
+             VERB_DEBUG_TRANSFER    = (1<<3)
+        };
+
+    public:
+        /**
          * Returns the only configuration object.
          *
          * @return the configuration object

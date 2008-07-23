@@ -247,7 +247,10 @@ void SaveDump::saveDump()
             terminal.printLine();
         }
         TerminalProgress progress("Saving dump");
-        provider->setProgress(&progress);
+        if (config->getVerbose() & Configuration::VERB_PROGRESS)
+            provider->setProgress(&progress);
+        else
+            cout << "Saving dump ..." << endl;
         m_transfer->perform(provider, "vmcore", &m_usedDirectSave);
         if (m_useMakedumpfile)
             terminal.printLine();
@@ -262,6 +265,7 @@ void SaveDump::copyMakedumpfile()
     throw (KError)
 {
     StringList paths;
+    Configuration *config = Configuration::config();
 
     paths.push_back("/bin/makedumpfile-R.pl");
     paths.push_back("/sbin/makedumpfile-R.pl");
@@ -286,7 +290,10 @@ void SaveDump::copyMakedumpfile()
 
     FileDataProvider provider(makedumpfile_binary.c_str());
     TerminalProgress progress("Saving makedumpfile-R.pl");
-    provider.setProgress(&progress);
+    if (config->getVerbose() & Configuration::VERB_PROGRESS)
+        provider.setProgress(&progress);
+    else
+        cout << "Saving makedumpfile-R.pl ..." << endl;
     m_transfer->perform(&provider, "makedumpfile-R.pl", NULL);
 
     generateRearrange();
@@ -296,6 +303,8 @@ void SaveDump::copyMakedumpfile()
 void SaveDump::generateRearrange()
     throw (KError)
 {
+    Configuration *config = Configuration::config();
+
     // and also generate a "rearrange" script
     stringstream ss;
 
@@ -322,7 +331,10 @@ void SaveDump::generateRearrange()
     TerminalProgress progress2("Generating rearrange script");
     ByteVector bv = Stringutil::str2bytes(ss.str());
     BufferDataProvider provider2(bv);
-    provider2.setProgress(&progress2);
+    if (config->getVerbose() & Configuration::VERB_PROGRESS)
+        provider2.setProgress(&progress2);
+    else
+        cout << "Generating rearrange script" << endl;
     m_transfer->perform(&provider2, "rearrange.sh", NULL);
 }
 
@@ -381,7 +393,10 @@ void SaveDump::generateInfo()
     TerminalProgress progress("Generating README");
     ByteVector bv = Stringutil::str2bytes(ss.str());
     BufferDataProvider provider(bv);
-    provider.setProgress(&progress);
+    if (config->getVerbose() & Configuration::VERB_PROGRESS)
+        provider.setProgress(&progress);
+    else
+        cout << "Generating README" << endl;
     m_transfer->perform(&provider, "README.txt", NULL);
 }
 
@@ -391,18 +406,26 @@ void SaveDump::copyKernel()
 {
     Debug::debug()->trace("SaveDump::copyKernel()");
 
+    Configuration *config = Configuration::config();
+
     string mapfile = findMapfile();
     string kernel = findKernel();
 
     // mapfile
     TerminalProgress mapProgress("Copying System.map");
     FileDataProvider mapProvider(mapfile.c_str());
-    mapProvider.setProgress(&mapProgress);
+    if (config->getVerbose() & Configuration::VERB_PROGRESS)
+        mapProvider.setProgress(&mapProgress);
+    else
+        cout << "Copying System.map" << endl;
     m_transfer->perform(&mapProvider, FileUtil::baseName(mapfile).c_str());
 
     TerminalProgress kernelProgress("Copying kernel");
     FileDataProvider kernelProvider(kernel.c_str());
-    kernelProvider.setProgress(&kernelProgress);
+    if (config->getVerbose() & Configuration::VERB_PROGRESS)
+        kernelProvider.setProgress(&kernelProgress);
+    else
+        cout << "Copying kernel" << endl;
     m_transfer->perform(&kernelProvider, FileUtil::baseName(kernel).c_str());
 
     // try to find debugging information
@@ -414,7 +437,10 @@ void SaveDump::copyKernel()
 
         TerminalProgress debugkernelProgress("Copying kernel.debug");
         FileDataProvider debugkernelProvider(debuglink.c_str());
-        debugkernelProvider.setProgress(&debugkernelProgress);
+        if (config->getVerbose() & Configuration::VERB_PROGRESS)
+            debugkernelProvider.setProgress(&debugkernelProgress);
+        else
+            cout << "Generating kernel.debug" << endl;
         m_transfer->perform(&debugkernelProvider,
             FileUtil::baseName(debuglink).c_str());
 
