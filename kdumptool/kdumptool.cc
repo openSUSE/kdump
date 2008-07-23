@@ -61,6 +61,13 @@ KdumpTool::KdumpTool()
 {}
 
 // -----------------------------------------------------------------------------
+KdumpTool::~KdumpTool()
+    throw ()
+{
+    delete m_subcommand;
+}
+
+// -----------------------------------------------------------------------------
 void KdumpTool::parseCommandline(int argc, char *argv[])
     throw (KError)
 {

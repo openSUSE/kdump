@@ -39,6 +39,12 @@ class KdumpTool {
         KdumpTool()
         throw ();
 
+        /**
+         * Delete a KdumpTool object.
+         */
+        virtual ~KdumpTool()
+        throw ();
+
     public:
         /**
          * Parses the command line. This method must be called before the
