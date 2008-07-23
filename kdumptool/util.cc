@@ -126,8 +126,13 @@ string Util::getHostDomain()
     if (ret != 0)
         throw KSystemError("uname() failed.", errno);
 
-    return string(my_utsname.nodename) + "." + string(my_utsname.domainname);
-}
+    string nodename = my_utsname.nodename;
+    string domainname = my_utsname.domainname;
 
+    if (domainname.size() == 0)
+        return nodename;
+    else
+        return nodename + "." + domainname;
+}
 
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:
