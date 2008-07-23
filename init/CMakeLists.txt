@@ -17,8 +17,9 @@
 # 02110-1301, USA.
 #
 
-INSTALL(FILES
-    ${CMAKE_CURRENT_SOURCE_DIR}/kdump
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/kdump
     DESTINATION
         /etc/init.d
     PERMISSIONS
@@ -27,5 +28,16 @@ INSTALL(FILES
         WORLD_READ WORLD_EXECUTE
 )
 
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/setup-kdump.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/boot-kdump.sh
+    DESTINATION
+        /lib/mkinitrd/scripts
+    PERMISSIONS
+        OWNER_READ OWNER_WRITE OWNER_EXECUTE
+        GROUP_READ GROUP_EXECUTE
+        WORLD_READ WORLD_EXECUTE
+)
 
 # vim: set sw=4 ts=4 et:
