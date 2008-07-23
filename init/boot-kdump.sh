@@ -67,6 +67,10 @@ fi
 # start LED blinking in background
 kdumptool ledblink --background
 
+#
+# create mountpoint for NFS/CIFS
+mkdir /mnt
+
 if [ -n "$KDUMP_TRANSFER" ] ; then
     echo "Running $KDUMP_TRANSFER"
     eval "$KDUMP_TRANSFER"
