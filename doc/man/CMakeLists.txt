@@ -48,6 +48,22 @@ ADD_CUSTOM_COMMAND(
         ${CMAKE_CURRENT_BINARY_DIR}
 )
 
+ADD_CUSTOM_COMMAND(
+    OUTPUT
+        ${CMAKE_CURRENT_BINARY_DIR}/mkdumprd.8.gz
+    COMMAND
+        ${A2X_EXECUTABLE} ${A2X_MAN_OPTIONS}
+        -D ${CMAKE_CURRENT_BINARY_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/mkdumprd.8.txt &&
+        rm -f ${CMAKE_CURRENT_SOURCE_DIR}/mkdumprd.8.xml &&
+        gzip -f ${CMAKE_CURRENT_BINARY_DIR}/mkdumprd.8
+    DEPENDS
+        ${CMAKE_CURRENT_SOURCE_DIR}/mkdumprd.8.txt
+    WORKING_DIRECTORY
+        ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+
 #
 # we need to make a target out of the two ADD_CUSTOM_COMMAND() calls
 # because otherwise cmake ignores the manpages
@@ -56,6 +72,7 @@ ADD_CUSTOM_TARGET(
     DEPENDS
         ${CMAKE_CURRENT_BINARY_DIR}/kdump.5.gz
         ${CMAKE_CURRENT_BINARY_DIR}/kdumptool.8.gz
+        ${CMAKE_CURRENT_BINARY_DIR}/mkdumprd.8.gz
 )
 
 #
@@ -77,5 +94,12 @@ INSTALL(FILES
     DESTINATION
         share/man/man5
 )
+
+INSTALL(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/mkdumprd.8.gz
+    DESTINATION
+        share/man/man8
+)
+
 
 # vim: set sw=4 ts=4 et:
