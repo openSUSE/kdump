@@ -80,7 +80,9 @@ continue_error $?
 
 #
 # save the dump
-kdumptool save_dump --root=/root $KDUMPTOOL_OPTIONS
+read hostname < /etc/hostname.kdump
+kdumptool save_dump --root=/root \
+    --fqdn=$hostname $KDUMPTOOL_OPTIONS
 
 handle_exit
 
