@@ -39,7 +39,7 @@ kdumptool - Binary to support kdump saving and loading
 
 SYNOPSIS
 --------
-*kdumptool* [_global options_] _command_ [_options_] [_arguments_]
+*kdumptool* [_globals_] _command_ [_options_] [_arguments_]
 
 DESCRIPTION
 -----------
@@ -113,7 +113,7 @@ init script (_/etc/init.d/kdump_) looks for normal kernels that are relocatable.
 Syntax
 ~~~~~~
 
-*kdumptool* [_global options_] *identify_kernel* [-r] [-t]
+*kdumptool* [_globals_] *identify_kernel* [-r] [-t]
 
 It's necessary to provide either -r, -t or both.
 
@@ -145,7 +145,8 @@ is required to check the exported file systems first.
 Syntax
 ~~~~~~
 
-*kdumptool* [_global options_] *save_dump* [-u _dumpfile_] [-R _root_] [-k _ver_]
+*kdumptool* [_globals_] *save_dump*
+[-u _dumpfile_] [-R _root_] [-k _ver_] [-q _fqdn_]
 
 Options
 ~~~~~~~
@@ -164,6 +165,12 @@ Options
   also copies the kernel binary) instead of the auto-detected one via
   VMCOREINFO.
 
+*-q* _fqdn_ | *--fqdn* _fqdn_::
+  Use _fqdn_ as FQDN in the README.txt file (in the dump directory). This is
+  because the initrd often lacks proper network configuration, and we want the
+  hostname of the old system in that README.txt file, not the initrd hostname
+  (which may be an DHCP auto-generated host name).
+
 LED BLINKING
 ------------
 
@@ -177,7 +184,7 @@ The command can only be executed as root. Consider using the *-b*
 Syntax
 ~~~~~~
 
-*kdumptool* [_global options_] *led_blink* [-i _interval_]
+*kdumptool* [_globals_] *led_blink* [-i _interval_]
 
 Options
 ~~~~~~~
@@ -198,7 +205,7 @@ file*.
 Syntax
 ~~~~~~
 
-*kdumptool* [_global options_] *read_vmcoreinfo* [-u _dumpfile_] [_key_]
+*kdumptool* [_globals_] *read_vmcoreinfo* [-u _dumpfile_] [_key_]
 
 When no _key_ is specified, this command just prints all key/value pairs in the
 form _KEY=VALUE_. The order is random and has nothing to do with the order
@@ -221,7 +228,7 @@ as specified in *KDUMP_KEEP_OLD_DUMPS*.
 Syntax
 ~~~~~~
 
-*kdumptool* [_global options_] *delete_dumps* [-y] [-R _root_]
+*kdumptool* [_globals_] *delete_dumps* [-y] [-R _root_]
 
 Options
 ~~~~~~~

@@ -84,6 +84,8 @@ OptionList SaveDump::getOptions() const
     list.push_back(Option("kernelversion", 'k', OT_STRING,
         "Use the specified kernel version instead of auto-detection via "
         "VMCOREINFO."));
+    list.push_back(Option("fqdn", 'q', OT_STRING,
+        "Use the specified hostname/domainname instead of uname()."));
 
     return list;
 
@@ -101,9 +103,12 @@ void SaveDump::parseCommandline(OptionParser *optionparser)
         m_rootdir = optionparser->getValue("root").getString();
     if (optionparser->getValue("kernelversion").getType() != OT_INVALID)
         m_crashrelease = optionparser->getValue("kernelversion").getString();
+    if (optionparser->getValue("fqdn").getType() != OT_INVALID)
+        m_hostname = optionparser->getValue("fqdn").getString();
 
-    Debug::debug()->dbg("dump: %s, root: %s, crashrelease: %s",
-        m_dump.c_str(), m_rootdir.c_str(), m_crashrelease.c_str());
+    Debug::debug()->dbg("dump: %s, root: %s, crashrelease: %s, hostname: %s",
+        m_dump.c_str(), m_rootdir.c_str(), m_crashrelease.c_str(),
+        m_hostname.c_str());
 }
 
 // -----------------------------------------------------------------------------
@@ -352,11 +357,14 @@ void SaveDump::generateInfo()
     ss << "----------------" << endl;
     ss << endl;
 
+    if (m_hostname.size() == 0)
+        m_hostname = Util::getHostDomain();
+
     if (m_crashtime.size() > 0)
         ss << "Crash time     : " << m_crashtime << endl;
     if (m_crashrelease.size() > 0)
         ss << "Kernel version : " << m_crashrelease << endl;
-    ss << "Host           : " << Util::getHostDomain() << endl;
+    ss << "Host           : " << m_hostname << endl;
     ss << "Dump level     : "
        << Stringutil::number2string(config->getDumpLevel()) << endl;
     ss << "Dump format    : " << config->getDumpFormat() << endl;
