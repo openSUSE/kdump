@@ -32,7 +32,7 @@ function continue_error()
 
     echo "Last command failed ($status)."
 
-    if ! [ "$KDUMP_CONTINUE_ON_ERROR" = "true" -o
+    if ! [ "$KDUMP_CONTINUE_ON_ERROR" = "true" -o \
                 "$KDUMP_CONTINUE_ON_ERROR" = "TRUE" ] ; then
         handle_exit
     fi
@@ -49,7 +49,7 @@ fi
 
 #
 # start LED blinking in background
-kdumptool led_blink --background
+kdumptool ledblink --background
 
 #
 # verbose output if requested
