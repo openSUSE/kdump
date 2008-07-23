@@ -53,7 +53,7 @@ function status_message()
 
 
 # Option parsing                                                             {{{
-while getopts "i:hfqk:" name ; do
+while getopts "i:hfqk:K:I:" name ; do
     case $name in
         k)  KERNELVERSION=$OPTARG
             ;;
