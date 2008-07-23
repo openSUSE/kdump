@@ -88,7 +88,7 @@ shift $(($OPTIND -1))
 
 #
 # if we don't have specified -K <file>, then get the kernel from the version
-if [ -z "$KERNEL" ] then
+if [ -z "$KERNEL" ] ; then
     KERNEL=/boot/vmlinuz-$KERNELVERSION
     if ! [ -f "$KERNEL" ] ; then
         KERNEL=/boot/vmlinux-$KERNELVERSION
