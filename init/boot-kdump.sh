@@ -74,6 +74,14 @@ if (( $KDUMP_VERBOSE & 8 )) ; then
 fi
 
 #
+# prescript
+if [ -n "$KDUMP_PRESCRIPT" ] ; then
+    echo "Running $KDUMP_PRESCRIPT"
+    eval "$KDUMP_PRESCRIPT"
+    continue_error $?
+fi
+
+#
 # delete old dumps
 kdumptool delete_dumps $KDUMPTOOL_OPTIONS
 continue_error $?
@@ -83,6 +91,14 @@ continue_error $?
 read hostname < /etc/hostname.kdump
 kdumptool save_dump --root=/root \
     --fqdn=$hostname $KDUMPTOOL_OPTIONS
+
+#
+# postscript
+if [ -n "$KDUMP_POSTSCRIPT" ] ; then
+    echo "Running $KDUMP_POSTSCRIPT"
+    eval "$KDUMP_POSTSCRIPT"
+    continue_error $?
+fi
 
 handle_exit
 
