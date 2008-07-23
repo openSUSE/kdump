@@ -167,6 +167,8 @@ It's strongly recommended that the default mechanism is used, it should provide
 everything that is needed, together with KDUMP_PRESCRIPT and
 KDUMP_POSTSCRIPT. We can't support problems with using that variable.
 
+KDUMP_PRESCRIPT and KDUMP_POSTSCRIPT are not executed if KDUMP_TRANSFER is set.
+
 Default: "".
 
 
