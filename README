@@ -1,0 +1,33 @@
+kdump configuration
+-------------------
+
+This package consists of:
+
+  - kdumptool, a tool to
+      o identify a kernel,
+      o save a dump over various transports (local file, SSH2, FTP, NFS, SMB),
+      o copy the kernel including debugging information,
+      o delete old dumps,
+      o read the VMCOREINFO (see *makedumpfile*(8) of kernel core dumps),
+      o show the progress over the keyboard LED.
+  - udev rules,
+  - initrd support files (setup script, boot script, generation script),
+  - init script,
+  - configuration file,
+  - documentation.
+
+It's designed to take the whole dump in a special initramfs.
+
+Requirements:
+
+  - libelf (http://directory.fsf.org/project/libelf/),
+  - libssh2 (http://www.libssh2.org/),
+  - libcurl (http://curl.haxx.se/),
+  - asciidoc (http://www.methods.co.nz/asciidoc/),
+  - cmake (http://www.cmake.org/).
+
+It's maintained in a Mercurial (hg) tree at http://freehg.org/u/bwalle/kdump/.
+
+Author:     Bernhard Walle <bwalle@suse.de>
+Copyright:  (c) 2008, SUSE LINUX Products GmbH
+License:    GPL v2 or later
