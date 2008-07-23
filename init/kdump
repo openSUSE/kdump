@@ -202,9 +202,6 @@ function build_kdump_commandline()
 # Load the kdump kerel specified in /etc/sysconfig/kdump
 function load_kdump()
 {
-    # rebuilding the kdump initramfs if necessary
-    mkdumprd -q
-
     echo -n "Loading kdump "
     if [ -z "$KDUMP_KERNELVER" ]; then
 	kdump_kver=$(find_boot_kernel)
@@ -222,6 +219,9 @@ function load_kdump()
     fi
 
     kdump_initrd=$(find_initrd "$kdump_kver")
+
+    # rebuilding the kdump initramfs if necessary
+    mkdumprd -K "$kdump_kernel" -I "$kdump_initrd" -q
 
     if [ ! -f $kdump_initrd ]; then
 	echo -n ": No kdump initial ramdisk found."
