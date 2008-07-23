@@ -253,7 +253,7 @@ function load_kdump()
     fi
 
     local kdump_commandline=$(build_kdump_commandline)
-    local kexec_options=$(build_kexec_options)
+    local kexec_options=$(build_kexec_options "$kdump_kernel")
 
     KEXEC_CALL="$KEXEC -p $kdump_kernel --append=\"$kdump_commandline\""
     KEXEC_CALL="$KEXEC_CALL --initrd=$kdump_initrd $kexec_options"
