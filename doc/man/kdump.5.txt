@@ -383,6 +383,24 @@ This is a space-separated list of flags to tweak the run-time behaviour of
 
 Default: ""
 
+KDUMP_NETCONFIG
+~~~~~~~~~~~~~~~
+
+Network configuration for kdump. Because the dump process runs in initrd, the
+network configuration is different from the normal network configuration. Use
+_auto_ to auto-detect the network configuration, this is also the default.
+
+Use a _netdevice:mode_ string to force a specific network device to be used. A
+_netdevice_ is for example "eth0". The _mode_ can be either "dhcp" or "static".
+If you use "static", you have to set the IP address with _ip=ipspec_. _ipspec_
+is <client>:<server>:<gateway>:<netmask>:<hostname>:<device>:<proto>. See
+*mkinitrd*(8) for details.
+
+You can set KDUMP_NETCONFIG to "" if you want no network in initrd, i.e. you use
+disk dumping.
+
+Default: "auto"
+
 
 URL FORMAT
 ----------

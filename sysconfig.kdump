@@ -222,3 +222,17 @@ KDUMP_COPY_KERNEL="yes"
 #
 KDUMPTOOL_FLAGS=""
 
+## Type:        string
+## Default:     auto
+#
+# Network configuration. Use "auto" for auto-detection in initrd, or a string
+# that contains the network device and the mode (dhcp,static), separated by
+# a colon. Example: "eth0:static" or "eth1:dhcp".
+#
+# For static configuration, you have to add the configuration to
+# KDUMP_COMMANDLINE_APPEND.
+#
+# See also: kdump(5)
+#
+KDUMP_NETCONFIG="auto"
+

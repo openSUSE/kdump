@@ -15,12 +15,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 
-. /etc/sysconfig/kdump
-
+CONFIG=/etc/sysconfig/kdump
 KERNELVERSION=$(uname -r)
 FORCE=0
 QUIET=0
 MKINITRD_EXTRA_PARAMS=
+
+. "$CONFIG"
 
 #
 # Prints usage.                                                              {{{
@@ -46,9 +47,9 @@ function status_message()
     local msg=$1
 
     if (( ! $QUIET )) ; then
-        echo "$msg"
+        echo ">>> $msg"
     fi
-}
+}                                                                          # }}}
 
 
 # Option parsing                                                             {{{
@@ -79,6 +80,7 @@ done
 shift $(($OPTIND -1))
 
                                                                            # }}}
+
 KERNEL=/boot/vmlinuz-$KERNELVERSION
 if ! [ -f "$KERNEL" ] ; then
     KERNEL=/boot/vmlinux-$KERNELVERSION
@@ -98,18 +100,43 @@ fi
 # check if we need to regenerate it?
 if (( ! $FORCE )) ; then
     if [ -f "$INITRD" ] && \
-            [ /etc/sysconfig/kdump -ot "$INITRD" ] && \
+            [ "$CONFIG" -ot "$INITRD" ] && \
             [ "$KERNEL" -ot "$INITRD" ] ; then
         status_message "Not regenerating initrd. Use -f to force regeneration."
         exit 0
     fi
 fi
 
-MKINITRD_ARGS="-k $KERNEL -i $INITRD -f kdump -s '' $MKINITRD_EXTRA_PARAMS"
 
+
+#
+# network configuration
+FEATURE_LIST="kdump"
+NETARGS=
+if [ "$KDUMP_NETCONFIG" = "auto" ] ; then
+    FEATURE_LIST="$FEATURE_LIST network"
+    status_message "Network: auto"
+elif [ -z "$KDUMP_NETCONFIG" ] ; then
+    status_message "Network: none"
+else
+    interface=$(echo "$KDUMP_NETCONFIG" | cut -d ':' -f 1)
+    mode=$(echo "$KDUMP_NETCONFIG" | cut -d ':' -f 2)
+
+    status_message "Network interface: $interface"
+    if [ "$mode" = "static" ] ; then
+        NETARGS="-I $interface"
+        status_message "Network mode: Static IP"
+    else
+        NETARGS="-D $interface"
+        status_message "Network mode: Automatic IP (DHCP)"
+    fi
+fi
+
+MKINITRD_ARGS="-k $KERNEL -i $INITRD -f '$FEATURE_LIST' -s ''"
+MKINITRD_ARGS="$MKINITRD_ARGS $MKINITRD_EXTRA_PARAMS $NETARGS"
 
 status_message "Calling mkinitrd $MKINITRD_ARGS"
-/sbin/mkinitrd $MKINITRD_ARGS
+eval "/sbin/mkinitrd $MKINITRD_ARGS"
 
 exit $?
 
