@@ -290,9 +290,16 @@ case "$1" in
   status)
         kdump_kernel_loaded
         case $? in
-             0)     echo "kdump kernel loaded"          ;;
-             1)     echo "kdump kernel not loaded"      ;;
-            -1)     echo "not implemented"              ;;
+             0)     echo "kdump kernel loaded"
+                    rc_status -r -v
+                    ;;
+             1)     echo "kdump kernel not loaded"
+                    rc_failed
+                    rc_status -v
+                    ;;
+            -1)     echo "not implemented"
+                    rc_status -s
+                    ;;
         esac
         ;;
   restart|reload)
@@ -312,6 +319,6 @@ case "$1" in
         exit 1
 esac
 
-exit $?
+rc_exit
 
 # vim: set ts=4 sw=4 et:
