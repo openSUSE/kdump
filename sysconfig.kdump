@@ -51,6 +51,7 @@ KEXEC_OPTIONS=""
 
 ## Type:	yesno
 ## Default:	yes
+## ServiceRestart:	kdump
 #
 # Immediately reboot after saving the core in the kdump kernel?
 #
@@ -60,6 +61,7 @@ KDUMP_IMMEDIATE_REBOOT="yes"
 
 ## Type:	string
 ## Default:	""
+## ServiceRestart:	kdump
 #
 # A script or command executed to process and transfer the dump image.
 # It can read the dump image either via /proc/vmcore or /dev/oldmem.
@@ -73,6 +75,7 @@ KDUMP_TRANSFER=""
 
 ## Type:	string
 ## Default:	"file:///var/log/dump"
+## ServiceRestart:	kdump
 #
 # Which directory should the dumps be saved in by the default dumper?
 # This can be:
@@ -92,6 +95,7 @@ KDUMP_SAVEDIR="file:///var/log/dump"
 
 ## Type:	integer
 ## Default:	5
+## ServiceRestart:	kdump
 #
 # Specifies how many old dumps are kept.  If the number of dump files
 # exceeds this number, older dumps are removed.
@@ -106,6 +110,7 @@ KDUMP_KEEP_OLD_DUMPS=5
 
 ## Type:	integer
 ## Default:	64
+## ServiceRestart:	kdump
 #
 # Specifies the minimal free disk space (in MB unit) on the dump partition.
 # If the free disk space is less than the sum of this value and memory size,
@@ -119,6 +124,7 @@ KDUMP_FREE_DISK_SIZE=64
 
 ## Type:        integer
 ## Default:     3
+## ServiceRestart:	kdump
 #
 # Determines if kdump uses verbose output. This value is a bitmask:
 #
@@ -135,6 +141,7 @@ KDUMP_VERBOSE=3
 
 ## Type:        integer
 ## Default:     0
+## ServiceRestart:	kdump
 #
 # Determines the dump level. If KDUMP_DUMPLEVEL non-zero 0, then makedumpfile
 # is used to strip pages that may not be necessary for analysing. 0 means
@@ -148,6 +155,7 @@ KDUMP_DUMPLEVEL=0
 
 ## Type:        list(,compressed,ELF)
 ## Default:     "compressed"
+## ServiceRestart:	kdump
 #
 # This variable specifies the dump format.
 #
@@ -156,6 +164,7 @@ KDUMP_DUMPFORMAT="compressed"
 
 ## Type:        boolean
 ## Default:     false
+## ServiceRestart:	kdump
 #
 # By default, kdumptool(8) copies multiple files with the save_dump action.
 # Set that value to "true" to make kdumptool trying to save the next file even
@@ -168,6 +177,7 @@ KDUMP_CONTINUE_ON_ERROR="false"
 
 ## Type:        string
 ## Default:     ""
+## ServiceRestart:	kdump
 #
 # This is a space-separated list of programs (full path) that are required by
 # KDUMP_TRANSFER, KDUMP_PRESCRIPT or KDUMP_POSTSCRIPT.
@@ -182,6 +192,7 @@ KDUMP_REQUIRED_PROGRAMS=""
 
 ## Type:        string
 ## Default:     ""
+## ServiceRestart:	kdump
 #
 # Program that is executed before taking the dump. You have to include that
 # program in KDUMP_REQUIRED_PROGRAMS.
@@ -192,6 +203,7 @@ KDUMP_PRESCRIPT=""
 
 ## Type:        string
 ## Default:     ""
+## ServiceRestart:	kdump
 #
 # Program that is executed after taking the dump and before the system is
 # rebooted. You have to include that program in KDUMP_POSTSCRIPT.
@@ -202,6 +214,7 @@ KDUMP_POSTSCRIPT=""
 
 ## Type:        yesno
 ## Default:     "yes"
+## ServiceRestart:	kdump
 #
 # Not only copy the dump to KDUMP_SAVEDIR but also the installed kernel.
 # If the debugging information is installed, also the debug information will
@@ -213,6 +226,7 @@ KDUMP_COPY_KERNEL="yes"
 
 ## Type:        string(NOSPARSE)
 ## Default:     ""
+## ServiceRestart:	kdump
 #
 # Space-separated list of flags to tweak the run-time behaviour of kdumptool.
 # Currently, only one flag is supported: NOSPARSE to disable creation of sparse
@@ -224,6 +238,7 @@ KDUMPTOOL_FLAGS=""
 
 ## Type:        string
 ## Default:     auto
+## ServiceRestart:	kdump
 #
 # Network configuration. Use "auto" for auto-detection in initrd, or a string
 # that contains the network device and the mode (dhcp,static), separated by
