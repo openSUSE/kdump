@@ -1,0 +1,116 @@
+#!/bin/bash
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301, USA.
+
+. /etc/sysconfig/kdump
+
+KERNELVERSION=$(uname -r)
+FORCE=0
+QUIET=0
+MKINITRD_EXTRA_PARAMS=
+
+#
+# Prints usage.                                                              {{{
+function usage()
+{
+    echo "mkdumprd - Create an initrd for kdump"
+    echo ""
+    echo "This script uses mkinitrd(8) internally. Options:"
+    echo ""
+    echo "   -k <version>     Kernel to create the initrd for."
+    echo "                    Defaults to the running kernel."
+    echo "   -f               Force regeneration even if the configuration"
+    echo "                    did not change"
+    echo "   -q               quiet (don't print status messages)"
+    echo "   -i <params>      pass <params> to mkinitrd"
+    echo "   -h               Print this help"
+}                                                                          # }}}
+
+#
+# Quiet message                                                              {{{
+function status_message()
+{
+    local msg=$1
+
+    if (( ! $QUIET )) ; then
+        echo "$msg"
+    fi
+}
+
+
+# Option parsing                                                             {{{
+while getopts "i:hfqk:" name ; do
+    case $name in
+        k)  KERNELVERSION=$OPTARG
+            ;;
+
+        f)  FORCE=1
+            ;;
+
+        h)  usage
+            exit 0
+            ;;
+
+        q)  QUIET=1
+            exit 0
+            ;;
+
+        i)  MKINITRD_EXTRA_PARAMS=$OPTARG
+            ;;
+
+        ?)  usage
+            exit 1
+            ;;
+    esac
+done
+shift $(($OPTIND -1))
+
+                                                                           # }}}
+KERNEL=/boot/vmlinuz-$KERNELVERSION
+if ! [ -f "$KERNEL" ] ; then
+    KERNEL=/boot/vmlinux-$KERNELVERSION
+fi
+
+if ! [ -f "$KERNEL" ] ; then
+    echo "Kernel $KERNEL does not exist."
+    exit 1
+fi
+
+INITRD=/boot/initrd-$KERNELVERSION
+if ! echo $KERNELVERSION | grep -q kdump ; then
+    INITRD=$INITRD-kdump
+fi
+
+#
+# check if we need to regenerate it?
+if (( ! $FORCE )) ; then
+    if [ -f "$INITRD" ] && \
+            [ /etc/sysconfig/kdump -ot "$INITRD" ] && \
+            [ "$KERNEL" -ot "$INITRD" ] ; then
+        status_message "Not regenerating initrd. Use -f to force regeneration."
+        exit 0
+    fi
+fi
+
+MKINITRD_ARGS="-k $KERNEL -i $INITRD -f kdump -s '' $MKINITRD_EXTRA_PARAMS"
+
+
+status_message "Calling mkinitrd $MKINITRD_ARGS"
+/sbin/mkinitrd $MKINITRD_ARGS
+
+exit $?
+
+# vim: set ts=4 sw=4 et fdm=marker: :collapseFolds=1:
