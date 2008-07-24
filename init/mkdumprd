@@ -115,6 +115,8 @@ fi
 if (( ! $FORCE )) ; then
     if [ -f "$INITRD" ] && \
             [ "$CONFIG" -ot "$INITRD" ] && \
+            [ /root/.ssh/id_dsa.pub -ot "$INITRD" ] && \
+            [ /root/.ssh/id_dsa -ot "$INITRD" ] && \
             [ "$KERNEL" -ot "$INITRD" ] ; then
         status_message "Not regenerating initrd. Use -f to force regeneration."
         exit 0
