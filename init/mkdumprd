@@ -149,7 +149,15 @@ MKINITRD_ARGS="$MKINITRD_ARGS $MKINITRD_EXTRA_PARAMS $NETARGS"
 
 status_message "Calling mkinitrd $MKINITRD_ARGS"
 eval "/sbin/mkinitrd $MKINITRD_ARGS"
+ret=$?
 
-exit $?
+#
+# because the root key of /root is stored into initrd, we make the
+# initrd read-only for root
+if [ -f "$INITRD" ] ; then
+    chmod 600 "$INITRD"
+fi
+
+exit $ret
 
 # vim: set ts=4 sw=4 et fdm=marker: :collapseFolds=1:
