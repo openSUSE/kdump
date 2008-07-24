@@ -35,6 +35,15 @@ cp /etc/sysconfig/kdump ${tmp_mnt}/etc/sysconfig/
 #
 hostname --fqdn >> ${tmp_mnt}/etc/hostname.kdump
 
+#
+# copy public and private key
+#
+if [ -f /root/.ssh/id_dsa ] && [ -f /root/.ssh/id_dsa.pub ] ; then
+    mkdir ${tmp_mnt}/.ssh
+    cp /root/.ssh/id_dsa ${tmp_mnt}/.ssh
+    cp /root/.ssh/id_dsa.pub ${tmp_mnt}/.ssh
+fi
+
 use_kdump=
 if use_script kdump ; then
     use_kdump=1
