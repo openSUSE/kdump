@@ -92,9 +92,9 @@ else
     continue_error $?
 
     #
-    # save the dump
+    # save the dump (HOME=/ to find the public/private key)
     read hostname < /etc/hostname.kdump
-    kdumptool save_dump --root=$ROOTDIR \
+    HOME=/ kdumptool save_dump --root=$ROOTDIR \
         --fqdn=$hostname $KDUMPTOOL_OPTIONS
 
     #
