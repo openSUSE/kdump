@@ -20,6 +20,7 @@
 #define SAVE_DUMP_H
 
 #include "subcommand.h"
+#include "urlparser.h"
 
 class Transfer;
 
@@ -95,6 +96,9 @@ class SaveDump : public Subcommand {
         std::string findMapfile()
         throw (KError);
 
+        void checkAndDelete()
+        throw (KError);
+
     private:
         std::string m_dump;
         Transfer *m_transfer;
@@ -104,6 +108,7 @@ class SaveDump : public Subcommand {
         std::string m_crashrelease;
         std::string m_rootdir;
         std::string m_hostname;
+        URLParser m_urlParser;
 };
 
 //}}}

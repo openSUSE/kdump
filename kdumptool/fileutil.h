@@ -188,6 +188,31 @@ class FileUtil {
 };
 
 //}}}
+//{{{ Functions ----------------------------------------------------------------
+
+/**
+ * Converts bytes to megabytes.
+ *
+ * @param[in] bytes the bytes
+ * @return megabytes
+ */
+static inline unsigned long long bytes_to_megabytes(unsigned long long bytes)
+{
+    return bytes / 1024 / 1024;
+}
+
+/**
+ * Converts bytes to kilobytes.
+ *
+ * @param[in] bytes the bytes
+ * @return kilobytes
+ */
+static inline unsigned long long bytes_to_kilobytes(unsigned long long bytes)
+{
+    return bytes / 1024;
+}
+
+//}}}
 
 #endif /* FILEUTIL_H */
 

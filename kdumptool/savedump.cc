@@ -129,15 +129,15 @@ void SaveDump::execute()
         Stringutil::formatCurrentTime(ISO_DATETIME));
 
     // root dir support
-    URLParser parser;
-    parser.parseURL(savedir.c_str());
+    m_urlParser.parseURL(savedir.c_str());
 
-    if (m_rootdir.size() != 0 && parser.getProtocol() == URLParser::PROT_FILE) {
+    if (m_rootdir.size() != 0 && 
+                m_urlParser.getProtocol() == URLParser::PROT_FILE) {
         Debug::debug()->dbg("Using root dir support for Transfer (%s)",
             m_rootdir.c_str());
 
-        string newUrl = parser.getProtocolAsString() + "://" +
-            FileUtil::pathconcat(m_rootdir, parser.getPath());;
+        string newUrl = m_urlParser.getProtocolAsString() + "://" +
+            FileUtil::pathconcat(m_rootdir, m_urlParser.getPath());;
         m_transfer = URLTransfer::getTransfer(newUrl.c_str());
     } else
         m_transfer = URLTransfer::getTransfer(savedir.c_str());
@@ -145,6 +145,27 @@ void SaveDump::execute()
     // save the dump
     try {
         saveDump();
+    } catch (const KError &error) {
+        setErrorCode(1);
+
+        // run checkAndDelete() in any case
+        try {
+            checkAndDelete();
+        } catch (const KError &error) {
+            cout << error.what() << endl;
+        }
+
+        if (config->getContinueOnError())
+            cout << error.what() << endl;
+        else
+            throw error;
+    }
+
+    // because we don't know the file size in advance, check
+    // afterwards if the disk space is not sufficient and delete
+    // the dump again
+    try {
+        checkAndDelete();
     } catch (const KError &error) {
         setErrorCode(1);
         if (config->getContinueOnError())
@@ -496,6 +517,33 @@ string SaveDump::findMapfile()
 
     throw KError("No System.map found in " +
         FileUtil::pathconcat(m_rootdir, "/boot"));
+}
+
+// -----------------------------------------------------------------------------
+void SaveDump::checkAndDelete()
+    throw (KError)
+{
+    Debug::debug()->trace("SaveDump::checkAndDelete()");
+
+
+    // only do that check for local files
+    if (m_urlParser.getProtocol() != URLParser::PROT_FILE) {
+        Debug::debug()->dbg("Not file protocol. Don't delete.");
+        return;
+    }
+
+    Configuration *config = Configuration::config();
+    string path(FileUtil::pathconcat(m_rootdir, m_urlParser.getPath()));
+    unsigned long long freeSize = FileUtil::freeDiskSize(path);
+    unsigned long long targetDiskSize = (unsigned long long)config->getFreeDiskSize();
+
+    Debug::debug()->dbg("Free MB: %lld, Configuration: %lld",
+            bytes_to_megabytes(freeSize), targetDiskSize);
+
+    if (bytes_to_megabytes(freeSize) < targetDiskSize) {
+        FileUtil::rmdir(path, true);
+        cout << "Dump too large. Aborting. Check KDUMP_FREE_DISK_SIZE." << endl;
+    }
 }
 
 //}}}

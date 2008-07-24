@@ -142,6 +142,11 @@ When _KDUMP_DUMPFORMAT_ is not "ELF" and the _KDUMP_DUMPLEVEL_ is not 0, the
 support of mounting these shares is required. For NFS, the *showmount* tool
 is required to check the exported file systems first.
 
+This command also checks if the dump is too large to fit on disk
+(see KDUMP_FREE_DISK_SIZE). If that is the case, the dump is deleted afterwards.
+It's not possible to know the dump size in advance (if dump filtering and/or
+dump compression is used).
+
 Syntax
 ~~~~~~
 
