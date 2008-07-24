@@ -26,6 +26,7 @@
 #include "util.h"
 #include "configuration.h"
 #include "urlparser.h"
+#include "stringutil.h"
 
 using std::string;
 using std::cout;
@@ -83,19 +84,27 @@ void PrintTarget::execute()
     URLParser parser;
     parser.parseURL(url);
 
-    cout << "Protocol   : " << parser.getProtocolAsString() << endl;
+    string path, port;
+
     if (m_rootdir.size() > 0 && parser.getProtocol() == URLParser::PROT_FILE) {
-        string rest = FileUtil::pathconcat(m_rootdir, parser.getPath());
-        cout << "URL        : " << "file://" + rest << endl;
-        cout << "Path       : " << rest << endl;
+        path = FileUtil::pathconcat(m_rootdir, parser.getPath());
+        url = "file://" + path;
     } else {
-        cout << "URL        : " << parser.getURL() << endl;
-        cout << "Path       : " << parser.getPath() << endl;
+        url = parser.getURL();
+        path = parser.getPath();
     }
-    cout << "Username   : " << parser.getUsername() << endl;
-    cout << "Password   : " << parser.getPassword() << endl;
-    cout << "Host       : " << parser.getHostname() << endl;
-    cout << "Port       : " << parser.getPort() << endl;
+    if (parser.getPort() != -1)
+        port = Stringutil::number2string(parser.getPort());
+    else
+        port = "";
+
+    cout << "Protocol:   " << parser.getProtocolAsString() << endl;
+    cout << "URL:        " << url << endl;
+    cout << "Username:   " << parser.getUsername() << endl;
+    cout << "Password:   " << parser.getPassword() << endl;
+    cout << "Host:       " << parser.getHostname() << endl;
+    cout << "Port:       " << port << endl;
+    cout << "Path:       " << path << endl;
 }
 
 //}}}
