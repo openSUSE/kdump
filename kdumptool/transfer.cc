@@ -473,18 +473,38 @@ SFTPTransfer::SFTPTransfer(const char *target_url)
     Debug::debug()->info("SSH fingerprint: %s",
         Stringutil::bytes2hexstr(fingerprint, 16, true).c_str());
 
+    // username and password
     string username = parser.getUsername();
     string password = parser.getPassword();
 
-    ret = libssh2_userauth_password(m_sshSession, username.c_str(),
-        password.c_str());
-    if (ret != 0) {
-        close();
-        throw KError("libssh2_userauth_password() failed with "+
-            Stringutil::number2string(ret) + ".");
-    }
+    // public and private key
+    string homedir = getenv("HOME");
+    string pubkey = FileUtil::pathconcat(homedir, ".ssh", "id_dsa.pub");
+    string privkey = FileUtil::pathconcat(homedir, ".ssh", "id_dsa");
 
-    // XXX: public key
+    if (FileUtil::exists(pubkey) && FileUtil::exists(privkey)) {
+        Debug::debug()->dbg("Using private key %s and public key %s",
+                privkey.c_str(), pubkey.c_str());
+
+        ret = libssh2_userauth_publickey_fromfile(m_sshSession,
+                username.c_str(), pubkey.c_str(), privkey.c_str(),
+                password.c_str());
+        if (ret != 0) {
+            close();
+            throw KError("libssh2_userauth_password() failed with "+
+                Stringutil::number2string(ret) + ".");
+        }
+    } else {
+        Debug::debug()->dbg("Using password auth");
+
+        ret = libssh2_userauth_password(m_sshSession, username.c_str(),
+            password.c_str());
+        if (ret != 0) {
+            close();
+            throw KError("libssh2_userauth_password() failed with "+
+                Stringutil::number2string(ret) + ".");
+        }
+    }
 
     // SFTP session
     m_sftp = libssh2_sftp_init(m_sshSession);
