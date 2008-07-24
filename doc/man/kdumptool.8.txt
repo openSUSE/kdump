@@ -242,6 +242,25 @@ Options
   externally.
 
 
+PRINT DUMP TARGET
+-----------------
+
+For usage in scripts, the target URL can be printed and parsed by *kdumptool*.
+
+Syntax
+~~~~~~
+
+*kdumptool* [_globals_] *print_target* [-R _root_]
+
+Options
+~~~~~~~
+
+*-R* _root_ | *--root* _root_::
+  Use _root_ instead of _/_ as root directory. That option is useful in
+  initrd where the system root is not mounted to _/_ but needs to be mounted
+  externally.
+
+
 RETURN VALUE
 ------------
 

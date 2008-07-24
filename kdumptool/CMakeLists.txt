@@ -62,6 +62,8 @@ SET(KDUMPTOOL_SRC
     vmcoreinfo.h
     read_vmcoreinfo.cc
     read_vmcoreinfo.h
+    print_target.cc
+    print_target.h
     deletedumps.h
     deletedumps.cc
     main.cc

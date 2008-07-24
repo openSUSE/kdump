@@ -27,6 +27,7 @@
 #include "savedump.h"
 #include "read_vmcoreinfo.h"
 #include "deletedumps.h"
+#include "print_target.h"
 
 using std::map;
 using std::list;
@@ -100,6 +101,7 @@ SubcommandManager::SubcommandManager()
     addSubcommand(new LedBlink());
     addSubcommand(new ReadVmcoreinfo());
     addSubcommand(new DeleteDumps());
+    addSubcommand(new PrintTarget());
 }
 
 // -----------------------------------------------------------------------------
