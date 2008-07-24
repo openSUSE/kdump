@@ -63,6 +63,8 @@ fi
 
 . /etc/sysconfig/kdump
 
+ROOTDIR=/root
+
 #
 # start LED blinking in background
 kdumptool ledblink --background
@@ -85,6 +87,11 @@ else
     fi
 
     #
+    # check if we have enough disk space in advance
+    if [ "$KDUMP_DUMPLEVEL" -eq 0 ] && [ "$KDUMP_DUMPFORMAT" = "ELF" ] ; then
+
+
+    #
     # delete old dumps
     kdumptool delete_dumps $KDUMPTOOL_OPTIONS
     continue_error $?
@@ -92,7 +99,7 @@ else
     #
     # save the dump
     read hostname < /etc/hostname.kdump
-    kdumptool save_dump --root=/root \
+    kdumptool save_dump --root=$ROOTDIR \
         --fqdn=$hostname $KDUMPTOOL_OPTIONS
 
     #
@@ -106,3 +113,4 @@ fi
 
 handle_exit
 
+# vim: set sw=4 ts=4 et:

@@ -1,3 +1,7 @@
+2008-07-24  Bernhard Walle <bernhard.walle@gmx.de>
+
+	* add 'print_target' sub command
+
 2008-07-24  Bernhard Walle <bwalle@suse.de>
 
 	* redesign (version 0.5)
