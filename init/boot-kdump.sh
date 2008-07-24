@@ -87,11 +87,6 @@ else
     fi
 
     #
-    # check if we have enough disk space in advance
-    if [ "$KDUMP_DUMPLEVEL" -eq 0 ] && [ "$KDUMP_DUMPFORMAT" = "ELF" ] ; then
-
-
-    #
     # delete old dumps
     kdumptool delete_dumps $KDUMPTOOL_OPTIONS
     continue_error $?
