@@ -1,6 +1,7 @@
-2008-07-24  Bernhard Walle <bernhard.walle@gmx.de>
+2008-07-24  Bernhard Walle <bwalle@suse.de>
 
 	* add 'print_target' sub command
+	* implement SSH public/private key authentication
 
 2008-07-24  Bernhard Walle <bwalle@suse.de>
 
