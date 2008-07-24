@@ -19,6 +19,8 @@
 #ifndef FILEUTIL_H
 #define FILEUTIL_H
 
+#include "global.h"
+
 
 //{{{ FileUtil -----------------------------------------------------------------
 
