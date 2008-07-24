@@ -24,6 +24,7 @@
 #include <cstdlib>
 #include <libgen.h>
 #include <dirent.h>
+#include <sys/vfs.h>
 
 #include "dataprovider.h"
 #include "global.h"
@@ -307,6 +308,20 @@ void FileUtil::rmdir(const std::string &dir, bool recursive)
         if (ret != 0)
             throw KSystemError("Cannot rmdir(" + dir + ").", errno);
     }
+}
+
+// -----------------------------------------------------------------------------
+unsigned long long FileUtil::freeDiskSize(const std::string &path)
+    throw (KError)
+{
+    Debug::debug()->trace("FileUtil::freeDiskSize(%s)", path.c_str());
+
+    struct statfs mystatfs;
+    int ret = statfs(path.c_str(), &mystatfs);
+    if (ret != 0)
+        throw KSystemError("statfs() on " + path + " failed.", errno);
+
+    return (unsigned long long)mystatfs.f_bfree * mystatfs.f_bsize;
 }
 
 //}}}

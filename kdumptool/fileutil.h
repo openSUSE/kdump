@@ -175,6 +175,16 @@ class FileUtil {
           */
          static void rmdir(const std::string &dir, bool recursive)
          throw (KError);
+
+         /**
+          * Get the free disk size in bytes.
+          *
+          * @param[in] path the path where the disk size should be reported
+          * @return the free disk size in megabytes
+          * @exception KError if the underlying statfs() call fails
+          */
+         static unsigned long long freeDiskSize(const std::string &path)
+         throw (KError);
 };
 
 //}}}
