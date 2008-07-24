@@ -478,23 +478,19 @@ _Format:_ `sftp:// [ _user_ [:_password_]@ ] _hostname_ [:_port_] ] _path_`
 It's valid to use the alias "ssh" or "scp" as alias for "sftp" (for backward
 compatibility), but the "sftp" prefix is recommended.
 
-For the elements, see the description of FTP above. Please note that the
-use of an password here is not recommended. The recommended way is to add the
-key where the file should be copied to to the "authorized_keys" file of the
-root user. For example, if you want to save the dump to the "kdump" user of
-the machine "collector", then generate a private/public key pair on "collector"
-with `ssh-keygen -t dsa`. Append the file _id_dsa.pub_ (in _~kdump/.ssh/_)
-to _/root/.ssh/.authorized_keys_.
+For the elements, see the description of FTP above. Please note that the use of
+an password here is not recommended. The recommended way is to add the key where
+the file should be copied to to the "authorized_keys" file of the user where the
+dump is saved. For example, if you want to save the dump to the "kdump" user of
+the machine "collector", then generate a private/public key pair on the machine
+that saves the dump with `ssh-keygen -t dsa`. Append the file _id_dsa.pub_ (in
+_root/.ssh/_) to _~dump/.ssh/authorized_keys_ on "collector".
 
 --------------------------------------------------------------------------------
-tux@earth:~/> ssh kdump@collector
-kdump@collector:~/> ssh-keygen -t dsa
+root@earth:~# ssh-keygen -t dsa
 ...
-kdump@collector:~/> exit
-tux@earth:~/> su
-root@earth:/root> scp kdump@collector:~/.ssh/id_dsa.pub \
-                  /tmp/id_dsa.pub
-root@earth:/root> cat /tmp/dsa.pub >> /root/.ssh/authorized_keys
+root@earth:~# cat /root/.ssh/id_dsa.pub \
+        | ssh kdump@collector "cat - >> /root/.ssh/authorized_keys"
 --------------------------------------------------------------------------------
 
 Don't use any password to encrypt the key. *kdumptool* is designed to be used
