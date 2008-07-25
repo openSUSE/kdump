@@ -21,14 +21,16 @@
 #
 # copy /etc/sysconfig/kdump
 #
+CONFIG=/etc/sysconfig/kdump
 
-if [ ! -f /etc/sysconfig/kdump ] ; then
+if [ ! -f "$CONFIG" ] ; then
     echo "kdump configuration not installed"
     return 1
 fi
 
+source "$CONFIG"
 mkdir -p ${tmp_mnt}/etc/sysconfig/
-cp /etc/sysconfig/kdump ${tmp_mnt}/etc/sysconfig/
+cp "$CONFIG" ${tmp_mnt}/etc/sysconfig/
 
 #
 # remember the host name
