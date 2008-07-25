@@ -44,9 +44,18 @@ if [ -f /root/.ssh/id_dsa ] && [ -f /root/.ssh/id_dsa.pub ] ; then
     cp /root/.ssh/id_dsa.pub ${tmp_mnt}/.ssh
 fi
 
+#
+# copy required programs
+#
+for program in "$KDUMP_REQUIRED_PROGRAMS" ; do
+    cp_bin "$program"
+done
+
 use_kdump=
 if use_script kdump ; then
     use_kdump=1
 fi
 
 save_var use_kdump
+
+# vim: set sw=4 ts=4 et:
