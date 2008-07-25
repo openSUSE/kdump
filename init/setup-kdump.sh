@@ -56,6 +56,7 @@ for program in "$KDUMP_REQUIRED_PROGRAMS" ; do
     fi
 
     dir=$(dirname "$program")
+    mkdir -p "${tmp_mnt}/${dir}"
     cp_bin "$program" "${tmp_mnt}/${dir}"
 done
 
