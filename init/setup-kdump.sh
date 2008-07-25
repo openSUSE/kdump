@@ -48,7 +48,13 @@ fi
 # copy required programs
 #
 for program in "$KDUMP_REQUIRED_PROGRAMS" ; do
-    cp_bin "$program"
+    if [ ! -f "$program" ] ; then
+        echo >&2 ">>> $program does not exist. Skipping!"
+        continue
+    fi
+
+    dir=$(dirname "$program")
+    cp_bin "$program" "${tmp_mnt}/${dir}"
 done
 
 use_kdump=
