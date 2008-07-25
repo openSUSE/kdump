@@ -1,3 +1,7 @@
+2008-07-25  Bernhard Walle <bwalle@suse.de>
+
+	* copy required programs (KDUMP_REQUIRED_PROGRAMS) in initrd
+
 2008-07-24  Bernhard Walle <bwalle@suse.de>
 
 	* add 'print_target' sub command

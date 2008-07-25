@@ -1,3 +1,7 @@
+0.5.2
+-----
+ * copy required programs (KDUMP_REQUIRED_PROGRAMS) in initrd
+
 0.5.1
 -----
  * add 'print_target' sub command
