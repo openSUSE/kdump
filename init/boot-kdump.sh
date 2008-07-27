@@ -78,6 +78,14 @@ if [ -n "$KDUMP_TRANSFER" ] ; then
     eval "$KDUMP_TRANSFER"
 else
 
+    # get the target
+    target=$(kdumptool print_target)
+    protocol=$(echo "$target" | grep '^Protocol' | awk '{ print $2 }')
+    path=$(echo "$target" | grep '^Path' | awk '{ print $2 }')
+
+    # mount all partitions in fstab
+    mount -a
+
     #
     # prescript
     if [ -n "$KDUMP_PRESCRIPT" ] ; then

@@ -72,6 +72,38 @@ for program in "$KDUMP_REQUIRED_PROGRAMS" ; do
     cp_bin "$program" "${tmp_mnt}/${dir}"
 done
 
+#
+# get the save directory and protocol
+#
+target=$(kdumptool print_target)
+if [ -z "$target" ] ; then
+    echo >&2 "kdumptool print_target failed."
+    return 1
+fi
+protocol=$(echo "$target" | grep '^Protocol' | awk '{ print $2 }')
+path=$(echo "$target" | grep '^Path' | awk '{ print $2 }')
+
+
+#
+# add mount points (below /root)
+#
+
+while read line ; do
+    device=$(echo "$line" | awk '{ print $1 }')
+    mountpoint=$(echo "$line" | awk '{ print $2 }')
+    filesystem=$(echo "$line" | awk '{ print $3 }')
+
+    # add the boot partition
+    if [ "$mountpoint" = "/boot" ] ; then
+        echo "$line" >> ${tmp_mnt}/etc/fstab
+    fi
+
+    # add the target file system
+    if [ "$protocol" = "file" ] &&
+            echo "$path" | grep "$mountpoint" &> /dev/null ; then
+        echo "$line" >> ${tmp_mnt}/etc/fstab
+    fi
+done < /etc/mtab
 
 save_var use_kdump
 
