@@ -92,17 +92,20 @@ while read line ; do
     device=$(echo "$line" | awk '{ print $1 }')
     mountpoint=$(echo "$line" | awk '{ print $2 }')
     filesystem=$(echo "$line" | awk '{ print $3 }')
+    opts=$(echo "$line" | awk '{ print $4 }')
 
     # add the boot partition
     if [ "$mountpoint" = "/boot" ] ; then
-        echo "$line" >> ${tmp_mnt}/etc/fstab.kdump
+        echo "$device /root$mountpoint $filesystem $opts 0 0" \
+            >> ${tmp_mnt}/etc/fstab.kdump
     fi
 
     # add the target file system
     if [ "$protocol" = "file" ] &&
             [ "$mountpoint" != "/" ] &&
             echo "$path" | grep "$mountpoint" &> /dev/null ; then
-        echo "$line" >> ${tmp_mnt}/etc/fstab.kdump
+        echo "$device /root$mountpoint $filesystem $opts 0 0" \
+            >> ${tmp_mnt}/etc/fstab.kdump
     fi
 done < /etc/mtab
 
