@@ -100,7 +100,7 @@ while read line ; do
 
     # add the target file system
     if [ "$protocol" = "file" ] &&
-            [ "$path" != "/" ] &&
+            [ "$mountpoint" != "/" ] &&
             echo "$path" | grep "$mountpoint" &> /dev/null ; then
         echo "$line" >> ${tmp_mnt}/etc/fstab
     fi
