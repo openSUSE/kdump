@@ -1,3 +1,7 @@
+2008-07-27  Bernhard Walle <bwalle@suse.de>
+
+	* mount dump partition and boot partition in initrd
+
 2008-07-25  Bernhard Walle <bwalle@suse.de>
 
 	* copy required programs (KDUMP_REQUIRED_PROGRAMS) in initrd
@@ -11,4 +15,4 @@
 
 	* redesign (version 0.5)
 
-vim: set ts=8 sw=8 noet:
+ vim: set ts=8 sw=8 noet:
