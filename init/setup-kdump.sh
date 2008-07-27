@@ -19,6 +19,18 @@
 #%provides: kdump
 
 #
+# check if we are called with the -f kdump parameter
+#
+use_kdump=
+if use_script kdump ; then
+    use_kdump=1
+fi
+
+if (( $use_kdump )) ; then
+    return 0
+fi
+
+#
 # copy /etc/sysconfig/kdump
 #
 
@@ -51,10 +63,6 @@ for program in "$KDUMP_REQUIRED_PROGRAMS" ; do
     cp_bin "$program"
 done
 
-use_kdump=
-if use_script kdump ; then
-    use_kdump=1
-fi
 
 save_var use_kdump
 
