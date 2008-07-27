@@ -95,14 +95,14 @@ while read line ; do
 
     # add the boot partition
     if [ "$mountpoint" = "/boot" ] ; then
-        echo "$line" >> ${tmp_mnt}/etc/fstab
+        echo "$line" >> ${tmp_mnt}/etc/fstab.kdump
     fi
 
     # add the target file system
     if [ "$protocol" = "file" ] &&
             [ "$mountpoint" != "/" ] &&
             echo "$path" | grep "$mountpoint" &> /dev/null ; then
-        echo "$line" >> ${tmp_mnt}/etc/fstab
+        echo "$line" >> ${tmp_mnt}/etc/fstab.kdump
     fi
 done < /etc/mtab
 

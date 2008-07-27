@@ -84,6 +84,7 @@ else
     path=$(echo "$target" | grep '^Path' | awk '{ print $2 }')
 
     # mount all partitions in fstab
+    mv /etc/fstab.kdump /etc/fstab
     mount -a
 
     #
