@@ -17,7 +17,7 @@
 #
 #%stage: setup
 #%depends: mount network
-#%programs: /bin/makedumpfile /bin/awk /bin/gawk /bin/grep /sbin/kdumptool /sbin/showmount /sbin/mount.cifs mount.nfs /bin/gdb
+#%programs: /bin/makedumpfile /bin/awk /bin/gawk /bin/grep /sbin/kdumptool /sbin/showmount /sbin/mount.cifs mount.nfs
 #%if: "$use_kdump"
 #%udevmodules: cifs nls_utf8 reiserfs xfs jfs ext2 ext3
 
