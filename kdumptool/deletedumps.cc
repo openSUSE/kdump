@@ -117,6 +117,11 @@ void DeleteDumps::execute()
     string dir = FileUtil::pathconcat(m_rootdir, parser.getPath());
     Debug::debug()->dbg("Using directory %s", dir.c_str());
 
+    if (!FileUtil::exists(dir)) {
+        cerr << "Nothing to delete in " + dir + "." << endl;
+        return;
+    }
+
     StringVector contents = FileUtil::listdir(dir, true);
     int deleteItems;
     if (oldDumps == -1)
