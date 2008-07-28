@@ -1,3 +1,9 @@
+0.5.3
+-----
+ * don't exit with error code when the dump directory does not yet exist in the
+   'delete_dumps' command
+ * fix syntax error in init/boot-kdump.sh
+
 0.5.2
 -----
  * copy required programs (KDUMP_REQUIRED_PROGRAMS) in initrd

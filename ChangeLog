@@ -3,6 +3,7 @@
 	* don't exit with error code when the dump directory does not yet
 	  exist in the 'delete_dumps' command
 	* remove GDB from list of required programs in initrd
+	* fix syntax error in init/boot-kdump.sh
 
 2008-07-27  Bernhard Walle <bwalle@suse.de>
 

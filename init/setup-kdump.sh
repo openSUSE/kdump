@@ -26,7 +26,7 @@ if use_script kdump ; then
     use_kdump=1
 fi
 
-if (( ! $use_kdump )) ; then
+if ! (( $use_kdump )) ; then
     return 0
 fi
 
