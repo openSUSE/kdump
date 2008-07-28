@@ -299,8 +299,11 @@ case "$1" in
             echo -n "Not unloading kdump during runlevel changes"
             rc_status -s
         else
-            echo -n "Unloading kdump"
-            $KEXEC -p -u
+            kdump_kernel_loaded
+            if [ $? -ne 1 ] ; then
+                echo -n "Unloading kdump"
+                $KEXEC -p -u
+            fi
             rc_status -v
         fi
         ;;
