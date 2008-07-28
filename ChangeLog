@@ -1,3 +1,8 @@
+2008-07-28  Bernhard Walle <bwalle@suse.de>
+
+	* don't exit with error code when the dump directory does not yet
+	  exist in the 'delete_dumps' command
+
 2008-07-27  Bernhard Walle <bwalle@suse.de>
 
 	* mount dump partition and boot partition in initrd

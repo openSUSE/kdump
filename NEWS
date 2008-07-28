@@ -2,6 +2,8 @@
 -----
  * copy required programs (KDUMP_REQUIRED_PROGRAMS) in initrd
  * mount dump partition and boot partition in initrd
+ * don't exit with error code when the dump directory does not yet exist in the
+   'delete_dumps' command
 
 0.5.1
 -----
