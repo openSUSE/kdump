@@ -88,6 +88,7 @@ path=$(echo "$target" | grep '^Path' | awk '{ print $2 }')
 # add mount points (below /root)
 #
 
+touch ${tmp_mnt}/etc/fstab.kdump
 while read line ; do
     device=$(echo "$line" | awk '{ print $1 }')
     mountpoint=$(echo "$line" | awk '{ print $2 }')
