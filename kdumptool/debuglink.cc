@@ -191,7 +191,7 @@ string Debuglink::findDebugfile(const char *prefix)
         return path;
     } catch (const KError &err) {}
 
-    throw KError("Unable to get debuginfo file.");
+    throw KError("Unable to find debuginfo file.");
 }
 
 // -----------------------------------------------------------------------------
