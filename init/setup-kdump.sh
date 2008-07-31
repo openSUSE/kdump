@@ -19,6 +19,50 @@
 #%provides: kdump
 
 #
+# Returns the UUID for a given disk
+# Parameters: 1) partition device (e.g. /dev/sda5)
+# Returns:    The UUID
+function get_uuid_for_disk()                                               # {{{
+{
+    local uuid=
+    local device=$1
+
+    local output=$(/sbin/blkid ${device})
+    local uuid=$(echo "$output" | sed -e 's/.*UUID="\([-a-fA-F0-9]*\)".*/\1/')
+    echo "$uuid"
+}                                                                          # }}}
+
+#
+# Adds an entry to a kdump fstab.
+# Parameters: 1) fsname: file system name
+#             2) mntdir: mount directory
+#             3) fstype: file system type
+#             4) opts:   mount options
+#             5) freq:   dump frequency
+#             6) passno: pass number on parallel fsck
+function add_fstab()                                                       # {{{
+{
+    local fsname=$1
+    local mntdir=$2
+    local fstype=$3
+    local opts=$4
+    local freq=$5
+    local passno=$6
+
+    # translate block devices into UUID
+    if [ -b "$fsname" ] ; then
+        local uuid=$(get_uuid_for_disk "$fsname")
+        if [ -n "$uuid" ] && [ -b "/dev/disk/by-uuid/$uuid" ] ; then
+            fsname="/dev/disk/by-uuid/$uuid"
+        fi
+    fi
+
+    echo "$fsname $mntdir $stype $opts $freq $passno" \
+        >> ${tmp_mnt}/etc/fstab.kdump
+}                                                                          # }}}
+
+
+#
 # check if we are called with the -f kdump parameter
 #
 use_kdump=
@@ -97,16 +141,14 @@ while read line ; do
 
     # add the boot partition
     if [ "$mountpoint" = "/boot" ] ; then
-        echo "$device /root$mountpoint $filesystem $opts 0 0" \
-            >> ${tmp_mnt}/etc/fstab.kdump
+        add_fstab "$device" "/root$mountpoint" "$filesystem" "$opts" 0 0
     fi
 
     # add the target file system
     if [ "$protocol" = "file" ] &&
             [ "$mountpoint" != "/" ] &&
             echo "$path" | grep "$mountpoint" &> /dev/null ; then
-        echo "$device /root$mountpoint $filesystem $opts 0 0" \
-            >> ${tmp_mnt}/etc/fstab.kdump
+        add_fstab "$device" "/root$mountpoint" "$filesystem" "$opts" 0 0
     fi
 done < /etc/mtab
 
