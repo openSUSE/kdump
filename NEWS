@@ -4,6 +4,7 @@
  * change execution state to 'boot'
  * use UUID for fstab.kdump
  * open a shell if something fails and KDUMP_CONTINUE_ON_ERROR is true
+ * don't include JFS to initrd
 
 0.5.3
 -----
