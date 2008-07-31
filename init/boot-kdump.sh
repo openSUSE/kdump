@@ -55,6 +55,29 @@ function continue_error()
 }
 
 #
+# Mounts all partitions listed in /etc/fstab.kdump
+function mount_all()
+{
+    local ret=0
+
+    if [ -f /etc/fstab ] ; then
+        mv /etc/fstab /etc/fstab.orig
+    fi
+
+    cp /etc/fstab.kdump /etc/fstab
+    mount -a
+    ret=$?
+
+    if [ -f /etc/fstab.orig ] ; then
+        mv /etc/fstab.orig /etc/fstab
+    else
+        rm /etc/fstab
+    fi
+
+    return $ret
+}
+
+#
 # sanity check
 if ! grep elfcorehdr /proc/cmdline &>/dev/null ; then
     echo "Kdump initrd booted in non-kdump kernel"
@@ -71,7 +94,7 @@ kdumptool ledblink --background
 
 #
 # create mountpoint for NFS/CIFS
-mkdir /mnt
+[ -d /mnt ] || mkdir /mnt
 
 if [ -n "$KDUMP_TRANSFER" ] ; then
     echo "Running $KDUMP_TRANSFER"
@@ -83,9 +106,10 @@ else
     protocol=$(echo "$target" | grep '^Protocol' | awk '{ print $2 }')
     path=$(echo "$target" | grep '^Path' | awk '{ print $2 }')
 
+    #
     # mount all partitions in fstab
-    mv /etc/fstab.kdump /etc/fstab
-    mount -a
+    mount_all
+    continue_error $?
 
     #
     # prescript
