@@ -146,7 +146,15 @@ else
     fi
 fi
 
-MKINITRD_ARGS="-k $KERNEL -i $INITRD -f '$FEATURE_LIST' -s ''"
+MKINITRD_ARGS="-k $KERNEL -i $INITRD -f '$FEATURE_LIST'"
+
+#
+# the -s parameter is only available when the bootsplash package and its
+# mkinitrd script is installed ... so check that first
+if [ -f "/lib/mkinitrd/scripts/setup-splash.sh" ] ; then
+    MKINITRD_ARGS="$MKINITRD_ARGS  -s ''"
+fi
+
 MKINITRD_ARGS="$MKINITRD_ARGS $MKINITRD_EXTRA_PARAMS $NETARGS"
 
 status_message "Calling mkinitrd $MKINITRD_ARGS"

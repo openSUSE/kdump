@@ -4,6 +4,8 @@
 	* use UUID for fstab.kdump
 	* open a shell if something fails and KDUMP_CONTINUE_ON_ERROR is true
 	* don't include JFS to initrd
+	* don't add -s '' parameter to mkinitrd call if the boot splash script
+	  is not available
 
 2008-07-28  Bernhard Walle <bwalle@suse.de>
 
