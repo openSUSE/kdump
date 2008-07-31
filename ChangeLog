@@ -2,6 +2,7 @@
 
 	* change execution state to 'boot'
 	* use UUID for fstab.kdump
+	* open a shell if something fails and KDUMP_CONTINUE_ON_ERROR is true
 
 2008-07-28  Bernhard Walle <bwalle@suse.de>
 

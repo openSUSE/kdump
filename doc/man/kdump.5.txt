@@ -320,10 +320,10 @@ Default: "compressed"
 KDUMP_CONTINUE_ON_ERROR
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-By default, *kdumptool*(8) copies multiple files with the _save_dump_ action.
-Set that value to _true_ to make kdumptool trying to save the next file even if
-saving the previous file failed, or set that to _false_ to let the program
-immediately abort.
+If something goes wrong while saving the dump or deleting old dumps in initrd,
+then *kdumptool*(8) normally just tries to execute the next action. However,
+it can be usedful to open a shell at that point of time to fix the problem
+or just debug it, therefore you can set KDUMP_CONTINUE_ON_ERROR to "true".
 
 Default: "false"
 

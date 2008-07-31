@@ -50,7 +50,7 @@ function continue_error()
 
     if ! [ "$KDUMP_CONTINUE_ON_ERROR" = "true" -o \
                 "$KDUMP_CONTINUE_ON_ERROR" = "TRUE" ] ; then
-        handle_exit
+        bash
     fi
 }
 
