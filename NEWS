@@ -1,6 +1,8 @@
 0.5.4
 -----
  * always create empty ${tmp_mnt}/etc/fstab.kdump
+ * change execution state to 'boot'
+ * use UUID for fstab.kdump
 
 0.5.3
 -----

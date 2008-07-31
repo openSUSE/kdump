@@ -1,3 +1,8 @@
+2008-07-31  Bernhard Walle <bernhard.walle@gmx.de>
+
+	* change execution state to 'boot'
+	* use UUID for fstab.kdump
+
 2008-07-28  Bernhard Walle <bwalle@suse.de>
 
 	* don't exit with error code when the dump directory does not yet
