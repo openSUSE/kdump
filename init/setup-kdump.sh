@@ -57,7 +57,7 @@ function add_fstab()                                                       # {{{
         fi
     fi
 
-    echo "$fsname $mntdir $stype $opts $freq $passno" \
+    echo "$fsname $mntdir $fstype $opts $freq $passno" \
         >> ${tmp_mnt}/etc/fstab.kdump
 }                                                                          # }}}
 
