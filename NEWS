@@ -7,6 +7,7 @@
  * don't include JFS to initrd
  * don't add -s '' parameter to mkinitrd call if the boot splash script
    is not available
+ * handle more programs in $KDUMP_REQUIRED_PROGRAMS correct
 
 0.5.3
 -----

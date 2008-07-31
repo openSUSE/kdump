@@ -1,3 +1,7 @@
+2008-08-01  Bernhard Walle <bernhard.walle@gmx.de>
+
+	* handle more programs in $KDUMP_REQUIRED_PROGRAMS correct
+
 2008-07-31  Bernhard Walle <bernhard.walle@gmx.de>
 
 	* change execution state to 'boot'

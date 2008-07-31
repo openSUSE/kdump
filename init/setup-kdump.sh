@@ -105,7 +105,7 @@ fi
 #
 # copy required programs
 #
-for program in "$KDUMP_REQUIRED_PROGRAMS" ; do
+for program in $KDUMP_REQUIRED_PROGRAMS ; do
     if [ ! -f "$program" ] ; then
         echo >&2 ">>> $program does not exist. Skipping!"
         continue
