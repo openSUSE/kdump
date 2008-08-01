@@ -22,8 +22,10 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
-#include <libssh2.h>
-#include <libssh2_sftp.h>
+#if HAVE_LIBSSH2
+#   include <libssh2.h>
+#   include <libssh2_sftp.h>
+#endif
 #include <gelf.h>
 
 #include "global.h"
@@ -69,6 +71,7 @@ const char *KNetError::what() const
 //}}}
 //{{{ KSFTPError ---------------------------------------------------------------
 
+#if HAVE_LIBSSH2
 /* -------------------------------------------------------------------------- */
 const char *KSFTPError::what() const
     throw ()
@@ -164,6 +167,7 @@ string KSFTPError::getStringForCode(int code) const
     return string(msg);
 }
 
+#endif // HAVE_LIBSSH2
 
 //}}}
 //{{{ KELFError ----------------------------------------------------------------

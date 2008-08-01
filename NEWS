@@ -1,3 +1,7 @@
+0.5.5
+-----
+ * make dependency to libssh2 optional
+
 0.5.4
 -----
  * always create empty ${tmp_mnt}/etc/fstab.kdump

@@ -23,8 +23,10 @@
 #include <cstdarg>
 
 #include <curl/curl.h>
-#include <libssh2.h>
-#include <libssh2_sftp.h>
+#if HAVE_LIBSSH2
+#   include <libssh2.h>
+#   include <libssh2_sftp.h>
+#endif
 
 #include "global.h"
 #include "urlparser.h"
@@ -228,6 +230,8 @@ class FTPTransfer : public URLTransfer {
 //}}}
 //{{{ SFTPTransfer -------------------------------------------------------------
 
+#if HAVE_LIBSSH2
+
 /**
  * Transfers a file to SFTP (upload).
  */
@@ -276,6 +280,8 @@ class SFTPTransfer : public URLTransfer {
         char m_buffer[BUFSIZ];
 
 };
+
+#endif // HAVE_LIBSSH2
 
 //}}}
 //{{{ NFSTransfer -------------------------------------------------------------

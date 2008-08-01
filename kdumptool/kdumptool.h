@@ -77,6 +77,9 @@ class KdumpTool {
         int getErrorCode() const
         throw ();
 
+    protected:
+        void printVersion();
+
     private:
         OptionParser m_optionParser;
         Subcommand *m_subcommand;

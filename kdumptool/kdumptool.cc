@@ -102,7 +102,7 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
         m_optionParser.printHelp(cerr, PROGRAM_VERSION_STRING);
         exit(EXIT_SUCCESS);
     } else if (m_optionParser.getValue("version").getFlag()) {
-        cerr << PROGRAM_VERSION_STRING << endl;
+        printVersion();
         exit(EXIT_SUCCESS);
     }
 
@@ -161,6 +161,23 @@ void KdumpTool::execute()
     }
 
     m_subcommand->execute();
+}
+
+// -----------------------------------------------------------------------------
+void KdumpTool::printVersion()
+{
+    cerr << PROGRAM_VERSION_STRING << endl;
+    cerr << "Features: ";
+
+    // SFTP
+    cerr << "SFTP: ";
+#if HAVE_LIBSSH2
+    cerr << "enabled";
+#else // HAVE_LIBSSH2
+    cerr << "disabled";
+#endif
+
+    cerr << endl;
 }
 
 // -----------------------------------------------------------------------------

@@ -23,6 +23,7 @@
 #include <fcntl.h>
 #include <cerrno>
 #include <sys/mman.h>
+#include <cstring>
 
 #include <libelf.h>
 #include <gelf.h>

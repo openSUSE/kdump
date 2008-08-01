@@ -25,8 +25,10 @@
 #include <cstring>
 
 #include <curl/curl.h>
-#include <libssh2.h>
-#include <libssh2_sftp.h>
+#if HAVE_LIBSSH2
+#   include <libssh2.h>
+#   include <libssh2_sftp.h>
+#endif
 
 #include "dataprovider.h"
 #include "global.h"
@@ -83,9 +85,11 @@ Transfer *URLTransfer::getTransfer(const char *url)
             Debug::debug()->dbg("Returning FTPTransfer");
             return new FTPTransfer(url);
 
+#if HAVE_LIBSSH2
         case URLParser::PROT_SFTP:
             Debug::debug()->dbg("Returning SFTPTransfer");
             return new SFTPTransfer(url);
+#endif // HAVE_LIBSSH2
 
         case URLParser::PROT_NFS:
             Debug::debug()->dbg("Returning NFSTransfer");
@@ -433,6 +437,8 @@ void FTPTransfer::open(DataProvider *dataprovider,
 //}}}
 //{{{ SFTPTransfer -------------------------------------------------------------
 
+#if HAVE_LIBSSH2
+
 /* -------------------------------------------------------------------------- */
 SFTPTransfer::SFTPTransfer(const char *target_url)
     throw (KError)
@@ -652,6 +658,8 @@ void SFTPTransfer::close()
     delete m_socket;
     m_socket = NULL;
 }
+
+#endif // HAVE_LIBSSH2
 
 //}}}
 //{{{ NFSTransfer --------------------------------------------------------------

@@ -25,6 +25,7 @@
 #include <vector>
 #include <map>
 
+#include "config.h"
 
 //{{{ Constants ----------------------------------------------------------------
 

@@ -18,7 +18,8 @@
  */
 #include <iostream>
 #include <string>
-#include <errno.h>
+#include <strings.h>
+#include <cerrno>
 #include <memory>
 #include <sstream>
 
@@ -131,7 +132,7 @@ void SaveDump::execute()
     // root dir support
     m_urlParser.parseURL(savedir.c_str());
 
-    if (m_rootdir.size() != 0 && 
+    if (m_rootdir.size() != 0 &&
                 m_urlParser.getProtocol() == URLParser::PROT_FILE) {
         Debug::debug()->dbg("Using root dir support for Transfer (%s)",
             m_rootdir.c_str());

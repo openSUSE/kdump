@@ -81,11 +81,15 @@ ENDIF(NOT CURL_FOUND)
 
 # libssh2
 INCLUDE(Findlibssh2)
-SET(EXTRA_LIBS ${EXTRA_LIBS} ${LIBSSH2_LIBRARIES})
-INCLUDE_DIRECTORIES(${LIBSSH2_INCLUDE_DIRS})
+IF (LIBSSH2_FOUND)
+    SET(EXTRA_LIBS ${EXTRA_LIBS} ${LIBSSH2_LIBRARIES})
+    INCLUDE_DIRECTORIES(${LIBSSH2_INCLUDE_DIRS})
+ENDIF (LIBSSH2_FOUND)
 
 IF(NOT LIBSSH2_FOUND)
-    MESSAGE(FATAL_ERROR "libssh2 not found. Install libssh2-devel or something like that")
+    MESSAGE("libssh2 not found. Install libssh2-devel or something like that")
+    MESSAGE("Building without SSH support")
+    SET(LIBSSH2_FOUND FALSE)
 ENDIF(NOT LIBSSH2_FOUND)
 
 #
