@@ -22,13 +22,13 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
+#include "global.h"
+
 #if HAVE_LIBSSH2
 #   include <libssh2.h>
 #   include <libssh2_sftp.h>
 #endif
 #include <gelf.h>
-
-#include "global.h"
 
 #define MAXERROR 4096
 
