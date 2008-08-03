@@ -178,6 +178,16 @@ void KdumpTool::printVersion()
     cerr << "disabled";
 #endif
 
+    cerr << " - ";
+
+    // ESMTP
+    cerr << "SMTP: ";
+#if HAVE_LIBESMTP
+    cerr << "enabled";
+#else // HAVE_LIBESMTP
+    cerr << "disabled";
+#endif
+
     cerr << endl;
 }
 
