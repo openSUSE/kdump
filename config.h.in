@@ -6,3 +6,4 @@
 #define FALSE               false
 
 #define HAVE_LIBSSH2        @LIBSSH2_FOUND@
+#define HAVE_LIBESMTP       @ESMTP_FOUND@

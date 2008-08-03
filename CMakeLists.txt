@@ -92,6 +92,21 @@ IF(NOT LIBSSH2_FOUND)
     SET(LIBSSH2_FOUND FALSE)
 ENDIF(NOT LIBSSH2_FOUND)
 
+# libesmtp
+INCLUDE(Findesmtp)
+
+IF (ESMTP_FOUND)
+    SET(EXTRA_LIBS ${EXTRA_LIBS} ${ESMTP_LIBRARIES})
+    INCLUDE_DIRECTORIES(${ESMTP_INCLUDE_DIRS})
+ENDIF (ESMTP_FOUND)
+
+IF(NOT ESMTP_FOUND)
+    MESSAGE("esmtp not found. Install libesmtp-devel or something like that")
+    MESSAGE("Building without mail support!")
+    SET(ESMTP_FOUND FALSE)
+ENDIF(NOT ESMTP_FOUND)
+
+
 #
 # Configure file
 #
