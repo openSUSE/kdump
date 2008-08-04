@@ -149,7 +149,7 @@ ByteVector Vmcoreinfo::readElfNote(const char *file)
 
         // check elf32 vs. elf64
         int clazz = gelf_getclass(elf);
-        if (clazz == ELFCLASS32)
+        if (clazz == ELFCLASSNONE)
             throw KError("Vmcoreinfo: Invalid ELF class.");
 
         isElf64 = clazz == ELFCLASS64;
