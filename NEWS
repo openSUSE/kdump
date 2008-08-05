@@ -1,3 +1,7 @@
+0.5.6
+-----
+ * add vmcore(5) manual page
+
 0.5.5
 -----
  * make dependency to libssh2 optional
