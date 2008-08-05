@@ -1,3 +1,7 @@
+2008-08-05  Bernhard Walle <bwalle@suse.de>
+
+	* add vmcore(5) manual page
+
 2008-08-01  Bernhard Walle <bwalle@suse.de>
 
 	* make dependency to libssh2 optional

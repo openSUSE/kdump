@@ -1,0 +1,204 @@
+//{{{ Copyright (c) 2008, SUSE LINUX Products GmbH
+//
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// Redistributions of source code must retain the above copyright notice, this
+// list of conditions and the following disclaimer.
+//
+// Redistributions in binary form must reproduce the above copyright notice,
+// this list of conditions and the following disclaimer in the documentation
+// and/or other materials provided with the distribution.
+//
+// Neither the name of the Novell nor the names of its contributors may be used
+// to endorse or promote products derived from this software without specific
+// prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ONANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+//}}}
+
+vmcore(5)
+=========
+Bernhard Walle <bwalle@suse.de>
+
+NAME
+----
+vmcore - Kernel dump file
+
+SYNOPSIS
+--------
+/var/log/dump/_<timestamp>_/vmcore
+
+DESCRIPTION
+-----------
+
+A kernel crash dump provides the complete (or filtered) memory dump from the
+machine that crashed. Both *crash*(8) and *lcrash*(8) can be used to analyse
+kernel dumps. For the ELF dump format, *gdb*(1) can also be used with some
+limitations.
+
+To set up the machine to generate a dump when it crashes using kdump, see
+*kdump*(7). That manual page describes the structure of various dump formats
+available. It's an implementation detail that you don't have to be familiar with
+when analysing kernel dumps. However, it's useful to have some documentation
+about that file formats.
+
+OVERVIEW
+--------
+
+Following dump formats are currently known:
+
+*ELF*::
+  This is the normal dump format used also for userspace core dumps.
+
+*Kdump compressed format*::
+  This format (with or without compression) is a diskdump-based format used
+  by *makedumpfile*(8) and supported by *crash*(8) to represent kernel dumps in
+  a more compact form than ELF dumps. It supports per-page compression.
+
+*LKCD*::
+  There are various versions of the LKCD format available. That has been used by
+  the LKCD project (obsolete kernel patch) and the *lcrash*(8) tool, but is also
+  supported by *crash*(8) and is still used by s390 dump tools.
+
+*Netdump*::
+  ELF format, used by RedHat's netdump. Not described here.
+
+*Diskdump*::
+  Like kdump compressed format, used by RedHat's diskdump. Not described here.
+  
+
+ELF CORE DUMPS
+--------------
+
+`See *core*(5) for a general description about ELF core files, and
+http://lse.sourceforge.net/kdump/documentation/ols2oo5-kdump-paper.pdf for the
+kdump-specific extensions.
+
+// TODO: extend
+
+KDUMP COMPRESSED DUMPS
+----------------------
+
+File structure
+~~~~~~~~~~~~~~
+                                               File offset
+  +------------------------------------------+ 0x0
+  |    main header (struct disk_dump_header) |
+  |------------------------------------------+ block 1
+  |    sub header (struct kdump_sub_header)  |
+  |------------------------------------------+ block 2
+  |            1st-bitmap                    |
+  |------------------------------------------+ block 2 + X blocks 
+  |            2nd-bitmap                    |  (aligned by block)
+  |------------------------------------------+ block 2 + 2 * X blocks
+  | page header for pfn 0 (struct page_desc) |  (aligned by block)
+  | page header for pfn 1 (struct page_desc) |
+  |                     :                    |
+  | page header for pfn Z (struct page_desc) |
+  |------------------------------------------| (not aligned by block)
+  |         page data (pfn 0)                |
+  |         page data (pfn 1)                |
+  |                        :                 |
+  |         page data (pfn Z)                |
+  +------------------------------------------+
+
+Main header
+~~~~~~~~~~~
+
+The main header of the kdump compressed format is the almost same as the one of
+diskdump. This header has the following members, and the member signature and
+header_version are different from diskdump.
+
+  struct disk_dump_header {
+        char                    signature[SIG_LEN];     /* = "KDUMP   " */
+        int                     header_version; /* Dump header version */
+        struct new_utsname      utsname;        /* copy of system_utsname */
+        struct timeval          timestamp;      /* Time stamp */
+        unsigned int            status;         /* Above flags */
+        int                     block_size;     /* Size of a block in byte */
+        int                     sub_hdr_size;   /* Size of arch dependent
+                                                   header in blocks */
+        unsigned int            bitmap_blocks;  /* Size of Memory bitmap in
+                                                   block */
+        unsigned int            max_mapnr;      /* = max_mapnr */
+        unsigned int            total_ram_blocks;/* Number of blocks should be
+                                                   written */
+        unsigned int            device_blocks;  /* Number of total blocks in
+                                                 * the dump device */
+        unsigned int            written_blocks; /* Number of written blocks */
+        unsigned int            current_cpu;    /* CPU# which handles dump */
+        int                     nr_cpus;        /* Number of CPUs */
+        struct task_struct      *tasks[0];
+  };
+
+Sub header
+~~~~~~~~~~
+
+The sub header of the kdump compressed format is original. This header
+has the member +phys_base+ and +dump_level+. The member +phys_base+ is for
+an x86_64 relocatable kernel, and the member dump_level has +-d+ option's
+value of makedumpfile command.
+
+  struct kdump_sub_header {
+        unsigned long   phys_base;
+        int             dump_level;     /* header_version 1 and later */
+  };
+
+1st-bitmap
+~~~~~~~~~~
+
+The bit of 1st-bitmap presents either a page on memory hole, or not.  If a page
+is on memory hole, the corresponding bit is off. Otherwise, it is on.
+
+2nd-bitmap
+~~~~~~~~~~
+
+The bit of 2nd-bitmap presents either a dumpable page, or not.  If a page is on
+memory hole or excluded by makedumpfile command, the corresponding bit is off.
+Otherwise, it is on.
+
+Page header
+~~~~~~~~~~~
+
+There are page headers corresponding to dumpable pages.  This header presents
+the corresponding page information (compressed, or not. etc.)
+
+  typedef struct page_desc {
+        off_t                   offset;         /* the offset of the page data*/
+        unsigned int            size;           /* the size of this dump page */
+        unsigned int            flags;          /* flags */
+        unsigned long long      page_flags;     /* page flags */
+  } page_desc_t;
+
+
+BUGS
+----
+This manual page is incomplete.
+
+Please report bugs and enhancement requests at https://bugzilla.novell.com[].
+
+COPYING
+-------
+The description of the kdump compressed format was written by
+Ken'ichi Ohmichi <oomichi@mxs.nes.nec.co.jp>.
+
+Rest was written by Bernhard Walle <bwalle@suse.de>.
+
+SEE ALSO
+--------
+*kdump*(7), *makedumpfile*(8), *crash*(8), *gdb*(1), *core*(5)
+
+// vim: set sw=4 ts=4 et tw=80 fdm=marker spelllang=en_gb spell: :collapseFolds=1:
