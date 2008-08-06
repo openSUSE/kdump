@@ -1,6 +1,11 @@
+2008-08-06  Bernhard Walle <bwalle@suse.de>
+
+	* implement email support (send_notification command)
+
 2008-08-05  Bernhard Walle <bwalle@suse.de>
 
 	* add vmcore(5) manual page
+	* don't report ELF32 as invalid ELF class
 
 2008-08-01  Bernhard Walle <bwalle@suse.de>
 
