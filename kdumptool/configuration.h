@@ -284,6 +284,24 @@ class Configuration {
          std::string getSmtpPassword()
          throw (KError);
 
+         /**
+          * Returns the value of KDUMP_NOTIFICATION_TO.
+          *
+          * @return the notification mail address
+          * @exception KError if Configuration::readFile() was not called
+          */
+         std::string getNotificationTo()
+         throw (KError);
+
+         /**
+          * Returns the value of KDUMP_NOTIFICATION_CC.
+          *
+          * @return the notification Cc address
+          * @exception KError if Configuration::readFile() was not called
+          */
+         std::string getNotificationCc()
+         throw (KError);
+
     protected:
         Configuration()
         throw ();
@@ -316,6 +334,8 @@ class Configuration {
         std::string m_smtpServer;
         std::string m_smtpUser;
         std::string m_smtpPassword;
+        std::string m_notificationTo;
+        std::string m_notificationCc;
 };
 
 //}}}

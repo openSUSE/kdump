@@ -68,6 +68,8 @@ SET(KDUMPTOOL_SRC
     email.h
     deletedumps.h
     deletedumps.cc
+    sendnotification.cc
+    sendnotification.h
     main.cc
 )
 

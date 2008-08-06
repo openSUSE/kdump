@@ -76,6 +76,8 @@ void Configuration::readFile(const string &filename)
     cp.addVariable("KDUMP_SMTP_SERVER");
     cp.addVariable("KDUMP_SMTP_USER");
     cp.addVariable("KDUMP_SMTP_PASSWORD");
+    cp.addVariable("KDUMP_NOTIFICATION_TO");
+    cp.addVariable("KDUMP_NOTIFICATION_CC");
     cp.parse();
 
     m_kernelVersion = cp.getValue("KDUMP_KERNELVER");
@@ -100,6 +102,8 @@ void Configuration::readFile(const string &filename)
     m_smtpServer = cp.getValue("KDUMP_SMTP_SERVER");
     m_smtpUser = cp.getValue("KDUMP_SMTP_USER");
     m_smtpPassword = cp.getValue("KDUMP_SMTP_PASSWORD");
+    m_notificationTo = cp.getValue("KDUMP_NOTIFICATION_TO");
+    m_notificationCc = cp.getValue("KDUMP_NOTIFICATION_CC");
 
     m_readConfig = true;
 }
@@ -348,6 +352,26 @@ string Configuration::getSmtpPassword()
         throw KError("Configuration has not been read.");
 
     return m_smtpPassword;
+}
+
+// -----------------------------------------------------------------------------
+string Configuration::getNotificationTo()
+    throw (KError)
+{
+    if (!m_readConfig)
+        throw KError("Configuration has not been read.");
+
+    return m_notificationTo;
+}
+
+// -----------------------------------------------------------------------------
+string Configuration::getNotificationCc()
+    throw (KError)
+{
+    if (!m_readConfig)
+        throw KError("Configuration has not been read.");
+
+    return m_notificationCc;
 }
 
 //}}}
