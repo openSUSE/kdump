@@ -64,6 +64,8 @@ SET(KDUMPTOOL_SRC
     read_vmcoreinfo.h
     print_target.cc
     print_target.h
+    email.cc
+    email.h
     deletedumps.h
     deletedumps.cc
     main.cc
@@ -130,3 +132,29 @@ SET(TESTURLPARSER_SRC
 
 add_executable(testurlparser ${TESTURLPARSER_SRC})
 target_link_libraries(testurlparser ${EXTRA_LIBS})
+
+
+SET(TESTMAIL_SRC
+    urlparser.cc
+    urlparser.h
+    util.h
+    util.cc
+    configuration.cc
+    configuration.h
+    configparser.h
+    configparser.cc
+    process.cc
+    process.h
+    stringutil.h
+    stringutil.cc
+    global.cc
+    global.h
+    debug.cc
+    debug.h
+    email.cc
+    email.h
+    testmail.cc
+)
+
+add_executable(testmail ${TESTMAIL_SRC})
+target_link_libraries(testmail ${EXTRA_LIBS})

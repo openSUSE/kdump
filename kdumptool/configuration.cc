@@ -45,7 +45,8 @@ Configuration::Configuration()
       m_keepOldDumps(0), m_freeDiskSize(64), m_verbose(0), m_dumpLevel(0),
       m_dumpFormat("compressed"), m_continueOnError(true),
       m_requiredPrograms(""), m_prescript(""), m_postscript(""),
-      m_copyKernel(""), m_kdumptoolFlags("")
+      m_copyKernel(""), m_kdumptoolFlags(""), m_smtpServer(""),
+      m_smtpUser(""), m_smtpPassword("")
 {}
 
 /* -------------------------------------------------------------------------- */
@@ -72,6 +73,9 @@ void Configuration::readFile(const string &filename)
     cp.addVariable("KDUMP_POSTSCRIPT");
     cp.addVariable("KDUMP_COPY_KERNEL");
     cp.addVariable("KDUMPTOOL_FLAGS");
+    cp.addVariable("KDUMP_SMTP_SERVER");
+    cp.addVariable("KDUMP_SMTP_USER");
+    cp.addVariable("KDUMP_SMTP_PASSWORD");
     cp.parse();
 
     m_kernelVersion = cp.getValue("KDUMP_KERNELVER");
@@ -93,6 +97,9 @@ void Configuration::readFile(const string &filename)
     m_postscript = cp.getValue("KDUMP_POSTSCRIPT");
     m_copyKernel = cp.getBoolValue("KDUMP_COPY_KERNEL");
     m_kdumptoolFlags = cp.getValue("KDUMPTOOL_FLAGS");
+    m_smtpServer = cp.getValue("KDUMP_SMTP_SERVER");
+    m_smtpUser = cp.getValue("KDUMP_SMTP_USER");
+    m_smtpPassword = cp.getValue("KDUMP_SMTP_PASSWORD");
 
     m_readConfig = true;
 }
@@ -311,6 +318,36 @@ bool Configuration::kdumptoolContainsFlag(const std::string &flag)
     string value = getKdumptoolFlags();
     string::size_type pos = value.find(flag);
     return pos != string::npos;
+}
+
+// -----------------------------------------------------------------------------
+string Configuration::getSmtpServer()
+    throw (KError)
+{
+    if (!m_readConfig)
+        throw KError("Configuration has not been read.");
+
+    return m_smtpServer;
+}
+
+// -----------------------------------------------------------------------------
+string Configuration::getSmtpUser()
+    throw (KError)
+{
+    if (!m_readConfig)
+        throw KError("Configuration has not been read.");
+
+    return m_smtpUser;
+}
+
+// -----------------------------------------------------------------------------
+string Configuration::getSmtpPassword()
+    throw (KError)
+{
+    if (!m_readConfig)
+        throw KError("Configuration has not been read.");
+
+    return m_smtpPassword;
 }
 
 //}}}

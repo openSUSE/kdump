@@ -28,6 +28,10 @@
 #   include <libssh2.h>
 #   include <libssh2_sftp.h>
 #endif
+#if HAVE_LIBESMTP
+#   include <libesmtp.h>
+#endif
+
 #include <gelf.h>
 
 #define MAXERROR 4096
@@ -185,6 +189,31 @@ const char *KELFError::what() const
 
     return buffer;
 }
+
+//}}}
+//{{{ KSmtpError ---------------------------------------------------------------
+
+#if HAVE_LIBESMTP
+
+/* -------------------------------------------------------------------------- */
+const char *KSmtpError::what() const
+    throw ()
+{
+    static char buffer[MAXERROR];
+    static char smtp_buffer[MAXERROR];
+
+    smtp_strerror(m_errorcode, smtp_buffer, MAXERROR);
+    smtp_buffer[MAXERROR-1] = 0;
+
+    string errorstring = m_errorstring + " (" + smtp_buffer + ")";
+
+    strncpy(buffer, errorstring.c_str(), MAXERROR);
+    buffer[MAXERROR-1] = 0;
+
+    return buffer;
+}
+
+#endif // HAVE_LIBESMTP
 
 //}}}
 

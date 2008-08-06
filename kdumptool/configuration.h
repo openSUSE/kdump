@@ -253,6 +253,37 @@ class Configuration {
          bool kdumptoolContainsFlag(const std::string &flag)
          throw (KError);
 
+         /**
+          * Returns KDUMP_SMTP_SERVER.
+          *
+          * @return the STMP server or "" if no SMTP server has been
+          *         specified in the configuration file
+          * @exception KError if Configuration::readFile() was not called
+          */
+         std::string getSmtpServer()
+         throw (KError);
+
+         /**
+          * Returns the SMTP username if SMTP AUTH is used. That's the value
+          * of KDUMP_SMTP_USER.
+          *
+          * @return the SMTP user name
+          * @exception KError if Configuration::readFile() was not called
+          */
+         std::string getSmtpUser()
+         throw (KError);
+
+         /**
+          * Returns the SMTP password if SMTP AUTH is used. That's the value
+          * of KDUMP_SMTP_PASSWORD.
+          *
+          * @return the STMP server or "" if no SMTP server has been
+          *         specified in the configuration file
+          * @exception KError if Configuration::readFile() was not called
+          */
+         std::string getSmtpPassword()
+         throw (KError);
+
     protected:
         Configuration()
         throw ();
@@ -282,6 +313,9 @@ class Configuration {
         std::string m_postscript;
         bool m_copyKernel;
         std::string m_kdumptoolFlags;
+        std::string m_smtpServer;
+        std::string m_smtpUser;
+        std::string m_smtpPassword;
 };
 
 //}}}
