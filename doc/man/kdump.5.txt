@@ -403,6 +403,62 @@ disk dumping.
 
 Default: "auto"
 
+KDUMP_SMTP_SERVER
+~~~~~~~~~~~~~~~~~
+
+If you want to get an email after the dump has been copied, you can specify an
+SMTP server here. It's valid to specify a hostname, an IP address. Optionally,
+you can also specify a port with the usual _:port_ syntax.
+
+Example: smtp.myprovider.de:25
+
+If you provide a username (KDUMP_SMTP_USER) and a password
+(KDUMP_SMTP_PASSWORD), then SMTP AUTH will be used. Otherwise, plain SMTP with
+no authentication will be used.
+
+Default: ""
+
+KDUMP_SMTP_USER
+~~~~~~~~~~~~~~~
+
+Username used for SMTP authentication. Also specify KDUMP_SMTP_PASSWORD in that
+case. If no username and/or no password will be provided, plain SMTP will be
+used.
+
+Default: ""
+
+KDUMP_SMTP_PASSWORD
+~~~~~~~~~~~~~~~~~~~
+
+Password used for SMTP authentication. Also specify KDUMP_SMTP_USER in that
+case. If no username and/or no password will be provided, plain SMTP will be
+used.
+
+Default: ""
+
+KDUMP_NOTIFICATION_TO
+~~~~~~~~~~~~~~~~~~~~~
+
+Email address where notification mails should be sent to. Don't specify a
+real name here, only an email address. You have to configure a SMTP server with
+KDUMP_SMTP_SERVER to use that feature.
+
+Example: john@myprovider.de
+
+Default: ""
+
+KDUMP_NOTIFICATION_CC
+~~~~~~~~~~~~~~~~~~~~~
+
+Space-separated list of email addresses where notification mails should be sent
+to via Cc. Don't specify real names here, only email addresses. You have to
+configure a SMTP server with KDUMP_SMTP_SERVER to use that feature.
+
+Example: "john@myprovider.de doe@myprovider.de"
+
+Default: ""
+
+
 
 URL FORMAT
 ----------
