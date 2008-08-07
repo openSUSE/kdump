@@ -251,3 +251,60 @@ KDUMPTOOL_FLAGS=""
 #
 KDUMP_NETCONFIG="auto"
 
+## Type:        string
+## Default:     ""
+## ServiceRestart:	kdump
+#
+# SMTP server used for sending a notification email after a dump has
+# been taken. See also KDUMP_SMTP_USER and KDUMP_SMTP_PASSWORD if you
+# want to use SMTP AUTH.
+#
+# See also: kdump(5)
+#
+KDUMP_SMTP_SERVER=""
+
+## Type:        string
+## Default:     ""
+## ServiceRestart:	kdump
+#
+# Username for SMTP AUTH when KDUMP_SMTP_SERVER is set. This is optional,
+# without username/password, plain SMTP will be used.
+#
+# See also: kdump(5)
+#
+KDUMP_SMTP_USER=""
+
+## Type:        string
+## Default:     ""
+## ServiceRestart:	kdump
+#
+# Password for SMTP AUTH when KDUMP_SMTP_SERVER is set. This is optional,
+# without username/password, plain SMTP will be used.
+#
+# See also: kdump(5)
+#
+KDUMP_SMTP_PASSWORD=""
+
+## Type:        string
+## Default:     ""
+## ServiceRestart:	kdump
+#
+# Mail address to which a notification mail will be sent when a dump has been
+# saved. You have to configure at least KDUMP_SMTP_SERVER to use that feature.
+#
+# See also: kdump(5)
+#
+KDUMP_NOTIFICATION_TO=""
+
+## Type:        string
+## Default:     ""
+## ServiceRestart:	kdump
+#
+# List of space-separated mail addresses to which notification mail will be
+# sent via Cc if a dump has been saved. You have to configure at least
+# KDUMP_SMTP_SERVER to use that feature.
+#
+# See also: kdump(5)
+#
+KDUMP_NOTIFICATION_CC=""
+
