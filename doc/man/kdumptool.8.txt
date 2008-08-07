@@ -147,6 +147,13 @@ This command also checks if the dump is too large to fit on disk
 It's not possible to know the dump size in advance (if dump filtering and/or
 dump compression is used).
 
+After the dump has been saved, a notification email is sent via the SMTP server
+specified as _KDUMP_SMTP_SERVER_ (with the authentication credentials specified
+as _KDUMP_SMTP_USER_ and _KDUMP_SMTP_USER_) to the mail addresses specified in
+_KDUMP_NOTIFICATION_TO_ and _KDUMP_NOTIFICATION_CC_. You can skip the mail part
+with the _--nomail_ option. Also, if you don't specify an SMTP server or a
+recipient, the mail part is silently skipped.
+
 Syntax
 ~~~~~~
 
@@ -175,6 +182,10 @@ Options
   because the initrd often lacks proper network configuration, and we want the
   hostname of the old system in that README.txt file, not the initrd hostname
   (which may be an DHCP auto-generated host name).
+
+*-M* | *--nomail*::
+  Don't send the notification email even if mail has been configured in the
+  configuration file.
 
 LED BLINKING
 ------------
