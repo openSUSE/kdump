@@ -36,6 +36,7 @@
 #include "vmcoreinfo.h"
 #include "identifykernel.h"
 #include "debuglink.h"
+#include "email.h"
 
 using std::string;
 using std::cout;
@@ -149,6 +150,8 @@ void SaveDump::execute()
     } catch (const KError &error) {
         setErrorCode(1);
 
+        sendNotification(true, savedir);
+
         // run checkAndDelete() in any case
         try {
             checkAndDelete();
@@ -161,6 +164,9 @@ void SaveDump::execute()
         else
             throw error;
     }
+
+    // send the email afterwards
+    sendNotification(true, savedir);
 
     // because we don't know the file size in advance, check
     // afterwards if the disk space is not sufficient and delete
@@ -545,6 +551,62 @@ void SaveDump::checkAndDelete()
         FileUtil::rmdir(path, true);
         cout << "Dump too large. Aborting. Check KDUMP_FREE_DISK_SIZE." << endl;
     }
+}
+
+// -----------------------------------------------------------------------------
+void SaveDump::sendNotification(bool failure, const string &savedir)
+    throw ()
+{
+    Debug::debug()->trace("SaveDump::sendNotification");
+
+#if !HAVE_LIBESMTP
+    Debug::debug()->dbg("Email support is not compiled-in.");
+#else
+
+    Debug::debug()->dbg("Sending email.");
+
+    try {
+
+        Configuration *config = Configuration::config();
+        if (config->getSmtpServer().size() == 0)
+            throw KError("KDUMP_SMTP_SERVER not set.");
+        if (config->getNotificationTo().size() == 0)
+            throw KError("No recipients specified in KDUMP_NOTIFICATION_TO.");
+
+        if (m_hostname.size() == 0)
+            m_hostname = Util::getHostDomain();
+
+        Email email("root@" + m_hostname);
+        email.setTo(config->getNotificationTo());
+
+        if (config->getNotificationCc().size() != 0) {
+            stringstream split;
+            string cc;
+
+            split << config->getNotificationCc();
+            while (split >> cc) {
+                Debug::debug()->dbg("Adding Cc: %s", cc.c_str());
+                email.addCc(cc);
+            }
+        }
+
+        stringstream ss;
+        email.setSubject("kdump: " + m_hostname + " crashed");
+
+        ss << "Your machine " + m_hostname + " crashed." << endl;
+
+        if (failure)
+            ss << "Copying dump failed." << endl;
+        else
+            ss << "Dump has been copied to " + savedir << "." << endl;
+
+        email.setBody(ss.str());
+
+        email.send();
+    } catch (const KError &err) {
+        Debug::debug()->info("Email failed: %s", err.what());
+    }
+#endif // HAVE_LIBESMTP
 }
 
 //}}}

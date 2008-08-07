@@ -28,7 +28,6 @@
 #include "read_vmcoreinfo.h"
 #include "deletedumps.h"
 #include "print_target.h"
-#include "sendnotification.h"
 
 using std::map;
 using std::list;
@@ -103,7 +102,6 @@ SubcommandManager::SubcommandManager()
     addSubcommand(new ReadVmcoreinfo());
     addSubcommand(new DeleteDumps());
     addSubcommand(new PrintTarget());
-    addSubcommand(new SendNotification());
 }
 
 // -----------------------------------------------------------------------------

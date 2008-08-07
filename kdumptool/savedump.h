@@ -99,6 +99,9 @@ class SaveDump : public Subcommand {
         void checkAndDelete()
         throw (KError);
 
+        void sendNotification(bool failure, const std::string &savedir)
+        throw ();
+
     private:
         std::string m_dump;
         Transfer *m_transfer;
