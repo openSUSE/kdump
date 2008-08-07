@@ -17,6 +17,21 @@
 # 02110-1301, USA.
 #
 
+ADD_CUSTOM_COMMAND(
+    OUTPUT
+        ${CMAKE_CURRENT_BINARY_DIR}/kdump.7.gz
+    COMMAND
+        ${A2X_EXECUTABLE} ${A2X_MAN_OPTIONS}
+        -D ${CMAKE_CURRENT_BINARY_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/kdump.7.txt &&
+        rm -f ${CMAKE_CURRENT_SOURCE_DIR}/kdump.7.xml &&
+        gzip -f ${CMAKE_CURRENT_BINARY_DIR}/kdump.7
+    DEPENDS
+        ${CMAKE_CURRENT_SOURCE_DIR}/kdump.7.txt
+    WORKING_DIRECTORY
+        ${CMAKE_CURRENT_BINARY_DIR}
+)
+
 
 ADD_CUSTOM_COMMAND(
     OUTPUT
@@ -85,6 +100,7 @@ ADD_CUSTOM_COMMAND(
 ADD_CUSTOM_TARGET(
     manpages
     DEPENDS
+        ${CMAKE_CURRENT_BINARY_DIR}/kdump.7.gz
         ${CMAKE_CURRENT_BINARY_DIR}/vmcore.5.gz
         ${CMAKE_CURRENT_BINARY_DIR}/kdump.5.gz
         ${CMAKE_CURRENT_BINARY_DIR}/kdumptool.8.gz

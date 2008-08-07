@@ -1,0 +1,204 @@
+//{{{ Copyright (c) 2008, SUSE LINUX Products GmbH
+//
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// Redistributions of source code must retain the above copyright notice, this
+// list of conditions and the following disclaimer.
+//
+// Redistributions in binary form must reproduce the above copyright notice,
+// this list of conditions and the following disclaimer in the documentation
+// and/or other materials provided with the distribution.
+//
+// Neither the name of the Novell nor the names of its contributors may be used
+// to endorse or promote products derived from this software without specific
+// prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ONANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+//}}}
+
+kdump(7)
+========
+Bernhard Walle <bwalle@suse.de>
+
+Name
+----
+kdump - Saving kernel dumps in SUSE
+
+Synopsis
+--------
+(not applicable)
+
+Description
+-----------
+This manual pages gives an overview about kdump configuration on SUSE. This
+version applies to SUSE LINUX Enterprise 11 and openSUSE 11.1.
+
+Kdump is a technology to save the memory contents of a crashed system and save
+it to disk or network to analyse it later and find the cause of the crash.
+When the system crashes, the mechanism uses _kexec_ to boot a normal Linux
+kernel (that has been loaded into the system previously) which then has access
+to the old memory contents via _/proc/vmcore_ interface and can save that away.
+
+After the memory has been saved, the system reboots (without kexec).
+
+As mentioned above, that _panic kernel_ has to be loaded into the system. That
+is accomplished via *kexec*(8) in an init script at system bootup. To have
+memory for that panic kernel and also have RAM for the execution of that panic
+kernel, one has to reserve kernel memory with a special boot parameter
+(_crashkernel_).
+
+While it's possible in theory to boot the full system by that panic kernel, on
+SUSE we use the approach of having a special _initramfs_ that saves the dump to
+disk or network and then reboots. That has the advantage that less memory
+is necessary and also the root file system must not be intact if you save to
+another file system or to network.
+
+
+Automatic Configuration with YaST
+---------------------------------
+
+A simple method to use kdump on SUSE is to use the YaST kdump module. Just
+install the package _yast2-kdump_ (for example with
+
+----------------------------------
+# zypper install yast2-kdump
+----------------------------------
+
+and start the YaST2 module with
+
+----------------------------------
+# yast2 kdump
+----------------------------------
+
+Everything should be self-explanatory there.
+
+Manual Setup
+------------
+
+Following steps are needed to setup kdump manually:
+
+. Install the required software packages,
+. add the _crashkernel_ parameter to bootloader configuration,
+. enable the _kdump_ service,
+. configure kdump (/etc/sysconfig/kdump) and
+. load the kdump kernel.
+
+Required software
+~~~~~~~~~~~~~~~~~
+
+Following software packages are required for kdump:
+
+* kexec-tools
+* kdump
+* makedumpfile
+
+There is no special _kernel-kdump_ required like in earlier versions of SUSE
+LINUX Enterprise. The technical reason is that the normal kernel is relocatable
+now and can be used as kdump kernel, i.e. it's possible to load an execute the
+normal kernel at any address, not only the compiled-in address as before.
+
+Bootloader configuration
+~~~~~~~~~~~~~~~~~~~~~~~~
+It's necessary to reserve a certain amount of memory in the normal system at
+boot time which will be used by *kexec*(8) to load the panic kernel. To achieve
+that, you have to add a parameter called _crashkernel_ in bootloader
+configuration. The syntax is:
+
+  crashkernel=size@offset
+
+The _offset_ is the load offset, i.e. the physical base address on which the
+memory reservation area starts. Starting with version 2.6.27, it's not necessary
+to specify that _offset_ manually since the kernel chooses a suitable base
+address automatically.
+
+For the _size_, following values are recommended:
+
+`-----------------`--------------------------------------------
+Architecture      Size
+---------------------------------------------------------------
++i386+            +64M+
++x86_64+          +64M+ or +128M+ on large machines
++ppc64+           +128M+
++ia64+            +512M+ (or more on very large SGI machines)
+---------------------------------------------------------------
+
+Example: +crashkernel=64M+ (on a normal PC system)
+
+[NOTE]
+There's also a more advanced syntax that makes the amount of memory dependent on
+System RAM. Read +Documentation/kernel-parameters.txt+ and
++Documentation/kdump/kdump.txt+ of the kernel source for more information.
+
+Enable kdump service
+~~~~~~~~~~~~~~~~~~~~
+The kdump runlevel script just loads the kdump kernel at boot. To enable it, use
+the YaST runlevel editor or simply
+
+--------------------------
+# chkconfig kdump on
+--------------------------
+
+on a shell. You can also execute it manually with +rckdump start+.
+
+Configure kdump
+~~~~~~~~~~~~~~~
+The default configuration should work out of the box. You can tweak several
+configuration options in +/etc/sysconfig/kdump+ configuration file.
+
+[IMPORTANT]
+If you make changes in that configuration file, you have to execute always
++rckdump restart+ manually to make that changes apply. If you don't, that
+changes will only apply after system reboot.
+
+See the section “CONFIGURATION” later and/or *kdump*(5) for a description of
+that configuration options.
+
+Load the kdump kernel
+~~~~~~~~~~~~~~~~~~~~~
+As mentioned above, the init script +/etc/init.d/kdump+ takes the part of
+loading the kdump kernel. As kdump kernel, the normal system kernel is used, no
+special kernel image is required.
+
+However, as initramfs, a special initramfs is built by *mkdumprd*(8). Normally,
+you don't have to take care about that step since the init script checks if the
+initramfs is up to date (reading the configuration file modification time) and
+rebuilds it if necessary.
+
+To manually load the kdump kernel (i.e, without the SUSE init script), you have
+to use the *kexec*(8) tool with the _-p_ (panic kernel) parameter like:
+
+--------------------------------------------------------------------
+# kexec -p /boot/vmlinuz-version --initrd=/boot/initrd-version-kdump
+--reuse-cmdline
+--------------------------------------------------------------------
+
+Bugs
+----
+Please report bugs and enhancement requests at https://bugzilla.novell.com[].
+
+Copying
+-------
+Copyright (c) 2008 Bernhard Walle <bwalle@suse.de>. Free use of this software is
+granted under the terms of the GNU General Public License (GPL), version 2 or
+later.
+
+See also
+--------
+*kexec*(8), *kdump*(5), *makedumpfile*(8)
+http://en.opensuse.org/Kdump[_http://en.opensuse.org/Kdump_]
+
+
+// vim: set sw=4 ts=4 et tw=80 fdm=marker: :collapseFolds=1:
