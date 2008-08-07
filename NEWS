@@ -1,8 +1,7 @@
-0.5.6
+0.7.0
 -----
  * add vmcore(5) manual page
- * implement email support (send_notification command)
- * implement email support (send_notification command)
+ * implement email support
 
 0.5.5
 -----
