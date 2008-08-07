@@ -50,7 +50,7 @@ using std::stringstream;
 SaveDump::SaveDump()
     throw ()
     : m_dump(DEFAULT_DUMP), m_transfer(NULL), m_usedDirectSave(false),
-      m_useMakedumpfile(false)
+      m_useMakedumpfile(false), m_nomail(false)
 {
     Debug::debug()->trace("SaveDump::SaveDump()");
 }
@@ -88,6 +88,8 @@ OptionList SaveDump::getOptions() const
         "VMCOREINFO."));
     list.push_back(Option("fqdn", 'q', OT_STRING,
         "Use the specified hostname/domainname instead of uname()."));
+    list.push_back(Option("nomail", 'M', OT_FLAG,
+        "Don't send notification email even if email has been configured."));
 
     return list;
 
@@ -107,10 +109,15 @@ void SaveDump::parseCommandline(OptionParser *optionparser)
         m_crashrelease = optionparser->getValue("kernelversion").getString();
     if (optionparser->getValue("fqdn").getType() != OT_INVALID)
         m_hostname = optionparser->getValue("fqdn").getString();
+    if (optionparser->getValue("fqdn").getType() != OT_INVALID)
+        m_hostname = optionparser->getValue("fqdn").getString();
+    if (optionparser->getValue("nomail").getFlag())
+        m_nomail = true;
 
-    Debug::debug()->dbg("dump: %s, root: %s, crashrelease: %s, hostname: %s",
+    Debug::debug()->dbg("dump: %s, root: %s, crashrelease: %s, "
+        "hostname: %s, nomail: %d",
         m_dump.c_str(), m_rootdir.c_str(), m_crashrelease.c_str(),
-        m_hostname.c_str());
+        m_hostname.c_str(), int(m_nomail));
 }
 
 // -----------------------------------------------------------------------------
@@ -563,7 +570,10 @@ void SaveDump::sendNotification(bool failure, const string &savedir)
     Debug::debug()->dbg("Email support is not compiled-in.");
 #else
 
-    Debug::debug()->dbg("Sending email.");
+    if (m_nomail) {
+        Debug::debug()->dbg("--nomail has been specified.");
+        return;
+    }
 
     try {
 
