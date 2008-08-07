@@ -1,4 +1,8 @@
-0.7.0
+0.6.1
+-----
+ * add kdump(7) manual page
+
+0.6.0
 -----
  * add vmcore(5) manual page
  * implement email support

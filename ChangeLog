@@ -1,3 +1,7 @@
+2008-08-07  Bernhard Walle <bernhard.walle@gmx.de>
+
+	* add kdump(7) manual page
+
 2008-08-06  Bernhard Walle <bwalle@suse.de>
 
 	* implement email support (send_notification command)
