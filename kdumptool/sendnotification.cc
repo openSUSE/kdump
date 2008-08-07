@@ -129,9 +129,9 @@ void SendNotification::execute()
     }
 
     stringstream ss;
-    email.setSubject("[kdump] Server " + m_hostname + " crashed");
+    email.setSubject("kdump: " + m_hostname + " crashed");
 
-    ss << "Your server " + m_hostname + " crashed." << endl;
+    ss << "Your machine " + m_hostname + " crashed." << endl;
     ss << "Dump has been copied to " + config->getSavedir() << "." << endl;
 
     email.setBody(ss.str());
