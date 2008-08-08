@@ -185,6 +185,178 @@ to use the *kexec*(8) tool with the _-p_ (panic kernel) parameter like:
 --reuse-cmdline
 --------------------------------------------------------------------
 
+
+Testing
+-------
+It makes perfectly sense to test the kdump configuration in a sane system state,
+i.e. not when the system really crashes but to trigger the dump manually. To
+perform that, use the SysRq mechanism, i.e. just
+
+---------------------------------------
+# echo s > /proc/sysrq-trigger
+# echo u > /proc/sysrq-trigger
+# echo c > /proc/sysrq-trigger
+---------------------------------------
+
+After that, the panic kernel should boot and the dump should be saved.
+
+Configuration
+-------------
+
+The configuration file is +/etc/sysconfig/kdump+. Just edit that file with a
+plain text editor to adjust the settings. You can also use the YaST2 sysconfig
+editor. All variables are described in *kdump*(5). Here's a brief overview about
+some variables that are worth tweaking.
+
+Save Directory
+~~~~~~~~~~~~~~
+The most important setting is where the dump should be saved. Following methods
+are available:
+
+* local file,
+* FTP,
+* SFTP (SSH),
+* NFS,
+* CIFS.
+
+The recommendation is to use FTP or SFTP for network dumping or the local file
+dump. The configuration variable _KDUMP_SAVEDIR_ has to be filled with a URL to
+where the dump should be saved. The syntax is described in *kdump*(5).
+
+If the directory does not exist, it will be created. Since the dump is taken in
+initrd, the network and mount configuration is a bit different from the normal
+system. However, the *mkdumprd*(8) script is designed to do everything
+automatically for you. If you would like to use a special network interface, see
+the _KDUMP_NETCONFIG_ setting..
+
+Example:
+
+* +file:///var/log/dump+
+* +ftp://user@host:server/incoming/dumps+
+
+[NOTE]
+If you want to use SSH with public key authentication, make sure to read the
+"Secure File Transfer Protocol" section in *kdump*(5).
+
+Deletion of old dumps
+~~~~~~~~~~~~~~~~~~~~~
+If you save the dumps to local file system, you may want that kdump deletes
+automatically old dumps. Set _KDUMP_KEEP_OLD_DUMPS_ to the value how much old
+dumps should be preserved. To disable deletion of old dumps, set it to _0_, and
+to delete all old dumps, set it to _-1_.
+
+If the partition has less than _KDUMP_FREE_DISK_SIZE_ megabytes free disk space
+after saving the dump, the dump is not copied at all.
+
+[IMPORTANT]
+That two options don't apply to network dump targets.
+
+Dump Filtering and Compression
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Kernel dumps are uncompressed and unfiltered as large as your system has RAM. To
+get smaller files (for example, to send it to support), you can compress the
+whole dump file afterwards. However, the drawback is that the dump has to be
+uncompressed afterwards before opening, so the disk space needs to be there in
+any case.
+
+To use page compression which compresses every page and allows dynamic
+uncompression with the *crash*(8) debugging tool, set _KDUMP_DUMPFORMAT_ to
+_compressed_ (which is actually the default).
+
+To filter the dump, you have to set the _KDUMP_DUMPLEVEL_. Then not all memory
+is saved to disk but only memory that does not fulfil some criteria. I.e. you
+may want to leave out pages that are completely zero pages as they don't contain
+any useful information. The following table lists for each _KDUMP_DUMPLEVEL_ the
+pages that are *skipped*, i.e. _0_ produces a full dump and _31_ is the smallest
+dump.
+
+'------------.----------.----------.-------------.---------.----------
+dump level   zero page  cache page cache private user data free page
+----------------------------------------------------------------------
+ 0
+ 1           X
+ 2                      X
+ 3           X          X
+ 4                      X          X
+ 5           X          X          X
+ 6                      X          X
+ 7           X          X          X
+ 8                                               X
+ 9           X                                   X
+10                      X                        X
+11           X          X                        X
+12                      X          X             X
+13           X          X          X             X
+14                      X          X             X
+15           X          X          X             X
+16                                                         X
+17           X                                             X
+18                      X                                  X
+19           X          X                                  X
+20                      X          X                       X
+21           X          X          X                       X
+22                      X          X                       X
+23           X          X          X                       X
+24                                               X         X
+25           X                                   X         X
+26                      X                        X         X
+27           X          X                        X         X
+28                      X          X             X         X
+29           X          X          X             X         X
+30                      X          X             X         X
+31           X          X          X             X         X
+----------------------------------------------------------------------
+
+Automatic Reboot and Error handling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+If you want to have your machine rebooted automatically after the dump has been
+copied, set _KDUMP_IMMEDIATE_REBOOT_ to _yes_. The variable
+_KDUMP_CONTINUE_ON_ERROR_ controls if a shell should be opened if something goes
+wrong while saving the dump to be able to fixup manually. This is mostly for
+debugging. 
+
+In production, use that only if you have serial console since VGA console and
+keyboard is not reliable in kdump environment.
+
+Notification
+~~~~~~~~~~~~
+If you enable notification support, then you get an email after the dump has
+been copied (and before the _KDUMP_IMMEDIATE_REBOOT_ takes place). Because we
+don't have a mail server running in initrd where the mail has to be sent, you
+have to configure a SMTP server:
+
+* _KDUMP_SMTP_SERVER_ must hold a hostname (and optional port, separated by a
+  colon) to a SMTP server.
+* _KDUMP_STMP_USER_ and _KDUMP_SMTP_PASSWORD_ must be set to username and
+  password if SMTP AUTH should be used, or empty otherwise. Then plain SMTP
+  without authentication will be used.
+
+Then an email will be sent to the address in _KDUMP_NOTIFICATION_TO_ (only one
+address possible) and _KDUMP_NOTIFICATION_CC_ (multiple addresses possible).
+
+
+Debugging options
+~~~~~~~~~~~~~~~~~
+If something goes wrong, and you possibly opened a bug report, you may be asked
+to increase verbosity to report what's going wrong. Also, this is useful if you
+would like to find the cause yourself.
+
+At first, you can increase _KDUMP_VERBOSE_. The maximum log level is _15_. That
+gives both information when loading the dump kernel (i.e. the _rckdump start_
+command) and also when copying the dump in initrd.
+
+[WARNING]
+If you use a VGA console and trigger the dump when X11 is running (i.e. your
+graphical desktop), you might not see any output. Use a serial console in that
+case, or try to trigger the dump from Linux console (i.e. press _Ctrl-Alt-F1_
+in your graphical desktop and log in there).
+
+If the problem is the *makedumpfile*(8) filtering tool, then set
+_MAKEDUMPFILE_OPTIONS_ to _-D_ to get debugging output of makedumpfile.
+
+
+
+
 Bugs
 ----
 Please report bugs and enhancement requests at https://bugzilla.novell.com[].
