@@ -236,7 +236,7 @@ Example:
 * +ftp://user@host:server/incoming/dumps+
 
 [NOTE]
-If you want to use SSH with public key authentication, make sure to read the
+If you want to use SFTP with public key authentication, make sure to read the
 "Secure File Transfer Protocol" section in *kdump*(5).
 
 Deletion of old dumps
