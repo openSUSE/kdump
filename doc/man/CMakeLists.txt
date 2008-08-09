@@ -116,9 +116,9 @@ ADD_DEPENDENCIES(
 
 
 INSTALL(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/kdumptool.8.gz
+    ${CMAKE_CURRENT_BINARY_DIR}/kdump.7.gz
     DESTINATION
-        share/man/man8
+        share/man/man7
 )
 
 INSTALL(FILES
@@ -128,6 +128,7 @@ INSTALL(FILES
 )
 
 INSTALL(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/kdumptool.8.gz
     ${CMAKE_CURRENT_BINARY_DIR}/mkdumprd.8.gz
     DESTINATION
         share/man/man8
