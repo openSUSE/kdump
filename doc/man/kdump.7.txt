@@ -43,7 +43,7 @@ Synopsis
 
 Description
 -----------
-This manual pages gives an overview about kdump configuration on SUSE. This
+This manual page gives an overview about kdump configuration on SUSE. This
 version applies to SUSE LINUX Enterprise 11 and openSUSE 11.1.
 
 Kdump is a technology to save the memory contents of a crashed system and save
@@ -63,7 +63,7 @@ kernel, one has to reserve kernel memory with a special boot parameter
 While it's possible in theory to boot the full system by that panic kernel, on
 SUSE we use the approach of having a special _initramfs_ that saves the dump to
 disk or network and then reboots. That has the advantage that less memory
-is necessary and also the root file system must not be intact if you save to
+is necessary and the root file system also must not be intact if you save to
 another file system or to network.
 
 
@@ -88,7 +88,8 @@ Everything should be self-explanatory there.
 Manual Setup
 ------------
 
-Following steps are needed to setup kdump manually:
+Following steps are needed to setup kdump manually (the description of the steps
+will follow):
 
 . Install the required software packages,
 . add the _crashkernel_ parameter to bootloader configuration,
@@ -107,7 +108,7 @@ Following software packages are required for kdump:
 
 There is no special _kernel-kdump_ required like in earlier versions of SUSE
 LINUX Enterprise. The technical reason is that the normal kernel is relocatable
-now and can be used as kdump kernel, i.e. it's possible to load an execute the
+now and can be used as kdump kernel, i.e. it's possible to load and execute the
 normal kernel at any address, not only the compiled-in address as before.
 
 Bootloader configuration
@@ -132,15 +133,15 @@ Architecture      Size
 +i386+            +64M+
 +x86_64+          +64M+ or +128M+ on large machines
 +ppc64+           +128M+
-+ia64+            +512M+ (or more on very large SGI machines)
++ia64+            +512M+ (or more on very large machines)
 ---------------------------------------------------------------
 
 Example: +crashkernel=64M+ (on a normal PC system)
 
 [NOTE]
 There's also a more advanced syntax that makes the amount of memory dependent on
-System RAM. Read +Documentation/kernel-parameters.txt+ and
-+Documentation/kdump/kdump.txt+ of the kernel source for more information.
+system RAM. Read _Documentation/kernel-parameters.txt_ and
+_Documentation/kdump/kdump.txt_ of the kernel source for more information.
 
 Enable kdump service
 ~~~~~~~~~~~~~~~~~~~~
@@ -156,19 +157,19 @@ on a shell. You can also execute it manually with +rckdump start+.
 Configure kdump
 ~~~~~~~~~~~~~~~
 The default configuration should work out of the box. You can tweak several
-configuration options in +/etc/sysconfig/kdump+ configuration file.
+configuration options in the _/etc/sysconfig/kdump_ configuration file.
 
 [IMPORTANT]
-If you make changes in that configuration file, you have to execute always
-+rckdump restart+ manually to make that changes apply. If you don't, that
+If you make changes in that configuration file, you always have to execute
+_rckdump restart_ manually to make that changes apply. If you don't, that
 changes will only apply after system reboot.
 
 See the section “CONFIGURATION” later and/or *kdump*(5) for a description of
-that configuration options.
+the configuration options.
 
 Load the kdump kernel
 ~~~~~~~~~~~~~~~~~~~~~
-As mentioned above, the init script +/etc/init.d/kdump+ takes the part of
+As mentioned above, the init script _/etc/init.d/kdump_ takes the part of
 loading the kdump kernel. As kdump kernel, the normal system kernel is used, no
 special kernel image is required.
 
@@ -188,9 +189,9 @@ to use the *kexec*(8) tool with the _-p_ (panic kernel) parameter like:
 
 Testing
 -------
-It makes perfectly sense to test the kdump configuration in a sane system state,
+It perfectly makes sense to test the kdump configuration in a sane system state,
 i.e. not when the system really crashes but to trigger the dump manually. To
-perform that, use the SysRq mechanism, i.e. just
+perform that, use the SysRq mechanism, i.e. just execute
 
 ---------------------------------------
 # echo s > /proc/sysrq-trigger
@@ -203,7 +204,7 @@ After that, the panic kernel should boot and the dump should be saved.
 Configuration
 -------------
 
-The configuration file is +/etc/sysconfig/kdump+. Just edit that file with a
+The configuration file is _/etc/sysconfig/kdump_. Just edit this file with a
 plain text editor to adjust the settings. You can also use the YaST2 sysconfig
 editor. All variables are described in *kdump*(5). Here's a brief overview about
 some variables that are worth tweaking.
@@ -227,7 +228,7 @@ If the directory does not exist, it will be created. Since the dump is taken in
 initrd, the network and mount configuration is a bit different from the normal
 system. However, the *mkdumprd*(8) script is designed to do everything
 automatically for you. If you would like to use a special network interface, see
-the _KDUMP_NETCONFIG_ setting..
+the _KDUMP_NETCONFIG_ setting.
 
 Example:
 
@@ -240,7 +241,7 @@ If you want to use SSH with public key authentication, make sure to read the
 
 Deletion of old dumps
 ~~~~~~~~~~~~~~~~~~~~~
-If you save the dumps to local file system, you may want that kdump deletes
+If you save the dumps to your local file system, you may want that kdump deletes
 automatically old dumps. Set _KDUMP_KEEP_OLD_DUMPS_ to the value how much old
 dumps should be preserved. To disable deletion of old dumps, set it to _0_, and
 to delete all old dumps, set it to _-1_.
@@ -253,11 +254,11 @@ That two options don't apply to network dump targets.
 
 Dump Filtering and Compression
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Kernel dumps are uncompressed and unfiltered as large as your system has RAM. To
-get smaller files (for example, to send it to support), you can compress the
-whole dump file afterwards. However, the drawback is that the dump has to be
-uncompressed afterwards before opening, so the disk space needs to be there in
-any case.
+The size of kernel dumps is uncompressed and unfiltered as large as your system
+has RAM. To get smaller files (for example, to send it to support), you can
+compress the whole dump file afterwards. However, the drawback is that the dump
+has to be uncompressed afterwards before opening, so the disk space needs to be
+there in any case.
 
 To use page compression which compresses every page and allows dynamic
 uncompression with the *crash*(8) debugging tool, set _KDUMP_DUMPFORMAT_ to
@@ -265,10 +266,10 @@ _compressed_ (which is actually the default).
 
 To filter the dump, you have to set the _KDUMP_DUMPLEVEL_. Then not all memory
 is saved to disk but only memory that does not fulfil some criteria. I.e. you
-may want to leave out pages that are completely zero pages as they don't contain
-any useful information. The following table lists for each _KDUMP_DUMPLEVEL_ the
-pages that are *skipped*, i.e. _0_ produces a full dump and _31_ is the smallest
-dump.
+may want to leave out pages that are completely filled by zeroes as they don't
+contain any useful information. The following table lists for each
+_KDUMP_DUMPLEVEL_ the pages that are *skipped*, i.e. _0_ produces a full dump
+and _31_ is the smallest dump.
 
 '------------.----------.----------.-------------.---------.----------
 dump level   zero page  cache page cache private user data free page
@@ -315,7 +316,7 @@ _KDUMP_CONTINUE_ON_ERROR_ controls if a shell should be opened if something goes
 wrong while saving the dump to be able to fixup manually. This is mostly for
 debugging. 
 
-In production, use that only if you have serial console since VGA console and
+In production, use that only if you have a serial console since VGA console and
 keyboard is not reliable in kdump environment.
 
 Notification
@@ -325,11 +326,11 @@ been copied (and before the _KDUMP_IMMEDIATE_REBOOT_ takes place). Because we
 don't have a mail server running in initrd where the mail has to be sent, you
 have to configure a SMTP server:
 
-* _KDUMP_SMTP_SERVER_ must hold a hostname (and optional port, separated by a
+* _KDUMP_SMTP_SERVER_ must hold a hostname (and an optional port, separated by a
   colon) to a SMTP server.
 * _KDUMP_STMP_USER_ and _KDUMP_SMTP_PASSWORD_ must be set to username and
-  password if SMTP AUTH should be used, or empty otherwise. Then plain SMTP
-  without authentication will be used.
+  password if SMTP AUTH should be used, or empty otherwise (plain SMTP without
+  authentication will be used).
 
 Then an email will be sent to the address in _KDUMP_NOTIFICATION_TO_ (only one
 address possible) and _KDUMP_NOTIFICATION_CC_ (multiple addresses possible).
@@ -337,7 +338,7 @@ address possible) and _KDUMP_NOTIFICATION_CC_ (multiple addresses possible).
 
 Debugging options
 ~~~~~~~~~~~~~~~~~
-If something goes wrong, and you possibly opened a bug report, you may be asked
+If something goes wrong and you possibly opened a bug report, you may be asked
 to increase verbosity to report what's going wrong. Also, this is useful if you
 would like to find the cause yourself.
 
@@ -369,7 +370,7 @@ later.
 
 See also
 --------
-*kexec*(8), *kdump*(5), *makedumpfile*(8)
+*kexec*(8), *kdump*(5), *makedumpfile*(8), *crash*(8)
 http://en.opensuse.org/Kdump[_http://en.opensuse.org/Kdump_]
 
 
