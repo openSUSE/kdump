@@ -1,3 +1,8 @@
+2008-08-12  Bernhard Walle <bwalle@suse.de>
+
+	* correct init script: remove remote FS dependency and also add
+	  "Should-Stop"
+
 2008-08-07  Bernhard Walle <bernhard.walle@gmx.de>
 
 	* add kdump(7) manual page
