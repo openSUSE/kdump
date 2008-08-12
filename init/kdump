@@ -17,6 +17,7 @@
 # Provides:       kdump
 # Required-Start: boot.localfs
 # Should-Start:
+# Should-Stop:
 # Required-Stop:
 # Default-Start:  1 2 3 5
 # Default-Stop:
