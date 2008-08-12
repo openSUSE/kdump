@@ -15,7 +15,7 @@
 # /etc/init.d/kdump
 ### BEGIN INIT INFO
 # Provides:       kdump
-# Required-Start: boot.localfs $remote_fs
+# Required-Start: boot.localfs
 # Should-Start:
 # Required-Stop:
 # Default-Start:  1 2 3 5
