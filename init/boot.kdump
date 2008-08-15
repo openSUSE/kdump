@@ -12,14 +12,14 @@
 #                loading a kdump kernel into memory at system bootup time.
 #
 #
-# /etc/init.d/kdump
+# /etc/init.d/boot.kdump
 ### BEGIN INIT INFO
-# Provides:       kdump
+# Provides:       boot.kdump
 # Required-Start: $local_fs
 # Should-Start:
 # Should-Stop:
 # Required-Stop:  $local_fs
-# Default-Start:  1 2 3 5
+# Default-Start:  B
 # Default-Stop:
 # Short-Description: kdump boot configuration
 # Description:    This script loads the kdump kernel on startup.

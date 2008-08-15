@@ -19,7 +19,7 @@
 
 INSTALL(
     FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/kdump
+        ${CMAKE_CURRENT_SOURCE_DIR}/boot.kdump
     DESTINATION
         /etc/init.d
     PERMISSIONS
