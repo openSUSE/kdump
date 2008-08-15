@@ -1,3 +1,8 @@
+0.6.3
+-----
+  * make the kdump init script a boot script ("boot.kdump")
+  * fix init script comments
+
 0.6.2
 -----
  * correct init script: remove remote FS dependency and also add "Should-Stop"

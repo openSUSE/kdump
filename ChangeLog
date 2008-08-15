@@ -1,3 +1,8 @@
+2008-08-15  Bernhard Walle <bwalle@suse.de>
+
+	* make the kdump init script a boot script ("boot.kdump")
+	* fix init script comments
+
 2008-08-12  Bernhard Walle <bwalle@suse.de>
 
 	* correct init script: remove remote FS dependency and also add
