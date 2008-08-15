@@ -31,6 +31,9 @@
 
 kdump(7)
 ========
+:man version: @PACKAGE_VERSION@
+:man source: kdump
+:man manual: User Manuals
 Bernhard Walle <bwalle@suse.de>
 
 Name

@@ -2,6 +2,7 @@
 
 	* make the kdump init script a boot script ("boot.kdump")
 	* fix init script comments
+	* add meta information to manpages
 
 2008-08-12  Bernhard Walle <bwalle@suse.de>
 

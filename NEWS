@@ -2,6 +2,7 @@
 -----
   * make the kdump init script a boot script ("boot.kdump")
   * fix init script comments
+  * add meta information to manpages
 
 0.6.2
 -----
