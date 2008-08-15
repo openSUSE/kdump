@@ -21,23 +21,23 @@
 # replace the version number
 CONFIGURE_FILE(
     "${CMAKE_CURRENT_SOURCE_DIR}/kdump.5.txt.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/kdump.7.txt.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/kdump.7.txt"
 )
 CONFIGURE_FILE(
     "${CMAKE_CURRENT_SOURCE_DIR}/kdump.7.txt.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/kdump.7.txt.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/kdump.7.txt"
 )
 CONFIGURE_FILE(
     "${CMAKE_CURRENT_SOURCE_DIR}/vmcore.5.txt.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/vmcore.5.txt.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/vmcore.5.txt"
 )
 CONFIGURE_FILE(
     "${CMAKE_CURRENT_SOURCE_DIR}/mkdumprd.8.txt.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/mkdumprd.8.txt.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/mkdumprd.8.txt"
 )
 CONFIGURE_FILE(
     "${CMAKE_CURRENT_SOURCE_DIR}/kdumptool.8.txt.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/kdumptool.8.txt.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/kdumptool.8.txt"
 )
 
 ADD_CUSTOM_COMMAND(
