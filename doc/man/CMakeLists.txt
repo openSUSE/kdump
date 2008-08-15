@@ -21,7 +21,7 @@
 # replace the version number
 CONFIGURE_FILE(
     "${CMAKE_CURRENT_SOURCE_DIR}/kdump.5.txt.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/kdump.7.txt"
+    "${CMAKE_CURRENT_BINARY_DIR}/kdump.5.txt"
 )
 CONFIGURE_FILE(
     "${CMAKE_CURRENT_SOURCE_DIR}/kdump.7.txt.in"
@@ -50,10 +50,10 @@ ADD_CUSTOM_COMMAND(
         rm -f ${CMAKE_CURRENT_SOURCE_DIR}/kdump.7.xml &&
         gzip -f ${CMAKE_CURRENT_BINARY_DIR}/kdump.7
     DEPENDS
-        ${CMAKE_CURRENT_SOURCE_DIR}/kdump.7.txt
+        ${CMAKE_CURRENT_BINARY_DIR}/kdump.7.txt
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_BINARY_DIR}
-)
+)                      
 
 
 ADD_CUSTOM_COMMAND(
@@ -66,7 +66,7 @@ ADD_CUSTOM_COMMAND(
         rm -f ${CMAKE_CURRENT_SOURCE_DIR}/kdumptool.8.xml &&
         gzip -f ${CMAKE_CURRENT_BINARY_DIR}/kdumptool.8
     DEPENDS
-        ${CMAKE_CURRENT_SOURCE_DIR}/kdumptool.8.txt
+        ${CMAKE_CURRENT_BINARY_DIR}/kdumptool.8.txt
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_BINARY_DIR}
 )
@@ -81,7 +81,7 @@ ADD_CUSTOM_COMMAND(
         rm -f ${CMAKE_CURRENT_SOURCE_DIR}/vmcore.5.xml &&
         gzip -f ${CMAKE_CURRENT_BINARY_DIR}/vmcore.5
     DEPENDS
-        ${CMAKE_CURRENT_SOURCE_DIR}/vmcore.5.txt
+        ${CMAKE_CURRENT_BINARY_DIR}/vmcore.5.txt
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_BINARY_DIR}
 )
@@ -96,7 +96,7 @@ ADD_CUSTOM_COMMAND(
         rm -f ${CMAKE_CURRENT_SOURCE_DIR}/kdump.5.xml &&
         gzip -f ${CMAKE_CURRENT_BINARY_DIR}/kdump.5
     DEPENDS
-        ${CMAKE_CURRENT_SOURCE_DIR}/kdump.5.txt
+        ${CMAKE_CURRENT_BINARY_DIR}/kdump.5.txt
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_BINARY_DIR}
 )
@@ -111,7 +111,7 @@ ADD_CUSTOM_COMMAND(
         rm -f ${CMAKE_CURRENT_SOURCE_DIR}/mkdumprd.8.xml &&
         gzip -f ${CMAKE_CURRENT_BINARY_DIR}/mkdumprd.8
     DEPENDS
-        ${CMAKE_CURRENT_SOURCE_DIR}/mkdumprd.8.txt
+        ${CMAKE_CURRENT_BINARY_DIR}/mkdumprd.8.txt
     WORKING_DIRECTORY
         ${CMAKE_CURRENT_BINARY_DIR}
 )
