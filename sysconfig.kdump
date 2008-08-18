@@ -91,7 +91,7 @@ KDUMP_TRANSFER=""
 # See also: kdump(5) which contains an exact specification for the URL format.
 # Consider using the "yast2 kdump" module if you are unsure.
 #
-KDUMP_SAVEDIR="file:///var/log/dump"
+KDUMP_SAVEDIR="file:///var/crash"
 
 ## Type:	integer
 ## Default:	5

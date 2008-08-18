@@ -1,3 +1,7 @@
+2008-08-18  Bernhard Walle <bwalle@suse.de>
+
+	* change default location to "/var/crash"
+
 2008-08-15  Bernhard Walle <bwalle@suse.de>
 
 	* make the kdump init script a boot script ("boot.kdump")

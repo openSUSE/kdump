@@ -1,3 +1,7 @@
+0.6.4
+-----
+  * change default location for KDUMP_SAVEDIR to "/var/crash"
+
 0.6.3
 -----
   * make the kdump init script a boot script ("boot.kdump")
