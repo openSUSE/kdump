@@ -129,7 +129,7 @@ function find_boot_kernel()
     local kdump_kver=
 
     # <version>-kdump first
-    kdump_kver=$(uname -r | sed -e's/-[^-]*$//g')
+    kdump_kver=$(uname -r | sed -e's/-[^-]*$//g')-kdump
     if [ -n "$(check_boot_kernel $kdump_kver)" ] ; then
         echo "$kdump_kver"
         return
