@@ -1,3 +1,9 @@
+2008-10-26  Bernhard Walle <bwalle@suse.de>
+
+	* boot.kdump: Use the full kernel release (obtained with
+	  /sbin/get_kernel_version) to build the initrd name also when symlinks
+	  are used.
+
 2008-10-22  Bernhard Walle <bwalle@suse.de>
 
 	* actually check <version>-kdump before <version>-<flavour> when

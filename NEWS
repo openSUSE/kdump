@@ -3,6 +3,9 @@
   * change default location for KDUMP_SAVEDIR to "/var/crash"
   * actually check <version>-kdump before <version>-<flavour> when looking for
     a suitable kdump kernel
+  * boot.kdump: Use the full kernel release (obtained with
+    /sbin/get_kernel_version) to build the initrd name also when symlinks are
+    used.
 
 0.6.3
 -----

@@ -158,18 +158,31 @@ function find_boot_kernel()
 }
 
 #
-# Returns the initrd for the kernel. If the kernel already contains
+# Prints the initrd for the kernel. If the kernel already contains
 # "kdump", then return "/boot/initrd-<kernelver>", else return
 # "/boot/initrd-<kernelver>-kdump".
+#
+# @param kdump_kernel: Full path to the kernel
+# @returncode: 0 on success, 1 on failure
 function find_initrd ()
 {
-    local kdump_kver=$1
+    local kdump_kernel=$1
+
+    # canonicalize the kernel version
+    local kdump_kver=$(/sbin/get_kernel_version "$kdump_kernel")
+    if [ -z "$kdump_kver" ] ; then
+        echo >&2 "Getting version for $kdump_kernel failed."
+        echo "${BOOTDIR}/initrd-kdump"
+        return 1
+    fi
 
     if [[ "$kdump_kver" == *kdump* ]] ; then
-        echo "${BOOTDIR}/initrd${kdump_kver}"
+        echo "${BOOTDIR}/initrd${kdump_kver:+-}${kdump_kver}"
     else
         echo "${BOOTDIR}/initrd${kdump_kver:+-}${kdump_kver}-kdump"
     fi
+
+    return 0
 }
 
 #
@@ -240,7 +253,7 @@ function load_kdump()
         rc_exit
     fi
 
-    kdump_initrd=$(find_initrd "$kdump_kver")
+    kdump_initrd=$(find_initrd "$kdump_kernel")
 
     # rebuilding the kdump initramfs if necessary
     mkdumprd -K "$kdump_kernel" -I "$kdump_initrd" -q
