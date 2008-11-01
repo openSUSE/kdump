@@ -28,6 +28,7 @@
 
 #define NAME_MAXLENGTH 30
 #define DEFAULT_WIDTH  80
+#define DEFAULT_HEIGHT 25
 
 using std::string;
 using std::setw;
@@ -41,7 +42,7 @@ using std::ostream;
 //{{{ Terminal -----------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-Terminal::Size Terminal::getSize() const
+Terminal::Size Terminal::getSize(bool *defaultUsed) const
     throw ()
 {
     Terminal::Size sz;
@@ -51,11 +52,21 @@ Terminal::Size Terminal::getSize() const
     if (err != 0) {
         sz.width = 0;
         sz.height = 0;
+
+        if (defaultUsed) {
+            *defaultUsed = true;
+        }
+
         return sz;
     }
 
     sz.width = winsize.ws_col;
     sz.height = winsize.ws_row;
+
+    if (defaultUsed) {
+        *defaultUsed = false;
+    }
+
 
     return sz;
 }
@@ -86,8 +97,6 @@ TerminalProgress::TerminalProgress(const string &name)
 
     Terminal t;
     m_linelen = t.getSize().width;
-    if (m_linelen == 0)
-        m_linelen = DEFAULT_WIDTH;
 
     // subtract 1 for the space between string and bar, 1 for the leading
     // '|' and 1 for the trailing '|', and one space free, 4 for ...%

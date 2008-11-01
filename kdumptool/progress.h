@@ -54,11 +54,16 @@ class Terminal {
         /**
          * Retriesves the terminal size.
          *
+         * @param[out] defaultUsed if that variable is not @c NULL,
+         *             it will be set to @c true if the size of the terminal
+         *             cannot be detected by ioctl() and a default value
+         *             will be assumed and to @c false otherwise.
+         *
          * @return a size object that represents the terminal size,
          *         and (0, 0) if the size cannot be retrieved (mostly because
          *         the standard output is no terminal but redirected to a file)
          */
-        Size getSize() const
+        Size getSize(bool *defaultUsed = NULL) const
         throw ();
 
         /**

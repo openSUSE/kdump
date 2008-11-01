@@ -6,6 +6,7 @@
   * boot.kdump: Use the full kernel release (obtained with
     /sbin/get_kernel_version) to build the initrd name also when symlinks are
     used.
+  * Assume a default terminal size of 80x25 (for printing the horizontal line)
 
 0.6.3
 -----

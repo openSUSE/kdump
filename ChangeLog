@@ -1,3 +1,8 @@
+2008-11-01  Bernhard Walle <bwalle@suse.de>
+
+	* Assume a default terminal size of 80x25 (for printing the horizontal
+	  line).
+
 2008-10-26  Bernhard Walle <bwalle@suse.de>
 
 	* boot.kdump: Use the full kernel release (obtained with
