@@ -7,6 +7,7 @@
     /sbin/get_kernel_version) to build the initrd name also when symlinks are
     used.
   * Assume a default terminal size of 80x25 (for printing the horizontal line)
+  * Check the exit status of kdumptool
 
 0.6.3
 -----

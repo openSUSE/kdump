@@ -129,6 +129,7 @@ else
     read hostname < /etc/hostname.kdump
     HOME=/ kdumptool save_dump --root=$ROOTDIR \
         --fqdn=$hostname $KDUMPTOOL_OPTIONS
+    continue_error $?
 
     #
     # postscript
