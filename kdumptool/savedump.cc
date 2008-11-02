@@ -602,6 +602,7 @@ void SaveDump::sendNotification(bool failure, const string &savedir)
             m_hostname = Util::getHostDomain();
 
         Email email("root@" + m_hostname);
+        email.setHostname(m_hostname);
         email.setTo(config->getNotificationTo());
 
         if (config->getNotificationCc().size() != 0) {
