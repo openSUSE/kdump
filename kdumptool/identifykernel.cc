@@ -146,6 +146,7 @@ void IdentifyKernel::execute()
                 break;
             case KT_X86:
                 reloc = checkArchFile(m_kernelImage.c_str());
+                break;
             default:
                 throw KError("Invalid kernel type.");
                 break;
