@@ -175,17 +175,33 @@ void Email::setBody(const string &body)
 }
 
 // -----------------------------------------------------------------------------
+void Email::setHostname(const string &hostname)
+    throw ()
+{
+    Debug::debug()->trace("Email::setHostname(%s)", hostname.c_str());
+
+    m_hostname = hostname;
+
+    // only host, not domain
+    string::size_type dot = m_hostname.find('.');
+    if (dot != string::npos) {
+        m_hostname = m_hostname.substr(0, dot);
+    }
+}
+
+// -----------------------------------------------------------------------------
 void Email::send()
     throw (KError)
 {
     Debug::debug()->trace("Email::send()");
+    int ret;
 
     smtp_session_t session = smtp_create_session();
     smtp_message_t message = smtp_add_message(session);
     auth_context_t authctx = NULL;
 
     if (Debug::debug()->isDebugEnabled()) {
-        int ret = smtp_set_monitorcb(session, smtp_monitor_cb, NULL, false);
+        ret = smtp_set_monitorcb(session, smtp_monitor_cb, NULL, false);
         if (ret == 0) {
             throw KSmtpError("Cannot set monitor callback.", smtp_errno());
         }
@@ -199,7 +215,7 @@ void Email::send()
     if (host.find(':') == string::npos)
         host += ":25";
 
-    int ret = smtp_set_server(session, strdup(host.c_str()));
+    ret = smtp_set_server(session, strdup(host.c_str()));
     if (ret == 0)
         throw KSmtpError("smtp_set_server() failed.", ret);
 
@@ -215,6 +231,14 @@ void Email::send()
         auth_set_mechanism_flags(authctx, AUTH_PLUGIN_PLAIN, 0);
         auth_set_interact_cb(authctx, authinteract, NULL);
         smtp_auth_set_context(session, authctx);
+    }
+    
+    // set hostname
+    if (m_hostname.size() > 0) {
+        ret = smtp_set_hostname(session, m_hostname.c_str());
+        if (ret == 0) {
+            throw KSmtpError("smtp_set_hostname failed.", smtp_errno());
+        }
     }
 
     // set headers

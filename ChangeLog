@@ -18,6 +18,7 @@
 	  terminate unexpectedly.
 	* Remove newline from the SMTP status error text.
 	* Implement debugging of SMTP session.
+	* Set the hostname of the SMTP session based on the --fqdn parameter.
 
 2008-11-01  Bernhard Walle <bwalle@suse.de>
 

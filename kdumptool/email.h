@@ -87,6 +87,15 @@ class Email {
         throw ();
 
         /**
+         * Sets the hostname of localhost. If that function is not called,
+         * libesmtp uses uname.
+         *
+         * @param[in] hostname the host name to use
+         */
+        void setHostname(const std::string &hostname)
+        throw ();
+
+        /**
          * Sends the specified email.
          *
          * @exception ESmtpError the exception that is thrown when an error
@@ -101,6 +110,7 @@ class Email {
          StringVector m_cc;
          std::string m_subject;
          std::string m_from;
+         std::string m_hostname;
          std::string m_body;
 };
 

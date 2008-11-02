@@ -19,6 +19,7 @@
   * Create core dumps in the initrd when kdumptool crashes.
   * Fix std::logic_error in Email::send() that caused kdumptool to terminate
     unexpectedly.
+  * Set the hostname of the SMTP session based on the --fqdn parameter.
 
 0.6.3
 -----
