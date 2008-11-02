@@ -233,7 +233,7 @@ void Email::send()
         int statuscode = status->code;
 
         // remove newlines from the status text
-        statustext = Stringutil::rtrim(statustext, "\n \t");
+        statustext = Stringutil::rtrim(statustext, "\n \t\r");
 
         smtp_destroy_session(session);
         if (authctx) {
