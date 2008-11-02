@@ -16,6 +16,7 @@
     initrd because in theory the file system that contains parts of the symlinks
     is not mounted in initrd.
   * Fix KDUMP_NETCONFIG=auto by calling mkinitrd with right parameters.
+  * Create core dumps in the initrd when kdumptool crashes.
 
 0.6.3
 -----

@@ -26,6 +26,14 @@
 # reboot.
 function handle_exit()
 {
+    # restore core dump stuff
+    if [ -n "$backup_core_pattern" ] ; then
+        echo "$backup_core_pattern" > /proc/sys/kernel/core_pattern
+    fi
+    if [ -n "$backup_ulimit" ] ; then
+        ulimit -c "$backup_ulimit"
+    fi
+    
     if [ $KDUMP_IMMEDIATE_REBOOT = "yes" \
             -o "$KDUMP_IMMEDIATE_REBOOT" = "YES" ] ; then
         reboot -f
@@ -91,6 +99,14 @@ ROOTDIR=/root
 #
 # start LED blinking in background
 kdumptool ledblink --background
+
+#
+# create core dumps by default here for kdumptool debugging
+read backup_core_pattern < /proc/sys/kernel/core_pattern
+backup_ulimit=$(ulimit -c)
+
+echo "$ROOTDIR/tmp/core.kdumptool" > /proc/sys/kernel/core_pattern
+ulimit -c unlimited
 
 #
 # create mountpoint for NFS/CIFS

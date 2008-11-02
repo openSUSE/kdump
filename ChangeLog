@@ -10,6 +10,7 @@
 	  creating the initrd because in theory the file system that contains
 	  parts of the symlinks is not mounted in initrd.
 	* Fix KDUMP_NETCONFIG=auto by calling mkinitrd with right parameters.
+	* Create core dumps in the initrd when kdumptool crashes.
 
 2008-11-01  Bernhard Walle <bwalle@suse.de>
 
