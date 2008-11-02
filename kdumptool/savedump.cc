@@ -549,7 +549,13 @@ void SaveDump::checkAndDelete()
     }
 
     Configuration *config = Configuration::config();
-    string path(FileUtil::pathconcat(m_rootdir, m_urlParser.getPath()));
+    string path = m_urlParser.getPath();
+
+    if (m_rootdir.size() != 0) {
+        path = FileUtil::pathconcat(m_rootdir, 
+                FileUtil::getCanonicalPathRoot(path, m_rootdir));
+    }
+
     unsigned long long freeSize = FileUtil::freeDiskSize(path);
     unsigned long long targetDiskSize = (unsigned long long)config->getFreeDiskSize();
 

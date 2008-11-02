@@ -114,7 +114,11 @@ void DeleteDumps::execute()
         return;
     }
 
-    string dir = FileUtil::pathconcat(m_rootdir, parser.getPath());
+    string dir = parser.getPath();
+    if (m_rootdir.size() != 0) {
+        dir = FileUtil::pathconcat(m_rootdir, 
+                FileUtil::getCanonicalPathRoot(dir, m_rootdir));
+    }
     Debug::debug()->dbg("Using directory %s", dir.c_str());
 
     if (!FileUtil::exists(dir)) {
