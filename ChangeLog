@@ -12,6 +12,8 @@
 	* Fix KDUMP_NETCONFIG=auto by calling mkinitrd with right parameters.
 	* Create core dumps in the initrd when kdumptool crashes.
 	* Fix compile warning in IdentifyKernel::execute().
+	* Also return the default terminal size if ioctl(TIOCGWINSZ) returns
+	  a size of 0x0.
 
 2008-11-01  Bernhard Walle <bwalle@suse.de>
 
