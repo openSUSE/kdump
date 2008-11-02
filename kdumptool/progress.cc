@@ -50,8 +50,8 @@ Terminal::Size Terminal::getSize(bool *defaultUsed) const
 
     int err = ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsize);
     if (err != 0) {
-        sz.width = 0;
-        sz.height = 0;
+        sz.width = DEFAULT_WIDTH;
+        sz.height = DEFAULT_HEIGHT;
 
         if (defaultUsed) {
             *defaultUsed = true;
