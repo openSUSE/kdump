@@ -10,6 +10,8 @@
   * Check the exit status of kdumptool
   * Implement support for resolving symbolic links inside a root directory
 	(--root=...) when saving the dump.
+  * Don't print a (red) info message that email failed if both KDUMP_SMTP_SERVER
+    and KDUMP_NOTIFICATION_TO are empty.
 
 0.6.3
 -----

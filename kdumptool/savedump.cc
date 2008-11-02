@@ -583,9 +583,16 @@ void SaveDump::sendNotification(bool failure, const string &savedir)
         return;
     }
 
-    try {
+    Configuration *config = Configuration::config();
 
-        Configuration *config = Configuration::config();
+    // Email not configured
+    if (config->getSmtpServer().size() == 0 &&
+            config->getNotificationTo().size() == 0) {
+        Debug::debug()->dbg("Email not configured.");
+        return;
+    }
+
+    try {
         if (config->getSmtpServer().size() == 0)
             throw KError("KDUMP_SMTP_SERVER not set.");
         if (config->getNotificationTo().size() == 0)
