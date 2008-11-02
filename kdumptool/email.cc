@@ -229,15 +229,17 @@ void Email::send()
     const smtp_status_t *status = smtp_message_transfer_status(message);
 
     if (status && status->code >= 400) {
-          smtp_destroy_session(session);
-          if (authctx) {
-              auth_destroy_context(authctx);
-              auth_client_exit();
-          }
+        string statustext = SAVE_CHARSTRING(status->text);
+        int statuscode = status->code;
 
-          throw KError("Sending mail failed: " +
-              string(status->text) + ". (" +
-              Stringutil::number2string(status->code) + ")");
+        smtp_destroy_session(session);
+        if (authctx) {
+            auth_destroy_context(authctx);
+            auth_client_exit();
+        }
+
+        throw KError("Sending mail failed: " + statustext + 
+            ". (" + Stringutil::number2string(statuscode) + ")");
     }
 
     smtp_destroy_session(session);

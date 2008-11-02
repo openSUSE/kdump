@@ -44,6 +44,16 @@ typedef std::vector<unsigned char> ByteVector;
 typedef std::map<std::string, std::string> StringStringMap;
 
 //}}}
+//{{{ Macros -------------------------------------------------------------------
+
+/**
+ * Some protection against NULL strings for functions that cannot deal with
+ * NULL. Returns "(null)" if the string is NULL and the string itself otherwise.
+ */
+#define SAVE_CHARSTRING(x) \
+    (x) ? (x) : ("null")
+
+//}}}
 //{{{ KError -------------------------------------------------------------------
 
 /**

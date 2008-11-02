@@ -17,6 +17,8 @@
     is not mounted in initrd.
   * Fix KDUMP_NETCONFIG=auto by calling mkinitrd with right parameters.
   * Create core dumps in the initrd when kdumptool crashes.
+  * Fix std::logic_error in Email::send() that caused kdumptool to terminate
+    unexpectedly.
 
 0.6.3
 -----
