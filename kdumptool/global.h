@@ -253,6 +253,8 @@ class KSmtpError : public KError {
         std::string m_errorstring;
 };
 
+//}}}
+
 #endif // HAVE_LIBESMTP
 
 #endif /* GLOBAL_H */
