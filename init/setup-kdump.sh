@@ -125,8 +125,13 @@ if [ -z "$target" ] ; then
     return 1
 fi
 protocol=$(echo "$target" | grep '^Protocol' | awk '{ print $2 }')
-path=$(echo "$target" | grep '^Path' | awk '{ print $2 }')
+path=$(echo "$target" | grep '^Realpath' | awk '{ print $2 }')
 
+#
+# replace the KDUMP_SAVEDIR with the resolved path
+if [ "$protocol" = "file" ] ; then
+    sed -i "s#KDUMP_SAVEDIR=.*#file://$path#g" ${tmp_mnt}/etc/sysconfig/$CONFIG
+fi
 
 #
 # add mount points (below /root)

@@ -12,6 +12,9 @@
 	(--root=...) when saving the dump.
   * Don't print a (red) info message that email failed if both KDUMP_SMTP_SERVER
     and KDUMP_NOTIFICATION_TO are empty.
+  * If KDUMP_SAVEDIR points to a local file, resolve symlinks when creating the
+    initrd because in theory the file system that contains parts of the symlinks
+    is not mounted in initrd.
 
 0.6.3
 -----
