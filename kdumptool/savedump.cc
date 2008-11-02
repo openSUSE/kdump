@@ -134,8 +134,6 @@ void SaveDump::execute()
     // build the transfer object
     // prepend a time stamp to the save dir
     string savedir = config->getSavedir();
-    savedir = FileUtil::pathconcat(savedir,
-        Stringutil::formatCurrentTime(ISO_DATETIME));
 
     // root dir support
     m_urlParser.parseURL(savedir.c_str());
@@ -145,11 +143,15 @@ void SaveDump::execute()
         Debug::debug()->dbg("Using root dir support for Transfer (%s)",
             m_rootdir.c_str());
 
-        string newUrl = m_urlParser.getProtocolAsString() + "://" +
-            FileUtil::pathconcat(m_rootdir, m_urlParser.getPath());;
-        m_transfer = URLTransfer::getTransfer(newUrl.c_str());
-    } else
-        m_transfer = URLTransfer::getTransfer(savedir.c_str());
+        savedir = m_urlParser.getProtocolAsString() + "://" +
+            FileUtil::pathconcat(m_rootdir, 
+                FileUtil::getCanonicalPathRoot(m_urlParser.getPath(), m_rootdir)
+            );
+    }
+
+    savedir = FileUtil::pathconcat(savedir,
+        Stringutil::formatCurrentTime(ISO_DATETIME));
+    m_transfer = URLTransfer::getTransfer(savedir.c_str());
 
     // save the dump
     try {

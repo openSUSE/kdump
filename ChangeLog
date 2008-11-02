@@ -2,6 +2,8 @@
 
 	* Implement printing of canonical path (realpath) for the 'print_target'
 	  subcommand.
+	* Implement support for resolving symbolic links inside a root directory
+	  (--root=...) when saving the dump.
 
 2008-11-01  Bernhard Walle <bwalle@suse.de>
 

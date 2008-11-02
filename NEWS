@@ -8,6 +8,8 @@
     used.
   * Assume a default terminal size of 80x25 (for printing the horizontal line)
   * Check the exit status of kdumptool
+  * Implement support for resolving symbolic links inside a root directory
+	(--root=...) when saving the dump.
 
 0.6.3
 -----
