@@ -41,6 +41,18 @@ using std::free;
 //{{{ FileUtil -----------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
+void FileUtil::chroot(const std::string &dir)
+    throw (KError)
+{
+    Debug::debug()->trace("chroot(%s)", dir.c_str());
+    
+    int ret = ::chroot(dir.c_str());
+    if (ret < 0) {
+        throw KSystemError("chroot failed", errno);
+    }
+}
+
+// -----------------------------------------------------------------------------
 void FileUtil::mkdir(const std::string &dir, bool recursive)
     throw (KError)
 {
@@ -73,6 +85,88 @@ void FileUtil::mkdir(const std::string &dir, bool recursive)
         }
     }
 }
+
+// -----------------------------------------------------------------------------
+bool FileUtil::isSymlink(const std::string &path)
+    throw (KError)
+{
+    struct stat mystat;
+
+    Debug::debug()->trace("isSymlink(%s)", path.c_str());
+
+    int ret = lstat(path.c_str(), &mystat);
+    if (ret < 0) {
+        throw KSystemError("Stat failed", errno);
+    }
+
+    return S_ISLNK(mystat.st_mode);
+}
+
+// -----------------------------------------------------------------------------
+string FileUtil::readlink(const std::string &path)
+    throw (KError)
+{
+    Debug::debug()->trace("readlink(%s)", path.c_str());
+    char buffer[BUFSIZ];
+
+    int ret = ::readlink(path.c_str(), buffer, BUFSIZ-1);
+    if (ret < 0) {
+        throw KSystemError("readlink() failed", errno);
+    }
+
+    buffer[ret] = '\0';
+    return string(buffer);
+}
+
+// -----------------------------------------------------------------------------
+string FileUtil::getCanonicalPath(const string &path)
+    throw (KError)
+{
+    Debug::debug()->trace("getCanonicalPath(%s)", path.c_str());
+
+    char * ret = canonicalize_file_name(path.c_str());
+    if (ret == NULL) {
+        throw KSystemError("realpath() failed in getCanonicalPath()", errno);
+    }
+
+    string retstr = string(ret);
+    free(ret);
+
+    return retstr;
+}
+
+// -----------------------------------------------------------------------------
+string FileUtil::getCanonicalPathRoot(const string &path, const string &root)
+    throw (KError)
+{
+    if (root.size() == 0) {
+        return getCanonicalPath(path);
+    }
+
+    Debug::debug()->trace("getCanonicalPathRoot(%s, %s)",
+        path.c_str(), root.c_str());
+
+    // check the permission first
+    if (getuid() != 0) {
+        throw KError("You have to be root to use that functionality.");
+    }
+
+    chroot(root);
+
+    string result;
+    try {
+        result = getCanonicalPath(path);
+    } catch (const KError &kerr) {
+        try {
+            chroot("..");
+        } catch (const KError &err) {}
+        throw;
+    }
+
+    chroot("..");
+    return result;
+}
+
 
 // -----------------------------------------------------------------------------
 bool FileUtil::exists(const string &file)

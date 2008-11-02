@@ -158,3 +158,22 @@ SET(TESTMAIL_SRC
 
 add_executable(testmail ${TESTMAIL_SRC})
 target_link_libraries(testmail ${EXTRA_LIBS})
+
+SET(TESTREADLINK_SRC
+    util.h
+    util.cc
+    process.cc
+    process.h
+    stringutil.h
+    stringutil.cc
+    fileutil.h
+    fileutil.cc
+    global.cc
+    global.h
+    debug.cc
+    debug.h
+    testreadlink.cc
+)
+
+add_executable(testreadlink ${TESTREADLINK_SRC})
+target_link_libraries(testreadlink ${EXTRA_LIBS})

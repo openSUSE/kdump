@@ -30,6 +30,16 @@
 class FileUtil {
 
     public:
+        
+        /**
+         * Executes the chroot() function.
+         *
+         * @param[in] dir the directory to chroot to
+         *
+         * @throw KError on any error
+         */
+        static void chroot(const std::string &dir)
+        throw (KError);
 
         /**
          * Creates a new directory.
@@ -41,6 +51,57 @@ class FileUtil {
          * @throw KError on any error
          */
         static void mkdir(const std::string &dir, bool recursive)
+        throw (KError);
+
+        /**
+         * Checks if the given path is a symbolic link.
+         *
+         * @param[in] path the path which should be checked for being a symbolic
+         *            link
+         *
+         * @throw KError on any error
+         */
+        static bool isSymlink(const std::string &path)
+        throw (KError);
+
+        /**
+         * Reads a symbolic link. Does the same like readlink(2), only
+         * that it's C++ and an exception is thrown on error instead of
+         * giving an error code.
+         *
+         * @param[in] path the path to read the link
+         * @return the resolved link
+         *
+         * @throw KError if an error occured
+         */
+        static std::string readlink(const std::string &path)
+        throw (KError);
+
+        /**
+         * Returns the canonical representation of the specified path.
+         * This means that all symbolic links are resolved.
+         *
+         * @param[in] path the path that should be canonicalized
+         * @return the canonical representation of the path
+         *
+         * @throw KError when readlink fails
+         */
+        static std::string getCanonicalPath(const std::string &path)
+        throw (KError);
+
+        /**
+         * Returns the canonical representation of the specified path.
+         * This means that all symbolic links are resolved. It does that
+         * in a chroot environment below @p root.
+         *
+         * @param[in] path the path that should be canonicalized
+         * @param[in] root the new root where the function should chroot to
+         * @return the canonical representation of the path
+         *
+         * @throw KError when chroot or realpath() fail
+         */
+        static std::string getCanonicalPathRoot(const std::string &path,
+                                                const std::string &root)
         throw (KError);
 
         /**

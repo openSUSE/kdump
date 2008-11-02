@@ -84,14 +84,38 @@ void PrintTarget::execute()
     URLParser parser;
     parser.parseURL(url);
 
-    string path, port;
+    string path, port, realpath;
 
     if (m_rootdir.size() > 0 && parser.getProtocol() == URLParser::PROT_FILE) {
-        path = FileUtil::pathconcat(m_rootdir, parser.getPath());
+        path = path = parser.getPath();
         url = "file://" + path;
+
+        // resolve the symlinks
+        try {
+            realpath = FileUtil::getCanonicalPathRoot(path, m_rootdir);
+        } catch (const KError &err) {
+            Debug::debug()->info("Retrieving the absolute path of '%s' "
+                "failed", path.c_str());
+            realpath = parser.getPath();
+        }
+
+        path = FileUtil::pathconcat(m_rootdir, path);
+        realpath = FileUtil::pathconcat(m_rootdir, realpath);
+
     } else {
         url = parser.getURL();
         path = parser.getPath();
+
+        // resolve the symlinks
+        if (parser.getProtocol() == URLParser::PROT_FILE) {
+            try {
+                realpath = FileUtil::getCanonicalPath(parser.getPath());
+            } catch (const KError &err) {
+                Debug::debug()->info("Retrieving the absolute path of '%s' "
+                    "failed", parser.getPath().c_str());
+                realpath = parser.getPath();
+            }
+        }
     }
     if (parser.getPort() != -1)
         port = Stringutil::number2string(parser.getPort());
@@ -105,6 +129,7 @@ void PrintTarget::execute()
     cout << "Host:       " << parser.getHostname() << endl;
     cout << "Port:       " << port << endl;
     cout << "Path:       " << path << endl;
+    cout << "Realpath:   " << realpath << endl;
 }
 
 //}}}

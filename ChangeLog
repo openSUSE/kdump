@@ -1,3 +1,8 @@
+2008-11-02  Bernhard Walle <bernhard.walle@gmx.de>
+
+	* Implement printing of canonical path (realpath) for the 'print_target'
+	  subcommand.
+
 2008-11-01  Bernhard Walle <bwalle@suse.de>
 
 	* Assume a default terminal size of 80x25 (for printing the horizontal
