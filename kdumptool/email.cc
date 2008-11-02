@@ -95,6 +95,42 @@ static const char *smtp_messagecb(void **buf, int *len, void *arg)
 }
 
 // -----------------------------------------------------------------------------
+static void smtp_monitor_cb(const char *buf, int buflen, int writing, void *arg)
+{
+    // make sure that the buffer is 0-terminated
+    char *mybuffer = new char[buflen+1];
+    memmove(mybuffer, buf, buflen);
+    mybuffer[buflen] = '\0';
+
+    // replace newlines with spaces
+    for (int i = 0; i < buflen; i++) {
+        if (mybuffer[i] == '\n' || mybuffer[i] == '\r') {
+            mybuffer[i] = ' ';
+        }
+    }
+
+    const char *direction;
+    switch (writing) {
+        case SMTP_CB_READING:
+            direction = "<=";
+            break;
+
+        case SMTP_CB_WRITING:
+            direction = "=>";
+            break;
+
+        default:
+            direction = "";
+            break;
+    }
+
+    Debug::debug()->trace("ESMTP: %s %s", direction, mybuffer);
+
+    delete[] mybuffer;
+}
+
+
+// -----------------------------------------------------------------------------
 Email::Email(const string &from)
     throw ()
     : m_from(from)
@@ -147,6 +183,13 @@ void Email::send()
     smtp_session_t session = smtp_create_session();
     smtp_message_t message = smtp_add_message(session);
     auth_context_t authctx = NULL;
+
+    if (Debug::debug()->isDebugEnabled()) {
+        int ret = smtp_set_monitorcb(session, smtp_monitor_cb, NULL, false);
+        if (ret == 0) {
+            throw KSmtpError("Cannot set monitor callback.", smtp_errno());
+        }
+    }
 
     Configuration *config = Configuration::config();
     string host = config->getSmtpServer();

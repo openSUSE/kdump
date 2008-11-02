@@ -17,6 +17,7 @@
 	* Fix std::logic_error in Email::send() that caused kdumptool to
 	  terminate unexpectedly.
 	* Remove newline from the SMTP status error text.
+	* Implement debugging of SMTP session.
 
 2008-11-01  Bernhard Walle <bwalle@suse.de>
 
