@@ -20,6 +20,7 @@
   * Fix std::logic_error in Email::send() that caused kdumptool to terminate
     unexpectedly.
   * Set the hostname of the SMTP session based on the --fqdn parameter.
+  * Don't report a failure in the email when there is no one.
 
 0.6.3
 -----

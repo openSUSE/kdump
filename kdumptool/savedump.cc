@@ -175,7 +175,7 @@ void SaveDump::execute()
     }
 
     // send the email afterwards
-    sendNotification(true, savedir);
+    sendNotification(false, savedir);
 
     // because we don't know the file size in advance, check
     // afterwards if the disk space is not sufficient and delete
