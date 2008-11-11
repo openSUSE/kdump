@@ -39,10 +39,11 @@ class Debuglink {
         /**
          * Creates a new Debuglink object.
          *
+         * @param[in] rootdir the root directory (like chroot)
          * @param[in] file the name of the file. Can be ELF or ELF.gz.
          * @exception KError if the file does not exist.
          */
-        Debuglink(const char *file)
+        Debuglink(const std::string &rootdir, const std::string &file)
         throw (KError);
 
         /**
@@ -63,11 +64,10 @@ class Debuglink {
         /**
          * Finds the debuginfo file on the system.
          *
-         * @param[in] prefix add that prefix to global path names
          * @return the path to the debuginfo file
          * @exception KError if something went wrong
          */
-        std::string findDebugfile(const char *prefix="")
+        std::string findDebugfile()
         throw (KError);
 
         /**
@@ -106,6 +106,7 @@ class Debuglink {
 
 
     private:
+        std::string m_rootdir;
         std::string m_filename;
         std::string m_debuglink;
         uint32_t m_crc;

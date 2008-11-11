@@ -217,6 +217,19 @@ string FileUtil::pathconcat(const string &a, const string &b, const string &c)
 }
 
 // -----------------------------------------------------------------------------
+string FileUtil::pathconcat(const string &a,
+                            const string &b,
+                            const string &c,
+                            const string &d)
+    throw ()
+{
+    return Stringutil::rtrim(a, "/") + PATH_SEPARATOR +
+           Stringutil::trim(b, "/") + PATH_SEPARATOR +
+           Stringutil::trim(c, "/") + PATH_SEPARATOR +
+           Stringutil::ltrim(d, "/");
+}
+
+// -----------------------------------------------------------------------------
 void FileUtil::nfsmount(const string &host,
                         const string &dir,
                         const string &mountpoint,

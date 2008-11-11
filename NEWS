@@ -1,3 +1,8 @@
+0.6.5
+-----
+  * Fix copying of debug info when --root is specified and the debug file
+    resides in GLOBALDEBUGDIR/EXECDIR/DEBUGFILE.
+
 0.6.4
 -----
   * change default location for KDUMP_SAVEDIR to "/var/crash"

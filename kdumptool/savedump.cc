@@ -450,7 +450,9 @@ void SaveDump::copyKernel()
 
     // mapfile
     TerminalProgress mapProgress("Copying System.map");
-    FileDataProvider mapProvider(mapfile.c_str());
+    FileDataProvider mapProvider(
+        FileUtil::pathconcat(m_rootdir, mapfile).c_str()
+    );
     if (config->getVerbose() & Configuration::VERB_PROGRESS)
         mapProvider.setProgress(&mapProgress);
     else
@@ -458,7 +460,9 @@ void SaveDump::copyKernel()
     m_transfer->perform(&mapProvider, FileUtil::baseName(mapfile).c_str());
 
     TerminalProgress kernelProgress("Copying kernel");
-    FileDataProvider kernelProvider(kernel.c_str());
+    FileDataProvider kernelProvider(
+        FileUtil::pathconcat(m_rootdir, kernel).c_str()
+    );
     if (config->getVerbose() & Configuration::VERB_PROGRESS)
         kernelProvider.setProgress(&kernelProgress);
     else
@@ -467,13 +471,15 @@ void SaveDump::copyKernel()
 
     // try to find debugging information
     try {
-        Debuglink dbg(kernel.c_str());
+        Debuglink dbg(m_rootdir, kernel);
         dbg.readDebuglink();
-        string debuglink = dbg.findDebugfile(m_rootdir.c_str());
+        string debuglink = dbg.findDebugfile();
         Debug::debug()->dbg("Found debuginfo file: %s", debuglink.c_str());
 
         TerminalProgress debugkernelProgress("Copying kernel.debug");
-        FileDataProvider debugkernelProvider(debuglink.c_str());
+        FileDataProvider debugkernelProvider(
+            FileUtil::pathconcat(m_rootdir, debuglink).c_str()
+        );
         if (config->getVerbose() & Configuration::VERB_PROGRESS)
             debugkernelProvider.setProgress(&debugkernelProgress);
         else
@@ -493,27 +499,31 @@ string SaveDump::findKernel()
     Debug::debug()->trace("SaveDump::findKernel()");
 
     // find the kernel binary
-    string binary;
+    string binary, binaryroot;
 
     // 1: vmlinux
-    binary = FileUtil::pathconcat(m_rootdir, "/boot",
-                                  "vmlinux-" + m_crashrelease);
-    Debug::debug()->dbg("Trying %s", binary.c_str());
-    if (FileUtil::exists(binary))
+    binary = FileUtil::pathconcat("/boot", "vmlinux-" + m_crashrelease);
+    binaryroot = FileUtil::pathconcat(m_rootdir, binary);
+    Debug::debug()->dbg("Trying %s", binaryroot.c_str());
+    if (FileUtil::exists(binaryroot))
         return binary;
 
     // 2: vmlinux.gz
     binary += ".gz";
-    Debug::debug()->dbg("Trying %s", binary.c_str());
-    if (FileUtil::exists(binary))
+    binaryroot += ".gz";
+    Debug::debug()->dbg("Trying %s", binaryroot.c_str());
+    if (FileUtil::exists(binaryroot))
         return binary;
 
     // 3: vmlinuz (check if ELF file)
     binary = FileUtil::pathconcat(m_rootdir, "/boot",
                                   "vmlinuz-" + m_crashrelease);
-    Debug::debug()->dbg("Trying %s", binary.c_str());
-    if (FileUtil::exists(binary) && IdentifyKernel::isElfFile(binary.c_str()))
+    binaryroot = FileUtil::pathconcat(m_rootdir, binary);
+    Debug::debug()->dbg("Trying %s", binaryroot.c_str());
+    if (FileUtil::exists(binaryroot) && 
+            IdentifyKernel::isElfFile(binaryroot.c_str())) {
         return binary;
+    }
 
     throw KError("No kernel image found in " +
         FileUtil::pathconcat(m_rootdir, "/boot"));
@@ -525,10 +535,10 @@ string SaveDump::findMapfile()
 {
     Debug::debug()->trace("SaveDump::findMapfile()");
 
-    string map = FileUtil::pathconcat(m_rootdir, "/boot",
-                                      "System.map-" + m_crashrelease);
-    Debug::debug()->dbg("Trying %s", map.c_str());
-    if (FileUtil::exists(map))
+    string map = FileUtil::pathconcat("/boot", "System.map-" + m_crashrelease);
+    string maproot = FileUtil::pathconcat(m_rootdir, map);
+    Debug::debug()->dbg("Trying %s", maproot.c_str());
+    if (FileUtil::exists(maproot))
         return map;
 
     throw KError("No System.map found in " +

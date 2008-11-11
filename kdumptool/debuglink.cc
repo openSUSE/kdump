@@ -102,18 +102,20 @@ gnu_debuglink_crc32 (uint32_t crc, unsigned char *buf, size_t len)
 }
 
 // -----------------------------------------------------------------------------
-Debuglink::Debuglink(const char *file)
+Debuglink::Debuglink(const string &rootdir, const string &file)
     throw (KError)
-    : m_filename(file)
+    : m_rootdir(rootdir), m_filename(file)
 {
-    Debug::debug()->trace("Debuglink::Debuglink(%s)", file);
+    Debug::debug()->trace("Debuglink::Debuglink(%s, %s)",
+        rootdir.c_str(), file.c_str());
 
     // check that there are no version inconsitencies
     if (elf_version(EV_CURRENT) == EV_NONE )
         throw KError("Elf library out of date!");
 
-    if (!FileUtil::exists(file))
-        throw KError("File " + string(file) + " does not exist.");
+    string rootkernel = FileUtil::pathconcat(m_rootdir, file);
+    if (!FileUtil::exists(rootkernel))
+        throw KError("File " + string(rootkernel) + " does not exist.");
 }
 
 // -----------------------------------------------------------------------------
@@ -126,7 +128,7 @@ void Debuglink::readDebuglink()
     Elf *elf = NULL;
 
     try {
-        if (Util::isGzipFile(m_filename.c_str()))
+        if (Util::isGzipFile(FileUtil::pathconcat(m_rootdir, m_filename).c_str()))
             fd = openCompressed();
         else
             fd = openUncompressed();
@@ -146,31 +148,36 @@ void Debuglink::readDebuglink()
 }
 
 // -----------------------------------------------------------------------------
-string Debuglink::findDebugfile(const char *prefix)
+string Debuglink::findDebugfile()
     throw (KError)
 {
-    Debug::debug()->trace("Debuglink::findDebugfile(%s)", prefix);
+    Debug::debug()->trace("Debuglink::findDebugfile()");
 
     if (m_debuglink.size() == 0)
         throw KError("Debuglink::readDebuglink() not called.");
 
     // 1st: EXECDIR/DEBUGFILE
-    string path = FileUtil::pathconcat(FileUtil::dirname(m_filename),
+    string path = FileUtil::pathconcat(
+        FileUtil::dirname(m_filename),
         m_debuglink);
+    string rootpath = FileUtil::pathconcat(m_rootdir, path);
     try {
-        uint32_t crc = calcCrc(path);
+        uint32_t crc = calcCrc(rootpath);
         if (crc != m_crc)
             throw KError("CRC mismatch: " +
                 Stringutil::number2string(crc) + " vs. " +
                 Stringutil::number2string(m_crc));
-        return path;
+        return rootpath;
     } catch (const KError &err) {}
 
     // 2nd: EXECDIR/.debug/DEBUGFILE
-    path = FileUtil::pathconcat(FileUtil::dirname(m_filename), ".debug");
-    path = FileUtil::pathconcat(path, m_debuglink);
+    path = FileUtil::pathconcat(
+        FileUtil::dirname(m_filename),
+        ".debug",
+        m_debuglink);
+    rootpath = FileUtil::pathconcat(m_rootdir, path);
     try {
-        uint32_t crc = calcCrc(path);
+        uint32_t crc = calcCrc(rootpath);
         if (crc != m_crc)
             throw KError("CRC mismatch: " +
                 Stringutil::number2string(crc) + " vs. " +
@@ -179,11 +186,14 @@ string Debuglink::findDebugfile(const char *prefix)
     } catch (const KError &err) {}
 
     // 3rd: GLOBALDEBUGDIR/EXECDIR/DEBUGFILE
-    path = FileUtil::pathconcat(prefix, GLOBALDEBUGDIR,
-        FileUtil::dirname(m_filename));
-    path = FileUtil::pathconcat(path, m_debuglink);
+    path = FileUtil::pathconcat(
+        GLOBALDEBUGDIR,
+        FileUtil::dirname(m_filename),
+        m_debuglink
+        );
+    rootpath = FileUtil::pathconcat(m_rootdir, path);
     try {
-        uint32_t crc = calcCrc(path);
+        uint32_t crc = calcCrc(rootpath);
         if (crc != m_crc)
             throw KError("CRC mismatch: " +
                 Stringutil::number2string(crc) + " vs. " +
@@ -206,9 +216,10 @@ int Debuglink::openCompressed()
 
     Debug::debug()->trace("Debuglink::openCompressed()");
 
-    source = gzopen(m_filename.c_str(), "r");
+    string rootfile = FileUtil::pathconcat(m_rootdir, m_filename);
+    source = gzopen(rootfile.c_str(), "r");
     if (!source)
-        throw KSystemError("Couldn't open " + m_filename + " .", errno);
+        throw KSystemError("Couldn't open " + rootfile + " .", errno);
 
     dest = mkstemp(templ);
     if (dest < 0)
@@ -241,9 +252,10 @@ int Debuglink::openUncompressed()
 
     Debug::debug()->trace("Debuglink::openUncompressed()");
 
-    fd = open(m_filename.c_str(), O_RDONLY);
+    string rootfile = FileUtil::pathconcat(m_rootdir, m_filename);
+    fd = open(rootfile.c_str(), O_RDONLY);
     if (fd < 0)
-        throw KSystemError("Open of " + m_filename + " failed.", errno);
+        throw KSystemError("Open of " + rootfile + " failed.", errno);
 
     return fd;
 }

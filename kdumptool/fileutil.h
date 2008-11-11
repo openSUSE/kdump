@@ -157,6 +157,21 @@ class FileUtil {
         throw ();
 
         /**
+         * Concatenates four path components.
+         *
+         * @param[in] a the first path component
+         * @param[in] b the second path component
+         * @param[in] c the third path component
+         * @param[in] d the fourth path component
+         * @return a + "/" + b + "/" + c + "/" + d
+         */
+        static std::string pathconcat(const std::string &a,
+                                      const std::string &b,
+                                      const std::string &c,
+                                      const std::string &d)
+        throw ();
+
+        /**
          * Mounts a file system to a given mountpoint.
          *
          * @param[in] device the device or a CIFS share or a NFS target
