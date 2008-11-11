@@ -149,7 +149,7 @@ void Debuglink::readDebuglink()
 string Debuglink::findDebugfile(const char *prefix)
     throw (KError)
 {
-    Debug::debug()->trace("Debuglink::findDebugfile()");
+    Debug::debug()->trace("Debuglink::findDebugfile(%s)", prefix);
 
     if (m_debuglink.size() == 0)
         throw KError("Debuglink::readDebuglink() not called.");

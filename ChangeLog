@@ -1,3 +1,8 @@
+2008-11-11  Bernhard Walle <bernhard.walle@gmx.de>
+
+	* Print the prefix in the debugging output of
+	  Debuglink::findDebugfile().
+
 2008-11-02  Bernhard Walle <bernhard.walle@gmx.de>
 
 	* Implement printing of canonical path (realpath) for the 'print_target'
