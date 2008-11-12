@@ -3,6 +3,8 @@
 	* Fix wrong path when modifying the /etc/sysconfig/kdump file when
 	  creating the kdump initrd.
 	* Fix compile warning (ignoring return value of chdir(2)).
+	* Prepend a space before MAKEDUMPFILE_OPTIONS so that there's always a
+	  space between command and the first argument.
 
 2008-11-11  Bernhard Walle <bernhard.walle@gmx.de>
 

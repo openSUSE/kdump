@@ -260,7 +260,7 @@ void SaveDump::saveDump()
     } else {
         // use makedumpfile
         stringstream cmdline;
-        cmdline << "makedumpfile";
+        cmdline << "makedumpfile ";
         cmdline << config->getMakedumpfileOptions() << " ";
         cmdline << "-d " << config->getDumpLevel() << " ";
         if (useElf)

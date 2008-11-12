@@ -2,6 +2,8 @@
 -----
   * Fix wrong path when modifying the /etc/sysconfig/kdump file when creating
     the kdump initrd.
+  * Prepend a space before MAKEDUMPFILE_OPTIONS so that there's always a space
+    between command and the first argument.
 
 0.6.5
 -----
