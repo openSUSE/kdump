@@ -130,7 +130,7 @@ path=$(echo "$target" | grep '^Realpath' | awk '{ print $2 }')
 #
 # replace the KDUMP_SAVEDIR with the resolved path
 if [ "$protocol" = "file" ] ; then
-    sed -i "s#KDUMP_SAVEDIR=.*#file://$path#g" ${tmp_mnt}/etc/sysconfig/$CONFIG
+    sed -i "s#KDUMP_SAVEDIR=.*#file://$path#g" ${tmp_mnt}/$CONFIG
 fi
 
 #

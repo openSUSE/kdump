@@ -1,3 +1,8 @@
+0.6.6
+-----
+  * Fix wrong path when modifying the /etc/sysconfig/kdump file when creating
+    the kdump initrd.
+
 0.6.5
 -----
   * Fix copying of debug info when --root is specified and the debug file
