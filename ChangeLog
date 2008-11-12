@@ -2,6 +2,7 @@
 
 	* Fix wrong path when modifying the /etc/sysconfig/kdump file when
 	  creating the kdump initrd.
+	* Fix compile warning (ignoring return value of chdir(2)).
 
 2008-11-11  Bernhard Walle <bernhard.walle@gmx.de>
 

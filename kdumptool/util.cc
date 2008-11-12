@@ -97,7 +97,10 @@ void Util::daemonize()
     if (setsid() < 0)
         throw KSystemError("Cannot become session leader.", errno);
 
-    chdir("/");
+    if (chdir("/") < 0) {
+        throw KSystemError("chdir(/) failed", errno);
+    }
+
     umask(0);
 
     /* close all open file descriptors */
