@@ -1,4 +1,4 @@
-2008-11-12  Bernhard Walle <bernhard.walle@gmx.de>
+2008-11-12  Bernhard Walle <bwalle@suse.de>
 
 	* Fix wrong path when modifying the /etc/sysconfig/kdump file when
 	  creating the kdump initrd.
@@ -7,14 +7,14 @@
 	  space between command and the first argument.
 	* Fix finding of the kernel image (/boot/vmlinuz) with rootdir.
 
-2008-11-11  Bernhard Walle <bernhard.walle@gmx.de>
+2008-11-11  Bernhard Walle <bwalle@suse.de>
 
 	* Print the prefix in the debugging output of
 	  Debuglink::findDebugfile().
 	* Fix copying of debug info when --root is specified and the debug
 	  file resides in GLOBALDEBUGDIR/EXECDIR/DEBUGFILE.
 
-2008-11-02  Bernhard Walle <bernhard.walle@gmx.de>
+2008-11-02  Bernhard Walle <bwalle@suse.de>
 
 	* Implement printing of canonical path (realpath) for the 'print_target'
 	  subcommand.
