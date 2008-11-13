@@ -1,3 +1,9 @@
+2008-11-13  Bernhard Walle <bwalle@suse.de>
+
+	* Strip the whole crashkernel option when loading the kdump kernel, not
+	  only parts of them, also when the extended crashkernel syntax has been
+	  used.
+
 2008-11-12  Bernhard Walle <bwalle@suse.de>
 
 	* Fix wrong path when modifying the /etc/sysconfig/kdump file when

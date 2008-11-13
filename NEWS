@@ -1,3 +1,8 @@
+0.6.7
+-----
+  * Strip the whole crashkernel option when loading the kdump kernel, not only
+    parts of them, also when the extended crashkernel syntax has been used.
+
 0.6.6
 -----
   * Fix wrong path when modifying the /etc/sysconfig/kdump file when creating
