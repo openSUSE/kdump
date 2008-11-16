@@ -35,6 +35,15 @@ class Stringutil {
 
     public:
         /**
+         * Checks if @p str is a integer number ('+' or '-' is allowed).
+         *
+         * @param[in] str the string that should be checked
+         * @return true if it's an number, false otherwise
+         */
+        static bool isNumber(const std::string &str)
+        throw ();
+
+        /**
          * Transforms a numeric value into a string.
          *
          * @param[in] number the number to transform

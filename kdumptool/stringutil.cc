@@ -38,6 +38,26 @@ using std::setw;
 //{{{ Stringutil ---------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
+bool Stringutil::isNumber(const string &str)
+    throw ()
+{
+    for (size_t i = 0; i < str.size(); ++i) {
+        char c = str[i];
+
+        // leading sign
+        if (i == 0 && (c == '-' || c == '+')) {
+            continue;
+        } else {
+            if (!isdigit(c)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+// -----------------------------------------------------------------------------
 int Stringutil::string2number(const std::string &string)
     throw ()
 {
