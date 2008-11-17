@@ -68,6 +68,8 @@ SET(KDUMPTOOL_SRC
     email.h
     deletedumps.h
     deletedumps.cc
+    kconfig.h
+    kconfig.cc
     main.cc
 )
 
@@ -177,3 +179,23 @@ SET(TESTREADLINK_SRC
 
 add_executable(testreadlink ${TESTREADLINK_SRC})
 target_link_libraries(testreadlink ${EXTRA_LIBS})
+
+SET(TESTKCONFIG_SRC
+    util.h
+    util.cc
+    process.cc
+    process.h
+    stringutil.h
+    stringutil.cc
+    global.cc
+    global.h
+    debug.cc
+    debug.h
+    kconfig.h
+    kconfig.cc
+    testkconfig.cc
+)
+
+add_executable(testkconfig ${TESTKCONFIG_SRC})
+target_link_libraries(testkconfig ${EXTRA_LIBS})
+
