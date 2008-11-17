@@ -235,6 +235,8 @@ ostream& operator<<(ostream& os, const KconfigValue& v)
 void Kconfig::readFromConfig(const string &configFile)
     throw (KError)
 {
+    Debug::debug()->trace("Kconfig::readFromConfig(%s)", configFile.c_str());
+
     gzFile fp;
     char line[BUFSIZ];
 
@@ -263,6 +265,8 @@ void Kconfig::readFromConfig(const string &configFile)
 void Kconfig::readFromKernel(const string &kernelImage)
     throw (KError)
 {
+    Debug::debug()->trace("Kconfig::readFromKernel(%s)", kernelImage.c_str());
+
     stringstream ss;
     ss << extractKernelConfig(kernelImage);
 
@@ -280,6 +284,9 @@ void Kconfig::readFromKernel(const string &kernelImage)
 string Kconfig::extractKernelConfig(const string &kernelImage)
     throw (KError)
 {
+    Debug::debug()->trace("Kconfig::extractKernelConfig(%s)",
+        kernelImage.c_str());
+
     KernelTool::KernelType type = KernelTool::getKernelType(kernelImage);
     switch (type) {
         case KernelTool::KT_ELF:
@@ -298,6 +305,9 @@ string Kconfig::extractKernelConfig(const string &kernelImage)
 string Kconfig::extractFromIKconfigBuffer(const char *buffer, size_t buflen)
     throw (KError)
 {
+    Debug::debug()->trace("Kconfig::extractFromIKconfigBuffer(%s, %d)",
+        buffer, buflen);
+
     ssize_t uncompressed_len = buflen * 20;
     auto_ptr<Bytef> uncompressed(new Bytef[uncompressed_len]);
 
@@ -339,6 +349,9 @@ string Kconfig::extractFromIKconfigBuffer(const char *buffer, size_t buflen)
 string Kconfig::extractKernelConfigELF(const string &kernelImage)
     throw (KError)
 {
+    Debug::debug()->trace("Kconfig::extractKernelConfigELF(%s)",
+        kernelImage.c_str());
+
     gzFile fp = gzopen(kernelImage.c_str(), "r");
     if (!fp) {
         throw KError(string("Opening '") + kernelImage + string("' failed."));
@@ -398,6 +411,9 @@ string Kconfig::extractKernelConfigELF(const string &kernelImage)
 string Kconfig::extractKernelConfigbzImage(const string &kernelImage)
     throw (KError)
 {
+    Debug::debug()->trace("Kconfig::extractKernelConfigbzImage(%s)",
+        kernelImage.c_str());
+
     // that script helped me a lot
     // http://www.cs.caltech.edu/~weixl/research/fast-mon/scripts/extract-ikconfig
 
