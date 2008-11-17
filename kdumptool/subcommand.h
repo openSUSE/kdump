@@ -69,7 +69,7 @@ class Subcommand {
          */
         virtual OptionList getOptions() const
         throw ();
-        
+
         /**
          * Checks if that subcommand needs the configuration file to be read.
          * Default implementation is true.

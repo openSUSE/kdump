@@ -30,7 +30,7 @@
 class FileUtil {
 
     public:
-        
+
         /**
          * Executes the chroot() function.
          *

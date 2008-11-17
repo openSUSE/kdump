@@ -96,7 +96,7 @@ class Util {
          */
         static std::string getHostDomain()
         throw (KError);
-        
+
         /**
          * Finds a byte sequence in another byte sequence.
          *

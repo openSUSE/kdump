@@ -108,7 +108,7 @@ KconfigValue KconfigValue::fromString(const string &line, string &name)
     }
 
     name = str.substr(0, equalSign);
-    
+
     // the equal sign cannot be the last character
     if (str.size() <= equalSign+1) {
         throw KError("There must be at least one character after =: '" +
@@ -126,7 +126,7 @@ KconfigValue KconfigValue::fromString(const string &line, string &name)
         ret.m_tristate = MODULE;
         return ret;
     }
-    
+
     if (Stringutil::isNumber(value)) {
         ret.m_type = T_INTEGER;
         ret.m_integer = Stringutil::string2number(value);
@@ -312,23 +312,23 @@ string Kconfig::extractFromIKconfigBuffer(const char *buffer, size_t buflen)
     auto_ptr<Bytef> uncompressed(new Bytef[uncompressed_len]);
 
     z_stream stream;
-    stream.next_in = (Bytef *)buffer; 
-    stream.avail_in = buflen; 
+    stream.next_in = (Bytef *)buffer;
+    stream.avail_in = buflen;
 
-    stream.next_out = (Bytef *)uncompressed.get(); 
-    stream.avail_out = uncompressed_len; 
+    stream.next_out = (Bytef *)uncompressed.get();
+    stream.avail_out = uncompressed_len;
 
-    stream.zalloc = NULL; 
-    stream.zfree = NULL; 
-    stream.opaque = NULL; 
+    stream.zalloc = NULL;
+    stream.zfree = NULL;
+    stream.opaque = NULL;
 
-    int ret = inflateInit2(&stream, -MAX_WBITS); 
-    if (ret != Z_OK) { 
+    int ret = inflateInit2(&stream, -MAX_WBITS);
+    if (ret != Z_OK) {
         throw KError("inflateInit2() failed");
     }
 
-    ret = inflate(&stream, Z_FINISH); 
-    if (ret != Z_STREAM_END) { 
+    ret = inflate(&stream, Z_FINISH);
+    if (ret != Z_STREAM_END) {
         throw KError("inflate() failed");
     }
 
@@ -397,7 +397,7 @@ string Kconfig::extractKernelConfigELF(const string &kernelImage)
     }
     ssize_t kernelconfig_len = end_offset - begin_offset;
     auto_ptr<char> kernelconfig(new char[kernelconfig_len]);
-    
+
     chars_read = gzread(fp, kernelconfig.get(), kernelconfig_len);
     gzclose(fp);
     if (chars_read != kernelconfig_len) {
@@ -499,7 +499,7 @@ string Kconfig::extractKernelConfigbzImage(const string &kernelImage)
     }
     ssize_t kernelconfig_len = end_offset - begin_offset;
     auto_ptr<char> kernelconfig(new char[kernelconfig_len]);
-    
+
     chars_read = gzread(fp, kernelconfig.get(), kernelconfig_len);
     gzclose(fp);
     close(fd);

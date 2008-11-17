@@ -144,7 +144,7 @@ void SaveDump::execute()
             m_rootdir.c_str());
 
         savedir = m_urlParser.getProtocolAsString() + "://" +
-            FileUtil::pathconcat(m_rootdir, 
+            FileUtil::pathconcat(m_rootdir,
                 FileUtil::getCanonicalPathRoot(m_urlParser.getPath(), m_rootdir)
             );
     }
@@ -519,7 +519,7 @@ string SaveDump::findKernel()
     binary = FileUtil::pathconcat("/boot", "vmlinuz-" + m_crashrelease);
     binaryroot = FileUtil::pathconcat(m_rootdir, binary);
     Debug::debug()->dbg("Trying %s", binaryroot.c_str());
-    if (FileUtil::exists(binaryroot) && 
+    if (FileUtil::exists(binaryroot) &&
             Util::isElfFile(binaryroot.c_str())) {
         return binary;
     }
@@ -561,7 +561,7 @@ void SaveDump::checkAndDelete()
     string path = m_urlParser.getPath();
 
     if (m_rootdir.size() != 0) {
-        path = FileUtil::pathconcat(m_rootdir, 
+        path = FileUtil::pathconcat(m_rootdir,
                 FileUtil::getCanonicalPathRoot(path, m_rootdir));
     }
 

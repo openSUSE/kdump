@@ -59,7 +59,7 @@ class KconfigValue {
         };
 
     public:
-        
+
         /**
          * Creates a invalid configuration option (T_INVALID).
          */
@@ -117,7 +117,7 @@ class KconfigValue {
          */
         enum Tristate getTristateValue() const
         throw ();
-        
+
         /**
          * Converts a KconfigValue into a string representation.
          *
@@ -168,7 +168,7 @@ class Kconfig {
          */
         void readFromConfig(const std::string &configFile)
         throw (KError);
-        
+
         /**
          * Reads the configuration from a kernel image if the kernel has been
          * compiled with CONFIG_IKCONFIG.
@@ -178,7 +178,7 @@ class Kconfig {
          */
         void readFromKernel(const std::string &kernelImage)
         throw (KError);
-        
+
         /**
          * Extracts the kernel configuration from a kernel image. The kernel
          * image can be of type ELF, ELF.gz and bzImage.

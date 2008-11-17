@@ -45,7 +45,7 @@ void FileUtil::chroot(const std::string &dir)
     throw (KError)
 {
     Debug::debug()->trace("chroot(%s)", dir.c_str());
-    
+
     int ret = ::chroot(dir.c_str());
     if (ret < 0) {
         throw KSystemError("chroot failed", errno);

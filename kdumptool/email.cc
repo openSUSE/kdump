@@ -232,7 +232,7 @@ void Email::send()
         auth_set_interact_cb(authctx, authinteract, NULL);
         smtp_auth_set_context(session, authctx);
     }
-    
+
     // set hostname
     if (m_hostname.size() > 0) {
         ret = smtp_set_hostname(session, m_hostname.c_str());
@@ -308,7 +308,7 @@ void Email::send()
             auth_client_exit();
         }
 
-        throw KError("Sending mail failed: " + statustext + 
+        throw KError("Sending mail failed: " + statustext +
             ". (" + Stringutil::number2string(statuscode) + ")");
     }
 

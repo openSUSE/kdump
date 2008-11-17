@@ -48,7 +48,7 @@ class ReadIKConfig : public Subcommand {
          */
         void parseCommandline(OptionParser *optionparser)
         throw (KError);
-        
+
         /**
          * That command does not need a config file.
          */
