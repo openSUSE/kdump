@@ -40,19 +40,20 @@ int main(int argc, char *argv[])
 {
     string path;
 
-    if (argc != 3) {
-        cerr << "Usage: " << argv[0] << " file configoption" << endl;
+    if (argc != 4) {
+        cerr << "Usage: " << argv[0] << " config elfimage configoption" << endl;
         return EXIT_FAILURE;
     }
 
     path = argv[1];
 
     try {
-        Kconfig kconfig;
-        kconfig.readFromConfig(argv[1]);
-        
-        cout << argv[2] << " = " << kconfig.get(argv[2]) << endl;
-        
+        Kconfig kconfig1, kconfig2;
+        kconfig1.readFromConfig(argv[1]);
+        kconfig2.readFromKernel(argv[2]);
+
+        cout << argv[3] << " = " << kconfig1.get(argv[3]) << endl;
+        cout << argv[3] << " = " << kconfig2.get(argv[3]) << endl;
 
     } catch (const std::exception &ex) {
         cerr << "Fatal exception: " << ex.what() << endl;

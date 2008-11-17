@@ -159,15 +159,37 @@ class Kconfig {
         throw () {}
 
         /**
-         * Reads the kernel configuration from a .config file (like
-         * /boot/config-2.6.27-default
+         * Reads the kernel configuration from a normal (like
+         * /boot/config-2.6.27-pae) or a  .gz config file (like
+         * /proc/config.gz).
          *
          * @param[in] configFile the full path to the configuration file
-         * @exception KError if reading the vmcoreinfo failed
+         * @exception KError if reading of the configuration file fails
          */
         void readFromConfig(const std::string &configFile)
         throw (KError);
         
+        /**
+         * Reads the configuration from a kernel image if the kernel has been
+         * compiled with CONFIG_IKCONFIG.
+         *
+         * @param[in] kernelImage the kernel image to look for
+         * @exception KError if reading of the kernel image fails
+         */
+        void readFromKernel(const std::string &kernelImage)
+        throw (KError);
+
+        /**
+         * Extracts the kernel configuration from a ELF kernel image.
+         * The image may be compressed.
+         *
+         * @param[in] kernelImage full path to the kernel image
+         * @return the embedded kernel image
+         * @exception KError if reading of the kernel image failed
+         */
+        static std::string extractKernelConfigELF(const std::string &image)
+        throw (KError);
+
         /**
          * Returns the configuration value for a specific option.
          *

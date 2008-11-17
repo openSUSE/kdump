@@ -86,6 +86,20 @@ class Util {
          */
         static std::string getHostDomain()
         throw (KError);
+        
+        /**
+         * Finds a byte sequence in another byte sequence.
+         *
+         * @param[in] haystack the buffer in which will be searched
+         * @param[in] haystack_len the length of @p haystack
+         * @param[in] needle the buffer to search for
+         * @param[in] needle_len the length of the @p needle buffer
+         * @return the offset in @p haystack or -1 if @p needle was not found
+         *         in @p haystack
+         */
+        static ssize_t findBytes(const char *haystack, size_t haystack_len,
+                                const char *needle, size_t needle_len)
+        throw ();
 };
 
 //}}}

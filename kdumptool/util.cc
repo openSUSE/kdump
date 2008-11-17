@@ -138,4 +138,25 @@ string Util::getHostDomain()
         return nodename + "." + domainname;
 }
 
+// -----------------------------------------------------------------------------
+ssize_t Util::findBytes(const char *haystack, size_t haystack_len,
+                        const char *needle, size_t needle_len)
+    throw ()
+{
+    for (size_t i = 0; i < (haystack_len-needle_len); i++) {
+        bool found = true;
+        for (size_t j = 0; j < needle_len; j++) {
+            if (haystack[i+j] != needle[j]) {
+                found = false;
+                break;
+            }
+        }
+        if (found) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

@@ -21,15 +21,30 @@
 #include <cctype>
 #include <sstream>
 #include <iostream>
+#include <zlib.h>
+#include <zutil.h>
+#include <cstring>
+#include <memory>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include "stringutil.h"
 #include "kconfig.h"
 #include "debug.h"
+#include "util.h"
 
 using std::string;
 using std::ifstream;
 using std::stringstream;
 using std::ostream;
+using std::memset;
+using std::auto_ptr;
+
+#define MAGIC_START         "IKCFG_ST"
+#define MAGIC_END           "IKCFG_ED"
+#define MAGIC_LEN           8
 
 //{{{ KconfigValue -------------------------------------------------------------
 
@@ -216,14 +231,39 @@ ostream& operator<<(ostream& os, const KconfigValue& v)
 void Kconfig::readFromConfig(const string &configFile)
     throw (KError)
 {
-    ifstream fin(configFile.c_str());
-    if (!fin) {
-        throw KError("Failed to open " + configFile + ".");
+    gzFile fp;
+    char line[BUFSIZ];
+
+    fp = gzopen(configFile.c_str(), "r");
+    if (!fp) {
+        throw KError(string("Opening '") + configFile + string("' failed."));
     }
 
-    string line;
-    while (getline(fin, line)) {
+    try {
+        while (gzgets(fp, line, BUFSIZ) != NULL) {
+            string name;
+            KconfigValue val = KconfigValue::fromString(line, name);
+            if (val.getType() != KconfigValue::T_INVALID) {
+                m_configs[name] = val;
+            }
+        }
+    } catch (...) {
+        gzclose(fp);
+        throw;
+    }
 
+    gzclose(fp);
+}
+
+// -----------------------------------------------------------------------------
+void Kconfig::readFromKernel(const string &kernelImage)
+    throw (KError)
+{
+    stringstream ss;
+    ss << extractKernelConfigELF(kernelImage);
+
+    string line;
+    while (getline(ss, line)) {
         string name;
         KconfigValue val = KconfigValue::fromString(line, name);
         if (val.getType() != KconfigValue::T_INVALID) {
@@ -233,12 +273,105 @@ void Kconfig::readFromConfig(const string &configFile)
 }
 
 // -----------------------------------------------------------------------------
-KconfigValue Kconfig::get(const std::string &option)
+string Kconfig::extractKernelConfigELF(const string &kernelImage)
+    throw (KError)
+{
+    gzFile fp;
+    char buffer[BUFSIZ];
+    off_t fileoffset = 0;
+    ssize_t chars_read;
+    off_t begin_offset = 0;
+    off_t end_offset = 0;
+
+    fp = gzopen(kernelImage.c_str(), "r");
+    if (!fp) {
+        throw KError(string("Opening '") + kernelImage + string("' failed."));
+    }
+
+    // we overlap the reads, that way searching for the pattern is easier
+    memset(buffer, 0, BUFSIZ);
+
+    // search for the begin and end offests first
+    while ((chars_read = gzread(fp, buffer+MAGIC_LEN, BUFSIZ-MAGIC_LEN)) > 0) {
+        if (begin_offset == 0) {
+            ssize_t pos = Util::findBytes(buffer, BUFSIZ, MAGIC_START, MAGIC_LEN);
+            if (pos > 0) {
+                begin_offset = fileoffset + pos - MAGIC_LEN;
+            }
+        } else if (end_offset == 0) {
+            ssize_t pos = Util::findBytes(buffer, BUFSIZ, MAGIC_END, MAGIC_LEN);
+            if (pos > 0) {
+                end_offset = fileoffset + pos - MAGIC_LEN;
+            }
+        } else {
+            break;
+        }
+        fileoffset += chars_read;
+    }
+    
+    if (begin_offset < 0 || end_offset < 0) {
+        gzclose(fp);
+        throw KError("Cannot read configuration from " + kernelImage + ".");
+    }
+    
+    // we need to read after the MAGIC_START and the gzip header
+    begin_offset += MAGIC_LEN + 10;
+
+    // read the configuration to a buffer
+    if (gzseek(fp, begin_offset, SEEK_SET) == -1) {
+        throw KError("gzseek() failed.");
+    }
+    ssize_t kernelconfig_len = end_offset - begin_offset;
+    ssize_t uncompressed_len = kernelconfig_len * 20;
+    auto_ptr<Bytef> kernelconfig(new Bytef[kernelconfig_len]);
+    auto_ptr<Bytef> uncompressed(new Bytef[uncompressed_len]);
+
+    chars_read = gzread(fp, kernelconfig.get(), kernelconfig_len);
+    gzclose(fp);
+    if (chars_read != kernelconfig_len) {
+        throw KError("Cannot read IKCONFIG.");
+    }
+    
+    z_stream stream;
+    stream.next_in = (Bytef *)kernelconfig.get(); 
+    stream.avail_in = kernelconfig_len; 
+
+    stream.next_out = (Bytef *)uncompressed.get(); 
+    stream.avail_out = uncompressed_len; 
+
+    stream.zalloc = NULL; 
+    stream.zfree = NULL; 
+    stream.opaque = NULL; 
+
+    int ret = inflateInit2(&stream, -MAX_WBITS); 
+    if (ret != Z_OK) { 
+        throw KError("inflateInit2() failed");
+    }
+
+    ret = inflate(&stream, Z_FINISH); 
+    if (ret != Z_STREAM_END) { 
+        throw KError("inflate() failed");
+    }
+
+    ret = inflateEnd(&stream);
+    if (ret != Z_OK) {
+        throw KError("Failed to uncompress the kernel configuration ("
+            + Stringutil::number2string(ret) + ").");
+    }
+
+    uncompressed_len = stream.total_out;
+
+    stringstream ss;
+    uncompressed.get()[uncompressed_len] = '\0';
+    return string((const char *)uncompressed.get());
+}
+
+// -----------------------------------------------------------------------------
+KconfigValue Kconfig::get(const string &option)
     throw ()
 {
     return m_configs[option];
 }
-
 
 //}}}
 
