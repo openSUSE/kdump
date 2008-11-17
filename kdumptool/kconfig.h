@@ -187,7 +187,18 @@ class Kconfig {
          * @return the embedded kernel image
          * @exception KError if reading of the kernel image failed
          */
-        static std::string extractKernelConfigELF(const std::string &image)
+        std::string extractKernelConfigELF(const std::string &image)
+        throw (KError);
+
+        /**
+         * Extracts the kernel configuration from a bzImage. The
+         * image may be compressed.
+         *
+         * @param[in] image full path to the kernel image
+         * @return the kernel configuration
+         * @exception KError if reading of the kernel image failed
+         */
+        std::string extractKernelConfigbzImage(const std::string &image)
         throw (KError);
 
         /**
@@ -202,8 +213,13 @@ class Kconfig {
          */
         KconfigValue get(const std::string &option)
         throw ();
+        
+    private:
 
-    protected:
+        std::string extractFromIKconfigBuffer(const char *buffer, size_t buflen)
+        throw (KError);
+
+    private:
         std::map<std::string, KconfigValue> m_configs;
 };
 
