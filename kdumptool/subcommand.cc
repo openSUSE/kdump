@@ -28,6 +28,7 @@
 #include "read_vmcoreinfo.h"
 #include "deletedumps.h"
 #include "print_target.h"
+#include "read_ikconfig.h"
 
 using std::map;
 using std::list;
@@ -57,6 +58,13 @@ int Subcommand::getErrorCode() const
     Debug::debug()->trace("%s: Returning error code of %d", __FUNCTION__,
         m_errorcode);
     return m_errorcode;
+}
+
+// -----------------------------------------------------------------------------
+OptionList Subcommand::getOptions() const
+    throw ()
+{
+    return OptionList();
 }
 
 //}}}
@@ -102,6 +110,7 @@ SubcommandManager::SubcommandManager()
     addSubcommand(new ReadVmcoreinfo());
     addSubcommand(new DeleteDumps());
     addSubcommand(new PrintTarget());
+    addSubcommand(new ReadIKConfig());
 }
 
 // -----------------------------------------------------------------------------

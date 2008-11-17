@@ -64,10 +64,11 @@ class Subcommand {
 
         /**
          * Returns a list of options that command understands. This is for
-         * the global option parsing function.
+         * the global option parsing function. The default implementation
+         * returns an empty OptionList.
          */
         virtual OptionList getOptions() const
-        throw () = 0;
+        throw ();
 
         /**
          * Parses the command line. This method gets called before the

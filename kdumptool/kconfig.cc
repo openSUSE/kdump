@@ -264,21 +264,7 @@ void Kconfig::readFromKernel(const string &kernelImage)
     throw (KError)
 {
     stringstream ss;
-
-    KernelTool::KernelType type = KernelTool::getKernelType(kernelImage);
-    switch (type) {
-        case KernelTool::KT_ELF:
-        case KernelTool::KT_ELF_GZ:
-            ss << extractKernelConfigELF(kernelImage);
-            break;
-
-        case KernelTool::KT_X86:
-            ss << extractKernelConfigbzImage(kernelImage);
-            break;
-
-        default:
-            throw KError("Invalid kernel image: " + kernelImage);
-    }
+    ss << extractKernelConfig(kernelImage);
 
     string line;
     while (getline(ss, line)) {
@@ -287,6 +273,24 @@ void Kconfig::readFromKernel(const string &kernelImage)
         if (val.getType() != KconfigValue::T_INVALID) {
             m_configs[name] = val;
         }
+    }
+}
+
+// -----------------------------------------------------------------------------
+string Kconfig::extractKernelConfig(const string &kernelImage)
+    throw (KError)
+{
+    KernelTool::KernelType type = KernelTool::getKernelType(kernelImage);
+    switch (type) {
+        case KernelTool::KT_ELF:
+        case KernelTool::KT_ELF_GZ:
+            return extractKernelConfigELF(kernelImage);
+
+        case KernelTool::KT_X86:
+            return extractKernelConfigbzImage(kernelImage);
+
+        default:
+            throw KError("Invalid kernel image: " + kernelImage);
     }
 }
 

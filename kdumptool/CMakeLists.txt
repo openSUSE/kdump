@@ -72,6 +72,8 @@ SET(KDUMPTOOL_SRC
     kconfig.cc
     kerneltool.h
     kerneltool.cc
+    read_ikconfig.h
+    read_ikconfig.cc
     main.cc
 )
 

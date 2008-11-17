@@ -178,13 +178,39 @@ class Kconfig {
          */
         void readFromKernel(const std::string &kernelImage)
         throw (KError);
+        
+        /**
+         * Extracts the kernel configuration from a kernel image. The kernel
+         * image can be of type ELF, ELF.gz and bzImage.
+         *
+         * @param[in] kernelImage full path to the kernel image
+         * @return the embedded kernel configuration
+         * @exception KError if reading of the kernel image failed
+         */
+        std::string extractKernelConfig(const std::string &image)
+        throw (KError);
+
+        /**
+         * Returns the configuration value for a specific option.
+         *
+         * @param[in] optionName the name of the option, must be @b with the
+         *            "CONFIG_" prefix. It's also required to write the
+         *            configuration name in capital letters, i.e. exactly as
+         *            in the .config file.
+         * @return the configuration option value, the function returns
+         *         a KconfigValue with type T_INVALID.
+         */
+        KconfigValue get(const std::string &option)
+        throw ();
+
+    protected:
 
         /**
          * Extracts the kernel configuration from a ELF kernel image.
          * The image may be compressed.
          *
          * @param[in] kernelImage full path to the kernel image
-         * @return the embedded kernel image
+         * @return the embedded kernel configuration
          * @exception KError if reading of the kernel image failed
          */
         std::string extractKernelConfigELF(const std::string &image)
@@ -201,19 +227,6 @@ class Kconfig {
         std::string extractKernelConfigbzImage(const std::string &image)
         throw (KError);
 
-        /**
-         * Returns the configuration value for a specific option.
-         *
-         * @param[in] optionName the name of the option, must be @b with the
-         *            "CONFIG_" prefix. It's also required to write the
-         *            configuration name in capital letters, i.e. exactly as
-         *            in the .config file.
-         * @return the configuration option value, the function returns
-         *         a KconfigValue with type T_INVALID.
-         */
-        KconfigValue get(const std::string &option)
-        throw ();
-        
     private:
 
         std::string extractFromIKconfigBuffer(const char *buffer, size_t buflen)
