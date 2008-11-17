@@ -22,9 +22,8 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <fcntl.h>
-#include <errno.h>
+#include <cerrno>
 #include <unistd.h>
-#include <errno.h>
 
 #include "process.h"
 #include "global.h"

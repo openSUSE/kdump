@@ -18,7 +18,7 @@
  */
 #include <string>
 #include <sstream>
-#include <errno.h>
+#include <cerrno>
 #include <cstring>
 #include <sstream>
 #include <iomanip>

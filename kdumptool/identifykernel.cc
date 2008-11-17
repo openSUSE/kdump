@@ -21,7 +21,7 @@
 #include <zlib.h>
 #include <libelf.h>
 #include <gelf.h>
-#include <errno.h>
+#include <cerrno>
 #include <fcntl.h>
 
 #include "subcommand.h"

@@ -18,7 +18,7 @@
  */
 #include <stdexcept>
 #include <cstring>
-#include <errno.h>
+#include <cerrno>
 #include <sys/socket.h>
 #include <netdb.h>
 
