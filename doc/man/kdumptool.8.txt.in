@@ -279,6 +279,21 @@ Options
   initrd where the system root is not mounted to _/_ but needs to be mounted
   externally.
 
+PRINT KERNEL CONFIGURATION
+--------------------------
+
+For kernels that have been compiled with _CONFIG_IKCONFIG_ (usually also
+with _CONFIG_IKCONFIG_PROC_ to display the kernel configuration in the running
+kernel in _/proc/config.gz_), that command dumps the embedded kernel
+configuration from a kernel image to standard output.
+
+All usual kernel image formats (ELF, compressed ELF, bzImage) are supported.
+
+Syntax
+~~~~~~
+
+*kdumptool* [_globals_] *print_ikconfig* _kernelimage_
+
 
 RETURN VALUE
 ------------

@@ -1,3 +1,7 @@
+2008-11-17  Bernhard Walle <bernhard.walle@gmx.de>
+
+	* Implement read_ikconfig command.
+
 2008-11-13  Bernhard Walle <bwalle@suse.de>
 
 	* Strip the whole crashkernel option when loading the kdump kernel, not

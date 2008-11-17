@@ -1,3 +1,7 @@
+0.7.0
+-----
+  * Implement read_ikconfig command.
+
 0.6.7
 -----
   * Strip the whole crashkernel option when loading the kdump kernel, not only
