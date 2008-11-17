@@ -17,20 +17,6 @@
  * 02110-1301, USA.
  */
 #include <iostream>
-#include <string>
-#include <errno.h>
-#include <fcntl.h>
-
-#include <stdio.h>
-#include <time.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
-#include <linux/kd.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <getopt.h>
 
 #include "subcommand.h"
 #include "debug.h"
@@ -38,10 +24,7 @@
 #include "kconfig.h"
 #include "util.h"
 
-using std::string;
 using std::cout;
-using std::cerr;
-using std::endl;
 
 //{{{ ReadIKConfig -------------------------------------------------------------
 
@@ -58,14 +41,22 @@ const char *ReadIKConfig::getName() const
 }
 
 // -----------------------------------------------------------------------------
+bool ReadIKConfig::needsConfigfile() const
+    throw ()
+{
+    return false;
+}
+
+// -----------------------------------------------------------------------------
 void ReadIKConfig::parseCommandline(OptionParser *optionparser)
     throw (KError)
 {
     Debug::debug()->trace("ReadIKConfig::parseCommandline(%p)", optionparser);
 
-    if (optionparser->getArgs().size() == 2)
-        m_file = optionparser->getArgs()[1];
+    if (optionparser->getArgs().size() != 2)
+        throw KError("kernel image required.");
 
+    m_file = optionparser->getArgs()[1];
     Debug::debug()->dbg("file=%s", m_file.c_str());
 }
 
@@ -75,7 +66,7 @@ void ReadIKConfig::execute()
 {
     Kconfig kconfig;
 
-    cout << kconfig.extractKernelConfig(m_file) << endl;
+    cout << kconfig.extractKernelConfig(m_file);
 }
 
 //}}}

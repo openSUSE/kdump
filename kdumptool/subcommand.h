@@ -69,6 +69,16 @@ class Subcommand {
          */
         virtual OptionList getOptions() const
         throw ();
+        
+        /**
+         * Checks if that subcommand needs the configuration file to be read.
+         * Default implementation is true.
+         *
+         * @return @c true if the configuration file must be read,
+         *         @c false otherwise.
+         */
+        virtual bool needsConfigfile() const
+        throw ();
 
         /**
          * Parses the command line. This method gets called before the

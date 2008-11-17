@@ -67,6 +67,13 @@ OptionList Subcommand::getOptions() const
     return OptionList();
 }
 
+// -----------------------------------------------------------------------------
+bool Subcommand::needsConfigfile() const
+    throw ()
+{
+    return true;
+}
+
 //}}}
 //{{{ SubcommandManager --------------------------------------------------------
 SubcommandManager *SubcommandManager::m_instance = NULL;

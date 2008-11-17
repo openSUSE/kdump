@@ -148,8 +148,10 @@ void KdumpTool::readConfiguration()
 {
     Debug::debug()->trace("KdumpTool::readConfiguration");
 
-    Configuration *config = Configuration::config();
-    config->readFile(m_configfile);
+    if (m_subcommand->needsConfigfile()) {
+        Configuration *config = Configuration::config();
+        config->readFile(m_configfile);
+    }
 }
 
 // -----------------------------------------------------------------------------
