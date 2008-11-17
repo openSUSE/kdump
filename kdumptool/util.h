@@ -49,7 +49,17 @@ class Util {
          *
          * @param file the name of the file
          */
-        static bool isGzipFile(const char *file)
+        static bool isGzipFile(const std::string &file)
+        throw (KError);
+
+        /**
+         * Checks if @p filename is an ELF file.
+         *
+         * @param[in] filename the file to check
+         * @return @c true if it's an ELF file, @c false otherwise
+         * @exception KError if opening the file failed
+         */
+        static bool isElfFile(const std::string &filename)
         throw (KError);
 
         /**

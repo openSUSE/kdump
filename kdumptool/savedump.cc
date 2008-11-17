@@ -520,7 +520,7 @@ string SaveDump::findKernel()
     binaryroot = FileUtil::pathconcat(m_rootdir, binary);
     Debug::debug()->dbg("Trying %s", binaryroot.c_str());
     if (FileUtil::exists(binaryroot) && 
-            IdentifyKernel::isElfFile(binaryroot.c_str())) {
+            Util::isElfFile(binaryroot.c_str())) {
         return binary;
     }
 

@@ -70,6 +70,8 @@ SET(KDUMPTOOL_SRC
     deletedumps.cc
     kconfig.h
     kconfig.cc
+    kerneltool.h
+    kerneltool.cc
     main.cc
 )
 
@@ -193,6 +195,8 @@ SET(TESTKCONFIG_SRC
     debug.h
     kconfig.h
     kconfig.cc
+    kerneltool.h
+    kerneltool.cc
     testkconfig.cc
 )
 

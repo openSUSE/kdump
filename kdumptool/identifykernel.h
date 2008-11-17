@@ -21,7 +21,7 @@
 
 #include "subcommand.h"
 
-//{{{ IdentifyKernel -----------------------------------------------------------
+//{{{ IdentifyKernelCommand ----------------------------------------------------
 
 /**
  * Subcommand to identify a kernel binary.
@@ -30,15 +30,6 @@
 class IdentifyKernel : public Subcommand {
 
     public:
-        /**
-         * Type of the kernel.
-         */
-        enum KernelType {
-            KT_ELF,
-            KT_ELF_GZ,
-            KT_X86,
-            KT_NONE
-        };
 
         /**
          * Error codes for IdentifyKernel. The numeric values are for
@@ -84,16 +75,6 @@ class IdentifyKernel : public Subcommand {
         void execute()
         throw (KError);
 
-        /**
-         * Checks if @p filename is an ELF file.
-         *
-         * @param[in] filename the file to check
-         * @return @c true if it's an ELF file, @c false otherwise
-         * @exception KError if opening the file failed
-         */
-        static bool isElfFile(const char *filename)
-        throw (KError);
-
     protected:
         bool checkElfFile(const char *file)
         throw (KError);
@@ -101,17 +82,11 @@ class IdentifyKernel : public Subcommand {
         bool checkArchFile(const char *file)
         throw (KError);
 
-        bool isX86Kernel(const char *file)
-        throw (KError);
-
         bool checkArchFileX86(const char *file)
         throw (KError);
 
         bool isArchAlwaysRelocatable(const char *machine)
         throw ();
-
-        KernelType getKernelType(const char *file)
-        throw (KError);
 
         std::string archFromElfMachine(unsigned long long et_machine)
         throw ();

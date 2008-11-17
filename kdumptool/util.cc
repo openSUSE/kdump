@@ -17,13 +17,17 @@
  * 02110-1301, USA.
  */
 #include <string>
-#include <errno.h>
-#include <sys/utsname.h>
 #include <cstring>
-#include <unistd.h>
-#include <sys/types.h>
-#include <fcntl.h>
 #include <cstdlib>
+#include <cerrno>
+
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/utsname.h>
+
+#include <libelf.h>
+#include <gelf.h>
 
 #include "global.h"
 #include "util.h"
@@ -52,14 +56,14 @@ std::string Util::getArch()
 }
 
 // -----------------------------------------------------------------------------
-bool Util::isGzipFile(const char *file)
+bool Util::isGzipFile(const std::string &file)
     throw (KError)
 {
     int             ret;
     int             fd = -1;
     unsigned char   buffer[2];
 
-    fd = open(file, O_RDONLY);
+    fd = open(file.c_str(), O_RDONLY);
     if (fd < 0)
         throw KSystemError("Util::isGzipFile: Couldn't open file", errno);
 
@@ -73,7 +77,31 @@ bool Util::isGzipFile(const char *file)
 }
 
 // -----------------------------------------------------------------------------
-bool Util::isX86(const std::string &arch)
+bool Util::isElfFile(const string &file)
+    throw (KError)
+{
+    gzFile  fp = NULL;
+    int     err;
+    char    buffer[EI_MAG3+1];
+
+    fp = gzopen(file.c_str(), "r");
+    if (!fp)
+        throw KSystemError("Opening '" + file + "' failed.", errno);
+
+    err = gzread(fp, buffer, EI_MAG3+1);
+    if (err != (EI_MAG3+1)) {
+        gzclose(fp);
+        throw KError("IdentifyKernel::isElfFile: Couldn't read bytes");
+    }
+
+    gzclose(fp);
+
+    return buffer[EI_MAG0] == ELFMAG0 && buffer[EI_MAG1] == ELFMAG1 &&
+            buffer[EI_MAG2] == ELFMAG2 && buffer[EI_MAG3] == ELFMAG3;
+}
+
+// -----------------------------------------------------------------------------
+bool Util::isX86(const string &arch)
     throw ()
 {
     return arch == "i386" || arch == "i686" ||
