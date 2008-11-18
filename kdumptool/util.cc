@@ -70,20 +70,18 @@ std::string Util::getKernelRelease()
 
 
 // -----------------------------------------------------------------------------
-bool Util::isGzipFile(const std::string &file)
+bool Util::isGzipFile(int fd)
     throw (KError)
 {
-    int             ret;
-    int             fd = -1;
-    unsigned char   buffer[2];
+    unsigned char buffer[2];
 
-    fd = open(file.c_str(), O_RDONLY);
-    if (fd < 0)
-        throw KSystemError("Util::isGzipFile: Couldn't open file", errno);
+    off_t oret = lseek(fd, 0, SEEK_SET);
+    if (oret != (off_t)-1) {
+        throw KSystemError("Cannot lseek() in Util::isGzipFile()", errno);
+    }
 
     /* read the first 2 bytes */
-    ret = read(fd, buffer, 2);
-    close(fd);
+    int ret = read(fd, buffer, 2);
     if (ret < 0)
         throw KSystemError("Util::isGzipFile: read failed", errno);
 
@@ -91,16 +89,40 @@ bool Util::isGzipFile(const std::string &file)
 }
 
 // -----------------------------------------------------------------------------
-bool Util::isElfFile(const string &file)
+bool Util::isGzipFile(const string &file)
+    throw (KError)
+{
+    int fd = open(file.c_str(), O_RDONLY);
+    if (fd < 0) {
+        throw KSystemError("Opening of " + file + " failed.", errno);
+    }
+
+    bool ret;
+    try {
+         ret = isGzipFile(fd);
+    } catch (...) {
+        close(fd);
+        throw;
+    }
+
+    return ret;
+}
+
+// -----------------------------------------------------------------------------
+bool Util::isElfFile(int fd)
     throw (KError)
 {
     gzFile  fp = NULL;
     int     err;
     char    buffer[EI_MAG3+1];
+    
+    Debug::debug()->trace("isElfFile(%d)", fd);
 
-    fp = gzopen(file.c_str(), "r");
-    if (!fp)
-        throw KSystemError("Opening '" + file + "' failed.", errno);
+    // the dup() is because we want to keep the fd open on gzclose()
+    fp = gzdopen(dup(fd), "r");
+    if (!fp) {
+        throw KError("gzopen failed");
+    }
 
     err = gzread(fp, buffer, EI_MAG3+1);
     if (err != (EI_MAG3+1)) {
@@ -112,6 +134,26 @@ bool Util::isElfFile(const string &file)
 
     return buffer[EI_MAG0] == ELFMAG0 && buffer[EI_MAG1] == ELFMAG1 &&
             buffer[EI_MAG2] == ELFMAG2 && buffer[EI_MAG3] == ELFMAG3;
+}
+
+// -----------------------------------------------------------------------------
+bool Util::isElfFile(const string &file)
+    throw (KError)
+{
+    int fd = open(file.c_str(), O_RDONLY);
+    if (fd < 0) {
+        throw KSystemError("Opening of " + file + " failed.", errno);
+    }
+
+    bool ret;
+    try {
+         ret = isElfFile(fd);
+    } catch (...) {
+        close(fd);
+        throw;
+    }
+
+    return ret;
 }
 
 // -----------------------------------------------------------------------------

@@ -47,9 +47,15 @@ class KernelTool {
          * Creates a new kerneltool object.
          *
          * @param[in] the kernel image to get information for
+         * @throw KError if opening of the kernel failed
          */
         KernelTool(const std::string &image)
-        throw ();
+        throw (KError);
+        
+        /**
+         * Destroys a kerneltool object.
+         */
+        virtual ~KernelTool();
 
         /**
          * Returns the type for the kernel image specified in the constructor.
@@ -112,7 +118,7 @@ class KernelTool {
         throw ();
         
     private:
-        std::string m_kernel;
+        int m_fd;
 };
 
 //}}}

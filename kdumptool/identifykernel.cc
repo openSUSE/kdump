@@ -94,21 +94,10 @@ void IdentifyKernel::execute()
 {
     Debug::debug()->trace(__FUNCTION__);
 
-    //
-    // is it a kernel?
-    //
     KernelTool kt(m_kernelImage);
-    KernelTool::KernelType kerneltype = kt.getKernelType();
-    if (kerneltype == KernelTool::KT_NONE) {
-        setErrorCode(NOT_A_KERNEL);
-        throw KError("The specified file is not a kernel image.");
-    }
 
-    //
-    // type checking
-    //
     if (m_checkType) {
-        switch (kerneltype) {
+        switch (kt.getKernelType()) {
             case KernelTool::KT_X86:
                 cout << "x86" << endl;
                 break;
@@ -119,21 +108,12 @@ void IdentifyKernel::execute()
                 cout << "ELF gzip" << endl;
                 break;
             default:
-                throw KError("Unknown kernel type.");
+                throw KError("The specified file is not a kernel image.");
         }
     }
 
-    //
-    // reloctable checking
-    //
     if (m_checkRelocatable) {
-        bool reloc;
-
-        switch (kerneltype) {
-            
-        }
-
-        if (reloc)
+        if (kt.isRelocatable())
             cout << "Relocatable" << endl;
         else {
             cout << "Not relocatable" << endl;

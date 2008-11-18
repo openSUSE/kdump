@@ -55,6 +55,8 @@ void FindKernel::execute()
     throw (KError)
 {
     Debug::debug()->trace("FindKernel::execute()");
+    
+    
 
 }
 

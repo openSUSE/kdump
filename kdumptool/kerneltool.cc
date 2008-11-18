@@ -42,16 +42,30 @@ using std::string;
 
 // -----------------------------------------------------------------------------
 KernelTool::KernelTool(const std::string &image)
-    throw ()
-    : m_kernel(image)
-{}
+    throw (KError)
+    : m_fd(-1)
+{
+    Debug::debug()->trace("KernelTool::KernelTool(%s)", image.c_str());
+
+    m_fd = open(image.c_str(), O_RDONLY);
+    if (m_fd < 0) {
+        throw KSystemError("Opening of " + image + " failed.", errno);
+    }
+}
+
+// -----------------------------------------------------------------------------
+KernelTool::~KernelTool()
+{
+    close(m_fd);
+    m_fd = -1;
+}
 
 // -----------------------------------------------------------------------------
 KernelTool::KernelType KernelTool::getKernelType() const
     throw (KError)
 {
-    if (Util::isElfFile(m_kernel)) {
-        if (Util::isGzipFile(m_kernel))
+    if (Util::isElfFile(m_fd)) {
+        if (Util::isGzipFile(m_fd))
             return KT_ELF_GZ;
         else
             return KT_ELF;
@@ -90,31 +104,20 @@ bool KernelTool::isRelocatable() const
 bool KernelTool::isX86Kernel() const
     throw (KError)
 {
-    int             fd = -1;
-    int             ret;
-    unsigned char   buffer[BUFSIZ];
-    off_t           off_ret;
-
-    fd = open(m_kernel.c_str(), O_RDONLY);
-    if (fd < 0)
-        throw KSystemError("IdentifyKernel::isX86Kernel: open failed", errno);
+    unsigned char buffer[BUFSIZ];
 
     /* check the magic number */
-    off_ret = lseek(fd, X86_HEADER_OFF_START, SEEK_SET);
+    off_t off_ret = lseek(m_fd, X86_HEADER_OFF_START, SEEK_SET);
     if (off_ret == (off_t)-1) {
-        close(fd);
         throw KSystemError("IdentifyKernel::isX86Kernel: lseek to "
             "X86_HEADER_OFF_START failed", errno);
     }
 
-    ret = read(fd, buffer, 4);
+    int ret = read(m_fd, buffer, 4);
     if (ret != 4) {
-        close(fd);
         throw KSystemError("IdentifyKernel::isX86Kernel: read of magic "
             "start failed", errno);
     }
-
-    close(fd);
 
     return *((uint32_t *)buffer) == X86_HEADER_OFF_MAGIC;
 }
@@ -123,73 +126,55 @@ bool KernelTool::isX86Kernel() const
 bool KernelTool::x86isRelocatable() const
     throw (KError)
 {
-    int             fd = -1;
-    int             ret;
-    unsigned char   buffer[BUFSIZ];
-    off_t           off_ret;
-
-    fd = open(m_kernel.c_str(), O_RDONLY);
-    if (fd < 0)
-        throw KSystemError("IdentifyKernel::checkArchFileX86: open failed",
-            errno);
+    unsigned char buffer[BUFSIZ];
 
     // check the magic number
-    off_ret = lseek(fd, X86_HEADER_OFF_START, SEEK_SET);
+    off_t off_ret = lseek(m_fd, X86_HEADER_OFF_START, SEEK_SET);
     if (off_ret == (off_t)-1) {
-        close(fd);
         throw KSystemError("IdentifyKernel::checkArchFileX86: lseek to "
             "X86_HEADER_OFF_START failed", errno);
     }
 
-    ret = read(fd, buffer, 4);
+    int ret = read(m_fd, buffer, 4);
     if (ret != 4) {
-        close(fd);
         throw KSystemError("IdentifyKernel::checkArchFileX86: read of magic "
             "start failed", errno);
     }
 
     if (*((uint32_t *)buffer) != X86_HEADER_OFF_MAGIC) {
-        close(fd);
         throw KError("This is not a kernel image");
     }
 
     // check the version
-    off_ret = lseek(fd, X86_HEADER_OFF_VERSION, SEEK_SET);
+    off_ret = lseek(m_fd, X86_HEADER_OFF_VERSION, SEEK_SET);
     if (off_ret == (off_t)-1) {
-        close(fd);
         throw KSystemError("IdentifyKernel::checkArchFileX86: lseek to "
             "X86_HEADER_OFF_VERSION failed", errno);
     }
 
-    ret = read(fd, buffer, 2);
+    ret = read(m_fd, buffer, 2);
     if (ret != 2) {
-        close(fd);
         throw KSystemError("IdentifyKernel::checkArchFileX86: read of version"
             " failed", errno);
     }
 
     // older versions are not relocatable
     if (*((uint16_t *)buffer) < X86_HEADER_RELOCATABLE_VER) {
-        close(fd);
         return false;
     }
 
     // and check if the kernel is compiled to be relocatable
-    off_ret = lseek(fd, X86_HEADER_OFF_RELOCATABLE, SEEK_SET);
+    off_ret = lseek(m_fd, X86_HEADER_OFF_RELOCATABLE, SEEK_SET);
     if (off_ret == (off_t)-1) {
-        close(fd);
         throw KSystemError("IdentifyKernel::checkArchFileX86: lseek to "
             "X86_HEADER_OFF_RELOCATABLE failed", errno);
     }
 
-    ret = read(fd, buffer, 1);
+    ret = read(m_fd, buffer, 1);
     if (ret != 1) {
-        close(fd);
         throw KSystemError("IdentifyKernel::checkArchFileX86: read of "
             "relocatable bit failed", errno);
     }
-
-    close(fd);
 
     return !!buffer[0];
 }
@@ -198,17 +183,14 @@ bool KernelTool::x86isRelocatable() const
 bool KernelTool::elfIsRelocatable() const
     throw (KError)
 {
-    int             ret;
-    gzFile          fp = NULL;
-    unsigned char   e_ident[EI_NIDENT];
-    int             reloc = false;
-    string          arch;
+    unsigned char e_ident[EI_NIDENT];
 
-    fp = gzopen(m_kernel.c_str(), "r");
-    if (!fp)
+    gzFile fp = gzdopen(dup(m_fd), "r");
+    if (!fp) {
         throw KSystemError("check_elf_file: Failed to open file", errno);
+    }
 
-    ret = gzread(fp, e_ident, EI_NIDENT);
+    int ret = gzread(fp, e_ident, EI_NIDENT);
     if (ret != EI_NIDENT) {
         gzclose(fp);
         throw KSystemError("check_elf_file: Failed to read", errno);
@@ -219,6 +201,8 @@ bool KernelTool::elfIsRelocatable() const
         throw KSystemError("Seek failed", errno);
     }
 
+    string arch;
+    bool reloc = false;
     if (e_ident[EI_CLASS] == ELFCLASS32) {
         Elf32_Ehdr hdr;
 

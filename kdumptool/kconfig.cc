@@ -487,7 +487,6 @@ string Kconfig::extractKernelConfigbzImage(const string &kernelImage)
 
     if (begin_offset < 0 || end_offset < 0) {
         gzclose(fp);
-        close(fd);
         throw KError("Cannot read configuration from " + kernelImage + ".");
     }
 
@@ -503,7 +502,6 @@ string Kconfig::extractKernelConfigbzImage(const string &kernelImage)
 
     chars_read = gzread(fp, kernelconfig.get(), kernelconfig_len);
     gzclose(fp);
-    close(fd);
     if (chars_read != kernelconfig_len) {
         throw KError("Cannot read IKCONFIG.");
     }

@@ -56,7 +56,19 @@ class Util {
         /**
          * Checks if the specified file is a gzip compressed file.
          *
+         * @param[in] fd a file descriptor
+         * @return @c true if the file has the gzip header, @c false otherwise
+         * @exception KError if opening the file failed
+         */
+        static bool isGzipFile(int fd)
+        throw (KError);
+
+        /**
+         * Checks if the specified file is a gzip compressed file.
+         *
          * @param file the name of the file
+         * @return @c true if the file has the gzip header, @c false otherwise
+         * @exception KError if opening the file failed
          */
         static bool isGzipFile(const std::string &file)
         throw (KError);
@@ -69,6 +81,16 @@ class Util {
          * @exception KError if opening the file failed
          */
         static bool isElfFile(const std::string &filename)
+        throw (KError);
+
+        /**
+         * Checks if @p filename is an ELF file.
+         *
+         * @param[in] fd a file descriptor
+         * @return @c true if it's an ELF file, @c false otherwise
+         * @exception KError if opening the file failed
+         */
+        static bool isElfFile(int fd)
         throw (KError);
 
         /**
