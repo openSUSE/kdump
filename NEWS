@@ -1,6 +1,8 @@
 0.7.0
 -----
-  * Implement read_ikconfig command.
+  * Add read_ikconfig command.
+  * Add find_kernel command in kdumptool, replacing the find code in the
+    init script.
 
 0.6.7
 -----

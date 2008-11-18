@@ -1,3 +1,9 @@
+2008-11-18  Bernhard Walle <bernhard.walle@gmx.de>
+
+	* Add find_kernel command in kdumptool, replacing the find code in the
+	  init script.
+	* Refactoring.
+
 2008-11-17  Bernhard Walle <bernhard.walle@gmx.de>
 
 	* Implement read_ikconfig command.
