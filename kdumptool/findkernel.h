@@ -50,6 +50,67 @@ class FindKernel : public Subcommand {
         void execute()
         throw (KError);
 
+    protected:
+        
+        /**
+         * Checks if a given kernel image is suitable for kdump.
+         *
+         * @param[in] kernelImage ful path to the kernel image
+         * @param[in] strict if that parameter is set to @c true, then
+         *            we consider kernels that are not well suited as
+         *            capture kernel (such as RT or huge number of CPUs
+         *            because they waste memory) as unsuited. For @c false
+         *            we just check if the kernel can be loaded at all.
+         * @return @c true if the kernel is suited (see also @p strict) and
+         *         @c false otherwise
+         * @exception KError if opening of @p kernelImage fails or reading
+         *            of the kernel configuration of @p kernelImage fails
+         */
+        bool suitableForKdump(const std::string &kernelImage, bool strict)
+        throw (KError);
+        
+        /**
+         * Checks if the given kernel image is a kdump kernel. Currently
+         * only name matching is done.
+         *
+         * @param[in] kernelimage the full path of the kernel image
+         * @return @c true if the image is a kernel image, @c false otherwise
+         * @exception KError on any error
+         */
+        bool isKdumpKernel(const std::string &kernelimage)
+        throw (KError);
+
+        /**
+         * Finds a kernel image that fits to the specified kernel version.
+         * It looks in /boot.
+         *
+         * @param[in] kernelver the kernel version to look for
+         * @return the kernel image or an empty string if there's no such kernel
+         *         image
+         * @exception KError on any error
+         */
+        std::string findForVersion(const std::string &kernelver)
+        throw (KError);
+        
+        /**
+         * Automatically finds a suitable kdump kernel. See kdump(5) for
+         * documentation which kernel is taken.
+         *
+         * @return the full path to the kernel image
+         * @exception KError on any error
+         */
+        std::string findKernelAuto()
+        throw (KError);
+        
+        /**
+         * Finds an initrd for the given kernel image.
+         *
+         * @param[in] kernelPath a full path to a kernel image
+         * @return the initrd or an empty string if there's no initrd
+         */
+        std::string findInitrd(const std::string &kernelPath)
+        throw ();
+
     private:
         bool m_checkRelocatable;
         bool m_checkType;
