@@ -36,6 +36,8 @@
 #include "global.h"
 #include "debug.h"
 #include "stringutil.h"
+#include "fileutil.h"
+#include "kconfig.h"
 
 using std::string;
 using std::memset;
@@ -94,6 +96,26 @@ list<string> KernelTool::imageNames(const std::string &arch)
     }
 
     return ret;
+}
+
+// -----------------------------------------------------------------------------
+bool KernelTool::stripImageName(const string &kernelImage, string &directory,
+                                string &rest)
+    throw (KError)
+{
+    directory = FileUtil::dirname(kernelImage);
+    string kernel = FileUtil::baseName(kernelImage);
+
+    list<string> imageNames = KernelTool::imageNames(Util::getArch());
+    for (list<string>::const_iterator it = imageNames.begin();
+            it != imageNames.end(); ++it) {
+        rest = Stringutil::stripPrefix(kernel, *it + "-");
+        if (rest != kernel) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 // -----------------------------------------------------------------------------
@@ -295,6 +317,35 @@ string KernelTool::archFromElfMachine(unsigned long long et_machine) const
         case EM_IA_64:  return "ia64";
         case EM_X86_64: return "x86_64";
         default:        return "unknown";
+    }
+}
+
+// -----------------------------------------------------------------------------
+Kconfig *KernelTool::retrieveKernelConfig() const
+    throw (KError)
+{
+    Kconfig *kconfig = new Kconfig();
+
+    // delete the object if we throw an exception
+    try {
+        // at first, search for the config on disk
+        string dir, stripped;
+        if (KernelTool::stripImageName(m_kernel, dir, stripped)) {
+            string config = FileUtil::pathconcat(dir, "config-" + stripped);
+            Debug::debug()->dbg("Trying %s for config", config.c_str());
+            if (FileUtil::exists(config)) {
+                kconfig->readFromConfig(config);
+                return kconfig;
+            }
+        }
+
+        // and then extract the configuration
+        kconfig->readFromKernel(*this);
+        return kconfig;
+
+    } catch (...) {
+        delete kconfig;
+        throw;
     }
 }
 

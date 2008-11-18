@@ -23,6 +23,8 @@
 
 #include "global.h"
 
+class Kconfig;
+
 //{{{ KernelTool ---------------------------------------------------------------
 
 /**
@@ -68,6 +70,23 @@ class KernelTool {
         throw ();
 
         /**
+         * Uses KernelTool::imageNames() and strips off the image names
+         * from kernelImage. For example, pass /boot/vmlinuz-2.6.27-rc1,
+         * then you get "/boot" as @p directory and "2.6.27-rc1" as @p rest.
+         *
+         * @param[in] kernelImage the full path to the kernel image
+         * @param[out] directory the directory where @p kernelImage was in
+         * @param[out] rest the rest, see the description above
+         * @return @c true if something has been stripped off, @c false
+         *         otherwise. The result is valid in any case.
+         * @exception KError if something went wrong
+         */
+        static bool stripImageName(const std::string &kernelImage,
+                                   std::string &directory,
+                                   std::string &rest)
+        throw (KError);
+
+        /**
          * Returns the type for the kernel image specified in the constructor.
          *
          * @exception KError if opening of the kernel image fails
@@ -91,6 +110,27 @@ class KernelTool {
          * @exception KError if reading of the kernel image failed
          */
         std::string extractKernelConfig() const
+        throw (KError);
+        
+        /**
+         * Retrieves a Kconfig object for the given kernel.
+         *
+         * The difference between extractKernelConfig() is following:
+         * That function actually parses the kernel configuration extracted
+         * by extractKernelConfig(). It also checks first if we have
+         * a valid configuration file on disk, that means if the kernel
+         * is /boot/vmlinuz-2.6.27-pae then it checks for
+         * /boot/config-2.6.27-pae. That is just faster than getting the
+         * kernel configuration from the image.
+         *
+         * If it is not possible to read the configuration (from the file and/or
+         * for the kernel image), then a KError is thrown.
+         *
+         * @return a Kconfig object that has to be freed by the caller
+         *         (it's a pointer to avoid a cyclic dependency between
+         *         Kconfig and KernelTool)
+         */
+        Kconfig *retrieveKernelConfig() const
         throw (KError);
 
         /**
