@@ -201,6 +201,8 @@ SET(TESTKCONFIG_SRC
     kconfig.cc
     kerneltool.h
     kerneltool.cc
+    fileutil.h
+    fileutil.cc
     testkconfig.cc
 )
 
