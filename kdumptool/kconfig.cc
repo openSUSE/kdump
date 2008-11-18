@@ -258,13 +258,12 @@ void Kconfig::readFromConfig(const string &configFile)
 }
 
 // -----------------------------------------------------------------------------
-void Kconfig::readFromKernel(const string &kernelImage)
+void Kconfig::readFromKernel(const KernelTool &kt)
     throw (KError)
 {
-    Debug::debug()->trace("Kconfig::readFromKernel(%s)", kernelImage.c_str());
+    Debug::debug()->trace("Kconfig::readFromKernel(%s)", kt.toString().c_str());
 
     stringstream ss;
-    KernelTool kt(kernelImage);
     ss << kt.extractKernelConfig();
 
     string line;
@@ -275,6 +274,17 @@ void Kconfig::readFromKernel(const string &kernelImage)
             m_configs[name] = val;
         }
     }
+}
+
+// -----------------------------------------------------------------------------
+void Kconfig::readFromKernel(const string &kernelImage)
+    throw (KError)
+{
+    Debug::debug()->trace("Kconfig::readFromKernel(%s)", kernelImage.c_str());
+
+    stringstream ss;
+    KernelTool kt(kernelImage);
+    return readFromKernel(kt);
 }
 
 // -----------------------------------------------------------------------------

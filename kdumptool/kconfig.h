@@ -23,6 +23,7 @@
 #include <ctime>
 
 #include "global.h"
+#include "kerneltool.h"
 
 //{{{ KconfigValue -------------------------------------------------------------
 
@@ -177,6 +178,16 @@ class Kconfig {
          * @exception KError if reading of the kernel image fails
          */
         void readFromKernel(const std::string &kernelImage)
+        throw (KError);
+
+        /**
+         * Reads the configuration from a kernel image if the kernel has been
+         * compiled with CONFIG_IKCONFIG.
+         *
+         * @param[in] kt a kerneltool object
+         * @exception KError if reading of the kernel image fails
+         */
+        void readFromKernel(const KernelTool &kt)
         throw (KError);
 
         /**
