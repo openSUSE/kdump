@@ -83,6 +83,14 @@ class KernelTool {
         std::string extractKernelConfig() const
         throw (KError);
 
+        /**
+         * String representation of kerneltool.
+         *
+         * @return "[KernelTool] name"
+         */
+        std::string toString() const
+        throw ();
+
     protected:
         /**
          * Checks if a x86 kernel image is relocatable.
