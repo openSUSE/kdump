@@ -214,6 +214,26 @@ bool Stringutil::startsWith(const string &long_string,
 }
 
 // -----------------------------------------------------------------------------
+bool Stringutil::endsWith(const string &long_string,
+                          const string &part)
+    throw ()
+{
+    return part ==
+        long_string.substr(long_string.size()-part.size(), long_string.size());
+}
+
+// -----------------------------------------------------------------------------
+string Stringutil::stripPrefix(const string &str, const string &prefix)
+    throw ()
+{
+    if (startsWith(str, prefix)) {
+        return str.substr(0, prefix.size());
+    } else {
+        return str;
+    }
+}
+
+// -----------------------------------------------------------------------------
 string Stringutil::formatUnixTime(const char *formatstring, time_t value)
     throw ()
 {

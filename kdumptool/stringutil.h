@@ -183,6 +183,29 @@ class Stringutil {
         throw ();
 
         /**
+         * Checks if @p long_string ends with @p part.
+         *
+         * @param[in] long_string the long string
+         * @param[in] part the string part
+         * @return @c true if @p long_string ends with @p part, @c false
+         *         otherwise
+         */
+        static bool endsWith(const std::string &long_string,
+                             const std::string &part)
+        throw ();
+
+        /**
+         * Strips off the prefix @p prefix from @p str.
+         *
+         * @param[in] str the string
+         * @param[in] prefix the prefix to strip off
+         * @return the resulting string
+         */
+        static std::string stripPrefix(const std::string &str,
+                                       const std::string &prefix)
+        throw ();
+
+        /**
          * Formats the current time as specified in @p formatstring.
          *
          * @param[in] formatstring strftime(3)-like format string
