@@ -18,11 +18,7 @@
  */
 #include <iostream>
 #include <string>
-#include <zlib.h>
-#include <libelf.h>
-#include <gelf.h>
 #include <cerrno>
-#include <fcntl.h>
 
 #include "subcommand.h"
 #include "debug.h"
@@ -101,8 +97,9 @@ void IdentifyKernel::execute()
     //
     // is it a kernel?
     //
-    KernelTool::KernelType kt = KernelTool::getKernelType(m_kernelImage);
-    if (kt == KernelTool::KT_NONE) {
+    KernelTool kt(m_kernelImage);
+    KernelTool::KernelType kerneltype = kt.getKernelType();
+    if (kerneltype == KernelTool::KT_NONE) {
         setErrorCode(NOT_A_KERNEL);
         throw KError("The specified file is not a kernel image.");
     }
@@ -111,7 +108,7 @@ void IdentifyKernel::execute()
     // type checking
     //
     if (m_checkType) {
-        switch (kt) {
+        switch (kerneltype) {
             case KernelTool::KT_X86:
                 cout << "x86" << endl;
                 break;
@@ -132,17 +129,8 @@ void IdentifyKernel::execute()
     if (m_checkRelocatable) {
         bool reloc;
 
-        switch (kt) {
-            case KernelTool::KT_ELF:
-            case KernelTool::KT_ELF_GZ:
-                reloc = checkElfFile(m_kernelImage.c_str());
-                break;
-            case KernelTool::KT_X86:
-                reloc = checkArchFile(m_kernelImage.c_str());
-                break;
-            default:
-                throw KError("Invalid kernel type.");
-                break;
+        switch (kerneltype) {
+            
         }
 
         if (reloc)
@@ -152,97 +140,6 @@ void IdentifyKernel::execute()
             setErrorCode(NOT_RELOCATABLE);
         }
     }
-}
-
-// -----------------------------------------------------------------------------
-string IdentifyKernel::archFromElfMachine(unsigned long long et_machine)
-    throw ()
-{
-    switch (et_machine) {
-        case EM_386:    return "i386";
-        case EM_PPC:    return "ppc";
-        case EM_PPC64:  return "ppc64";
-        case EM_S390:   return "s390";
-        case EM_IA_64:  return "ia64";
-        case EM_X86_64: return "x86_64";
-        default:        return "unknown";
-    }
-}
-
-// -----------------------------------------------------------------------------
-bool IdentifyKernel::checkElfFile(const char *file)
-    throw (KError)
-{
-    int             ret;
-    gzFile          fp = NULL;
-    unsigned char   e_ident[EI_NIDENT];
-    int             reloc = false;
-
-    fp = gzopen(file, "r");
-    if (!fp)
-        throw KSystemError("check_elf_file: Failed to open file", errno);
-
-    ret = gzread(fp, e_ident, EI_NIDENT);
-    if (ret != EI_NIDENT) {
-        gzclose(fp);
-        throw KSystemError("check_elf_file: Failed to read", errno);
-    }
-
-    if (gzseek(fp, 0, SEEK_SET) == (off_t)-1) {
-        gzclose(fp);
-        throw KSystemError("Seek failed", errno);
-    }
-
-    if (e_ident[EI_CLASS] == ELFCLASS32) {
-        Elf32_Ehdr hdr;
-
-        ret = gzread(fp, (unsigned char *)&hdr, sizeof(Elf32_Ehdr));
-        if (ret != sizeof(Elf32_Ehdr)) {
-            gzclose(fp);
-            throw KSystemError("Couldn't read ELF header", errno);
-        }
-
-        m_arch = archFromElfMachine((unsigned long long)hdr.e_machine);
-
-        if (hdr.e_type == ET_DYN)
-            reloc = true;
-    } else if (e_ident[EI_CLASS] == ELFCLASS64) {
-        Elf64_Ehdr hdr;
-
-        ret = gzread(fp, (unsigned char *)&hdr, sizeof(Elf64_Ehdr));
-        if (ret != sizeof(Elf64_Ehdr)) {
-            gzclose(fp);
-            throw KSystemError("Couldn't read ELF header", errno);
-        }
-
-        if (hdr.e_type == ET_DYN)
-            reloc = true;
-
-        m_arch = archFromElfMachine((unsigned long long)hdr.e_machine);
-    }
-
-    gzclose(fp);
-
-    Debug::debug()->dbg("Detected arch %s", m_arch.c_str());
-
-    return isArchAlwaysRelocatable(m_arch.c_str()) || reloc;
-}
-
-// -----------------------------------------------------------------------------
-bool IdentifyKernel::checkArchFile(const char *filename)
-    throw (KError)
-{
-    if (Util::isX86(Util::getArch()))
-        return KernelTool::x86isRelocatable(filename);
-    else
-        return false;
-}
-
-// -----------------------------------------------------------------------------
-bool IdentifyKernel::isArchAlwaysRelocatable(const char *machine)
-    throw ()
-{
-    return string(machine) == "ia64";
 }
 
 //}}}

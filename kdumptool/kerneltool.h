@@ -42,29 +42,77 @@ class KernelTool {
         };
 
     public:
+        
+        /**
+         * Creates a new kerneltool object.
+         *
+         * @param[in] the kernel image to get information for
+         */
+        KernelTool(const std::string &image)
+        throw ();
 
         /**
-         * Returns the type for a specified kernel image.
+         * Returns the type for the kernel image specified in the constructor.
          *
-         * @param[in] file the file of the kernel image
          * @exception KError if opening of the kernel image fails
          */
-        static KernelType getKernelType(const std::string &file)
+        KernelType getKernelType() const
         throw (KError);
 
+        /**
+         * Checks if a kernel is relocatable, regardless of the kernel type.
+         *
+         * @return @c true if the kernel is relocatable, @c false otherwise
+         */
+        bool isRelocatable() const
+        throw (KError);
+
+    protected:
         /**
          * Checks if a x86 kernel image is relocatable.
          *
-         * @param[in] file the full path to the kernel image. The kernel must
-         *            be a bzImage of x86.
          * @return @c true if the kernel is relocatable, @c false otherwise
          */
-        static bool x86isRelocatable(const std::string &file)
+        bool x86isRelocatable() const
         throw (KError);
 
-    private:
-        static bool isX86Kernel(const std::string &file)
+        /**
+         * Checks if the architecture has always relocatable kernels.
+         *
+         * @param[in] machine the machine, e.g. "ia64"
+         * @return @c true if it always has relocatable architectures,
+         *         @c false otherwise
+         */
+        bool isArchAlwaysRelocatable(const std::string &machine) const
+        throw ();
+
+        /**
+         * Checks if a ELF kernel image is relocatable.
+         *
+         * @return @c true if the ELF kernel is relocatable, @c false otherwise
+         */
+        bool elfIsRelocatable() const
         throw (KError);
+
+        /**
+         * Checks if the kernel is a x86 kernel.
+         *
+         * @return @c true if it's a x86 kernel, @c false otherwise.
+         */
+        bool isX86Kernel() const
+        throw (KError);
+
+        /**
+         * Returns the architecture as string from the ELF machine type.
+         *
+         * @param[in] et_machine the ELF machine type such as EM_386
+         * @return the architecture as string such as "i386".
+         */
+        std::string archFromElfMachine(unsigned long long et_machine) const
+        throw ();
+        
+    private:
+        std::string m_kernel;
 };
 
 //}}}

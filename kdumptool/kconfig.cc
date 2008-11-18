@@ -287,7 +287,8 @@ string Kconfig::extractKernelConfig(const string &kernelImage)
     Debug::debug()->trace("Kconfig::extractKernelConfig(%s)",
         kernelImage.c_str());
 
-    KernelTool::KernelType type = KernelTool::getKernelType(kernelImage);
+    KernelTool kt(kernelImage);
+    KernelTool::KernelType type = kt.getKernelType();
     switch (type) {
         case KernelTool::KT_ELF:
         case KernelTool::KT_ELF_GZ:

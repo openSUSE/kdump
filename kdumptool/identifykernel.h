@@ -88,14 +88,10 @@ class IdentifyKernel : public Subcommand {
         bool isArchAlwaysRelocatable(const char *machine)
         throw ();
 
-        std::string archFromElfMachine(unsigned long long et_machine)
-        throw ();
-
     private:
         bool m_checkRelocatable;
         bool m_checkType;
         std::string m_kernelImage;
-        std::string m_arch;
 };
 
 //}}}
