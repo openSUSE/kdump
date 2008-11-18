@@ -21,6 +21,7 @@
 #include <cstring>
 #include <memory>
 #include <sstream>
+#include <list>
 
 #include <unistd.h>
 #include <sys/types.h>
@@ -40,6 +41,7 @@ using std::string;
 using std::memset;
 using std::auto_ptr;
 using std::stringstream;
+using std::list;
 
 /* x86 boot header for bzImage */
 #define X86_HEADER_OFF_START        0x202
@@ -71,6 +73,27 @@ KernelTool::~KernelTool()
 {
     close(m_fd);
     m_fd = -1;
+}
+
+
+// -----------------------------------------------------------------------------
+list<string> KernelTool::imageNames(const std::string &arch)
+    throw ()
+{
+    list<string> ret;
+
+    Debug::debug()->trace("KernelTool::imageNames(%s)", arch.c_str());
+
+    if (arch == "i386" || arch == "x86_64") {
+        ret.push_back("vmlinuz");
+        ret.push_back("vmlinux");
+    } else if (arch == "ia64") {
+        ret.push_back("vmlinuz");
+    } else {
+        ret.push_back("vmlinux");
+    }
+
+    return ret;
 }
 
 // -----------------------------------------------------------------------------
