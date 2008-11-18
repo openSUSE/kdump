@@ -83,9 +83,11 @@ class Subcommand {
         /**
          * Parses the command line. This method gets called before the
          * Subcommand::execute() method gets called.
+         *
+         * The default implementation just does nothing.
          */
         virtual void parseCommandline(OptionParser *optionparser)
-        throw (KError) = 0;
+        throw (KError);
 
         /**
          * Executes the function.

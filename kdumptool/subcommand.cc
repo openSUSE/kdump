@@ -74,6 +74,13 @@ bool Subcommand::needsConfigfile() const
     return true;
 }
 
+// -----------------------------------------------------------------------------
+void Subcommand::parseCommandline(OptionParser *optionparser)
+    throw (KError)
+{
+    Debug::debug()->trace("Subcommand::parseCommandline(%p)", optionparser);
+}
+
 //}}}
 //{{{ SubcommandManager --------------------------------------------------------
 SubcommandManager *SubcommandManager::m_instance = NULL;
