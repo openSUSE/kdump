@@ -40,14 +40,11 @@ using std::strerror;
 std::string Util::getArch()
     throw (KError)
 {
-    static struct utsname utsname;
-    static bool utsname_filled = false;
+    struct utsname utsname;
 
-    if (!utsname_filled) {
-        int ret = uname(&utsname);
-        if (ret < 0)
-            throw KError(string("uname failed: ") + strerror(errno));
-        utsname_filled = true;
+    int ret = uname(&utsname);
+    if (ret < 0) {
+        throw KSystemError("uname failed", errno);
     }
 
     Debug::debug()->dbg("uname = %s\n", utsname.machine);
