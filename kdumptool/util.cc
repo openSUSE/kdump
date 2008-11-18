@@ -48,8 +48,13 @@ std::string Util::getArch()
     }
 
     Debug::debug()->dbg("uname.machine = %s\n", utsname.machine);
-
-    return utsname.machine;
+    
+    string arch = string(utsname.machine);
+    if (arch == "i486" || arch == "i586" || arch == "i686") {
+        return string("i386");
+    } else {
+        return arch;
+    }
 }
 
 // -----------------------------------------------------------------------------
