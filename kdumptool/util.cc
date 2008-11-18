@@ -47,10 +47,27 @@ std::string Util::getArch()
         throw KSystemError("uname failed", errno);
     }
 
-    Debug::debug()->dbg("uname = %s\n", utsname.machine);
+    Debug::debug()->dbg("uname.machine = %s\n", utsname.machine);
 
     return utsname.machine;
 }
+
+// -----------------------------------------------------------------------------
+std::string Util::getKernelRelease()
+    throw (KError)
+{
+    struct utsname utsname;
+
+    int ret = uname(&utsname);
+    if (ret < 0) {
+        throw KSystemError("uname failed", errno);
+    }
+
+    Debug::debug()->dbg("uname.release = %s\n", utsname.release);
+
+    return utsname.release;
+}
+
 
 // -----------------------------------------------------------------------------
 bool Util::isGzipFile(const std::string &file)

@@ -39,6 +39,15 @@ class Util {
         throw (KError);
 
         /**
+         * Returns the kernel release number (uname -r) of the kernel that
+         * is currently active.
+         *
+         * @return the kernel release
+         */
+        static std::string getKernelRelease()
+        throw (KError);
+
+        /**
          * Checks if the given architecture is x86.
          */
         static bool isX86(const std::string &arch)
