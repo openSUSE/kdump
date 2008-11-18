@@ -58,6 +58,19 @@ bool Stringutil::isNumber(const string &str)
 }
 
 // -----------------------------------------------------------------------------
+bool Stringutil::isAlpha(const string &str)
+    throw ()
+{
+    for (size_t i = 0; i < str.size(); ++i) {
+        if (!isalpha(str[i])) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// -----------------------------------------------------------------------------
 int Stringutil::string2number(const std::string &string)
     throw ()
 {
@@ -203,6 +216,48 @@ StringVector Stringutil::splitlines(const string &str)
         ret.push_back(s);
 
     return ret;
+}
+
+// -----------------------------------------------------------------------------
+StringVector Stringutil::split(const string &string, char split)
+    throw ()
+{
+    string::size_type currentstart = 0;
+    string::size_type next;
+    StringVector ret;
+
+    next = string.find(split);
+    while (next != string::npos) {
+        ret.push_back(string.substr(currentstart, next));
+        currentstart = next+1;
+        next = string.find(currentstart, split);
+    }
+
+    if (ret.size() == 0) {
+        ret.push_back(string);
+    }
+
+    return ret;
+}
+
+// -----------------------------------------------------------------------------
+string Stringutil::join(const StringVector &stringvector, char joinchar)
+    throw ()
+{
+    string result;
+
+    if (stringvector.size() == 0) {
+        return "";
+    }
+
+    for (size_t i = 0; i < stringvector.size(); ++i) {
+        if (i != 0) {
+            result += joinchar;
+        }
+        result += stringvector[i];
+    }
+
+    return result;
 }
 
 // -----------------------------------------------------------------------------

@@ -44,6 +44,15 @@ class Stringutil {
         throw ();
 
         /**
+         * Checks if @p str contains only of alpha characters.
+         *
+         * @param[in] str the string that should be checked
+         * @return true if it's only alpha, false otherwise
+         */
+        static bool isAlpha(const std::string &str)
+        throw ();
+
+        /**
          * Transforms a numeric value into a string.
          *
          * @param[in] number the number to transform
@@ -169,6 +178,29 @@ class Stringutil {
          */
         static StringVector splitlines(const std::string &string)
         throw ();
+
+        /**
+         * Splits a string.
+         *
+         * @param[in] string a string that may contain or may contain not
+         *            the split character
+         * @param[in] split the split character
+         * @return the vector of split strings
+         */
+        static StringVector split(const std::string &string, char split)
+        throw ();
+        
+        /**
+         * Joins a string vector into a string.
+         *
+         * @param[in] stringvector a vector of strings
+         * @param[in] joinchar the character between the elements
+         * @return the resulting string
+         */
+        static std::string join(const StringVector &stringvector,
+                                char joinchar)
+        throw ();
+         
 
         /**
          * Checks if @p long_string starts with @p part.
