@@ -29,6 +29,7 @@
 #include "deletedumps.h"
 #include "print_target.h"
 #include "read_ikconfig.h"
+#include "findkernel.h"
 
 using std::map;
 using std::list;
@@ -125,6 +126,7 @@ SubcommandManager::SubcommandManager()
     addSubcommand(new DeleteDumps());
     addSubcommand(new PrintTarget());
     addSubcommand(new ReadIKConfig());
+    addSubcommand(new FindKernel());
 }
 
 // -----------------------------------------------------------------------------
