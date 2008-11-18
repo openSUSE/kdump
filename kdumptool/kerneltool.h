@@ -72,6 +72,16 @@ class KernelTool {
          */
         bool isRelocatable() const
         throw (KError);
+        
+        /**
+         * Extracts the kernel configuration from a kernel image. The kernel
+         * image can be of type ELF, ELF.gz and bzImage.
+         *
+         * @return the embedded kernel configuration
+         * @exception KError if reading of the kernel image failed
+         */
+        std::string extractKernelConfig() const
+        throw (KError);
 
     protected:
         /**
@@ -117,7 +127,41 @@ class KernelTool {
         std::string archFromElfMachine(unsigned long long et_machine) const
         throw ();
         
+                /**
+         * Extracts the kernel configuration from a ELF kernel image.
+         * The image may be compressed.
+         *
+         * @param[in] kernelImage full path to the kernel image
+         * @return the embedded kernel configuration
+         * @exception KError if reading of the kernel image failed
+         */
+        std::string extractKernelConfigELF() const
+        throw (KError);
+
+        /**
+         * Extracts the kernel configuration from a bzImage. The
+         * image may be compressed.
+         *
+         * @param[in] image full path to the kernel image
+         * @return the kernel configuration
+         * @exception KError if reading of the kernel image failed
+         */
+        std::string extractKernelConfigbzImage() const
+        throw (KError);
+
+        /**
+         * Extracts the kernel configuration from a IKCONFIG buffer.
+         *
+         * @param[in] buffer the buffer with the data bytes
+         * @param[in] buflen the size of the buffer
+         * @return the configuration string
+         * @exception KError if the buffer contains invalid data
+         */
+        std::string extractFromIKconfigBuffer(const char *buffer, size_t buflen)
+        const throw (KError);
+
     private:
+        std::string m_kernel;
         int m_fd;
 };
 

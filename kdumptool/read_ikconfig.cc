@@ -21,7 +21,7 @@
 #include "subcommand.h"
 #include "debug.h"
 #include "read_ikconfig.h"
-#include "kconfig.h"
+#include "kerneltool.h"
 #include "util.h"
 
 using std::cout;
@@ -64,9 +64,8 @@ void ReadIKConfig::parseCommandline(OptionParser *optionparser)
 void ReadIKConfig::execute()
     throw (KError)
 {
-    Kconfig kconfig;
-
-    cout << kconfig.extractKernelConfig(m_file);
+    KernelTool kt(m_file);
+    cout << kt.extractKernelConfig();
 }
 
 //}}}

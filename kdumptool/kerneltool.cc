@@ -18,11 +18,15 @@
  */
 #include <string>
 #include <cerrno>
+#include <cstring>
+#include <memory>
+#include <sstream>
 
 #include <unistd.h>
 #include <sys/types.h>
 #include <fcntl.h>
 
+#include <zlib.h>
 #include <libelf.h>
 #include <gelf.h>
 
@@ -30,8 +34,12 @@
 #include "util.h"
 #include "global.h"
 #include "debug.h"
+#include "stringutil.h"
 
 using std::string;
+using std::memset;
+using std::auto_ptr;
+using std::stringstream;
 
 /* x86 boot header for bzImage */
 #define X86_HEADER_OFF_START        0x202
@@ -40,10 +48,15 @@ using std::string;
 #define X86_HEADER_OFF_MAGIC        0x53726448
 #define X86_HEADER_RELOCATABLE_VER  0x0205
 
+#define MAGIC_START         "IKCFG_ST"
+#define MAGIC_END           "IKCFG_ED"
+#define MAGIC_LEN           8
+
+
 // -----------------------------------------------------------------------------
 KernelTool::KernelTool(const std::string &image)
     throw (KError)
-    : m_fd(-1)
+    : m_kernel(image), m_fd(-1)
 {
     Debug::debug()->trace("KernelTool::KernelTool(%s)", image.c_str());
 
@@ -259,6 +272,234 @@ string KernelTool::archFromElfMachine(unsigned long long et_machine) const
         case EM_IA_64:  return "ia64";
         case EM_X86_64: return "x86_64";
         default:        return "unknown";
+    }
+}
+
+// -----------------------------------------------------------------------------
+string KernelTool::extractFromIKconfigBuffer(const char *buffer, size_t buflen)
+    const
+    throw (KError)
+{
+    Debug::debug()->trace("Kconfig::extractFromIKconfigBuffer(%s, %d)",
+        buffer, buflen);
+
+    ssize_t uncompressed_len = buflen * 20;
+    auto_ptr<Bytef> uncompressed(new Bytef[uncompressed_len]);
+
+    z_stream stream;
+    stream.next_in = (Bytef *)buffer;
+    stream.avail_in = buflen;
+
+    stream.next_out = (Bytef *)uncompressed.get();
+    stream.avail_out = uncompressed_len;
+
+    stream.zalloc = NULL;
+    stream.zfree = NULL;
+    stream.opaque = NULL;
+
+    int ret = inflateInit2(&stream, -MAX_WBITS);
+    if (ret != Z_OK) {
+        throw KError("inflateInit2() failed");
+    }
+
+    ret = inflate(&stream, Z_FINISH);
+    if (ret != Z_STREAM_END) {
+        throw KError("inflate() failed");
+    }
+
+    ret = inflateEnd(&stream);
+    if (ret != Z_OK) {
+        throw KError("Failed to uncompress the kernel configuration ("
+            + Stringutil::number2string(ret) + ").");
+    }
+
+    uncompressed_len = stream.total_out;
+
+    stringstream ss;
+    uncompressed.get()[uncompressed_len] = '\0';
+    return string((const char *)uncompressed.get());
+}
+
+// -----------------------------------------------------------------------------
+string KernelTool::extractKernelConfigELF() const
+    throw (KError)
+{
+    Debug::debug()->trace("Kconfig::extractKernelConfigELF()");
+
+    off_t oret = lseek(m_fd, 0, SEEK_SET);
+    if (oret == off_t(-1)) {
+        throw KSystemError("lseek() failed", errno);
+    }
+
+    gzFile fp = gzdopen(dup(m_fd), "r");
+    if (!fp) {
+        throw KError(string("Opening '") + m_kernel + string("' failed."));
+    }
+
+    // we overlap the reads, that way searching for the pattern is easier
+    char buffer[BUFSIZ];
+    memset(buffer, 0, BUFSIZ);
+
+    // search for the begin and end offests first
+    off_t fileoffset = 0;
+    ssize_t chars_read;
+    off_t begin_offset = 0, end_offset = 0;
+    while ((chars_read = gzread(fp, buffer+MAGIC_LEN, BUFSIZ-MAGIC_LEN)) > 0) {
+        if (begin_offset == 0) {
+            ssize_t pos = Util::findBytes(buffer, BUFSIZ, MAGIC_START, MAGIC_LEN);
+            if (pos > 0) {
+                begin_offset = fileoffset + pos - MAGIC_LEN;
+            }
+        } else if (end_offset == 0) {
+            ssize_t pos = Util::findBytes(buffer, BUFSIZ, MAGIC_END, MAGIC_LEN);
+            if (pos > 0) {
+                end_offset = fileoffset + pos - MAGIC_LEN;
+            }
+        } else {
+            break;
+        }
+        fileoffset += chars_read;
+        memmove(buffer, buffer+BUFSIZ-MAGIC_LEN, MAGIC_LEN);
+    }
+
+    if (begin_offset < 0 || end_offset < 0) {
+        gzclose(fp);
+        throw KError("Cannot read configuration from " + m_kernel + ".");
+    }
+
+    // we need to read after the MAGIC_START and the gzip header
+    begin_offset += MAGIC_LEN + 10;
+
+    // read the configuration to a buffer
+    if (gzseek(fp, begin_offset, SEEK_SET) == -1) {
+        throw KError("gzseek() failed.");
+    }
+    ssize_t kernelconfig_len = end_offset - begin_offset;
+    auto_ptr<char> kernelconfig(new char[kernelconfig_len]);
+
+    chars_read = gzread(fp, kernelconfig.get(), kernelconfig_len);
+    gzclose(fp);
+    if (chars_read != kernelconfig_len) {
+        throw KError("Cannot read IKCONFIG.");
+    }
+
+    return extractFromIKconfigBuffer(kernelconfig.get(), kernelconfig_len);
+}
+
+// -----------------------------------------------------------------------------
+string KernelTool::extractKernelConfigbzImage() const
+    throw (KError)
+{
+    Debug::debug()->trace("Kconfig::extractKernelConfigbzImage()");
+
+    // that script helped me a lot
+    // http://www.cs.caltech.edu/~weixl/research/fast-mon/scripts/extract-ikconfig
+
+    char searchfor[4] = { 0x1f, 0x8b, 0x08, 0x0 };
+    char buffer[BUFSIZ];
+    ssize_t chars_read;
+
+    off_t oret = lseek(m_fd, 0, SEEK_SET);
+    if (oret == (off_t)-1) {
+        throw KSystemError("lseek() failed", errno);
+    }
+
+    // because of overlapping
+    memset(buffer, 0, BUFSIZ);
+
+    off_t fileoffset = 0;
+    off_t begin_offset = 0;
+    while ((chars_read = read(m_fd, buffer+4, BUFSIZ-4)) > 0) {
+        ssize_t pos = Util::findBytes(buffer, BUFSIZ, searchfor, 4);
+        if (pos > 0) {
+            begin_offset = fileoffset + pos - MAGIC_LEN;
+            break;
+        }
+        memmove(buffer, buffer+BUFSIZ-MAGIC_LEN, MAGIC_LEN);
+        fileoffset += chars_read;
+    }
+
+    if (begin_offset == 0) {
+        throw KError("Magic 0x1f 0x8b 0x08 0x0 not found.");
+    }
+
+    begin_offset += 4;
+
+    off_t ret = lseek(m_fd, begin_offset, SEEK_SET);
+    if (ret == (off_t)-1) {
+        throw KSystemError("lseek() failed", errno);
+    }
+
+    gzFile fp = gzdopen(dup(m_fd), "r");
+    if (!fp) {
+        throw KError("gzdopen() failed");
+    }
+
+    // we overlap the reads, that way searching for the pattern is easier
+    memset(buffer, 0, BUFSIZ);
+
+    // search for the begin and end offests first
+    off_t end_offset = 0;
+    begin_offset = 0;
+    fileoffset = 0;
+    while ((chars_read = gzread(fp, buffer+MAGIC_LEN, BUFSIZ-MAGIC_LEN)) > 0) {
+        if (begin_offset == 0) {
+            ssize_t pos = Util::findBytes(buffer, BUFSIZ, MAGIC_START, MAGIC_LEN);
+            if (pos > 0) {
+                begin_offset = fileoffset + pos - MAGIC_LEN;
+            }
+        } else if (end_offset == 0) {
+            ssize_t pos = Util::findBytes(buffer, BUFSIZ, MAGIC_END, MAGIC_LEN);
+            if (pos > 0) {
+                end_offset = fileoffset + pos - MAGIC_LEN;
+            }
+        } else {
+            break;
+        }
+        fileoffset += chars_read;
+        memmove(buffer, buffer+BUFSIZ-MAGIC_LEN, MAGIC_LEN);
+    }
+
+    if (begin_offset < 0 || end_offset < 0) {
+        gzclose(fp);
+        throw KError("Cannot read configuration from " + m_kernel + ".");
+    }
+
+    // we need to read after the MAGIC_START and the gzip header
+    begin_offset += MAGIC_LEN + 10;
+
+    // read the configuration to a buffer
+    if (gzseek(fp, begin_offset, SEEK_SET) == -1) {
+        throw KError("gzseek() failed.");
+    }
+    ssize_t kernelconfig_len = end_offset - begin_offset;
+    auto_ptr<char> kernelconfig(new char[kernelconfig_len]);
+
+    chars_read = gzread(fp, kernelconfig.get(), kernelconfig_len);
+    gzclose(fp);
+    if (chars_read != kernelconfig_len) {
+        throw KError("Cannot read IKCONFIG.");
+    }
+
+    return extractFromIKconfigBuffer(kernelconfig.get(), kernelconfig_len);
+}
+
+// -----------------------------------------------------------------------------
+string KernelTool::extractKernelConfig() const
+    throw (KError)
+{
+    Debug::debug()->trace("Kconfig::extractKernelConfig()");
+
+    switch (getKernelType()) {
+        case KernelTool::KT_ELF:
+        case KernelTool::KT_ELF_GZ:
+            return extractKernelConfigELF();
+
+        case KernelTool::KT_X86:
+            return extractKernelConfigbzImage();
+
+        default:
+            throw KError("Invalid kernel image: " + m_kernel);
     }
 }
 
