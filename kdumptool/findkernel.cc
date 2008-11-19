@@ -84,7 +84,7 @@ void FindKernel::execute()
             setErrorCode(-1);
             return;
         }
-        
+
         // suitable?
         if (!suitableForKdump(kernelimage, false)) {
             cerr << "Kernel '" << kernelimage << "' is not suitable for kdump."
@@ -198,8 +198,11 @@ string FindKernel::findKernelAuto()
 
     string runningkernel = Util::getKernelRelease();
     Debug::debug()->trace("Running kernel: %s", runningkernel.c_str());
+    
+    // $(uname -r) == KERNELVERSION
+    // KERNELVERSION := BASEVERSION + '-' + FLAVOUR
 
-    // 1. Use $(uname -r)-kdump
+    // 1. Use BASEVERSION-kdump
     StringVector elements = Stringutil::split(runningkernel, '-');
     elements[elements.size()-1] = "kdump";
     string testkernel = Stringutil::join(elements, '-');
@@ -212,15 +215,26 @@ string FindKernel::findKernelAuto()
 
     // 2. Use kdump
     testkernel = "kdump";
+    testkernelimage = findForVersion(testkernel);
     Debug::debug()->dbg("---------------");
     Debug::debug()->dbg("findKernelAuto: Trying %s", testkernel.c_str());
-    testkernelimage = findForVersion(testkernel);
     if (testkernelimage.size() > 0 && suitableForKdump(testkernelimage, true)) {
         return testkernelimage;
     }
 
-    // 3. Use $(uname -r)
+    // 3. Use KERNELVERSION
     testkernel = runningkernel;
+    testkernelimage = findForVersion(testkernel);
+    Debug::debug()->dbg("---------------");
+    Debug::debug()->dbg("findKernelAuto: Trying %s", testkernel.c_str());
+    if (testkernelimage.size() > 0 && suitableForKdump(testkernelimage, true)) {
+        return testkernelimage;
+    }
+
+    // 4. Use BASEVERSION-default
+    elements = Stringutil::split(runningkernel, '-');
+    elements[elements.size()-1] = "default";
+    testkernel = Stringutil::join(elements, '-');
     Debug::debug()->dbg("---------------");
     Debug::debug()->dbg("findKernelAuto: Trying %s", testkernel.c_str());
     testkernelimage = findForVersion(testkernel);
@@ -228,29 +242,29 @@ string FindKernel::findKernelAuto()
         return testkernelimage;
     }
 
-    // 4. Use ""
+    // 5. Use ""
     testkernel = "";
+    testkernelimage = findForVersion(testkernel);
     Debug::debug()->dbg("---------------");
     Debug::debug()->dbg("findKernelAuto: Trying %s", testkernel.c_str());
-    testkernelimage = findForVersion(testkernel);
     if (testkernelimage.size() > 0 && suitableForKdump(testkernelimage, true)) {
         return testkernelimage;
     }
 
-    // 5. Use $(uname -r) unstrict
+    // 6. Use KERNELVERSION unstrict
     testkernel = runningkernel;
+    testkernelimage = findForVersion(testkernel);
     Debug::debug()->dbg("---------------");
     Debug::debug()->dbg("findKernelAuto: Trying %s", testkernel.c_str());
-    testkernelimage = findForVersion(testkernel);
     if (testkernelimage.size() > 0 && suitableForKdump(testkernelimage, false)) {
         return testkernelimage;
     }
 
-    // 6. Use "" unstrict
+    // 7. Use "" unstrict
     testkernel = "";
+    testkernelimage = findForVersion(testkernel);
     Debug::debug()->dbg("---------------");
     Debug::debug()->dbg("findKernelAuto: Trying %s", testkernel.c_str());
-    testkernelimage = findForVersion(testkernel);
     if (testkernelimage.size() > 0 && suitableForKdump(testkernelimage, false)) {
         return testkernelimage;
     }
@@ -276,7 +290,7 @@ string FindKernel::findInitrd(const string &kernelPath)
 
     string dir, stripped;
     KernelTool::stripImageName(kernelPath, dir, stripped);
-    
+
     if (isKdumpKernel(stripped)) {
         return FileUtil::pathconcat(dir, "initrd-" + stripped);
     } else {
