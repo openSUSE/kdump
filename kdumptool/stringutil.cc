@@ -233,9 +233,8 @@ StringVector Stringutil::split(const string &string, char split)
         next = string.find(currentstart, split);
     }
 
-    if (ret.size() == 0) {
-        ret.push_back(string);
-    }
+    // rest
+    ret.push_back(string.substr(currentstart));
 
     return ret;
 }
