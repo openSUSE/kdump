@@ -33,7 +33,7 @@ if [ "$1" != "notest" ] ; then
     TEMPBUILD=$PWD/tempbuild-$$
     mkdir $TEMPBUILD
     cd $TEMPBUILD
-    tar xvf ../$TARBALL
+    tar xf ../$TARBALL
     mkdir build
     cmake ..
     make -j2
