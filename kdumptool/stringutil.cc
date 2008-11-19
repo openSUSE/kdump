@@ -272,8 +272,12 @@ bool Stringutil::endsWith(const string &long_string,
                           const string &part)
     throw ()
 {
-    return part ==
+    if (part.size() > long_string.size()) {
+        return false;
+    } else {
+        return part ==
         long_string.substr(long_string.size()-part.size(), long_string.size());
+    }
 }
 
 // -----------------------------------------------------------------------------
