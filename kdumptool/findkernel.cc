@@ -215,18 +215,18 @@ string FindKernel::findKernelAuto()
 
     // 2. Use kdump
     testkernel = "kdump";
-    testkernelimage = findForVersion(testkernel);
     Debug::debug()->dbg("---------------");
     Debug::debug()->dbg("findKernelAuto: Trying %s", testkernel.c_str());
+    testkernelimage = findForVersion(testkernel);
     if (testkernelimage.size() > 0 && suitableForKdump(testkernelimage, true)) {
         return testkernelimage;
     }
 
     // 3. Use KERNELVERSION
     testkernel = runningkernel;
-    testkernelimage = findForVersion(testkernel);
     Debug::debug()->dbg("---------------");
     Debug::debug()->dbg("findKernelAuto: Trying %s", testkernel.c_str());
+    testkernelimage = findForVersion(testkernel);
     if (testkernelimage.size() > 0 && suitableForKdump(testkernelimage, true)) {
         return testkernelimage;
     }
@@ -244,27 +244,27 @@ string FindKernel::findKernelAuto()
 
     // 5. Use ""
     testkernel = "";
-    testkernelimage = findForVersion(testkernel);
     Debug::debug()->dbg("---------------");
     Debug::debug()->dbg("findKernelAuto: Trying %s", testkernel.c_str());
+    testkernelimage = findForVersion(testkernel);
     if (testkernelimage.size() > 0 && suitableForKdump(testkernelimage, true)) {
         return testkernelimage;
     }
 
     // 6. Use KERNELVERSION unstrict
     testkernel = runningkernel;
-    testkernelimage = findForVersion(testkernel);
     Debug::debug()->dbg("---------------");
     Debug::debug()->dbg("findKernelAuto: Trying %s", testkernel.c_str());
+    testkernelimage = findForVersion(testkernel);
     if (testkernelimage.size() > 0 && suitableForKdump(testkernelimage, false)) {
         return testkernelimage;
     }
 
     // 7. Use "" unstrict
     testkernel = "";
-    testkernelimage = findForVersion(testkernel);
     Debug::debug()->dbg("---------------");
     Debug::debug()->dbg("findKernelAuto: Trying %s", testkernel.c_str());
+    testkernelimage = findForVersion(testkernel);
     if (testkernelimage.size() > 0 && suitableForKdump(testkernelimage, false)) {
         return testkernelimage;
     }
