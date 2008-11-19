@@ -84,8 +84,6 @@ list<string> KernelTool::imageNames(const std::string &arch)
 {
     list<string> ret;
 
-    Debug::debug()->trace("KernelTool::imageNames(%s)", arch.c_str());
-
     if (arch == "i386" || arch == "x86_64") {
         ret.push_back("vmlinuz");
         ret.push_back("vmlinux");
