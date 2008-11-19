@@ -40,7 +40,17 @@ using std::cerr;
 using std::endl;
 using std::list;
 
+
+/**
+ * Constant for the directory where the kernels are.
+ */
 #define BOOTDIR "/boot"
+
+/**
+ * Constant that defines the number of CPUs above that the auto-detection
+ * should try to avoid that kernel.
+ */
+#define MAXCPUS_KDUMP 1024
 
 //{{{ FindKernel ---------------------------------------------------------------
 
@@ -128,14 +138,12 @@ bool FindKernel::suitableForKdump(const string &kernelImage, bool strict)
         // memory size constraints of the capture kernel
         if (arch == "i386" || arch == "x86_64") {
             KconfigValue kv = kconfig->get("CONFIG_NR_CPUS");
-            if (kv.getType() == KconfigValue::T_STRING) {
-                int nr_cpus = kv.getIntValue();
-                if (nr_cpus >= 1024) {
-                    Debug::debug()->dbg("NR_CPUS of %s is %d >= 1024. Avoid.",
-                        kernelImage.c_str(), nr_cpus);
-                    delete kconfig;
-                    return false;
-                }
+            if (kv.getType() == KconfigValue::T_INTEGER &&
+                    kv.getIntValue() > MAXCPUS_KDUMP) {
+                Debug::debug()->dbg("NR_CPUS of %s is %d >= %d. Avoid.",
+                    kernelImage.c_str(), kv.getIntValue(), MAXCPUS_KDUMP);
+                delete kconfig;
+                return false;
             }
         }
 
@@ -172,7 +180,7 @@ string FindKernel::findForVersion(const string &kernelver)
             kernel = FileUtil::pathconcat(BOOTDIR, imagename+"-"+kernelver);
         }
 
-        Debug::debug()->dbg("Trying %s", kernel.c_str());
+        Debug::debug()->dbg("findForVersion: Trying %s", kernel.c_str());
         if (FileUtil::exists(kernel)) {
             Debug::debug()->dbg("%s exists", kernel.c_str());
             return kernel;
@@ -195,7 +203,8 @@ string FindKernel::findKernelAuto()
     StringVector elements = Stringutil::split(runningkernel, '-');
     elements[elements.size()-1] = "kdump";
     string testkernel = Stringutil::join(elements, '-');
-    Debug::debug()->dbg("Trying %s", testkernel.c_str());
+    Debug::debug()->dbg("---------------");
+    Debug::debug()->dbg("findKernelAuto: Trying %s", testkernel.c_str());
     string testkernelimage = findForVersion(testkernel);
     if (testkernelimage.size() > 0 && suitableForKdump(testkernelimage, true)) {
         return testkernelimage;
@@ -203,7 +212,8 @@ string FindKernel::findKernelAuto()
 
     // 2. Use kdump
     testkernel = "kdump";
-    Debug::debug()->dbg("Trying %s", testkernel.c_str());
+    Debug::debug()->dbg("---------------");
+    Debug::debug()->dbg("findKernelAuto: Trying %s", testkernel.c_str());
     testkernelimage = findForVersion(testkernel);
     if (testkernelimage.size() > 0 && suitableForKdump(testkernelimage, true)) {
         return testkernelimage;
@@ -211,7 +221,8 @@ string FindKernel::findKernelAuto()
 
     // 3. Use $(uname -r)
     testkernel = runningkernel;
-    Debug::debug()->dbg("Trying %s", testkernel.c_str());
+    Debug::debug()->dbg("---------------");
+    Debug::debug()->dbg("findKernelAuto: Trying %s", testkernel.c_str());
     testkernelimage = findForVersion(testkernel);
     if (testkernelimage.size() > 0 && suitableForKdump(testkernelimage, true)) {
         return testkernelimage;
@@ -219,7 +230,8 @@ string FindKernel::findKernelAuto()
 
     // 4. Use ""
     testkernel = "";
-    Debug::debug()->dbg("Trying %s", testkernel.c_str());
+    Debug::debug()->dbg("---------------");
+    Debug::debug()->dbg("findKernelAuto: Trying %s", testkernel.c_str());
     testkernelimage = findForVersion(testkernel);
     if (testkernelimage.size() > 0 && suitableForKdump(testkernelimage, true)) {
         return testkernelimage;
@@ -227,7 +239,8 @@ string FindKernel::findKernelAuto()
 
     // 5. Use $(uname -r) unstrict
     testkernel = runningkernel;
-    Debug::debug()->dbg("Trying %s", testkernel.c_str());
+    Debug::debug()->dbg("---------------");
+    Debug::debug()->dbg("findKernelAuto: Trying %s", testkernel.c_str());
     testkernelimage = findForVersion(testkernel);
     if (testkernelimage.size() > 0 && suitableForKdump(testkernelimage, false)) {
         return testkernelimage;
@@ -235,7 +248,8 @@ string FindKernel::findKernelAuto()
 
     // 6. Use "" unstrict
     testkernel = "";
-    Debug::debug()->dbg("Trying %s", testkernel.c_str());
+    Debug::debug()->dbg("---------------");
+    Debug::debug()->dbg("findKernelAuto: Trying %s", testkernel.c_str());
     testkernelimage = findForVersion(testkernel);
     if (testkernelimage.size() > 0 && suitableForKdump(testkernelimage, false)) {
         return testkernelimage;
@@ -248,8 +262,10 @@ string FindKernel::findKernelAuto()
 bool FindKernel::isKdumpKernel(const string &kernelimage)
     throw (KError)
 {
-    Debug::debug()->trace("FindKernel::isKdumpKernel(%s)", kernelimage.c_str());
-    return Stringutil::endsWith(kernelimage, "-kdump");
+    bool ret = Stringutil::endsWith(kernelimage, "-kdump");
+    Debug::debug()->trace("FindKernel::isKdumpKernel(%s)=%s",
+        kernelimage.c_str(), ret ? "true" : "false");
+    return ret;
 }
 
 // -----------------------------------------------------------------------------
