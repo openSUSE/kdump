@@ -35,6 +35,7 @@
 
 using std::string;
 using std::strerror;
+using std::getenv;
 
 // -----------------------------------------------------------------------------
 std::string Util::getArch()
@@ -242,6 +243,24 @@ ssize_t Util::findBytes(const char *haystack, size_t haystack_len,
     }
 
     return -1;
+}
+
+// -----------------------------------------------------------------------------
+string Util::getenv(const string &env, const string &defaultValue, bool *isDefault)
+    throw ()
+{
+    char *ret = ::getenv(env.c_str());
+    if (ret == NULL) {
+        if (isDefault) {
+            *isDefault = true;
+        }
+        return defaultValue;
+    } else {
+        if (isDefault) {
+            *isDefault = false;
+        }
+        return string(ret);
+    }
 }
 
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

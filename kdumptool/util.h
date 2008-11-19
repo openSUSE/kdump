@@ -141,6 +141,23 @@ class Util {
         static ssize_t findBytes(const char *haystack, size_t haystack_len,
                                 const char *needle, size_t needle_len)
         throw ();
+
+        /**
+         * Retrieves the environment variables @p env.
+         *
+         * @param[in] env the environment variable to retrieve
+         * @param[in] defaultValue the default which will be returned
+         *            if @p env is not set
+         * @param[out] isDefault when non-NULL, will be set to @c true
+         *             if @p defaultValue will be returned to discriminate
+         *             the case when the actual value is the default value
+         * @return the environment value of @p env or @p default if there
+         *         is no such environment
+         */
+        static std::string getenv(const std::string &env,
+                                  const std::string &defaultValue,
+                                  bool *isDefault = NULL)
+        throw ();
 };
 
 //}}}
