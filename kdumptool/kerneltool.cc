@@ -107,10 +107,15 @@ bool KernelTool::stripImageName(const string &kernelImage, string &directory,
     list<string> imageNames = KernelTool::imageNames(Util::getArch());
     for (list<string>::const_iterator it = imageNames.begin();
             it != imageNames.end(); ++it) {
+        if (kernel == *it) {
+            rest = "";
+            return true;
+        }
         rest = Stringutil::stripPrefix(kernel, *it + "-");
         if (rest != kernel) {
             return true;
         }
+        
     }
 
     return false;
