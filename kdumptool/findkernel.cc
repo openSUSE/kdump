@@ -288,9 +288,12 @@ string FindKernel::findInitrd(const string &kernelPath)
 {
     Debug::debug()->trace("FindKernel::findInitrd(%s)", kernelPath.c_str());
 
+    // use the resolved name, not the symlink to generate the initrd
     string dir, stripped;
-    KernelTool::stripImageName(kernelPath, dir, stripped);
-    
+    KernelTool::stripImageName(
+        FileUtil::readlinkPath(kernelPath), dir, stripped
+    );
+
     string dash;
     if (stripped.size() > 0) {
         dash = "-";
