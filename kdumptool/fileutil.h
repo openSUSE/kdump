@@ -78,6 +78,17 @@ class FileUtil {
         throw (KError);
 
         /**
+         * Calls FileUtil::readlink() if FileUtil::isSymlink() is true.
+         * Otherwise, the @p path will be returned unmodified.
+         *
+         * @param[in] path the path to read the link
+         * @return the resolved link
+         * @throw KError if readlink() or stat() failed
+         */
+        static std::string readlinkIfLink(const std::string &path)
+        throw (KError);
+
+        /**
          * Returns the canonical representation of the specified path.
          * This means that all symbolic links are resolved.
          *

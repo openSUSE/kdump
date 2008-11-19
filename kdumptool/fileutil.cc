@@ -103,6 +103,17 @@ bool FileUtil::isSymlink(const std::string &path)
 }
 
 // -----------------------------------------------------------------------------
+std::string FileUtil::readlinkIfLink(const std::string &path)
+    throw (KError)
+{
+    if (FileUtil::isSymlink(path)) {
+        return FileUtil::readlink(path);
+    } else {
+        return path;
+    }
+}
+
+// -----------------------------------------------------------------------------
 string FileUtil::readlink(const std::string &path)
     throw (KError)
 {
