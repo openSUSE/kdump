@@ -20,9 +20,11 @@
 #include <cerrno>
 #include <cstring>
 #include <cstdlib>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <limits.h>
 
 #include "global.h"
 #include "socket.h"
@@ -212,7 +214,11 @@ int Debuglink::openCompressed()
     gzFile source = NULL;
     int read_chars;
     char buffer[BUFSIZ];
-    char templ[] = "/tmp/read-debuglink-XXXXXX";
+    char templbuffer[PATH_MAX];
+
+    string templ(FileUtil::pathconcat(Util::getenv("TMPDIR", "/tmp"),
+            "read-debuglink-XXXXXX"));
+    strncpy(templbuffer, templ.c_str(), templ.size());
 
     Debug::debug()->trace("Debuglink::openCompressed()");
 
@@ -221,12 +227,12 @@ int Debuglink::openCompressed()
     if (!source)
         throw KSystemError("Couldn't open " + rootfile + " .", errno);
 
-    dest = mkstemp(templ);
+    dest = mkstemp(templbuffer);
     if (dest < 0)
         throw KSystemError("mkstemp() failed.", errno);
 
     /* delete immediately */
-    unlink(templ);
+    unlink(templbuffer);
 
     while ((read_chars = gzread(source, buffer, BUFSIZ)) > 0) {
         if (write(dest, buffer, read_chars) != read_chars)
