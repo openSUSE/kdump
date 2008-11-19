@@ -338,7 +338,9 @@ Kconfig *KernelTool::retrieveKernelConfig() const
     try {
         // at first, search for the config on disk
         string dir, stripped;
-        if (KernelTool::stripImageName(m_kernel, dir, stripped)) {
+        
+        if (KernelTool::stripImageName(
+                FileUtil::readlinkIfLink(m_kernel), dir, stripped)) {
             string config = FileUtil::pathconcat(dir, "config-" + stripped);
             Debug::debug()->dbg("Trying %s for config", config.c_str());
             if (FileUtil::exists(config)) {
