@@ -3,6 +3,7 @@
 	* Implement KDUMP_VERBOSE = 16 to debug kdump find_kernel.
 	* Make boot.kdump dependent on boot.localnet to have a correct hostname.
 	* Fix stripping of the crashkernel command line again.
+	* Create the release tarballs with Mercurial.
 
 2008-11-18  Bernhard Walle <bwalle@suse.de>
 
