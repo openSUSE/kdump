@@ -281,7 +281,7 @@ string Stringutil::stripPrefix(const string &str, const string &prefix)
     throw ()
 {
     if (startsWith(str, prefix)) {
-        return str.substr(0, prefix.size());
+        return str.substr(prefix.size());
     } else {
         return str;
     }
