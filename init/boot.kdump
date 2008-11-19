@@ -103,9 +103,14 @@ function build_kexec_options()
 # Load the kdump kerel specified in /etc/sysconfig/kdump
 function load_kdump()
 {
+    local find_kernel_args=
     echo -n "Loading kdump "
 
-    output=$(kdumptool find_kernel)
+    if [ $(($KDUMP_VERBOSE & 16)) -gt 0 ] ; then
+        find_kernel_args="-D"
+    fi
+
+    output=$(kdumptool find_kernel $find_kernel_args)
     if [ $? -ne 0 ] ; then
         rc_status -s
         rc_failed 6

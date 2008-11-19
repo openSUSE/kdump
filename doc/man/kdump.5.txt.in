@@ -82,7 +82,7 @@ are also _BASEVERSION_ strings without a dash) and the _FLAVOUR_ is "default".
 
 To find out if a kernel is suitable as capture kernel, there are strong
 and weak requirements. The strong requirements mean that you just cannot use the
-kernel as kdump kernel and are:
+kernel as kdump kernel:
 
 * Either the kernel must be a special kdump kernel with a modified
   start address *or*
@@ -111,9 +111,6 @@ On each item, it tries:
 
 . /boot/*vmlinuz
 . /boot/*vmlinux
-. /boot/*vmlinux.gz
-
-Default is "" which means that the auto-detection described above is used.
 
 Initrd
 ^^^^^^
@@ -274,6 +271,12 @@ several options, you have to add their value. The options are:
   Debugging for kdump transfer mechanism. That is executed in initrd and
   generates lots of output. However, it's very useful if something does not
   work.
+
+16::
+  Debugging when loading the kdump kernel. That creates lots of output to
+  stdout, so only use if you really want to debug that. It is useful if
+  kdump reports that it cannot find a suitable kernel but you think kdump
+  is wrong.
 
 So, for example, if you want to have the command line on stdout when loading the
 kernel and also in the system log, just use KDUMP_VERBOSE = 5 (i.e. 1 + 4).
@@ -649,7 +652,7 @@ later.
 
 SEE ALSO
 --------
-*kexec*(8), *kdump*(5), *makedumpfile*(8)
+*kexec*(8), *kdump*(5), *makedumpfile*(8), *mkdumprd*(8)
 http://en.opensuse.org/Kdump[_http://en.opensuse.org/Kdump_]
 
 
