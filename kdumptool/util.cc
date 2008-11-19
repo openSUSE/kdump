@@ -77,7 +77,7 @@ bool Util::isGzipFile(int fd)
     unsigned char buffer[2];
 
     off_t oret = lseek(fd, 0, SEEK_SET);
-    if (oret != (off_t)-1) {
+    if (oret == (off_t)-1) {
         throw KSystemError("Cannot lseek() in Util::isGzipFile()", errno);
     }
 
