@@ -7,6 +7,8 @@
   * Make boot.kdump dependent on boot.localnet to have a correct hostname.
   * Fix stripping of the crashkernel command line again.
   * Create the release tarballs with Mercurial.
+  * Don't include test cases in the release tarball. They are very incomplete
+    and contain too huge test data.
 
 0.6.7
 -----
