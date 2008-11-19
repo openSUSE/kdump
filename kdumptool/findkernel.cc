@@ -276,7 +276,7 @@ string FindKernel::findKernelAuto()
 bool FindKernel::isKdumpKernel(const string &kernelimage)
     throw (KError)
 {
-    bool ret = Stringutil::endsWith(kernelimage, "-kdump");
+    bool ret = Stringutil::endsWith(kernelimage, "kdump");
     Debug::debug()->trace("FindKernel::isKdumpKernel(%s)=%s",
         kernelimage.c_str(), ret ? "true" : "false");
     return ret;
@@ -290,11 +290,16 @@ string FindKernel::findInitrd(const string &kernelPath)
 
     string dir, stripped;
     KernelTool::stripImageName(kernelPath, dir, stripped);
+    
+    string dash;
+    if (stripped.size() > 0) {
+        dash = "-";
+    }
 
     if (isKdumpKernel(stripped)) {
-        return FileUtil::pathconcat(dir, "initrd-" + stripped);
+        return FileUtil::pathconcat(dir, "initrd" + dash + stripped);
     } else {
-        return FileUtil::pathconcat(dir, "initrd-" + stripped + "-kdump");
+        return FileUtil::pathconcat(dir, "initrd" + dash + stripped + "-kdump");
     }
 }
 
