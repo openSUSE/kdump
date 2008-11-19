@@ -66,8 +66,6 @@ std::string Util::getKernelRelease()
         throw KSystemError("uname failed", errno);
     }
 
-    Debug::debug()->dbg("uname.release = %s\n", utsname.release);
-
     return utsname.release;
 }
 
