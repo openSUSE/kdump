@@ -291,7 +291,7 @@ string FindKernel::findInitrd(const string &kernelPath)
     // use the resolved name, not the symlink to generate the initrd
     string dir, stripped;
     KernelTool::stripImageName(
-        FileUtil::readlinkPath(kernelPath), dir, stripped
+        FileUtil::getCanonicalPath(kernelPath), dir, stripped
     );
 
     string dash;

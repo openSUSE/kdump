@@ -340,7 +340,7 @@ Kconfig *KernelTool::retrieveKernelConfig() const
         string dir, stripped;
 
         if (KernelTool::stripImageName(
-                FileUtil::readlinkPath(m_kernel), dir, stripped)) {
+                FileUtil::getCanonicalPath(m_kernel), dir, stripped)) {
             string config = FileUtil::pathconcat(dir, "config-" + stripped);
             Debug::debug()->dbg("Trying %s for config", config.c_str());
             if (FileUtil::exists(config)) {
