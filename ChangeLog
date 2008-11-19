@@ -1,3 +1,7 @@
+2008-11-19  Bernhard Walle <bernhard.walle@gmx.de>
+
+	* Implement KDUMP_VERBOSE = 16 to debug kdump find_kernel.
+
 2008-11-18  Bernhard Walle <bernhard.walle@gmx.de>
 
 	* Add find_kernel command in kdumptool, replacing the find code in the

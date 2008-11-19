@@ -3,6 +3,7 @@
   * Add read_ikconfig command.
   * Add find_kernel command in kdumptool, replacing the find code in the
     init script.
+  * Implement KDUMP_VERBOSE = 16 to debug kdump find_kernel.
 
 0.6.7
 -----
