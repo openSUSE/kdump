@@ -50,140 +50,6 @@ function kdump_kernel_loaded()
     fi
 }
 
-#
-# Checks if a given kernel image is relocatable.
-#
-# Returns: 0 (true) if the kernel image is relocatable
-#          1 (false) if the kernel image is not relocatable
-function is_relocatable()
-{
-    local image=$1
-
-    kdumptool identify_kernel -r "$image"
-}
-
-# checks if the kernel $1 is suitable for kdump
-# 1. the kernel must exist
-# 2. if it doesn't contain "*kdump*" in its name, it
-#    must be relocatable
-function check_kernel()
-{
-    local kernel=$1
-
-    # check if the file exists
-    if [ ! -f "$kernel" ] ; then
-        return 1
-    fi
-
-    # if it doesn't contain 'kdump' in the name,
-    # check for relocatability
-    if [[ $(basename "$kernel") != *kdump* ]] &&
-            ! is_relocatable "$kernel" &>/dev/null ; then
-        return 1
-    fi
-
-    return 0
-}
-
-# print the available kdump kernel path
-# empty if no matching file is found
-function check_boot_kernel()
-{
-    local kdump_kver=$1
-    local kstr
-    local dash=${kdump_kver:+-}
-
-    kstr="${BOOTDIR}/vmlinuz${dash}${kdump_kver}"
-    if check_kernel $kstr ; then
-        echo $kstr
-        return
-    fi
-
-    kstr="${BOOTDIR}/vmlinux${dash}${kdump_kver}"
-    if check_kernel $kstr ; then
-        echo $kstr
-        return
-    fi
-
-    kstr="${BOOTDIR}/vmlinux${dash}${kdump_kver}.gz"
-    if check_kernel $kstr ; then
-        echo $kstr
-        return
-    fi
-}
-
-# Find the kdump kerel. Try following algorithm
-#
-#        1. Use $(uname -r)-kdump
-#        2. If that doesn't exist, use -kdump
-#        3. If that doesn't exist, use $(uname -r)
-#        4. If that doesn't exist, use ""
-#
-# Always try the files in following order:
-#        1. /boot/*vmlinuz
-#        2. /boot/*vmlinux
-#        3. /boot/*vmlinux.gz
-#
-function find_boot_kernel()
-{
-    local kdump_kver=
-
-    # <version>-kdump first
-    kdump_kver=$(uname -r | sed -e's/-[^-]*$//g')-kdump
-    if [ -n "$(check_boot_kernel $kdump_kver)" ] ; then
-        echo "$kdump_kver"
-        return
-    fi
-
-    # kdump then
-    kdump_kver=kdump
-    if [ -n "$(check_boot_kernel $kdump_kver)" ] ; then
-        echo "$kdump_kver"
-        return
-    fi
-
-    # <version> then
-    kdump_kver=$(uname -r)
-    if [ -n "$(check_boot_kernel $kdump_kver)" ] ; then
-        echo "$kdump_kver"
-        return
-    fi
-
-    # and nothing finally
-    kdump_kver=
-    if [ -n "$(check_boot_kernel $kdump_kver)" ] ; then
-        echo "$kdump_kver"
-        return
-    fi
-}
-
-#
-# Prints the initrd for the kernel. If the kernel already contains
-# "kdump", then return "/boot/initrd-<kernelver>", else return
-# "/boot/initrd-<kernelver>-kdump".
-#
-# @param kdump_kernel: Full path to the kernel
-# @returncode: 0 on success, 1 on failure
-function find_initrd ()
-{
-    local kdump_kernel=$1
-
-    # canonicalize the kernel version
-    local kdump_kver=$(/sbin/get_kernel_version "$kdump_kernel")
-    if [ -z "$kdump_kver" ] ; then
-        echo >&2 "Getting version for $kdump_kernel failed."
-        echo "${BOOTDIR}/initrd-kdump"
-        return 1
-    fi
-
-    if [[ "$kdump_kver" == *kdump* ]] ; then
-        echo "${BOOTDIR}/initrd${kdump_kver:+-}${kdump_kver}"
-    else
-        echo "${BOOTDIR}/initrd${kdump_kver:+-}${kdump_kver}-kdump"
-    fi
-
-    return 0
-}
 
 #
 # Builds the kdump command line from KDUMP_COMMANDLINE.
@@ -238,22 +104,16 @@ function build_kexec_options()
 function load_kdump()
 {
     echo -n "Loading kdump "
-    if [ -z "$KDUMP_KERNELVER" ]; then
-        kdump_kver=$(find_boot_kernel)
-    else
-        kdump_kver="$KDUMP_KERNELVER"
-    fi
 
-    kdump_kernel=$(check_boot_kernel $kdump_kver)
-
-    if [ -z "$kdump_kernel" -o ! -f "$kdump_kernel" ]; then
-        echo -n ": No kdump kernel image found for kernel $kdump_kver."
+    output=$(kdumptool find_kernel)
+    if [ $? -ne 0 ] ; then
         rc_status -s
         rc_failed 6
         rc_exit
     fi
 
-    kdump_initrd=$(find_initrd "$kdump_kernel")
+    kdump_kernel=$(echo "$output" | grep ^Kernel | cut -f 2)
+    kdump_initrd=$(echo "$output" | grep ^Initrd | cut -f 2)
 
     # rebuilding the kdump initramfs if necessary
     mkdumprd -K "$kdump_kernel" -I "$kdump_initrd" -q
