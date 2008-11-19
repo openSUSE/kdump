@@ -15,10 +15,10 @@
 # /etc/init.d/boot.kdump
 ### BEGIN INIT INFO
 # Provides:       boot.kdump
-# Required-Start: $local_fs
+# Required-Start: $local_fs boot.localnet
 # Should-Start:
 # Should-Stop:
-# Required-Stop:  $local_fs
+# Required-Stop:  $local_fs boot.localnet
 # Default-Start:  B
 # Default-Stop:
 # Short-Description: kdump boot configuration

@@ -4,6 +4,7 @@
   * Add find_kernel command in kdumptool, replacing the find code in the
     init script.
   * Implement KDUMP_VERBOSE = 16 to debug kdump find_kernel.
+  * Make boot.kdump dependent on boot.localnet to have a correct hostname.
 
 0.6.7
 -----

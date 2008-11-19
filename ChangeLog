@@ -1,6 +1,7 @@
 2008-11-19  Bernhard Walle <bernhard.walle@gmx.de>
 
 	* Implement KDUMP_VERBOSE = 16 to debug kdump find_kernel.
+	* Make boot.kdump dependent on boot.localnet to have a correct hostname.
 
 2008-11-18  Bernhard Walle <bernhard.walle@gmx.de>
 
