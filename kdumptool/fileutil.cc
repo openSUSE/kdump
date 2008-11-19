@@ -103,11 +103,13 @@ bool FileUtil::isSymlink(const std::string &path)
 }
 
 // -----------------------------------------------------------------------------
-std::string FileUtil::readlinkIfLink(const std::string &path)
+std::string FileUtil::readlinkPath(const std::string &path)
     throw (KError)
 {
+    string dir = dirname(path);
+
     if (FileUtil::isSymlink(path)) {
-        return FileUtil::readlink(path);
+        return pathconcat(dir, readlink(path));
     } else {
         return path;
     }
