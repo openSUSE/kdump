@@ -354,7 +354,7 @@ string KernelTool::extractFromIKconfigBuffer(const char *buffer, size_t buflen)
     const
     throw (KError)
 {
-    Debug::debug()->trace("Kconfig::extractFromIKconfigBuffer(%s, %d)",
+    Debug::debug()->trace("Kconfig::extractFromIKconfigBuffer(%p, %d)",
         buffer, buflen);
 
     ssize_t uncompressed_len = buflen * 20;
