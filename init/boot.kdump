@@ -59,7 +59,7 @@ function build_kdump_commandline()
 
     if [ -z "$commandline" ]; then
         commandline=`cat /proc/cmdline | \
-            sed -e 's/ *crashkernel=[^ ]//g' \
+            sed -e 's/ *crashkernel=[^ ]*//g' \
                 -e 's/ *splash=[^ ]*/ /g' \
                 -e 's/ *mem=[^ ]*/ /g' \
                 -e 's/ *BOOT_IMAGE=[^ ]* / /g' \
