@@ -241,6 +241,11 @@ bool KernelTool::elfIsRelocatable() const
 {
     unsigned char e_ident[EI_NIDENT];
 
+    off_t oret = lseek(m_fd, 0, SEEK_SET);
+    if (oret == off_t(-1)) {
+        throw KSystemError("lseek() failed", errno);
+    }
+
     gzFile fp = gzdopen(dup(m_fd), "r");
     if (!fp) {
         throw KSystemError("check_elf_file: Failed to open file", errno);
@@ -286,7 +291,7 @@ bool KernelTool::elfIsRelocatable() const
 
         arch = archFromElfMachine((unsigned long long)hdr.e_machine);
     } else {
-        throw KError("Invalid ELF class");
+        throw KError("elfIsRelocatable(): Invalid ELF class");
     }
 
     gzclose(fp);
