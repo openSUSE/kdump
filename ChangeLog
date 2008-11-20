@@ -1,3 +1,7 @@
+2008-11-20  Bernhard Walle <bwalle@suse.de>
+
+	* Document 256M limit on ppc64 for large machines in kdump(7).
+
 2008-11-19  Bernhard Walle <bwalle@suse.de>
 
 	* Implement KDUMP_VERBOSE = 16 to debug kdump find_kernel.

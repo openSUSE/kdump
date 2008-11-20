@@ -135,7 +135,7 @@ Architecture      Size
 ---------------------------------------------------------------
 +i386+            +64M+
 +x86_64+          +64M+ or +128M+ on large machines
-+ppc64+           +128M+
++ppc64+           +128M+ or +256M+ on large machines
 +ia64+            +512M+ (or more on very large machines)
 ---------------------------------------------------------------
 
