@@ -146,11 +146,6 @@ function load_kdump()
 
     if rc_status ; then
         echo 1 > /proc/sys/kernel/panic_on_oops
-
-        # does not exist on all architectures (only i386/x86_64)
-        if [ -f /proc/sys/kernel/unknown_nmi_panic ] ; then
-            echo 1 > /proc/sys/kernel/unknown_nmi_panic
-        fi
     fi
 
     if [ $(($KDUMP_VERBOSE & 4)) -gt 0 ] ; then

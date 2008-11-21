@@ -4,6 +4,7 @@
     wrongly configured systems.
   * Fix empty KDUMP_SAVEDIR line when replacing the symbolic link with the
     absolute path.
+  * Don't set sysctl kernel.unknown_nmi_panic=1 by default.
 
 0.7.1
 -----
