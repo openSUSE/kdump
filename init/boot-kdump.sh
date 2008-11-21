@@ -139,7 +139,7 @@ else
     # save the dump (HOME=/ to find the public/private key)
     read hostname < /etc/hostname.kdump
     HOME=/ TMPDIR=/root/tmp kdumptool save_dump --root=$ROOTDIR \
-        --fqdn=$hostname $KDUMPTOOL_OPTIONS
+        --hostname=$hostname $KDUMPTOOL_OPTIONS
     continue_error $?
 
     #

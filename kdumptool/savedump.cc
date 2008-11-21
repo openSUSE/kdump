@@ -86,8 +86,8 @@ OptionList SaveDump::getOptions() const
     list.push_back(Option("kernelversion", 'k', OT_STRING,
         "Use the specified kernel version instead of auto-detection via "
         "VMCOREINFO."));
-    list.push_back(Option("fqdn", 'q', OT_STRING,
-        "Use the specified hostname/domainname instead of uname()."));
+    list.push_back(Option("hostname", 'H', OT_STRING,
+        "Use the specified hostname instead of uname()."));
     list.push_back(Option("nomail", 'M', OT_FLAG,
         "Don't send notification email even if email has been configured."));
 
@@ -107,10 +107,8 @@ void SaveDump::parseCommandline(OptionParser *optionparser)
         m_rootdir = optionparser->getValue("root").getString();
     if (optionparser->getValue("kernelversion").getType() != OT_INVALID)
         m_crashrelease = optionparser->getValue("kernelversion").getString();
-    if (optionparser->getValue("fqdn").getType() != OT_INVALID)
-        m_hostname = optionparser->getValue("fqdn").getString();
-    if (optionparser->getValue("fqdn").getType() != OT_INVALID)
-        m_hostname = optionparser->getValue("fqdn").getString();
+    if (optionparser->getValue("hostname").getType() != OT_INVALID)
+        m_hostname = optionparser->getValue("hostname").getString();
     if (optionparser->getValue("nomail").getFlag())
         m_nomail = true;
 
