@@ -5,6 +5,8 @@
 	* Fix empty KDUMP_SAVEDIR line when replacing the symbolic link with the
 	  absolute path.
 	* Don't set sysctl kernel.unknown_nmi_panic=1 by default.
+	* Mention kernel.panic_on_unrecovered_nmi (yes, that's a different
+	  sysctl) in the kdump(7) manpage.
 
 2008-11-20  Bernhard Walle <bwalle@suse.de>
 

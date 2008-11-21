@@ -360,6 +360,24 @@ _MAKEDUMPFILE_OPTIONS_ to _-D_ to get debugging output of makedumpfile.
 Advanced Configuration
 ----------------------
 
+Trigger Kdump on NMI (i386/x86_64 only)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some systems (mostly "Enterprise" servers) have a so-called NMI button
+(physically or via the remote management consoles) that triggers an NMI
+manually if the system hangs completely and even SysRQ does not work any more.
+
+If you want to trigger a kdump in that case, you have to execute
+
+ # sysctl kernel.panic_on_unrecovered_nmi=1
+
+manually or (if you want to make that a permanent setting) add
+
+ kernel.panic_on_unrecovered_nmi=1
+
+in _/etc/sysctl.conf_.
+
+
 [[crashkernel_exteded]]
 Extended crashkernel commandline
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
