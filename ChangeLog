@@ -1,3 +1,8 @@
+2008-11-21  Bernhard Walle <bwalle@suse.de>
+
+	* Don't use the FQDN but only the hostname to avoid DNS lookups
+	  and errors on wrongly configured systems.
+
 2008-11-20  Bernhard Walle <bwalle@suse.de>
 
 	* Document 256M limit on ppc64 for large machines in kdump(7).

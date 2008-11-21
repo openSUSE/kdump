@@ -1,3 +1,8 @@
+0.7.2
+-----
+  * Don't use the FQDN but only the hostname to avoid DNS lookups and errors on
+    wrongly configured systems.
+
 0.7.1
 -----
   * Document 256M limit on ppc64 for large machines in kdump(7).

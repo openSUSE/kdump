@@ -91,7 +91,7 @@ cp "$CONFIG" ${tmp_mnt}/etc/sysconfig/
 #
 # remember the host name
 #
-hostname --fqdn >> ${tmp_mnt}/etc/hostname.kdump
+hostname >> ${tmp_mnt}/etc/hostname.kdump
 
 #
 # copy public and private key
