@@ -3,6 +3,8 @@
 	* Document kdump problems on Xen.
 	* Don't display the full mkinitrd output.
 	* Warn about zero-size vmcore.
+	* Default to the auto-detected kernel when mkdumprd is called without
+	  arguments instead of defaulting to the running kernel.
 
 2008-11-21  Bernhard Walle <bwalle@suse.de>
 

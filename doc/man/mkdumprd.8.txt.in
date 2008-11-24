@@ -67,8 +67,9 @@ all standard command line parsing rules.
   Shows help output and exits.
 
 *-k* _kernelversion_::
-  Specifies the kernel version. If no version is specified, then the currently
-  running kernel is used.
+  Specifies the kernel version. If no version is specified and also no kernel
+  or initrd are specified, then mkdumprd uses *kdumptool*(8) to find out the
+  correct kernel and initrd.
 
 *-K* _kernel_::
   Specifies the kernel binary. If you specify that option, also specify _-I_.

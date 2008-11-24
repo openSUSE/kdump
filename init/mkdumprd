@@ -16,7 +16,7 @@
 # 02110-1301, USA.
 
 CONFIG=/etc/sysconfig/kdump
-KERNELVERSION=$(uname -r)
+KERNELVERSION=
 FORCE=0
 QUIET=0
 MKINITRD_EXTRA_PARAMS=
@@ -88,12 +88,23 @@ shift $(($OPTIND -1))
 
 #
 # if we don't have specified -K <file>, then get the kernel from the version
+# if $KERNELVERSION is non-zero and use the default kernel for kdump
+# if $KERNELVERSION is zero.
 if [ -z "$KERNEL" ] ; then
-    KERNEL=/boot/vmlinuz-$KERNELVERSION
-    if ! [ -f "$KERNEL" ] ; then
-        KERNEL=/boot/vmlinux-$KERNELVERSION
+    if [ -n "$KERNELVERSION" ] ; then
+        KERNEL=/boot/vmlinuz-$KERNELVERSION
+        if ! [ -f "$KERNEL" ] ; then
+            KERNEL=/boot/vmlinux-$KERNELVERSION
+        fi
+    else
+        output=$(kdumptool find_kernel $find_kernel_args)
+        KERNEL=$(echo "$output" | grep ^Kernel | cut -f 2)
+        INITRD=$(echo "$output" | grep ^Initrd | cut -f 2)
     fi
 fi
+
+#
+# If 
 
 if ! [ -f "$KERNEL" ] ; then
     echo "Kernel $KERNEL does not exist."
