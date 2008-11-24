@@ -74,7 +74,7 @@ function build_kdump_commandline()
 
         # Xen does not include the kernel release in VMCOREINFO_XEN
         # so we have to pass it via the command line
-        if [[ "$(uname -r)" =~ '.*-ARCH$' ]] ; then
+        if [[ "$(uname -r)" =~ -xen$ ]] ; then
             kernelrelease=$(uname -r)
             commandline="$commandline kernelversion=$kernelrelease"
         fi
