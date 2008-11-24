@@ -431,6 +431,21 @@ unsigned long long FileUtil::freeDiskSize(const std::string &path)
     return (unsigned long long)mystatfs.f_bfree * mystatfs.f_bsize;
 }
 
+// -----------------------------------------------------------------------------
+unsigned long long FileUtil::fileSize(const std::string &path)
+    throw (KError)
+{
+    Debug::debug()->trace("FileUtil::fileSize(%s)", path.c_str());
+
+    struct stat mystat;
+    int ret = ::stat(path.c_str(), &mystat);
+    if (ret != 0) {
+        throw KSystemError("stat() on " + path + " failed.", errno);
+    }
+
+    return (unsigned long long)mystat.st_size;
+}
+
 //}}}
 
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

@@ -261,6 +261,18 @@ class FileUtil {
           */
          static unsigned long long freeDiskSize(const std::string &path)
          throw (KError);
+
+         /**
+          * Returns the size of a given file.
+          *
+          * @param[in] path the full path to the file whose size should be
+          *            retrieved
+          * @return the size of the file
+          * @exception KError if the file does not exist or if stat() does
+          *            fail for another reason
+          */
+         static unsigned long long fileSize(const std::string &path)
+         throw (KError);
 };
 
 //}}}
