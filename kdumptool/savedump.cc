@@ -207,8 +207,8 @@ void SaveDump::execute()
     try {
         fillVmcoreinfo();
     } catch (const KError &error) {
-        Debug::debug()->info("Error when reading VMCOREINFO: %s",
-            error.what());
+        Debug::debug()->debug("Error when reading VMCOREINFO: %s",
+                error.what());
     }
 
     // if we have no VMCOREINFO, then try to command line to get the
@@ -217,7 +217,7 @@ void SaveDump::execute()
         try {
             m_crashrelease = getKernelReleaseCommandline();
         } catch (const KError &error) {
-            Debug::debug()->info("Unable to retrieve kernel version: %s",
+            Debug::debug()->debug("Unable to retrieve kernel version: %s",
                     error.what());
         }
     }
