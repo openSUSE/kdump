@@ -64,7 +64,6 @@ class Vmcoreinfo {
         StringList getKeys() const
         throw ();
 
-
         /**
          * Returns a value.
          *
@@ -95,6 +94,15 @@ class Vmcoreinfo {
         int getLLongValue(const char *key) const
         throw (KError);
 
+        /**
+         * Returns true if the VMCOREINFO is VMCOREINFO_XEN, and false
+         * otherwise.
+         *
+         * @return @c true if it's @c VMCOREINFO_XEN and false otherwise.
+         */
+        bool isXenVmcoreinfo() const
+        throw ();
+
     protected:
         ByteVector readElfNote(const char *file)
         throw (KError);
@@ -105,6 +113,7 @@ class Vmcoreinfo {
 
     private:
         StringStringMap m_map;
+        bool m_xenVmcoreinfo;
 };
 
 //}}}

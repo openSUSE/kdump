@@ -5,6 +5,7 @@
   * Warn about zero-size vmcore.
   * Default to the auto-detected kernel when mkdumprd is called without
     arguments instead of defaulting to the running kernel.
+  * Parse VMCOREINFO_XEN when present with 'read_vmcoreinfo'.
 
 0.7.2
 -----

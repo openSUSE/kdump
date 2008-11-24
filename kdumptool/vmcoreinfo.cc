@@ -46,8 +46,11 @@ using std::cout;
 using std::endl;
 using std::min;
 
-#define VMCOREINFO_NOTE_NAME        "VMCOREINFO"
-#define VMCOREINFO_NOTE_NAME_BYTES  (sizeof(VMCOREINFO_NOTE_NAME))
+#define VMCOREINFO_NOTE_NAME           "VMCOREINFO"
+#define VMCOREINFO_NOTE_NAME_BYTES     (sizeof(VMCOREINFO_NOTE_NAME))
+#define VMCOREINFO_XEN_NOTE_NAME	   "VMCOREINFO_XEN"
+#define VMCOREINFO_XEN_NOTE_NAME_BYTES (sizeof(VMCOREINFO_XEN_NOTE_NAME))
+
 #define ELF_HEADER_MAPSIZE          (100*1024)
 
 //{{{ Vmcoreinfo ---------------------------------------------------------------
@@ -55,6 +58,7 @@ using std::min;
 // -----------------------------------------------------------------------------
 Vmcoreinfo::Vmcoreinfo()
     throw (KError)
+    : m_xenVmcoreinfo(false)
 {
     // check that there are no version inconsitencies
     if (elf_version(EV_CURRENT) == EV_NONE )
@@ -78,10 +82,15 @@ void Vmcoreinfo::readFromELF(const char *elf_file)
 
         Debug::debug()->trace("Line: %s", line.c_str());
 
+        // skip empty lines
+        if (Stringutil::trim(line).size() == 0 || line[0] == '\0') {
+            continue;
+        }
+
         string::size_type equal = line.find("=");
         if (equal == string::npos) {
             Debug::debug()->info("VMCOREINFO line contains no '='. "
-                "Skipping. (%s)", line.c_str());
+                "Skipping. (%s)sz=%d", line.c_str(), (line).size() );
             continue;
         }
 
@@ -252,7 +261,19 @@ ByteVector Vmcoreinfo::readVmcoreinfoFromNotes(const char *buffer, size_t size,
             add_offset = sizeof(Elf32_Nhdr);
         }
 
-        if (!strncmp(VMCOREINFO_NOTE_NAME, buffer+offset+add_offset,
+        if (!strncmp(VMCOREINFO_XEN_NOTE_NAME, buffer+offset+add_offset,
+		        VMCOREINFO_XEN_NOTE_NAME_BYTES)) {
+			if (isElf64) {
+                offset_vmcoreinfo = offset +
+				    (sizeof(*note64) + ((note64->n_namesz + 3) & ~3));
+				size_vmcoreinfo = note64->n_descsz;
+			} else {
+				offset_vmcoreinfo = offset +
+                    (sizeof(*note32) + ((note32->n_namesz + 3) & ~3));
+				size_vmcoreinfo = note32->n_descsz;
+			}
+            m_xenVmcoreinfo = true;
+        } else if (!strncmp(VMCOREINFO_NOTE_NAME, buffer+offset+add_offset,
                     VMCOREINFO_NOTE_NAME_BYTES)) {
             if (isElf64) {
                 offset_vmcoreinfo = offset +
@@ -321,6 +342,13 @@ StringList Vmcoreinfo::getKeys() const
             it != m_map.end(); ++it)
         ret.push_back(it->first);
     return ret;
+}
+
+// -----------------------------------------------------------------------------
+bool Vmcoreinfo::isXenVmcoreinfo() const
+    throw ()
+{
+    return m_xenVmcoreinfo;
 }
 
 //}}}

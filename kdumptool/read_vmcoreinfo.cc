@@ -94,6 +94,12 @@ void ReadVmcoreinfo::execute()
     Vmcoreinfo vm;
     vm.readFromELF(m_file.c_str());
 
+    if (vm.isXenVmcoreinfo()) {
+        cerr << "VMCOREINFO_XEN:" << endl;
+    } else {
+        cerr << "VMCOREINFO:" << endl;
+    }
+
     if (m_option.size() > 0) {
         Debug::debug()->dbg("Printing value of %s", m_option.c_str());
         cout << vm.getStringValue(m_option.c_str()) << endl;
