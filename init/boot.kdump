@@ -104,7 +104,7 @@ function build_kexec_options()
 function load_kdump()
 {
     local find_kernel_args=
-    echo -n "Loading kdump "
+    echo "Loading kdump"
 
     if [ $(($KDUMP_VERBOSE & 16)) -gt 0 ] ; then
         find_kernel_args="-D"

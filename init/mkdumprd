@@ -158,7 +158,14 @@ fi
 
 MKINITRD_ARGS="$MKINITRD_ARGS $MKINITRD_EXTRA_PARAMS $NETARGS"
 
+#
+# if -q is specified, don't print mkinitrd output
+if (( $QUIET )) ; then
+    MKINITRD_ARGS="$MKINITRD_ARGS &>/dev/null"
+fi
+
 status_message "Calling mkinitrd $MKINITRD_ARGS"
+echo "Regenerating kdump initrd ..." >&2
 eval "/sbin/mkinitrd $MKINITRD_ARGS"
 ret=$?
 
