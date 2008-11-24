@@ -1,3 +1,8 @@
+0.7.3
+-----
+  * Document kdump problems on Xen.
+  * Don't display the full mkinitrd output.
+
 0.7.2
 -----
   * Don't use the FQDN but only the hostname to avoid DNS lookups and errors on

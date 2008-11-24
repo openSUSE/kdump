@@ -1,3 +1,8 @@
+2008-11-24  Bernhard Walle <bwalle@suse.de>
+
+	* Document kdump problems on Xen.
+	* Don't display the full mkinitrd output.
+
 2008-11-21  Bernhard Walle <bwalle@suse.de>
 
 	* Don't use the FQDN but only the hostname to avoid DNS lookups
