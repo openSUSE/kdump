@@ -244,6 +244,14 @@ void SaveDump::saveDump()
         dumplevel = 0;
     }
 
+    // check if the vmcore file does exist and has a size of > 0
+    if (!FileUtil::exists(m_dump)) {
+        throw KError("Core file " + m_dump + " does not exist.");
+    }
+    if (!FileUtil::fileSize(m_dump) == 0) {
+        throw KError("Zero size vmcore (" + m_dump + ").");
+    }
+
     // dump format
     string dumpformat = config->getDumpFormat();
     DataProvider *provider;
