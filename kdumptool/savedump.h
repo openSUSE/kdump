@@ -102,6 +102,9 @@ class SaveDump : public Subcommand {
         void sendNotification(bool failure, const std::string &savedir)
         throw ();
 
+        std::string getKernelReleaseCommandline()
+        throw (KError);
+
     private:
         std::string m_dump;
         Transfer *m_transfer;

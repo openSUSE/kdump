@@ -6,6 +6,10 @@
 	* Default to the auto-detected kernel when mkdumprd is called without
 	  arguments instead of defaulting to the running kernel.
 	* Parse VMCOREINFO_XEN when present with 'read_vmcoreinfo'.
+	* Pass the kernel release of the crashed kernel via command line in
+	  case of Xen.
+	* Improve error handling when no crash kernel release is available
+	  when saving the dump.
 
 2008-11-21  Bernhard Walle <bwalle@suse.de>
 

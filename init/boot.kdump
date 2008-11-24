@@ -71,6 +71,13 @@ function build_kdump_commandline()
             commandline="$commandline irqpoll maxcpus=1"
             ;;
         esac
+
+        # Xen does not include the kernel release in VMCOREINFO_XEN
+        # so we have to pass it via the command line
+        if [[ "$(uname -r)" =~ '.*-ARCH$' ]] ; then
+            kernelrelease=$(uname -r)
+            commandline="$commandline kernelversion=$kernelrelease"
+        fi
     fi
 
     commandline="$commandline $KDUMP_COMMANDLINE_APPEND"

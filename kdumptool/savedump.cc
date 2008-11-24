@@ -22,6 +22,7 @@
 #include <cerrno>
 #include <memory>
 #include <sstream>
+#include <fstream>
 
 #include "subcommand.h"
 #include "debug.h"
@@ -43,6 +44,9 @@ using std::cout;
 using std::endl;
 using std::auto_ptr;
 using std::stringstream;
+using std::ifstream;
+
+#define KERNELCOMMANDLINE "/proc/cmdline"
 
 //{{{ SaveDump -----------------------------------------------------------------
 
@@ -207,6 +211,17 @@ void SaveDump::execute()
             error.what());
     }
 
+    // if we have no VMCOREINFO, then try to command line to get the
+    // kernel version
+    if (m_crashrelease.size() == 0) {
+        try {
+            m_crashrelease = getKernelReleaseCommandline();
+        } catch (const KError &error) {
+            Debug::debug()->info("Unable to retrieve kernel version: %s",
+                    error.what());
+        }
+    }
+
     // generate the README file
     try {
         generateInfo();
@@ -219,15 +234,20 @@ void SaveDump::execute()
     }
 
     // copy kernel
-    try {
-        if (config->getCopyKernel())
-            copyKernel();
-    } catch (const KError &error) {
-        setErrorCode(1);
-        if (config->getContinueOnError())
-            cout << error.what() << endl;
-        else
-            throw;
+    if (m_crashrelease.size() > 0) {
+        try {
+            if (config->getCopyKernel())
+                copyKernel();
+        } catch (const KError &error) {
+            setErrorCode(1);
+            if (config->getContinueOnError())
+                cout << error.what() << endl;
+            else
+                throw;
+        }
+    } else {
+        Debug::debug()->info("Don't copy the kernel and System.map because of missing "
+            "crash kernel release.");
     }
 }
 
@@ -648,6 +668,34 @@ void SaveDump::sendNotification(bool failure, const string &savedir)
         Debug::debug()->info("Email failed: %s", err.what());
     }
 #endif // HAVE_LIBESMTP
+}
+
+// -----------------------------------------------------------------------------
+string SaveDump::getKernelReleaseCommandline()
+    throw (KError)
+{
+    Debug::debug()->trace("SaveDump::getKernelReleaseCommandline()");
+
+    ifstream fin(KERNELCOMMANDLINE);
+    if (!fin) {
+        throw KError("Unable to open " + string(KERNELCOMMANDLINE) + ".");
+    }
+
+    string s;
+    string version;
+    while (fin >> s) {
+        Debug::debug()->trace("Token: %s", s.c_str());
+        if (Stringutil::startsWith(s, "kernelversion=")) {
+            version = Stringutil::stripPrefix(s, "kernelversion=");
+        }
+    }
+
+    if (version.size() == 0) {
+        throw KError("'kernelversion=' command line missing");
+    }
+
+    fin.close();
+    return version;
 }
 
 //}}}
