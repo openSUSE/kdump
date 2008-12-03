@@ -1,3 +1,8 @@
+2008-12-03  Bernhard Walle <bernhard.walle@gmx.de>
+
+	* Call 'mkinitrd' with the -B (don't update bootloader) option
+	  in mkdumprd(8).
+
 2008-11-24  Bernhard Walle <bwalle@suse.de>
 
 	* Document kdump problems on Xen.

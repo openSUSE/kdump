@@ -158,7 +158,7 @@ else
     fi
 fi
 
-MKINITRD_ARGS="-k $KERNEL -i $INITRD -f '$FEATURE_LIST'"
+MKINITRD_ARGS="-B -k $KERNEL -i $INITRD -f '$FEATURE_LIST'"
 
 #
 # the -s parameter is only available when the bootsplash package and its
