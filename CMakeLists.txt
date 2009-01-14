@@ -26,7 +26,7 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 
 cmake_minimum_required(VERSION 2.4)
 set (PACKAGE_STRING "kdump")
-set (PACKAGE_VERSION "0.7.4")
+set (PACKAGE_VERSION "0.8.0")
 
 include_directories("${PROJECT_BINARY_DIR}")
 
