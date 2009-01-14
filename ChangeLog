@@ -1,3 +1,8 @@
+2009-01-14  Bernhard Walle <bernhard.walle@gmx.de>
+
+	* Call a2x with the -L option (prevent syntax checking of docbook
+	  output) to generate the manual pages with asciidoc 8.3.x.
+
 2008-12-03  Bernhard Walle <bernhard.walle@gmx.de>
 
 	* Call 'mkinitrd' with the -B (don't update bootloader) option
