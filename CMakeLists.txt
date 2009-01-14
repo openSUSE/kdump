@@ -45,7 +45,25 @@ FIND_PROGRAM(ASCIIDOC_EXECUTABLE asciidoc)
 SET(ASCIIDOC_OPTIONS -a toclevels=3 -a badges -a toc -a numbered)
 SET(ASCIIDOC_MAN_OPTIONS ${ASCIIDOC_OPTIONS} -d manpage)
 FIND_PROGRAM(A2X_EXECUTABLE a2x)
-SET(A2X_MAN_OPTIONS -L --doctype=manpage --format=manpage)
+
+# get the version number from asciidoc
+EXECUTE_PROCESS(
+    COMMAND
+        asciidoc --version
+    OUTPUT_VARIABLE
+        asciidoc_version_string
+)
+string(REGEX REPLACE "asciidoc (.*)\n" "\\1"
+    asciidoc_version_string ${asciidoc_version_string})
+
+#
+# Use -L for asciidoc >= 8.3.0
+#
+IF (asciidoc_version_string VERSION_LESS 8.3.0)
+    SET(A2X_MAN_OPTIONS --doctype=manpage --format=manpage)
+ELSE (asciidoc_version_string VERSION_LESS 8.2.99)
+    SET(A2X_MAN_OPTIONS -L --doctype=manpage --format=manpage)
+ENDIF (asciidoc_version_string VERSION_LESS 8.2.0)
 
 #
 # Find libraries
