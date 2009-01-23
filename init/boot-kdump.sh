@@ -38,6 +38,11 @@ function handle_exit()
             -o "$KDUMP_IMMEDIATE_REBOOT" = "YES" ] ; then
         reboot -f
     else
+        echo
+        echo "Dump saving completed."
+        echo "Type 'reboot -f' to reboot the system or 'exit' to"
+        echo "boot in a normal system that still is running in the"
+        echo "kdump environment with restricted memory!"
         bash
     fi
 }
@@ -51,14 +56,20 @@ function continue_error()
     local status=$?
 
     if [ $status -eq 0 ] ; then
-        return
+        return 0
     fi
 
     echo "Last command failed ($status)."
 
     if ! [ "$KDUMP_CONTINUE_ON_ERROR" = "true" -o \
                 "$KDUMP_CONTINUE_ON_ERROR" = "TRUE" ] ; then
+        echo
+        echo "Something failed. You can try to debug that here."
+        echo "Type 'reboot -f' to reboot the system or 'exit' to"
+        echo "boot in a normal system that still is running in the"
+        echo "kdump environment with restricted memory!"
         bash
+	return 1
     fi
 }
 
@@ -120,34 +131,44 @@ else
     #
     # mount all partitions in fstab
     mount_all
-    continue_error $?
+    if ! continue_error $?; then
+        return
+    fi
 
     #
     # prescript
     if [ -n "$KDUMP_PRESCRIPT" ] ; then
         echo "Running $KDUMP_PRESCRIPT"
         eval "$KDUMP_PRESCRIPT"
-        continue_error $?
+        if ! continue_error $?; then
+            return
+        fi
     fi
 
     #
     # delete old dumps
     kdumptool delete_dumps $KDUMPTOOL_OPTIONS
-    continue_error $?
+    if ! continue_error $?;then
+        return
+    fi
 
     #
     # save the dump (HOME=/ to find the public/private key)
     read hostname < /etc/hostname.kdump
     HOME=/ TMPDIR=/root/tmp kdumptool save_dump --root=$ROOTDIR \
         --hostname=$hostname $KDUMPTOOL_OPTIONS
-    continue_error $?
+    if ! continue_error $?; then
+        return
+    fi
 
     #
     # postscript
     if [ -n "$KDUMP_POSTSCRIPT" ] ; then
         echo "Running $KDUMP_POSTSCRIPT"
         eval "$KDUMP_POSTSCRIPT"
-        continue_error $?
+        if ! continue_error $?; then
+           return
+        fi
     fi
 fi
 

@@ -5,6 +5,8 @@
 	  print_ikconfig.
 	* Remove the documentation about the non-working network configuration
 	  in Xen since that has been fixed meanwhile.
+	* Make it possible to exit the shell spawned in the initrd with 'exit'
+	  to boot in the kdump system for debugging.
 
 2009-01-14  Bernhard Walle <bernhard.walle@gmx.de>
 
