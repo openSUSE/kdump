@@ -1,4 +1,4 @@
-2009-01-23  Bernhard Walle <bernhard.walle@gmx.de>
+2009-01-23  Bernhard Walle <bwalle@suse.de>
 
 	* Fix invalid syntax in CMakeLists.txt.
 	* Fix manpage, the command is called read_ikconfig and not
@@ -8,12 +8,12 @@
 	* Make it possible to exit the shell spawned in the initrd with 'exit'
 	  to boot in the kdump system for debugging.
 
-2009-01-14  Bernhard Walle <bernhard.walle@gmx.de>
+2009-01-14  Bernhard Walle <bwalle@suse.de>
 
 	* Call a2x with the -L option (prevent syntax checking of docbook
 	  output) to generate the manual pages with asciidoc 8.3.x.
 
-2008-12-03  Bernhard Walle <bernhard.walle@gmx.de>
+2008-12-03  Bernhard Walle <bwalle@suse.de>
 
 	* Call 'mkinitrd' with the -B (don't update bootloader) option
 	  in mkdumprd(8).
