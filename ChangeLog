@@ -1,6 +1,8 @@
 2009-01-23  Bernhard Walle <bernhard.walle@gmx.de>
 
 	* Fix invalid syntax in CMakeLists.txt.
+	* Fix manpage, the command is called read_ikconfig and not
+	  print_ikconfig.
 
 2009-01-14  Bernhard Walle <bernhard.walle@gmx.de>
 

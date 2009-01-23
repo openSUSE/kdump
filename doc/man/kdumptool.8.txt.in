@@ -292,7 +292,7 @@ All usual kernel image formats (ELF, compressed ELF, bzImage) are supported.
 Syntax
 ~~~~~~
 
-*kdumptool* [_globals_] *print_ikconfig* _kernelimage_
+*kdumptool* [_globals_] *read_ikconfig* _kernelimage_
 
 
 RETURN VALUE
