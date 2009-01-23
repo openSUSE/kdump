@@ -1,3 +1,7 @@
+0.7.5
+-----
+  * Fix manpage, the command is called read_ikconfig and not print_ikconfig.
+
 0.7.4
 -----
   * Call 'mkinitrd' with the -B (don't update bootloader) option in mkdumprd(8).
