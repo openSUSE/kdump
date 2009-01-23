@@ -2,6 +2,8 @@
 
 	* Fix manpage, the command is called read_ikconfig and not
 	  print_ikconfig.
+	* Remove the documentation about the non-working network configuration
+	  in Xen since that has been fixed meanwhile.
 
 2008-12-03  Bernhard Walle <bwalle@suse.de>
 
