@@ -3,6 +3,8 @@
 	* Fix invalid syntax in CMakeLists.txt.
 	* Fix manpage, the command is called read_ikconfig and not
 	  print_ikconfig.
+	* Remove the documentation about the non-working network configuration
+	  in Xen since that has been fixed meanwhile.
 
 2009-01-14  Bernhard Walle <bernhard.walle@gmx.de>
 

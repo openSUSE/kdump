@@ -416,10 +416,6 @@ There are known problems when using Kdump on Xen.
 . Dump filtering does not work. Use a _KDUMP_DUMPLEVEL_ of _0_ and set
   _KDUMP_DUMPFORMAT_ to _ELF_. That are *not* the default settings, so you
   have to change that settings if you're using Xen.
-. Automatic network setup does not work because of the Xen bridge setup.
-  If you want to use _eth0_ for netdump, please set _KDUMP_NETCONFIG_ to
-  _eth0:dhcp_.
-
 
 New Bugs
 ~~~~~~~~
