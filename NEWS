@@ -1,3 +1,7 @@
+0.8.1
+-----
+  * Fix invalid syntax in CMakeLists.txt.
+
 0.8.0
 -----
   * Call asciidoc a2x with -L to fix manual page generation problems with

@@ -1,3 +1,7 @@
+2009-01-23  Bernhard Walle <bernhard.walle@gmx.de>
+
+	* Fix invalid syntax in CMakeLists.txt.
+
 2009-01-14  Bernhard Walle <bernhard.walle@gmx.de>
 
 	* Call a2x with the -L option (prevent syntax checking of docbook

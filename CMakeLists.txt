@@ -61,9 +61,9 @@ string(REGEX REPLACE "asciidoc (.*)\n" "\\1"
 #
 IF (asciidoc_version_string VERSION_LESS 8.3.0)
     SET(A2X_MAN_OPTIONS --doctype=manpage --format=manpage)
-ELSE (asciidoc_version_string VERSION_LESS 8.2.99)
+ELSE (asciidoc_version_string VERSION_LESS 8.3.0)
     SET(A2X_MAN_OPTIONS -L --doctype=manpage --format=manpage)
-ENDIF (asciidoc_version_string VERSION_LESS 8.2.0)
+ENDIF (asciidoc_version_string VERSION_LESS 8.3.0)
 
 #
 # Find libraries
