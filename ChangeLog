@@ -1,4 +1,4 @@
-2008-12-03  Bernhard Walle <bernhard.walle@gmx.de>
+2008-12-03  Bernhard Walle <bwalle@suse.de>
 
 	* Call 'mkinitrd' with the -B (don't update bootloader) option
 	  in mkdumprd(8).
