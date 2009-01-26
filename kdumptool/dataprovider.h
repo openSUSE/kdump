@@ -250,6 +250,7 @@ class FileDataProvider : public AbstractDataProvider {
         std::string m_filename;
         FILE *m_file;
         loff_t m_fileSize;
+        loff_t m_currentPos;
 };
 
 //}}}
