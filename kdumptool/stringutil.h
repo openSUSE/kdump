@@ -21,6 +21,7 @@
 
 #include <string>
 #include <sstream>
+#include <iomanip>
 
 #include "global.h"
 
@@ -60,6 +61,17 @@ class Stringutil {
          */
         template <typename numeric_type>
         static std::string number2string(numeric_type number)
+        throw ();
+
+        /**
+         * Transforms a numberic string value into a string in hex format
+         * The string includes the '0x' prefix.
+         *
+         * @param[in] number the number to transform
+         * @return the string, e.g. <tt>0x1234</tt>
+         */
+        template <typename numeric_type>
+        static std::string number2hex(numeric_type number)
         throw ();
 
         /**
@@ -268,6 +280,17 @@ std::string Stringutil::number2string(numeric_type number)
 {
     std::stringstream ss;
     ss << number;
+    return ss.str();
+}
+
+// -----------------------------------------------------------------------------
+template <typename numeric_type>
+std::string Stringutil::number2hex(numeric_type number)
+    throw ()
+{
+    std::stringstream ss;
+    ss << "0x";
+    ss << std::hex << number;
     return ss.str();
 }
 
