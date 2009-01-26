@@ -109,7 +109,9 @@ bool AbstractDataProvider::getError() const
 // -----------------------------------------------------------------------------
 FileDataProvider::FileDataProvider(const char *filename)
     throw ()
-    : m_filename(filename), m_file(NULL)
+    : m_filename(filename)
+    , m_file(NULL)
+    , m_currentPos(0)
 {}
 
 // -----------------------------------------------------------------------------
@@ -151,12 +153,15 @@ size_t FileDataProvider::getData(char *buffer, size_t maxread)
     size_t ret = fread(buffer, 1, maxread, m_file);
     if (ret == 0 && errno != 0) {
         setError(true);
-        throw KSystemError("Error reading from " + m_filename, errno);
+        throw KSystemError("Error reading from " + m_filename + " at " +
+            Stringutil::number2hex(m_currentPos), errno);
     }
 
     Progress *p = getProgress();
     if (p)
         p->progressed(lseek(fileno(m_file), 0, SEEK_CUR), m_fileSize);
+
+    m_currentPos += ret;
 
     return ret;
 }

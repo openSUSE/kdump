@@ -2,6 +2,7 @@
 -----
   * Fix missing error reason (string representation  of errno) in the
     exception output.
+  * Include the position of the input stream in the exception output.
 
 0.8.1
 -----
