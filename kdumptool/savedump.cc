@@ -173,7 +173,7 @@ void SaveDump::execute()
         if (config->getContinueOnError())
             cout << error.what() << endl;
         else
-            throw error;
+            throw;
     }
 
     // send the email afterwards
