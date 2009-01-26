@@ -1,3 +1,8 @@
+2009-01-26  Bernhard Walle <bwalle@suse.de>
+
+	* Fix missing error reason (string representation  of errno) in the
+	  exception output.
+
 2009-01-23  Bernhard Walle <bwalle@suse.de>
 
 	* Fix invalid syntax in CMakeLists.txt.
