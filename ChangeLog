@@ -1,6 +1,7 @@
 2009-02-06  Bernhard Walle <bwalle@suse.de>
 
 	* Improve error message in Debuglink::openCompressed().
+	* Fix invalid call of mkstemp() in Debuglink::openCompressed()
 
 2009-01-26  Bernhard Walle <bwalle@suse.de>
 
