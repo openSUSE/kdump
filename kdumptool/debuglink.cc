@@ -229,7 +229,8 @@ int Debuglink::openCompressed()
 
     dest = mkstemp(templbuffer);
     if (dest < 0)
-        throw KSystemError("mkstemp() failed.", errno);
+        throw KSystemError("mkstemp(" + string(templbuffer) + ") failed.",
+            errno);
 
     /* delete immediately */
     unlink(templbuffer);
