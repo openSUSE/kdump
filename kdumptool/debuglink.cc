@@ -214,11 +214,11 @@ int Debuglink::openCompressed()
     gzFile source = NULL;
     int read_chars;
     char buffer[BUFSIZ];
-    char templbuffer[PATH_MAX];
+    char *templbuffer;
 
     string templ(FileUtil::pathconcat(Util::getenv("TMPDIR", "/tmp"),
             "read-debuglink-XXXXXX"));
-    strncpy(templbuffer, templ.c_str(), templ.size());
+    templbuffer = strdupa(templ.c_str());
 
     Debug::debug()->trace("Debuglink::openCompressed()");
 
@@ -229,8 +229,7 @@ int Debuglink::openCompressed()
 
     dest = mkstemp(templbuffer);
     if (dest < 0)
-        throw KSystemError("mkstemp(" + string(templbuffer) + ") failed.",
-            errno);
+        throw KSystemError("mkstemp(" + templ + ") failed.", errno);
 
     /* delete immediately */
     unlink(templbuffer);
