@@ -1,3 +1,10 @@
+0.7.8
+-----
+  * Improve error message in Debuglink::openCompressed().
+  * Fix invalid call of mkstemp() in Debuglink::openCompressed()
+  * Use 'showmount -e' instead of 'showmount --directories' to also get exported
+    but unmounted directories listed.
+
 0.7.7
 -----
   * Fix missing error reason (string representation  of errno) in the
