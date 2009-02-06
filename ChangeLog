@@ -2,6 +2,8 @@
 
 	* Improve error message in Debuglink::openCompressed().
 	* Fix invalid call of mkstemp() in Debuglink::openCompressed()
+	* Use 'showmount -e' instead of 'showmount --directories' to also get
+	  exported but unmounted directories listed.
 
 2009-01-26  Bernhard Walle <bwalle@suse.de>
 
