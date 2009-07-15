@@ -59,22 +59,19 @@ int Socket::connect()
 
     int ret = inet_aton(m_hostname.c_str(), &inaddr);
     if (ret) {
-        Debug::debug()->trace("Socket::connect(): Using gethostbyaddr()");
-        machine = gethostbyaddr((char *)&inaddr, sizeof(inaddr), AF_INET);
-        if (!machine)
-            throw KNetError("gethostbyaddr() failed for "+ m_hostname +".",
-                h_errno);
+        Debug::debug()->trace("Socket::connect(): Using numerical IP address");
+	memcpy(&addr.sin_addr, &inaddr, sizeof(addr.sin_addr));
     } else {
         Debug::debug()->trace("Socket::connect(): Using gethostbyname()");
         machine = gethostbyname(m_hostname.c_str());
         if (!machine)
             throw KNetError("gethostbyname() failed for "+ m_hostname +".",
                 h_errno);
+	memcpy(&addr.sin_addr, machine->h_addr_list[0], sizeof(addr.sin_addr));
     }
 
     addr.sin_family = AF_INET;
     addr.sin_port = htons(m_port);
-    memcpy(&addr.sin_addr, machine->h_addr_list[0], sizeof(addr.sin_addr));
 
     // UDP or TCP ?
     int type = m_connectionType == Socket::ST_TCP
