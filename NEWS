@@ -5,8 +5,7 @@
   * Include the position of the input stream in the exception output.
   * Improve error message in Debuglink::openCompressed().
   * Fix invalid call of mkstemp() in Debuglink::openCompressed()
-  * Use 'showmount -e' instead of 'showmount --directories' to also get exported
-    but unmounted directories listed.
+  * Do not use showmount (it is apparently no longer needed).
 
 0.8.1
 -----
