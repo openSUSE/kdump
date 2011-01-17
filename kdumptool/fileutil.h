@@ -191,15 +191,7 @@ class FileUtil {
          throw (KError);
 
          /**
-          * Mounts a NFS directory. That function checks with "showmount"
-          * before which directories are actually exported and mounts the
-          * correct directory.
-          *
-          * That function was implemented because mount does not terminate
-          * if you mount a directory that does not exist. So for example,
-          * if /a/b/c is exported and you mount /a/b/c/d, then the mount
-          * succeeds if /a/b/c/d exists, but it does not even terminate if
-          * /a/b/c/d does not exist.
+          * Mounts a NFS directory.
           *
           * @param[in] host remote host
           * @param[in] dir directory to mount
@@ -214,8 +206,7 @@ class FileUtil {
          static void nfsmount(const std::string &host,
                                const std::string &dir,
                                const std::string &mountpoint,
-                               const StringVector &options,
-                               std::string &mountdir)
+                               const StringVector &options)
          throw (KError);
 
          /**

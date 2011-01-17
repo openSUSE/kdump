@@ -675,9 +675,9 @@ NFSTransfer::NFSTransfer(const char *target_url)
 
     URLParser &parser = getURLParser();
 
-    string mountedDir;
-    FileUtil::nfsmount(parser.getHostname(), parser.getPath(),
-        DEFAULT_MOUNTPOINT, options, mountedDir);
+    string mountedDir = FileUtil::dirname(parser.getPath());
+    FileUtil::nfsmount(parser.getHostname(), mountedDir,
+        DEFAULT_MOUNTPOINT, options);
 
 
     m_mountpoint = DEFAULT_MOUNTPOINT;

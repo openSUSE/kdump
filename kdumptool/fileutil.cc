@@ -233,53 +233,14 @@ string FileUtil::pathconcat(const string &a,
 void FileUtil::nfsmount(const string &host,
                         const string &dir,
                         const string &mountpoint,
-                        const StringVector &options,
-                        string &mountdir)
+                        const StringVector &options)
     throw (KError)
 {
     Debug::debug()->trace("FileUtil::nfsmount(%s, %s, %s, %s)",
         host.c_str(), dir.c_str(), mountpoint.c_str(),
         Stringutil::vector2string(options).c_str());
 
-    // get the exported file systems
-    Process p;
-    StringVector args;
-    args.push_back("-e");
-    args.push_back("--no-headers");
-    args.push_back(host);
-    ByteVector stdoutBytes, stderrBytes;
-    p.setStdoutBuffer(&stdoutBytes);
-    p.setStderrBuffer(&stderrBytes);
-    int ret = p.execute("showmount", args);
-    if (ret != 0)
-        throw KError("Cannot execute showmount -e --no-headers " + host + ":" +
-            Stringutil::trim(Stringutil::bytes2str(stderrBytes)));
-
-    StringVector dirs = Stringutil::splitlines(
-        Stringutil::bytes2str(stdoutBytes));
-
-    mountdir = "";
-    for (StringVector::const_iterator it = dirs.begin();
-            it != dirs.end(); ++it) {
-
-        // XXX: export cannot contain white spaces
-        StringVector vec = Stringutil::split(*it, ' ');
-        if (vec.size() < 1)
-            throw KError("Invalid line in showmount output: " + *it);
-
-        string exportdir = vec[0];
-
-        Debug::debug()->trace("Checking %s", exportdir.c_str());
-        if (Stringutil::startsWith(dir, exportdir)) {
-            mountdir = exportdir;
-            break;
-        }
-    }
-
-    if (mountdir.size() == 0)
-        throw KError(host + " does not export " + dir + ".");
-
-    mount(host + ":" + mountdir, mountpoint, "nfs", options);
+    mount(host + ":" + dir, mountpoint, "nfs", options);
 
 }
 
