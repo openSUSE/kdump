@@ -6,6 +6,8 @@
   * Improve error message in Debuglink::openCompressed().
   * Fix invalid call of mkstemp() in Debuglink::openCompressed()
   * Do not use showmount (it is apparently no longer needed).
+  * Improve the algorithm of finding kernel modules and programs
+    needed to mount the dump directory.
 
 0.8.1
 -----

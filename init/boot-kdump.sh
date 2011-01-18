@@ -17,9 +17,9 @@
 #
 #%stage: setup
 #%depends: mount network
-#%programs: /bin/makedumpfile /bin/awk /bin/gawk /bin/grep /sbin/kdumptool /sbin/mount.cifs mount.nfs
+#%programs: /bin/makedumpfile /bin/awk /bin/gawk /bin/grep /sbin/kdumptool $kdump_fsprog
 #%if: "$use_kdump"
-#%udevmodules: cifs nls_utf8 reiserfs xfs ext2 ext3
+#%udevmodules: nls_utf8 $kdump_fsmod
 
 #
 # If KDUMP_IMMEDIATE_REBOOT is false, then open a shell. If it's true, then
