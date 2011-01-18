@@ -165,7 +165,7 @@ void SaveDump::execute()
 
         // run checkAndDelete() in any case
         try {
-            checkAndDelete();
+            checkAndDelete(savedir.c_str());
         } catch (const KError &error) {
             cout << error.what() << endl;
         }
@@ -183,7 +183,7 @@ void SaveDump::execute()
     // afterwards if the disk space is not sufficient and delete
     // the dump again
     try {
-        checkAndDelete();
+        checkAndDelete(savedir.c_str());
     } catch (const KError &error) {
         setErrorCode(1);
         if (config->getContinueOnError())
@@ -570,25 +570,22 @@ string SaveDump::findMapfile()
 }
 
 // -----------------------------------------------------------------------------
-void SaveDump::checkAndDelete()
+void SaveDump::checkAndDelete(const char *dir)
     throw (KError)
 {
-    Debug::debug()->trace("SaveDump::checkAndDelete()");
+    Debug::debug()->trace("SaveDump::checkAndDelete(\"%s\")", dir);
 
+    URLParser parser;
+    parser.parseURL(dir);
 
     // only do that check for local files
-    if (m_urlParser.getProtocol() != URLParser::PROT_FILE) {
+    if (parser.getProtocol() != URLParser::PROT_FILE) {
         Debug::debug()->dbg("Not file protocol. Don't delete.");
         return;
     }
 
+    string path = parser.getPath();
     Configuration *config = Configuration::config();
-    string path = m_urlParser.getPath();
-
-    if (m_rootdir.size() != 0) {
-        path = FileUtil::pathconcat(m_rootdir,
-                FileUtil::getCanonicalPathRoot(path, m_rootdir));
-    }
 
     unsigned long long freeSize = FileUtil::freeDiskSize(path);
     unsigned long long targetDiskSize = (unsigned long long)config->getFreeDiskSize();
@@ -598,7 +595,7 @@ void SaveDump::checkAndDelete()
 
     if (bytes_to_megabytes(freeSize) < targetDiskSize) {
         FileUtil::rmdir(path, true);
-        cout << "Dump too large. Aborting. Check KDUMP_FREE_DISK_SIZE." << endl;
+        throw KError("Dump too large. Aborting. Check KDUMP_FREE_DISK_SIZE.");
     }
 }
 

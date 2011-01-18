@@ -96,7 +96,7 @@ class SaveDump : public Subcommand {
         std::string findMapfile()
         throw (KError);
 
-        void checkAndDelete()
+        void checkAndDelete(const char *dir)
         throw (KError);
 
         void sendNotification(bool failure, const std::string &savedir)
