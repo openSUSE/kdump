@@ -228,9 +228,9 @@ StringVector Stringutil::split(const string &string, char split)
 
     next = string.find(split);
     while (next != string::npos) {
-        ret.push_back(string.substr(currentstart, next));
+        ret.push_back(string.substr(currentstart, next-currentstart));
         currentstart = next+1;
-        next = string.find(currentstart, split);
+        next = string.find(split, currentstart);
     }
 
     // rest
