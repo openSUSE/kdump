@@ -34,6 +34,9 @@ KDUMP_COMMANDLINE=""
 # command line string. The string gets also appended if KDUMP_COMMANDLINE
 # is set.
 #
+# For network based dumps, you may have to add a "net_delay" parameter
+# here. Consult the man page for details.
+#
 # See also: kdump(5).
 #
 KDUMP_COMMANDLINE_APPEND=""

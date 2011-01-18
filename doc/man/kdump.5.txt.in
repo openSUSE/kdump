@@ -142,7 +142,7 @@ create a command line, make sure to include:
 The last three parameters are special for kdump and should always be included,
 if you don't have a good reason to exclude them.
 
-If you just want have an own command line parameter to be added additionally,
+If you only want to extend the kernel command line with your own parameter(s),
 use KDUMP_COMMANDLINE_APPEND.
 
 Default is "".
@@ -152,7 +152,15 @@ KDUMP_COMMANDLINE_APPEND
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 This variable describes all command line parameters that are passed to the kdump
-kernel additionally to the default parameters. See also KDUMP_COMMANDLINE.
+kernel additionally to the default parameters.
+
+For network based dumping, you may have to add a _net_delay_ parameter to
+specify the extra delay in seconds that is needed for the network device
+to become fully operational, e.g. _net_delay=20_ will wait 20 seconds before
+continuing after the network device is configured. This parameter is used by
+the network setup code in the resulting initrd.
+
+See also KDUMP_COMMANDLINE.
 
 Default is "".
 
