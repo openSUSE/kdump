@@ -260,7 +260,18 @@ string FindKernel::findKernelAuto()
         return testkernelimage;
     }
 
-    // 7. Use "" unstrict
+    // 7. Use BASEVERSION-default unstrict
+    elements = Stringutil::split(runningkernel, '-');
+    elements[elements.size()-1] = "default";
+    testkernel = Stringutil::join(elements, '-');
+    Debug::debug()->dbg("---------------");
+    Debug::debug()->dbg("findKernelAuto: Trying %s", testkernel.c_str());
+    testkernelimage = findForVersion(testkernel);
+    if (testkernelimage.size() > 0 && suitableForKdump(testkernelimage, false)) {
+        return testkernelimage;
+    }
+
+    // 8. Use "" unstrict
     testkernel = "";
     Debug::debug()->dbg("---------------");
     Debug::debug()->dbg("findKernelAuto: Trying %s", testkernel.c_str());
