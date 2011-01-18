@@ -147,7 +147,7 @@ else
 
     #
     # delete old dumps
-    kdumptool delete_dumps $KDUMPTOOL_OPTIONS
+    kdumptool delete_dumps --root=$ROOTDIR $KDUMPTOOL_OPTIONS
     if ! continue_error $?;then
         return
     fi
