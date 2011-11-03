@@ -129,7 +129,7 @@ if (( ! $FORCE )) ; then
             [ /root/.ssh/id_dsa.pub -ot "$INITRD" ] && \
             [ /root/.ssh/id_dsa -ot "$INITRD" ] && \
             [ "$KERNEL" -ot "$INITRD" ] ; then
-        status_message "Not regenerating initrd. Use -f to force regeneration."
+        status_message "Not regenerating kdump initrd. Use mkdumprd -f to force regeneration."
         exit 0
     fi
 fi

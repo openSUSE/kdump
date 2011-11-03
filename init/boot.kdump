@@ -127,8 +127,10 @@ function load_kdump()
     kdump_kernel=$(echo "$output" | grep ^Kernel | cut -f 2)
     kdump_initrd=$(echo "$output" | grep ^Initrd | cut -f 2)
 
-    # rebuilding the kdump initramfs if necessary
-    mkdumprd -K "$kdump_kernel" -I "$kdump_initrd" -q
+    # rebuild the kdump initramfs if necessary, but not at boot
+    if [ "$RUNLEVEL" != "B" ]; then
+        mkdumprd -K "$kdump_kernel" -I "$kdump_initrd" -q
+    fi
 
     if [ ! -f $kdump_initrd ]; then
         echo -n ": No kdump initial ramdisk found."

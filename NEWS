@@ -10,6 +10,8 @@
     needed to mount the dump directory.
   * Pass the correct "sysrq=" argument to the kdump kernel.
   * Add support for RSA keys when saving over SSH.
+  * Do not re-generate kdump initrd on boot. Instead, hook into the
+    normal mkinitrd run.
 
 0.8.1
 -----

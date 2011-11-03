@@ -30,6 +30,7 @@ INSTALL(
 
 INSTALL(
     FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/setup-mkdumprd.sh
         ${CMAKE_CURRENT_SOURCE_DIR}/setup-kdumpfs.sh
         ${CMAKE_CURRENT_SOURCE_DIR}/setup-kdump.sh
         ${CMAKE_CURRENT_SOURCE_DIR}/boot-kdump.sh
