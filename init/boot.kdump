@@ -65,7 +65,7 @@ function build_kdump_commandline()
                 -e 's/ *BOOT_IMAGE=[^ ]* / /g' \
                 -e 's/ *showopts/ /g'`
         # Use deadline for saving the memory footprint
-        commandline="$commandline elevator=deadline sysrq=1 reset_devices"
+        commandline="$commandline elevator=deadline sysrq=yes reset_devices"
         case `uname -i` in
         i?86|x86_64|ia64)
             commandline="$commandline irqpoll maxcpus=1"

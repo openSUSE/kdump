@@ -8,6 +8,7 @@
   * Do not use showmount (it is apparently no longer needed).
   * Improve the algorithm of finding kernel modules and programs
     needed to mount the dump directory.
+  * Pass the correct "sysrq=" argument to the kdump kernel.
 
 0.8.1
 -----
