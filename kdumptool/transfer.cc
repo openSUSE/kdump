@@ -479,37 +479,70 @@ SFTPTransfer::SFTPTransfer(const char *target_url)
     Debug::debug()->info("SSH fingerprint: %s",
         Stringutil::bytes2hexstr(fingerprint, 16, true).c_str());
 
+    // SSH authentication
+    bool authenticated = false;
+
     // username and password
     string username = parser.getUsername();
     string password = parser.getPassword();
 
     // public and private key
     string homedir = getenv("HOME");
-    string pubkey = FileUtil::pathconcat(homedir, ".ssh", "id_dsa.pub");
-    string privkey = FileUtil::pathconcat(homedir, ".ssh", "id_dsa");
+    string pubkey;
+    string privkey;
 
-    if (FileUtil::exists(pubkey) && FileUtil::exists(privkey)) {
+    // DSA
+    pubkey = FileUtil::pathconcat(homedir, ".ssh", "id_dsa.pub");
+    privkey = FileUtil::pathconcat(homedir, ".ssh", "id_dsa");
+    if (!authenticated && FileUtil::exists(pubkey) && FileUtil::exists(privkey)) {
         Debug::debug()->dbg("Using private key %s and public key %s",
                 privkey.c_str(), pubkey.c_str());
 
         ret = libssh2_userauth_publickey_fromfile(m_sshSession,
                 username.c_str(), pubkey.c_str(), privkey.c_str(),
                 password.c_str());
-        if (ret != 0) {
-            close();
-            throw KError("libssh2_userauth_password() failed with "+
+        if (ret == 0)
+            authenticated = true;
+        else
+            Debug::debug()->dbg("id_dsa: "
+                "libssh2_userauth_publickey_fromfile() failed with "+
                 Stringutil::number2string(ret) + ".");
-        }
-    } else {
+    }
+
+    // RSA
+    pubkey = FileUtil::pathconcat(homedir, ".ssh", "id_rsa.pub");
+    privkey = FileUtil::pathconcat(homedir, ".ssh", "id_rsa");
+    if (!authenticated && FileUtil::exists(pubkey) && FileUtil::exists(privkey)) {
+        Debug::debug()->dbg("Using private key %s and public key %s",
+                privkey.c_str(), pubkey.c_str());
+
+        ret = libssh2_userauth_publickey_fromfile(m_sshSession,
+                username.c_str(), pubkey.c_str(), privkey.c_str(),
+                password.c_str());
+        if (ret == 0)
+            authenticated = true;
+        else
+            Debug::debug()->dbg("id_rsa: "
+                "libssh2_userauth_publickey_fromfile() failed with "+
+                Stringutil::number2string(ret) + ".");
+    }
+
+    // password
+    if (!authenticated) {
         Debug::debug()->dbg("Using password auth");
 
         ret = libssh2_userauth_password(m_sshSession, username.c_str(),
             password.c_str());
-        if (ret != 0) {
-            close();
-            throw KError("libssh2_userauth_password() failed with "+
+        if (ret == 0)
+            authenticated = true;
+        else
+            Debug::debug()->dbg("libssh2_userauth_password() failed with "+
                 Stringutil::number2string(ret) + ".");
-        }
+    }
+
+    if (!authenticated) {
+        close();
+        throw KError("SSH authentication failed.");
     }
 
     // SFTP session

@@ -58,6 +58,11 @@ if [ -f /root/.ssh/id_dsa ] && [ -f /root/.ssh/id_dsa.pub ] ; then
     cp /root/.ssh/id_dsa ${tmp_mnt}/.ssh
     cp /root/.ssh/id_dsa.pub ${tmp_mnt}/.ssh
 fi
+if [ -f /root/.ssh/id_rsa ] && [ -f /root/.ssh/id_rsa.pub ] ; then
+    mkdir ${tmp_mnt}/.ssh
+    cp /root/.ssh/id_rsa ${tmp_mnt}/.ssh
+    cp /root/.ssh/id_rsa.pub ${tmp_mnt}/.ssh
+fi
 
 #
 # copy required programs
