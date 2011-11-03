@@ -12,6 +12,7 @@
   * Add support for RSA keys when saving over SSH.
   * Do not re-generate kdump initrd on boot. Instead, hook into the
     normal mkinitrd run.
+  * Adjust init-script actions to match LSB better.
 
 0.8.1
 -----

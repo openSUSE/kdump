@@ -174,7 +174,7 @@ function load_kdump()
 
 
 case "$1" in
-  start)
+  start|restart|force-reload)
         load_kdump
         ;;
   stop)
@@ -201,15 +201,12 @@ case "$1" in
                     rc_status -v
                     ;;
             -1)     echo "not implemented"
-                    rc_status -s
+                    rc_failed 4
+                    rc_status -v
                     ;;
         esac
         ;;
-  restart|reload)
-        $0 stop
-        $0 start
-        ;;
-  condrestart|try-restart)
+  try-restart)
         if kdump_kernel_loaded ; then
             $0 start
         else
@@ -217,8 +214,12 @@ case "$1" in
         fi
         rc_status
         ;;
+  reload)
+        rc_failed 3
+        rc_status
+        ;;
   *)
-        echo $"Usage: $0 {start|stop|status|restart|reload|try-reload}"
+        echo $"Usage: $0 {start|stop|status|try-restart|restart|force-reload|reload}"
         exit 1
 esac
 
