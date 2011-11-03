@@ -126,6 +126,8 @@ bool Util::isElfFile(int fd)
         throw KError("gzopen failed");
     }
 
+    gzseek(fp, 0, SEEK_SET);
+
     err = gzread(fp, buffer, EI_MAG3+1);
     if (err != (EI_MAG3+1)) {
         gzclose(fp);
