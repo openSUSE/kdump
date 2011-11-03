@@ -585,11 +585,6 @@ void SaveDump::checkAndDelete(const char *dir)
     }
 
     string path = parser.getPath();
-    if (m_rootdir.size() != 0) {
-	path = FileUtil::pathconcat(m_rootdir,
-		FileUtil::getCanonicalPathRoot(path, m_rootdir));
-    }
-    Debug::debug()->dbg("Checking directory %s", path.c_str());
     Configuration *config = Configuration::config();
 
     unsigned long long freeSize = FileUtil::freeDiskSize(path);
