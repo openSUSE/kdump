@@ -56,28 +56,27 @@ using std::endl;
 //{{{ URLTransfer --------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-URLTransfer::URLTransfer(const char *url)
+URLTransfer::URLTransfer(const RootDirURL &url)
     throw (KError)
     : m_urlParser(url)
 {
 }
 
 // -----------------------------------------------------------------------------
-URLParser &URLTransfer::getURLParser()
+RootDirURL &URLTransfer::getURLParser()
     throw (KError)
 {
     return m_urlParser;
 }
 
 // -----------------------------------------------------------------------------
-Transfer *URLTransfer::getTransfer(const char *url)
+Transfer *URLTransfer::getTransfer(const RootDirURL &url)
     throw (KError)
 {
-    Debug::debug()->trace("URLTransfer::getTransfer(%s)", url);
+    Debug::debug()->trace("URLTransfer::getTransfer(%s)",
+			  url.getURL().c_str());
 
-    URLParser parser(url);
-
-    switch (parser.getProtocol()) {
+    switch (url.getProtocol()) {
         case URLParser::PROT_FILE:
             Debug::debug()->dbg("Returning FileTransfer");
             return new FileTransfer(url);
@@ -109,17 +108,15 @@ Transfer *URLTransfer::getTransfer(const char *url)
 //{{{ FileTransfer -------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-FileTransfer::FileTransfer(const char *target_url)
+FileTransfer::FileTransfer(const RootDirURL &target_url)
     throw (KError)
     : URLTransfer(target_url), m_buffer(NULL)
 {
-    URLParser &parser = getURLParser();
-
-    if (parser.getProtocol() != URLParser::PROT_FILE)
+    if (target_url.getProtocol() != URLParser::PROT_FILE)
         throw KError("Only file URLs are allowed.");
 
     // create directory
-    string dir = parser.getPath();
+    string dir = target_url.getRealPath();
     FileUtil::mkdir(dir, true);
 
     // try to get the buffer size
@@ -154,7 +151,7 @@ void FileTransfer::perform(DataProvider *dataprovider,
         dataprovider, target_file);
 
     string fullTarget = FileUtil::pathconcat(
-        getURLParser().getPath(), target_file);
+        getURLParser().getRealPath(), target_file);
 
     if (dataprovider->canSaveToFile()) {
         performFile(dataprovider, fullTarget.c_str());
@@ -324,11 +321,12 @@ static int curl_debug(CURL *curl, curl_infotype info, char *buffer,
 }
 
 // -----------------------------------------------------------------------------
-FTPTransfer::FTPTransfer(const char *target_url)
+FTPTransfer::FTPTransfer(const RootDirURL &target_url)
     throw (KError)
     : URLTransfer(target_url), m_curl(NULL)
 {
-    Debug::debug()->trace("FTPTransfer::FTPTransfer(%s)", target_url);
+    Debug::debug()->trace("FTPTransfer::FTPTransfer(%s)",
+			  target_url.getURL().c_str());
 
     // init the CURL library
     if (!curl_global_inititalised) {
@@ -441,11 +439,12 @@ void FTPTransfer::open(DataProvider *dataprovider,
 #if HAVE_LIBSSH2
 
 /* -------------------------------------------------------------------------- */
-SFTPTransfer::SFTPTransfer(const char *target_url)
+SFTPTransfer::SFTPTransfer(const RootDirURL &target_url)
     throw (KError)
     : URLTransfer(target_url), m_sshSession(NULL), m_sftp(NULL), m_socket(NULL)
 {
-    Debug::debug()->trace("SFTPTransfer::SFTPTransfer(%s)", target_url);
+    Debug::debug()->trace("SFTPTransfer::SFTPTransfer(%s)",
+			  target_url.getURL().c_str());
 
     m_sshSession = libssh2_session_init();
     if (!m_sshSession)
@@ -727,7 +726,7 @@ void SFTPTransfer::close()
 //{{{ NFSTransfer --------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-NFSTransfer::NFSTransfer(const char *target_url)
+NFSTransfer::NFSTransfer(const RootDirURL &target_url)
     throw (KError)
     : URLTransfer(target_url), m_mountpoint(""), m_fileTransfer(NULL)
 {
@@ -752,7 +751,8 @@ NFSTransfer::NFSTransfer(const char *target_url)
     Debug::debug()->dbg("Mountpoint: %s, Rest: %s, Prefix: $s",
         m_mountpoint.c_str(), m_rest.c_str(), m_prefix.c_str());
 
-    m_fileTransfer = new FileTransfer(("file://" + m_prefix).c_str());
+    RootDirURL mountedURL("file://" + m_prefix, "");
+    m_fileTransfer = new FileTransfer(mountedURL);
 }
 
 // -----------------------------------------------------------------------------
@@ -792,12 +792,10 @@ void NFSTransfer::close()
 //{{{ CIFSTransfer -------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-CIFSTransfer::CIFSTransfer(const char *target_url)
+CIFSTransfer::CIFSTransfer(const RootDirURL &parser)
     throw (KError)
-    : URLTransfer(target_url), m_mountpoint(""), m_fileTransfer(NULL)
+    : URLTransfer(parser), m_mountpoint(""), m_fileTransfer(NULL)
 {
-    URLParser &parser = getURLParser();
-
     string share = parser.getPath();
     share = Stringutil::ltrim(share, "/");
     string::size_type first_slash = share.find("/");
@@ -831,7 +829,8 @@ CIFSTransfer::CIFSTransfer(const char *target_url)
     Debug::debug()->dbg("Mountpoint: %s, Rest: %s, Prefix: %s",
         m_mountpoint.c_str(), rest.c_str(), prefix.c_str());
 
-    m_fileTransfer = new FileTransfer(("file://" + prefix).c_str());
+    RootDirURL mountedURL("file://" + prefix, "");
+    m_fileTransfer = new FileTransfer(mountedURL);
 }
 
 // -----------------------------------------------------------------------------

@@ -42,6 +42,8 @@ SET(KDUMPTOOL_SRC
     debug.h
     urlparser.cc
     urlparser.h
+    rootdirurl.cc
+    rootdirurl.h
     dataprovider.cc
     dataprovider.h
     fileutil.cc

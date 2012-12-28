@@ -25,7 +25,7 @@
 #include "print_target.h"
 #include "util.h"
 #include "configuration.h"
-#include "urlparser.h"
+#include "rootdirurl.h"
 #include "stringutil.h"
 
 using std::string;
@@ -81,51 +81,21 @@ void PrintTarget::execute()
     Configuration *config = Configuration::config();
     string url = config->getSavedir();
 
-    URLParser parser(url);
+    RootDirURL parser(url, m_rootdir);
 
-    string path, port, realpath;
+    string port;
 
-    if (m_rootdir.size() > 0 && parser.getProtocol() == URLParser::PROT_FILE) {
-        path = path = parser.getPath();
-        url = "file://" + path;
-
-        // resolve the symlinks
-        try {
-            realpath = FileUtil::getCanonicalPath(path, m_rootdir);
-        } catch (const KError &err) {
-            Debug::debug()->info("Retrieving the absolute path of '%s' "
-                "failed", path.c_str());
-            realpath = parser.getPath();
-        }
-
-    } else {
-        url = parser.getURL();
-        path = parser.getPath();
-
-        // resolve the symlinks
-        if (parser.getProtocol() == URLParser::PROT_FILE) {
-            try {
-                realpath = FileUtil::getCanonicalPath(parser.getPath());
-            } catch (const KError &err) {
-                Debug::debug()->info("Retrieving the absolute path of '%s' "
-                    "failed", parser.getPath().c_str());
-                realpath = parser.getPath();
-            }
-        }
-    }
     if (parser.getPort() != -1)
         port = Stringutil::number2string(parser.getPort());
-    else
-        port = "";
 
     cout << "Protocol:   " << parser.getProtocolAsString() << endl;
-    cout << "URL:        " << url << endl;
+    cout << "URL:        " << parser.getURL() << endl;
     cout << "Username:   " << parser.getUsername() << endl;
     cout << "Password:   " << parser.getPassword() << endl;
     cout << "Host:       " << parser.getHostname() << endl;
     cout << "Port:       " << port << endl;
-    cout << "Path:       " << path << endl;
-    cout << "Realpath:   " << realpath << endl;
+    cout << "Path:       " << parser.getPath() << endl;
+    cout << "Realpath:   " << parser.getRealPath() << endl;
 }
 
 //}}}

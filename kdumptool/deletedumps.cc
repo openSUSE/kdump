@@ -29,6 +29,7 @@
 #include "savedump.h"
 #include "util.h"
 #include "fileutil.h"
+#include "rootdirurl.h"
 #include "transfer.h"
 #include "configuration.h"
 #include "dataprovider.h"
@@ -107,16 +108,13 @@ void DeleteDumps::execute()
         return;
     }
 
-    URLParser parser(config->getSavedir());
+    RootDirURL parser(config->getSavedir(), m_rootdir);
     if (parser.getProtocol() != URLParser::PROT_FILE) {
         cerr << "Deletion of old dump only on local disk." << endl;
         return;
     }
 
-    string dir = parser.getPath();
-    if (m_rootdir.size() != 0) {
-        dir = FileUtil::getCanonicalPath(dir, m_rootdir);
-    }
+    string dir = parser.getRealPath();
     Debug::debug()->dbg("Using directory %s", dir.c_str());
 
     if (!FileUtil::exists(dir)) {

@@ -29,6 +29,7 @@
 #include "savedump.h"
 #include "util.h"
 #include "fileutil.h"
+#include "rootdirurl.h"
 #include "transfer.h"
 #include "configuration.h"
 #include "dataprovider.h"
@@ -135,25 +136,11 @@ void SaveDump::execute()
 
     // build the transfer object
     // prepend a time stamp to the save dir
-    string savedir = config->getSavedir();
-
-    // root dir support
-    URLParser urlParser(savedir.c_str());
-
-    if (m_rootdir.size() != 0 &&
-                urlParser.getProtocol() == URLParser::PROT_FILE) {
-        Debug::debug()->dbg("Using root dir support for Transfer (%s)",
-            m_rootdir.c_str());
-
-        savedir = urlParser.getProtocolAsString() + "://" +
-            FileUtil::pathconcat(m_rootdir,
-                FileUtil::getCanonicalPath(urlParser.getPath(), m_rootdir)
-            );
-    }
-
-    savedir = FileUtil::pathconcat(savedir,
+    string savedir = FileUtil::pathconcat(config->getSavedir(),
         Stringutil::formatCurrentTime(ISO_DATETIME));
-    m_transfer = URLTransfer::getTransfer(savedir.c_str());
+    RootDirURL urlParser(savedir, m_rootdir);
+
+    m_transfer = URLTransfer::getTransfer(urlParser);
 
     // save the dump
     try {
@@ -165,7 +152,7 @@ void SaveDump::execute()
 
         // run checkAndDelete() in any case
         try {
-            checkAndDelete(savedir.c_str());
+            checkAndDelete(urlParser);
         } catch (const KError &error) {
             cout << error.what() << endl;
         }
@@ -183,7 +170,7 @@ void SaveDump::execute()
     // afterwards if the disk space is not sufficient and delete
     // the dump again
     try {
-        checkAndDelete(savedir.c_str());
+        checkAndDelete(urlParser);
     } catch (const KError &error) {
         setErrorCode(1);
         if (config->getContinueOnError())
@@ -573,12 +560,11 @@ string SaveDump::findMapfile()
 }
 
 // -----------------------------------------------------------------------------
-void SaveDump::checkAndDelete(const char *dir)
+void SaveDump::checkAndDelete(const RootDirURL &parser)
     throw (KError)
 {
-    Debug::debug()->trace("SaveDump::checkAndDelete(\"%s\")", dir);
-
-    URLParser parser(dir);
+    Debug::debug()->trace("SaveDump::checkAndDelete(\"%s\")",
+			  parser.getURL().c_str());
 
     // only do that check for local files
     if (parser.getProtocol() != URLParser::PROT_FILE) {
@@ -586,7 +572,7 @@ void SaveDump::checkAndDelete(const char *dir)
         return;
     }
 
-    string path = parser.getPath();
+    string path = parser.getRealPath();
     Configuration *config = Configuration::config();
 
     unsigned long long freeSize = FileUtil::freeDiskSize(path);

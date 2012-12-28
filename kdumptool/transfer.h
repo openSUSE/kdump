@@ -29,7 +29,7 @@
 #endif
 
 #include "global.h"
-#include "urlparser.h"
+#include "rootdirurl.h"
 #include "socket.h"
 
 class DataProvider;
@@ -98,7 +98,7 @@ class URLTransfer : public Transfer {
          * @param[in] url the URL
          * @throw KError if parsing the URL failed
          */
-        URLTransfer(const char *url)
+        URLTransfer(const RootDirURL &url)
         throw (KError);
 
         /**
@@ -106,7 +106,7 @@ class URLTransfer : public Transfer {
          *
          * @return reference to the URL parser.
          */
-        URLParser &getURLParser()
+        RootDirURL &getURLParser()
         throw (KError);
 
         /**
@@ -118,11 +118,11 @@ class URLTransfer : public Transfer {
          * @exception KError if parsing the URL failed or there's no
          *            implementation for that class.
          */
-        static Transfer *getTransfer(const char *url)
+        static Transfer *getTransfer(const RootDirURL &url)
         throw (KError);
 
     private:
-        URLParser m_urlParser;
+        RootDirURL m_urlParser;
 };
 
 //}}}
@@ -141,7 +141,7 @@ class FileTransfer : public URLTransfer {
          * @param[in] target_url the directory
          * @throw KError if parsing the URL or creating the directory failed
          */
-        FileTransfer(const char *target_url)
+        FileTransfer(const RootDirURL &target_url)
         throw (KError);
 
         /**
@@ -196,7 +196,7 @@ class FTPTransfer : public URLTransfer {
          *
          * @exception KError when initialising the underlying library fails
          */
-        FTPTransfer(const char *target_url)
+        FTPTransfer(const RootDirURL &target_url)
         throw (KError);
 
         /**
@@ -244,7 +244,7 @@ class SFTPTransfer : public URLTransfer {
          *
          * @exception KError when initialising the underlying library fails
          */
-        SFTPTransfer(const char *target_url)
+        SFTPTransfer(const RootDirURL &target_url)
         throw (KError);
 
         /**
@@ -298,7 +298,7 @@ class NFSTransfer : public URLTransfer {
          *
          * @exception KError when mounting the share failes
          */
-        NFSTransfer(const char *target_url)
+        NFSTransfer(const RootDirURL &target_url)
         throw (KError);
 
         /**
@@ -343,7 +343,7 @@ class CIFSTransfer : public URLTransfer {
          *
          * @exception KError when mounting the share failes
          */
-        CIFSTransfer(const char *target_url)
+        CIFSTransfer(const RootDirURL &target_url)
         throw (KError);
 
         /**

@@ -21,6 +21,7 @@
 
 #include "subcommand.h"
 #include "urlparser.h"
+#include "rootdirurl.h"
 
 class Transfer;
 
@@ -96,7 +97,7 @@ class SaveDump : public Subcommand {
         std::string findMapfile()
         throw (KError);
 
-        void checkAndDelete(const char *dir)
+        void checkAndDelete(const RootDirURL &parser)
         throw (KError);
 
         void sendNotification(bool failure, const std::string &savedir)
