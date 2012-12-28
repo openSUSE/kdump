@@ -22,6 +22,7 @@
 #include <cstring>
 #include <string>
 #include <sstream>
+#include <unistd.h>
 
 #include "debug.h"
 

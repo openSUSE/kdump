@@ -20,6 +20,8 @@
 #include <cstdarg>
 #include <cerrno>
 #include <algorithm>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "dataprovider.h"
 #include "global.h"

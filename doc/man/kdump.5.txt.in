@@ -540,7 +540,7 @@ Local files (_file_)
 
 That type describes a local path.
 
-_Format:_ +file://]_path_+
+_Format:_ `file://]_path_`
 
 As shown, the _file_ prefix is optional, i.e. a simple path is still valid.
 The _path_ must start with a leading slash (/), i.e. only absolute paths are

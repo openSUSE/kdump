@@ -161,7 +161,7 @@ Syntax
 ~~~~~~
 
 *kdumptool* [_globals_] *save_dump*
-[-u _dumpfile_] [-R _root_] [-k _ver_] [-q _fqdn_]
+ [-u _dumpfile_] [-R _root_] [-k _ver_] [-q _fqdn_]
 
 Options
 ~~~~~~~

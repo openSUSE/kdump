@@ -25,6 +25,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
+#include <sys/stat.h>
 
 #include <libelf.h>
 #include <gelf.h>
