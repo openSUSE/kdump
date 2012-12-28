@@ -24,6 +24,8 @@
   * Support for LZO-compressed dumps.
   * Use makedumpfile --split option if multiple target directories are
     specified.
+  * Save extracted kernel log messages together with the dump file.
+  * Add a "none" format to skip capturing the dump.
 
 0.8.1
 -----
