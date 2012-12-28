@@ -92,15 +92,12 @@ void PrintTarget::execute()
 
         // resolve the symlinks
         try {
-            realpath = FileUtil::getCanonicalPathRoot(path, m_rootdir);
+            realpath = FileUtil::getCanonicalPath(path, m_rootdir);
         } catch (const KError &err) {
             Debug::debug()->info("Retrieving the absolute path of '%s' "
                 "failed", path.c_str());
             realpath = parser.getPath();
         }
-
-        path = FileUtil::pathconcat(m_rootdir, path);
-        realpath = FileUtil::pathconcat(m_rootdir, realpath);
 
     } else {
         url = parser.getURL();

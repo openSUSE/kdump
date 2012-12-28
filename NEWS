@@ -16,6 +16,7 @@
   * Check remote host SSH key if available.
   * Allow dumping if the primary kernel was booted in EFI mode.
   * Correctly recognize ELF and compressed ELF kernel files.
+  * Create KDUMP_SAVEDIR if non-existent.
 
 0.8.1
 -----

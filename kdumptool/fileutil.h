@@ -29,16 +29,17 @@
  */
 class FileUtil {
 
+    private:
+        static const std::string m_slash;
+
     public:
 
         /**
-         * Executes the chroot() function.
-         *
-         * @param[in] dir the directory to chroot to
+         * Get the current working directory.
          *
          * @throw KError on any error
          */
-        static void chroot(const std::string &dir)
+        static std::string getcwd(void)
         throw (KError);
 
         /**
@@ -79,20 +80,8 @@ class FileUtil {
 
         /**
          * Returns the canonical representation of the specified path.
-         * This means that all symbolic links are resolved.
-         *
-         * @param[in] path the path that should be canonicalized
-         * @return the canonical representation of the path
-         *
-         * @throw KError when readlink fails
-         */
-        static std::string getCanonicalPath(const std::string &path)
-        throw (KError);
-
-        /**
-         * Returns the canonical representation of the specified path.
          * This means that all symbolic links are resolved. It does that
-         * in a chroot environment below @p root.
+         * as if the root directory was @p root.
          *
          * @param[in] path the path that should be canonicalized
          * @param[in] root the new root where the function should chroot to
@@ -100,8 +89,8 @@ class FileUtil {
          *
          * @throw KError when chroot or realpath() fail
          */
-        static std::string getCanonicalPathRoot(const std::string &path,
-                                                const std::string &root)
+        static std::string getCanonicalPath(const std::string &path,
+					    const std::string &root = m_slash)
         throw (KError);
 
         /**

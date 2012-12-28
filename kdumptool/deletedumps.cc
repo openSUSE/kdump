@@ -116,8 +116,7 @@ void DeleteDumps::execute()
 
     string dir = parser.getPath();
     if (m_rootdir.size() != 0) {
-        dir = FileUtil::pathconcat(m_rootdir,
-                FileUtil::getCanonicalPathRoot(dir, m_rootdir));
+        dir = FileUtil::getCanonicalPath(dir, m_rootdir);
     }
     Debug::debug()->dbg("Using directory %s", dir.c_str());
 

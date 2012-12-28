@@ -209,3 +209,22 @@ SET(TESTKCONFIG_SRC
 add_executable(testkconfig ${TESTKCONFIG_SRC})
 target_link_libraries(testkconfig ${EXTRA_LIBS})
 
+SET(TESTCANONICAL_SRC
+    util.h
+    util.cc
+    process.cc
+    process.h
+    stringutil.h
+    stringutil.cc
+    global.cc
+    global.h
+    debug.cc
+    debug.h
+    fileutil.h
+    fileutil.cc
+    testcanonical.cc
+)
+
+add_executable(testcanonical ${TESTCANONICAL_SRC})
+target_link_libraries(testcanonical ${EXTRA_LIBS})
+

@@ -147,7 +147,7 @@ void SaveDump::execute()
 
         savedir = m_urlParser.getProtocolAsString() + "://" +
             FileUtil::pathconcat(m_rootdir,
-                FileUtil::getCanonicalPathRoot(m_urlParser.getPath(), m_rootdir)
+                FileUtil::getCanonicalPath(m_urlParser.getPath(), m_rootdir)
             );
     }
 

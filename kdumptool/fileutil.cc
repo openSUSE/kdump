@@ -25,6 +25,7 @@
 #include <libgen.h>
 #include <dirent.h>
 #include <sys/vfs.h>
+#include <sys/param.h>
 
 #include "dataprovider.h"
 #include "global.h"
@@ -41,15 +42,19 @@ using std::free;
 //{{{ FileUtil -----------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-void FileUtil::chroot(const std::string &dir)
+string FileUtil::getcwd(void)
     throw (KError)
 {
-    Debug::debug()->trace("chroot(%s)", dir.c_str());
+    char *cwd = ::getcwd(NULL, 0);
 
-    int ret = ::chroot(dir.c_str());
-    if (ret < 0) {
-        throw KSystemError("chroot failed", errno);
-    }
+    if (!cwd)
+	throw KSystemError("getcwd failed", errno);
+
+    string ret(cwd);
+    free(cwd);
+    Debug::debug()->dbg("Current directory: " + ret);
+
+    return ret;
 }
 
 // -----------------------------------------------------------------------------
@@ -119,54 +124,87 @@ string FileUtil::readlink(const std::string &path)
 }
 
 // -----------------------------------------------------------------------------
-string FileUtil::getCanonicalPath(const string &path)
+const string FileUtil::m_slash("/");
+
+string FileUtil::getCanonicalPath(const string &path, const string &root)
     throw (KError)
 {
-    Debug::debug()->trace("getCanonicalPath(%s)", path.c_str());
-
-    char * ret = canonicalize_file_name(path.c_str());
-    if (ret == NULL) {
-        throw KSystemError("realpath() failed in getCanonicalPath()", errno);
-    }
-
-    string retstr = string(ret);
-    free(ret);
-
-    return retstr;
-}
-
-// -----------------------------------------------------------------------------
-string FileUtil::getCanonicalPathRoot(const string &path, const string &root)
-    throw (KError)
-{
-    if (root.size() == 0) {
-        return getCanonicalPath(path);
-    }
-
     Debug::debug()->trace("getCanonicalPathRoot(%s, %s)",
-        path.c_str(), root.c_str());
+			  path.c_str(), root.c_str());
 
-    // check the permission first
-    if (getuid() != 0) {
-        throw KError("You have to be root to use that functionality.");
+    if (path.size() == 0)
+        return path;
+
+    static const string *rootp = root.empty() ? &m_slash : &root;
+
+    // Use the current directory for relative paths
+    string ret;
+    string::const_iterator p = path.begin();
+    if (*p != '/') {
+	ret = getcwd();
+
+	if (ret.size() < rootp->size() ||
+	    ret.substr(0, rootp->size()) != *rootp)
+	    throw KSystemError("Cannot get current directory", ENOENT);
+    } else
+	ret = *rootp;
+
+    string extra;
+    int num_links = 0;
+    const string *rpath = &path;
+    while (p != rpath->end()) {
+	// Skip sequence of multiple path-separators.
+	while (p != rpath->end() && *p == '/')
+	    ++p;
+
+	// Find end of path component.
+	string::const_iterator dirp = p;
+	while (p != rpath->end() && *p != '/')
+	    ++p;
+	string dir(dirp, p);
+
+	// Handle the last component
+	if (dir.empty())
+	    ;			// extra slash(es) at end - ignore
+	else if (dir == ".")
+	    ;			// nothing
+	else if (dir == "..") {
+	    // Back up to previous component
+	    if (ret.size() > rootp->size())
+		ret.resize(ret.rfind('/'));
+	} else {
+	    if (*ret.rbegin() != '/')
+		ret += '/';
+	    ret += dir;
+
+	    struct stat st;
+	    if (lstat(ret.c_str(), &st) < 0) {
+		if (errno == ENOENT)
+		    ;		// non-existent elements will be created
+		else
+		    throw KSystemError("Stat failed", errno);
+	    } else if (S_ISLNK(st.st_mode)) {
+		if (rpath == &extra) {
+		    extra.replace(0, p - extra.begin(), readlink(ret));
+		} else {
+		    extra = readlink(ret);
+		    extra.append(p, rpath->end());
+		    rpath = &extra;
+		}
+
+		if (++num_links > MAXSYMLINKS)
+		    throw KSystemError("getCanonicalPath() failed", ELOOP);
+
+		p = rpath->begin();
+		ret.resize(*p == '/' ? rootp->size() : ret.rfind('/'));
+	    } else if (!S_ISDIR(st.st_mode) && p != rpath->end()) {
+		throw KSystemError("getCanonicalPath() failed", ENOTDIR);
+	    }
+	}
     }
 
-    chroot(root);
-
-    string result;
-    try {
-        result = getCanonicalPath(path);
-    } catch (const KError &kerr) {
-        try {
-            chroot("..");
-        } catch (const KError &err) {}
-        throw;
-    }
-
-    chroot("..");
-    return result;
+    return ret;
 }
-
 
 // -----------------------------------------------------------------------------
 bool FileUtil::exists(const string &file)
