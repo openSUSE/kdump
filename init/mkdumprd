@@ -140,7 +140,6 @@ FEATURE_LIST="kdump"
 NETARGS=
 if [ "$KDUMP_NETCONFIG" = "auto" ] ; then
     FEATURE_LIST="$FEATURE_LIST network"
-    NETARGS="-D default"
     status_message "Network: auto"
 elif [ -z "$KDUMP_NETCONFIG" ] ; then
     status_message "Network: none"
