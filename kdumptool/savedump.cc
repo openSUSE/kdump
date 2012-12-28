@@ -277,6 +277,7 @@ void SaveDump::saveDump()
 
     bool useElf = strcasecmp(dumpformat.c_str(), "elf") == 0;
     bool useCompressed = strcasecmp(dumpformat.c_str(), "compressed") == 0;
+    bool useLZO = strcasecmp(dumpformat.c_str(), "lzo") == 0;
 
     if (useElf && dumplevel == 0) {
         // use file source?
@@ -292,6 +293,8 @@ void SaveDump::saveDump()
             cmdline << "-E ";
         if (useCompressed)
             cmdline << "-c ";
+        if (useLZO)
+            cmdline << "-l ";
         cmdline << m_dump;
 
         string directCmdline = cmdline.str();

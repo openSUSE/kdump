@@ -157,7 +157,7 @@ KDUMP_VERBOSE=3
 #
 KDUMP_DUMPLEVEL=0
 
-## Type:        list(,compressed,ELF)
+## Type:        list(,compressed,ELF,lzo)
 ## Default:     "compressed"
 ## ServiceRestart:	kdump
 #
