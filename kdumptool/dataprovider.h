@@ -23,6 +23,7 @@
 #include <cstdarg>
 
 #include "global.h"
+#include "rootdirurl.h"
 
 class Progress;
 
@@ -68,11 +69,13 @@ class DataProvider {
          * If DataProvider::canSaveToFile() returns @c true, that method
          * saves the contents that the DataProvider provides to a file.
          *
-         * @param[in] target the file where the contents should be saved to
+         * @param[in] base location for the target
+	 * @param[in] target file where the contents should be saved to
          * @exception KError if saving failed or DataProvider::canSaveToFile()
          *            returns @c false.
          */
-        virtual void saveToFile(const char *target)
+        virtual void saveToFile(const RootDirURL &base,
+				const std::string &target)
         throw (KError) = 0;
 
         /**
@@ -175,12 +178,13 @@ class AbstractDataProvider : public DataProvider {
         /**
          * Throws a KError.
          *
+         * @param[in] base location for the target
          * @param[in] target the target file (does not matter)
          * @exception KError always because DataProvider::canSaveToFile()
          *            returns @c false in AbstractDataProvider.
          * @see DataProvider::saveToFile().
          */
-        void saveToFile(const char *target)
+        void saveToFile(const RootDirURL &base, const std::string &target)
         throw (KError);
 
         /**
@@ -318,10 +322,11 @@ class ProcessDataProvider : public AbstractDataProvider {
          * Runs the process with @c target as last parameter to save the
          * stuff to a file directly.
          *
+	 * @param[in] base base location for the target
          * @param[in] target the target file
          * @param KError if saving to the file failed
          */
-        void saveToFile(const char *target)
+        void saveToFile(const RootDirURL &base, const std::string &target)
         throw (KError);
 
         /**

@@ -28,6 +28,7 @@
 #include "progress.h"
 #include "debug.h"
 #include "stringutil.h"
+#include "fileutil.h"
 
 using std::fopen;
 using std::fread;
@@ -52,7 +53,8 @@ bool AbstractDataProvider::canSaveToFile() const
 }
 
 // -----------------------------------------------------------------------------
-void AbstractDataProvider::saveToFile(const char *target)
+void AbstractDataProvider::saveToFile(const RootDirURL &base,
+				      const string &target)
     throw (KError)
 {
     throw KError("That DataProvider cannot save to a file.");
@@ -273,12 +275,15 @@ bool ProcessDataProvider::canSaveToFile() const
 }
 
 // -----------------------------------------------------------------------------
-void ProcessDataProvider::saveToFile(const char *target)
+void ProcessDataProvider::saveToFile(const RootDirURL &base,
+				     const string &target)
     throw (KError)
 {
-    Debug::debug()->trace("ProcessDataProvider::saveToFile(%s)", target);
+    Debug::debug()->trace("ProcessDataProvider::saveToFile(%s, %s)",
+        base.getURL().c_str(), target.c_str());
 
-    string cmdline = m_directCmdline + " " + target;
+    string cmdline = m_directCmdline + " " +
+	FileUtil::pathconcat(base.getRealPath(), target);
     Debug::debug()->trace("Executing '%s'", cmdline.c_str());
 
     int err = system(cmdline.c_str());

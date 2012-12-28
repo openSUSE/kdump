@@ -97,10 +97,12 @@ class SaveDump : public Subcommand {
         std::string findMapfile()
         throw (KError);
 
-        void checkAndDelete(const RootDirURL &parser)
+        void checkAndDelete(const RootDirURL &parser,
+			    const std::string &subdir)
         throw (KError);
 
-        void sendNotification(bool failure, const std::string &savedir)
+        void sendNotification(bool failure, const RootDirURL &url_base,
+			      const std::string &subdir)
         throw ();
 
         std::string getKernelReleaseCommandline()

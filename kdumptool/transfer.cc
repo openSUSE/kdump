@@ -56,9 +56,9 @@ using std::endl;
 //{{{ URLTransfer --------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-URLTransfer::URLTransfer(const RootDirURL &url)
+URLTransfer::URLTransfer(const RootDirURL &url, const string &subdir)
     throw (KError)
-    : m_urlParser(url)
+    : m_urlParser(url), m_subDir(subdir)
 {
 }
 
@@ -70,34 +70,35 @@ RootDirURL &URLTransfer::getURLParser()
 }
 
 // -----------------------------------------------------------------------------
-Transfer *URLTransfer::getTransfer(const RootDirURL &url)
+Transfer *URLTransfer::getTransfer(const RootDirURL &url,
+				   const string &subdir)
     throw (KError)
 {
-    Debug::debug()->trace("URLTransfer::getTransfer(%s)",
-			  url.getURL().c_str());
+    Debug::debug()->trace("URLTransfer::getTransfer(\"%s\", \"%s\")",
+			  url.getURL().c_str(), subdir.c_str());
 
     switch (url.getProtocol()) {
         case URLParser::PROT_FILE:
             Debug::debug()->dbg("Returning FileTransfer");
-            return new FileTransfer(url);
+            return new FileTransfer(url, subdir);
 
         case URLParser::PROT_FTP:
             Debug::debug()->dbg("Returning FTPTransfer");
-            return new FTPTransfer(url);
+            return new FTPTransfer(url, subdir);
 
 #if HAVE_LIBSSH2
         case URLParser::PROT_SFTP:
             Debug::debug()->dbg("Returning SFTPTransfer");
-            return new SFTPTransfer(url);
+            return new SFTPTransfer(url, subdir);
 #endif // HAVE_LIBSSH2
 
         case URLParser::PROT_NFS:
             Debug::debug()->dbg("Returning NFSTransfer");
-            return new NFSTransfer(url);
+            return new NFSTransfer(url, subdir);
 
         case URLParser::PROT_CIFS:
             Debug::debug()->dbg("Returning CIFSTransfer");
-            return new CIFSTransfer(url);
+            return new CIFSTransfer(url, subdir);
 
         default:
             throw KError("Unknown protocol.");
@@ -108,15 +109,16 @@ Transfer *URLTransfer::getTransfer(const RootDirURL &url)
 //{{{ FileTransfer -------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-FileTransfer::FileTransfer(const RootDirURL &target_url)
+FileTransfer::FileTransfer(const RootDirURL &target_url,
+			   const std::string &subdir)
     throw (KError)
-    : URLTransfer(target_url), m_buffer(NULL)
+    : URLTransfer(target_url, subdir), m_buffer(NULL)
 {
     if (target_url.getProtocol() != URLParser::PROT_FILE)
         throw KError("Only file URLs are allowed.");
 
     // create directory
-    string dir = target_url.getRealPath();
+    string dir = FileUtil::pathconcat(target_url.getRealPath(), subdir);
     FileUtil::mkdir(dir, true);
 
     // try to get the buffer size
@@ -150,15 +152,14 @@ void FileTransfer::perform(DataProvider *dataprovider,
     Debug::debug()->trace("FileTransfer::perform(%p, %s)",
         dataprovider, target_file);
 
-    string fullTarget = FileUtil::pathconcat(
-        getURLParser().getRealPath(), target_file);
+    string dir_target = FileUtil::pathconcat(getSubDir(), target_file);
 
     if (dataprovider->canSaveToFile()) {
-        performFile(dataprovider, fullTarget.c_str());
+	performFile(dataprovider, dir_target);
         if (directSave)
             *directSave = true;
     } else {
-        performPipe(dataprovider, fullTarget.c_str());
+        performPipe(dataprovider, dir_target);
         if (directSave)
             *directSave = false;
     }
@@ -166,24 +167,26 @@ void FileTransfer::perform(DataProvider *dataprovider,
 
 // -----------------------------------------------------------------------------
 void FileTransfer::performFile(DataProvider *dataprovider,
-                               const char *target_file)
+			       const string &target_file)
     throw (KError)
 {
     Debug::debug()->trace("FileTransfer::performFile(%p, %s)",
-        dataprovider, target_file);
+        dataprovider, target_file.c_str());
 
-    dataprovider->saveToFile(target_file);
+    dataprovider->saveToFile(getURLParser(), target_file);
 }
 
 // -----------------------------------------------------------------------------
 void FileTransfer::performPipe(DataProvider *dataprovider,
-                               const char *target_file)
+			       const string &target_file)
     throw (KError)
 {
     Debug::debug()->trace("FileTransfer::performPipe(%p, %s)",
-        dataprovider, target_file);
+        dataprovider, target_file.c_str());
 
-    FILE *fp = open(target_file);
+    string full_path = FileUtil::pathconcat(
+	getURLParser().getRealPath(), target_file);
+    FILE *fp = open(full_path.c_str());
     bool sparse = !Configuration::config()->kdumptoolContainsFlag("NOSPARSE");
     if (!sparse)
         Debug::debug()->info("Creation of sparse files disabled in "
@@ -321,9 +324,10 @@ static int curl_debug(CURL *curl, curl_infotype info, char *buffer,
 }
 
 // -----------------------------------------------------------------------------
-FTPTransfer::FTPTransfer(const RootDirURL &target_url)
+FTPTransfer::FTPTransfer(const RootDirURL &target_url,
+			 const std::string &subdir)
     throw (KError)
-    : URLTransfer(target_url), m_curl(NULL)
+    : URLTransfer(target_url, subdir), m_curl(NULL)
 {
     Debug::debug()->trace("FTPTransfer::FTPTransfer(%s)",
 			  target_url.getURL().c_str());
@@ -422,7 +426,10 @@ void FTPTransfer::open(DataProvider *dataprovider,
         target_file);
 
     // set the URL
-    string full_url = FileUtil::pathconcat(getURLParser().getURL(), target_file);
+    string full_url = FileUtil::pathconcat(
+	FileUtil::pathconcat(getURLParser().getURL(), getSubDir()),
+	target_file
+	);
     err = curl_easy_setopt(m_curl, CURLOPT_URL, full_url.c_str());
     if (err != CURLE_OK)
         throw KError(string("CURL error: ") + m_curlError);
@@ -439,9 +446,11 @@ void FTPTransfer::open(DataProvider *dataprovider,
 #if HAVE_LIBSSH2
 
 /* -------------------------------------------------------------------------- */
-SFTPTransfer::SFTPTransfer(const RootDirURL &target_url)
+SFTPTransfer::SFTPTransfer(const RootDirURL &target_url,
+			   const std::string &subdir)
     throw (KError)
-    : URLTransfer(target_url), m_sshSession(NULL), m_sftp(NULL), m_socket(NULL)
+    : URLTransfer(target_url, subdir),
+      m_sshSession(NULL), m_sftp(NULL), m_socket(NULL)
 {
     Debug::debug()->trace("SFTPTransfer::SFTPTransfer(%s)",
 			  target_url.getURL().c_str());
@@ -581,7 +590,7 @@ SFTPTransfer::SFTPTransfer(const RootDirURL &target_url)
             Stringutil::number2string(ret) + ".");
     }
 
-    mkdir(parser.getPath(), true);
+    mkdir(FileUtil::pathconcat(parser.getPath(), subdir), true);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -663,7 +672,10 @@ void SFTPTransfer::perform(DataProvider *dataprovider,
         *directSave = false;
 
     LIBSSH2_SFTP_HANDLE  *handle = NULL;
-    string file = FileUtil::pathconcat(getURLParser().getPath(), target_file);
+    string file = FileUtil::pathconcat(
+	FileUtil::pathconcat(getURLParser().getPath(), getSubDir()),
+	target_file
+	);
 
     Debug::debug()->dbg("Using target file %s.", file.c_str());
 
@@ -726,9 +738,10 @@ void SFTPTransfer::close()
 //{{{ NFSTransfer --------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-NFSTransfer::NFSTransfer(const RootDirURL &target_url)
+NFSTransfer::NFSTransfer(const RootDirURL &target_url,
+			 const std::string &subdir)
     throw (KError)
-    : URLTransfer(target_url), m_mountpoint(""), m_fileTransfer(NULL)
+    : URLTransfer(target_url, subdir), m_mountpoint(""), m_fileTransfer(NULL)
 {
     // mount the NFS share
     StringVector options;
@@ -736,7 +749,7 @@ NFSTransfer::NFSTransfer(const RootDirURL &target_url)
 
     URLParser &parser = getURLParser();
 
-    string mountedDir = FileUtil::dirname(parser.getPath());
+    string mountedDir = parser.getPath();
     FileUtil::nfsmount(parser.getHostname(), mountedDir,
         DEFAULT_MOUNTPOINT, options);
 
@@ -752,7 +765,7 @@ NFSTransfer::NFSTransfer(const RootDirURL &target_url)
         m_mountpoint.c_str(), m_rest.c_str(), m_prefix.c_str());
 
     RootDirURL mountedURL("file://" + m_prefix, "");
-    m_fileTransfer = new FileTransfer(mountedURL);
+    m_fileTransfer = new FileTransfer(mountedURL, subdir);
 }
 
 // -----------------------------------------------------------------------------
@@ -792,9 +805,10 @@ void NFSTransfer::close()
 //{{{ CIFSTransfer -------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-CIFSTransfer::CIFSTransfer(const RootDirURL &parser)
+CIFSTransfer::CIFSTransfer(const RootDirURL &parser,
+			   const std::string &subdir)
     throw (KError)
-    : URLTransfer(parser), m_mountpoint(""), m_fileTransfer(NULL)
+    : URLTransfer(parser, subdir), m_mountpoint(""), m_fileTransfer(NULL)
 {
     string share = parser.getPath();
     share = Stringutil::ltrim(share, "/");
@@ -830,7 +844,7 @@ CIFSTransfer::CIFSTransfer(const RootDirURL &parser)
         m_mountpoint.c_str(), rest.c_str(), prefix.c_str());
 
     RootDirURL mountedURL("file://" + prefix, "");
-    m_fileTransfer = new FileTransfer(mountedURL);
+    m_fileTransfer = new FileTransfer(mountedURL, subdir);
 }
 
 // -----------------------------------------------------------------------------

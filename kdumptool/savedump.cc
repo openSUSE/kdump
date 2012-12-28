@@ -136,11 +136,10 @@ void SaveDump::execute()
 
     // build the transfer object
     // prepend a time stamp to the save dir
-    string savedir = FileUtil::pathconcat(config->getSavedir(),
-        Stringutil::formatCurrentTime(ISO_DATETIME));
-    RootDirURL urlParser(savedir, m_rootdir);
+    string subdir = Stringutil::formatCurrentTime(ISO_DATETIME);
+    RootDirURL urlParser(config->getSavedir(), m_rootdir);
 
-    m_transfer = URLTransfer::getTransfer(urlParser);
+    m_transfer = URLTransfer::getTransfer(urlParser, subdir);
 
     // save the dump
     try {
@@ -148,11 +147,11 @@ void SaveDump::execute()
     } catch (const KError &error) {
         setErrorCode(1);
 
-        sendNotification(true, savedir);
+        sendNotification(true, urlParser, subdir);
 
         // run checkAndDelete() in any case
         try {
-            checkAndDelete(urlParser);
+            checkAndDelete(urlParser, subdir);
         } catch (const KError &error) {
             cout << error.what() << endl;
         }
@@ -164,13 +163,13 @@ void SaveDump::execute()
     }
 
     // send the email afterwards
-    sendNotification(false, savedir);
+    sendNotification(false, urlParser, subdir);
 
     // because we don't know the file size in advance, check
     // afterwards if the disk space is not sufficient and delete
     // the dump again
     try {
-        checkAndDelete(urlParser);
+        checkAndDelete(urlParser, subdir);
     } catch (const KError &error) {
         setErrorCode(1);
         if (config->getContinueOnError())
@@ -560,11 +559,12 @@ string SaveDump::findMapfile()
 }
 
 // -----------------------------------------------------------------------------
-void SaveDump::checkAndDelete(const RootDirURL &parser)
+void SaveDump::checkAndDelete(const RootDirURL &parser,
+			      const string &subdir)
     throw (KError)
 {
-    Debug::debug()->trace("SaveDump::checkAndDelete(\"%s\")",
-			  parser.getURL().c_str());
+    Debug::debug()->trace("SaveDump::checkAndDelete(\"%s\", \"%s\")",
+			  parser.getURL().c_str(), subdir.c_str());
 
     // only do that check for local files
     if (parser.getProtocol() != URLParser::PROT_FILE) {
@@ -572,7 +572,7 @@ void SaveDump::checkAndDelete(const RootDirURL &parser)
         return;
     }
 
-    string path = parser.getRealPath();
+    string path = FileUtil::pathconcat(parser.getRealPath(), subdir);
     Configuration *config = Configuration::config();
 
     unsigned long long freeSize = FileUtil::freeDiskSize(path);
@@ -588,7 +588,8 @@ void SaveDump::checkAndDelete(const RootDirURL &parser)
 }
 
 // -----------------------------------------------------------------------------
-void SaveDump::sendNotification(bool failure, const string &savedir)
+void SaveDump::sendNotification(bool failure, const RootDirURL &url_base,
+				const string &subdir)
     throw ()
 {
     Debug::debug()->trace("SaveDump::sendNotification");
@@ -643,7 +644,9 @@ void SaveDump::sendNotification(bool failure, const string &savedir)
         if (failure)
             ss << "Copying dump failed." << endl;
         else
-            ss << "Dump has been copied to " + savedir << "." << endl;
+	    ss << "Dump has been copied to "
+	       << FileUtil::pathconcat(url_base.getURL(), subdir)
+	       << "." << endl;
 
         email.setBody(ss.str());
 
