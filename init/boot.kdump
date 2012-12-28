@@ -78,6 +78,18 @@ function build_kdump_commandline()
             kernelrelease=$(uname -r)
             commandline="$commandline kernelversion=$kernelrelease"
         fi
+
+	if [ -f /sys/firmware/efi/systab ]
+	then
+		local acpi_addr
+		if grep -q '^ACPI20=' /sys/firmware/efi/systab
+		then
+			acpi_addr=$(awk -F'=' '/^ACPI20=/ {print $2}' /sys/firmware/efi/systab)
+		else
+			acpi_addr=$(awk -F'=' '/^ACPI=/ {print $2}' /sys/firmware/efi/systab)
+		fi
+		commandline="$commandline noefi acpi_rsdp=$acpi_addr"
+	fi
     fi
 
     commandline="$commandline $KDUMP_COMMANDLINE_APPEND"

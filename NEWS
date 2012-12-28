@@ -14,6 +14,7 @@
     normal mkinitrd run.
   * Adjust init-script actions to match LSB better.
   * Check remote host SSH key if available.
+  * Allow dumping if the primary kernel was booted in EFI mode.
 
 0.8.1
 -----
