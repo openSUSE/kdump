@@ -19,6 +19,7 @@
   * Create KDUMP_SAVEDIR if non-existent.
   * Include makedumpfile-R.pl in the kdump initrd.
   * Pass bash options between mkdumprd and mkinitrd to simplify debugging.
+  * Ignore unknown NMIs in the kdump kernel.
 
 0.8.1
 -----

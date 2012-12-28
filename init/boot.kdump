@@ -50,6 +50,29 @@ function kdump_kernel_loaded()
     fi
 }
 
+#
+# Remove an option from the kernel command line
+function remove_from_commandline()
+{
+    local option="$1"
+    local commandline="$2"
+
+    echo "$commandline" | awk 'BEGIN { ORS="" } \
+    { \
+        while(length()) { \
+            sub(/^[[:space:]]+/,""); \
+            if (match($0,/^("[^"]*"|[^"[:space:]]+)+/)) { \
+                    plength=RLENGTH; \
+                    param=substr($0,1,plength); \
+                    gsub(/"/,"",param); \
+                    if (param !~ /^('"$option"')(=|$)/) \
+                            print substr($0,1,plength),""; \
+                    $0=substr($0,plength+1); \
+            } \
+        } \
+        print "\n"; \
+    }'
+}
 
 #
 # Builds the kdump command line from KDUMP_COMMANDLINE.
@@ -90,6 +113,12 @@ function build_kdump_commandline()
 		fi
 		commandline="$commandline noefi acpi_rsdp=$acpi_addr"
 	fi
+
+	case `uname -i` in
+	i?86|x86_64)
+            commandline=$(remove_from_commandline unknown_nmi_panic "$commandline")
+            ;;
+	esac
     fi
 
     commandline="$commandline $KDUMP_COMMANDLINE_APPEND"
