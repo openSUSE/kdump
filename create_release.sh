@@ -35,7 +35,7 @@ if [ "$1" != "notest" ] ; then
     cd $TEMPBUILD
     tar xf ../$TARBALL
     mkdir build
-    cmake ..
+    cmake kdump-${VERSION}
     make -j2
     cd $dir
     rm -fr $TEMPBUILD
