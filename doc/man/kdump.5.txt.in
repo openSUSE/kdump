@@ -364,6 +364,12 @@ This variable specifies the dump format.
   makedumpfile must be installed (but you need it anyway if you set
   KDUMP_DUMPLEVEL to non-zero before).
 
+*lzo*::
+  _lzo_ is similar to _compressed_, but it uses the LZO compression algorithm
+  instead of gzip. This usually results in slightly bigger files, but it is
+  much faster. You will need *crash*(8) version 6.0.7 or later to open the
+  dump file.
+
 Default: "compressed"
 
 
