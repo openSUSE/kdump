@@ -115,6 +115,7 @@ bool Util::isGzipFile(const string &file)
 bool Util::isElfFile(int fd)
     throw (KError)
 {
+    int     dupfd;
     gzFile  fp = NULL;
     int     err;
     char    buffer[EI_MAG3+1];
@@ -122,12 +123,17 @@ bool Util::isElfFile(int fd)
     Debug::debug()->trace("isElfFile(%d)", fd);
 
     // the dup() is because we want to keep the fd open on gzclose()
-    fp = gzdopen(dup(fd), "r");
+    dupfd = dup(fd);
+    if (dupfd < 0) {
+        throw KError("gzfile dup failed");
+    }
+    lseek(dupfd, 0, SEEK_SET);
+
+    fp = gzdopen(dupfd, "r");
     if (!fp) {
+        close(dupfd);
         throw KError("gzopen failed");
     }
-
-    gzseek(fp, 0, SEEK_SET);
 
     err = gzread(fp, buffer, EI_MAG3+1);
     if (err != (EI_MAG3+1)) {
