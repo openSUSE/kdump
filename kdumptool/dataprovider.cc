@@ -53,7 +53,7 @@ bool AbstractDataProvider::canSaveToFile() const
 }
 
 // -----------------------------------------------------------------------------
-void AbstractDataProvider::saveToFile(const RootDirURL &base,
+void AbstractDataProvider::saveToFile(const RootDirURLVector &base,
 				      const string &target)
     throw (KError)
 {
@@ -275,15 +275,19 @@ bool ProcessDataProvider::canSaveToFile() const
 }
 
 // -----------------------------------------------------------------------------
-void ProcessDataProvider::saveToFile(const RootDirURL &base,
+void ProcessDataProvider::saveToFile(const RootDirURLVector &base,
 				     const string &target)
     throw (KError)
 {
-    Debug::debug()->trace("ProcessDataProvider::saveToFile(%s, %s)",
-        base.getURL().c_str(), target.c_str());
+    Debug::debug()->trace("ProcessDataProvider::saveToFile(%p, %s)",
+        &base, target.c_str());
 
-    string cmdline = m_directCmdline + " " +
-	FileUtil::pathconcat(base.getRealPath(), target);
+    string cmdline = m_directCmdline;
+    RootDirURLVector::const_iterator it;
+    for (it = base.begin(); it != base.end(); ++it)
+	cmdline += " " +
+	    FileUtil::pathconcat(it->getRealPath(), target);
+
     Debug::debug()->trace("Executing '%s'", cmdline.c_str());
 
     int err = system(cmdline.c_str());

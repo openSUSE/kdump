@@ -35,7 +35,7 @@
 #include "global.h"
 #include "debug.h"
 #include "transfer.h"
-#include "urlparser.h"
+#include "rootdirurl.h"
 #include "util.h"
 #include "fileutil.h"
 #include "stringutil.h"
@@ -56,49 +56,45 @@ using std::endl;
 //{{{ URLTransfer --------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-URLTransfer::URLTransfer(const RootDirURL &url, const string &subdir)
+URLTransfer::URLTransfer(const RootDirURLVector &urlv, const string &subdir)
     throw (KError)
-    : m_urlParser(url), m_subDir(subdir)
+    : m_urlVector(urlv), m_subDir(subdir)
 {
 }
 
 // -----------------------------------------------------------------------------
-RootDirURL &URLTransfer::getURLParser()
-    throw (KError)
-{
-    return m_urlParser;
-}
-
-// -----------------------------------------------------------------------------
-Transfer *URLTransfer::getTransfer(const RootDirURL &url,
+Transfer *URLTransfer::getTransfer(const RootDirURLVector &urlv,
 				   const string &subdir)
     throw (KError)
 {
-    Debug::debug()->trace("URLTransfer::getTransfer(\"%s\", \"%s\")",
-			  url.getURL().c_str(), subdir.c_str());
+    Debug::debug()->trace("URLTransfer::getTransfer(%p, \"%s\")",
+			  &urlv, subdir.c_str());
 
-    switch (url.getProtocol()) {
+    if (urlv.size() == 0)
+	throw KError("No target specified!");
+
+    switch (urlv.begin()->getProtocol()) {
         case URLParser::PROT_FILE:
             Debug::debug()->dbg("Returning FileTransfer");
-            return new FileTransfer(url, subdir);
+            return new FileTransfer(urlv, subdir);
 
         case URLParser::PROT_FTP:
             Debug::debug()->dbg("Returning FTPTransfer");
-            return new FTPTransfer(url, subdir);
+            return new FTPTransfer(urlv, subdir);
 
 #if HAVE_LIBSSH2
         case URLParser::PROT_SFTP:
             Debug::debug()->dbg("Returning SFTPTransfer");
-            return new SFTPTransfer(url, subdir);
+            return new SFTPTransfer(urlv, subdir);
 #endif // HAVE_LIBSSH2
 
         case URLParser::PROT_NFS:
             Debug::debug()->dbg("Returning NFSTransfer");
-            return new NFSTransfer(url, subdir);
+            return new NFSTransfer(urlv, subdir);
 
         case URLParser::PROT_CIFS:
             Debug::debug()->dbg("Returning CIFSTransfer");
-            return new CIFSTransfer(url, subdir);
+            return new CIFSTransfer(urlv, subdir);
 
         default:
             throw KError("Unknown protocol.");
@@ -109,27 +105,32 @@ Transfer *URLTransfer::getTransfer(const RootDirURL &url,
 //{{{ FileTransfer -------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-FileTransfer::FileTransfer(const RootDirURL &target_url,
+FileTransfer::FileTransfer(const RootDirURLVector &urlv,
 			   const std::string &subdir)
     throw (KError)
-    : URLTransfer(target_url, subdir), m_buffer(NULL)
+    : URLTransfer(urlv, subdir), m_bufferSize(0), m_buffer(NULL)
 {
-    if (target_url.getProtocol() != URLParser::PROT_FILE)
-        throw KError("Only file URLs are allowed.");
+    RootDirURLVector::const_iterator it;
+    for (it = urlv.begin(); it != urlv.end(); ++it)
+	if (it->getProtocol() != URLParser::PROT_FILE)
+	    throw KError("Only file URLs are allowed for split.");
 
-    // create directory
-    string dir = FileUtil::pathconcat(target_url.getRealPath(), subdir);
-    FileUtil::mkdir(dir, true);
+    // create directories
+    for (it = urlv.begin(); it != urlv.end(); ++it) {
+	string dir = FileUtil::pathconcat(it->getRealPath(), subdir);
+	FileUtil::mkdir(dir, true);
+    }
 
     // try to get the buffer size
-    struct stat mystat;
-    int err = stat(dir.c_str(), &mystat);
-    if (err != 0)
-        throw KSystemError("stat() on " + dir + " failed.", errno);
+    for (it = urlv.begin(); it != urlv.end(); ++it) {
+	struct stat mystat;
+	int err = stat(it->getRealPath().c_str(), &mystat);
+	if (err == 0 && (size_t)mystat.st_blksize > m_bufferSize)
+	    m_bufferSize = mystat.st_blksize;
+    }
 
-    m_bufferSize = mystat.st_size;
     if (m_bufferSize == 0) {
-        Debug::debug()->dbg("Buffer size of stat() is zero. Using %d.", BUFSIZ);
+        Debug::debug()->dbg("Cannot determine block size. Using %d.", BUFSIZ);
         m_bufferSize = BUFSIZ;
     }
 
@@ -173,7 +174,7 @@ void FileTransfer::performFile(DataProvider *dataprovider,
     Debug::debug()->trace("FileTransfer::performFile(%p, %s)",
         dataprovider, target_file.c_str());
 
-    dataprovider->saveToFile(getURLParser(), target_file);
+    dataprovider->saveToFile(getURLVector(), target_file);
 }
 
 // -----------------------------------------------------------------------------
@@ -184,8 +185,12 @@ void FileTransfer::performPipe(DataProvider *dataprovider,
     Debug::debug()->trace("FileTransfer::performPipe(%p, %s)",
         dataprovider, target_file.c_str());
 
-    string full_path = FileUtil::pathconcat(
-	getURLParser().getRealPath(), target_file);
+    RootDirURLVector &urlv = getURLVector();
+    if (urlv.size() > 1)
+	cerr << "WARNING: First dump target used; rest ignored." << endl;
+
+    const RootDirURL &url = urlv.front();
+    string full_path = FileUtil::pathconcat(url.getRealPath(), target_file);
     FILE *fp = open(full_path.c_str());
     bool sparse = !Configuration::config()->kdumptoolContainsFlag("NOSPARSE");
     if (!sparse)
@@ -324,13 +329,17 @@ static int curl_debug(CURL *curl, curl_infotype info, char *buffer,
 }
 
 // -----------------------------------------------------------------------------
-FTPTransfer::FTPTransfer(const RootDirURL &target_url,
+FTPTransfer::FTPTransfer(const RootDirURLVector &urlv,
 			 const std::string &subdir)
     throw (KError)
-    : URLTransfer(target_url, subdir), m_curl(NULL)
+    : URLTransfer(urlv, subdir), m_curl(NULL)
 {
+    if (urlv.size() > 1)
+	cerr << "WARNING: First dump target used; rest ignored." << endl;
+    const RootDirURL &parser = urlv.front();
+
     Debug::debug()->trace("FTPTransfer::FTPTransfer(%s)",
-			  target_url.getURL().c_str());
+			  parser.getURL().c_str());
 
     // init the CURL library
     if (!curl_global_inititalised) {
@@ -425,9 +434,12 @@ void FTPTransfer::open(DataProvider *dataprovider,
     Debug::debug()->trace("FTPTransfer::open(%p, %s)", dataprovider,
         target_file);
 
+    RootDirURLVector &urlv = getURLVector();
+    const RootDirURL &parser = urlv.front();
+
     // set the URL
     string full_url = FileUtil::pathconcat(
-	FileUtil::pathconcat(getURLParser().getURL(), getSubDir()),
+	FileUtil::pathconcat(parser.getURL(), getSubDir()),
 	target_file
 	);
     err = curl_easy_setopt(m_curl, CURLOPT_URL, full_url.c_str());
@@ -446,14 +458,18 @@ void FTPTransfer::open(DataProvider *dataprovider,
 #if HAVE_LIBSSH2
 
 /* -------------------------------------------------------------------------- */
-SFTPTransfer::SFTPTransfer(const RootDirURL &target_url,
+SFTPTransfer::SFTPTransfer(const RootDirURLVector &urlv,
 			   const std::string &subdir)
     throw (KError)
-    : URLTransfer(target_url, subdir),
+    : URLTransfer(urlv, subdir),
       m_sshSession(NULL), m_sftp(NULL), m_socket(NULL)
 {
+    if (urlv.size() > 1)
+	cerr << "WARNING: First dump target used; rest ignored." << endl;
+    const RootDirURL &parser = urlv.front();
+
     Debug::debug()->trace("SFTPTransfer::SFTPTransfer(%s)",
-			  target_url.getURL().c_str());
+			  parser.getURL().c_str());
 
     m_sshSession = libssh2_session_init();
     if (!m_sshSession)
@@ -462,14 +478,12 @@ SFTPTransfer::SFTPTransfer(const RootDirURL &target_url,
     // set blocking
     libssh2_session_set_blocking(m_sshSession, 1);
 
-    // create the socket and connect
-    URLParser &parser = getURLParser();
-
     // get the correct port
     int port = parser.getPort();
     if (port <= 0)
         port = Socket::DP_SSH;
 
+    // create the socket and connect
     m_socket = new Socket(parser.getHostname().c_str(), port, Socket::ST_TCP);
     int fd = m_socket->connect();
 
@@ -671,9 +685,12 @@ void SFTPTransfer::perform(DataProvider *dataprovider,
     if (directSave)
         *directSave = false;
 
+    RootDirURLVector &urlv = getURLVector();
+    const RootDirURL &parser = urlv.front();
+
     LIBSSH2_SFTP_HANDLE  *handle = NULL;
     string file = FileUtil::pathconcat(
-	FileUtil::pathconcat(getURLParser().getPath(), getSubDir()),
+	FileUtil::pathconcat(parser.getPath(), getSubDir()),
 	target_file
 	);
 
@@ -738,16 +755,25 @@ void SFTPTransfer::close()
 //{{{ NFSTransfer --------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-NFSTransfer::NFSTransfer(const RootDirURL &target_url,
+NFSTransfer::NFSTransfer(const RootDirURLVector &urlv,
 			 const std::string &subdir)
     throw (KError)
-    : URLTransfer(target_url, subdir), m_mountpoint(""), m_fileTransfer(NULL)
+    : URLTransfer(urlv, subdir), m_mountpoint(""), m_fileTransfer(NULL)
+{
+    RootDirURLVector file_urlv("", "");
+    RootDirURLVector::const_iterator it;
+    for (it = urlv.begin(); it != urlv.end(); ++it)
+	file_urlv.push_back(translate(*it));
+    m_fileTransfer = new FileTransfer(file_urlv, subdir);
+}
+
+// -----------------------------------------------------------------------------
+RootDirURL NFSTransfer::translate(const RootDirURL &parser)
+    throw (KError)
 {
     // mount the NFS share
     StringVector options;
     options.push_back("nolock");
-
-    URLParser &parser = getURLParser();
 
     string mountedDir = parser.getPath();
     FileUtil::nfsmount(parser.getHostname(), mountedDir,
@@ -764,8 +790,7 @@ NFSTransfer::NFSTransfer(const RootDirURL &target_url,
     Debug::debug()->dbg("Mountpoint: %s, Rest: %s, Prefix: $s",
         m_mountpoint.c_str(), m_rest.c_str(), m_prefix.c_str());
 
-    RootDirURL mountedURL("file://" + m_prefix, "");
-    m_fileTransfer = new FileTransfer(mountedURL, subdir);
+    return RootDirURL("file://" + m_prefix, "");
 }
 
 // -----------------------------------------------------------------------------
@@ -805,10 +830,21 @@ void NFSTransfer::close()
 //{{{ CIFSTransfer -------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-CIFSTransfer::CIFSTransfer(const RootDirURL &parser,
+CIFSTransfer::CIFSTransfer(const RootDirURLVector &urlv,
 			   const std::string &subdir)
     throw (KError)
-    : URLTransfer(parser, subdir), m_mountpoint(""), m_fileTransfer(NULL)
+    : URLTransfer(urlv, subdir), m_mountpoint(""), m_fileTransfer(NULL)
+{
+    RootDirURLVector file_urlv("", "");
+    RootDirURLVector::const_iterator it;
+    for (it = urlv.begin(); it != urlv.end(); ++it)
+	file_urlv.push_back(translate(*it));
+    m_fileTransfer = new FileTransfer(file_urlv, subdir);
+}
+
+// -----------------------------------------------------------------------------
+RootDirURL CIFSTransfer::translate(const RootDirURL &parser)
+    throw (KError)
 {
     string share = parser.getPath();
     share = Stringutil::ltrim(share, "/");
@@ -843,8 +879,7 @@ CIFSTransfer::CIFSTransfer(const RootDirURL &parser,
     Debug::debug()->dbg("Mountpoint: %s, Rest: %s, Prefix: %s",
         m_mountpoint.c_str(), rest.c_str(), prefix.c_str());
 
-    RootDirURL mountedURL("file://" + prefix, "");
-    m_fileTransfer = new FileTransfer(mountedURL, subdir);
+    return RootDirURL("file://" + prefix, "");
 }
 
 // -----------------------------------------------------------------------------

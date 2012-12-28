@@ -20,6 +20,7 @@
 #define PRINT_TARGET_H
 
 #include "subcommand.h"
+#include "rootdirurl.h"
 
 //{{{ ReadVmcoreinfo -----------------------------------------------------------
 
@@ -64,6 +65,14 @@ class PrintTarget : public Subcommand {
 
     private:
         std::string m_rootdir;
+
+	/**
+	 * Print one target
+	 *
+	 * @throw KError on any error. No exception indicates success.
+	 */
+	void print_one(RootDirURL &url)
+	throw (KError);
 };
 
 //}}}

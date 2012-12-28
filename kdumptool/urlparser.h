@@ -20,6 +20,7 @@
 #define URLPARSER_H
 
 #include <string>
+#include <vector>
 #include <stdint.h>
 
 #include "global.h"

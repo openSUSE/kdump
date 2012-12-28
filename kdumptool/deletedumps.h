@@ -73,6 +73,14 @@ class DeleteDumps : public Subcommand {
     private:
         std::string m_rootdir;
         bool m_dryRun;
+
+	/**
+	 * Helper function to delete one dump file.
+	 *
+	 * @throw KError on any error. No exception indicates success.
+	 */
+	void delete_one(const RootDirURL &url, int oldDumps)
+	throw (KError);
 };
 
 //}}}

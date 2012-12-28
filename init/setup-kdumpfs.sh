@@ -265,33 +265,39 @@ fi
 #
 # get the save directory and protocol
 #
-target=$(kdumptool print_target)
-if [ -z "$target" ] ; then
+kdump_max=0
+eval "$( kdumptool print_target | \
+    egrep '^(Protocol:|Realpath:|$)' | \
+    sed -e "s/'/'\\\\''/g" \
+	-e 's/^$/max=$((kdump_max+1))'\''/' \
+	-e 's/^/kdump_/' \
+	-e "s/: */[\$kdump_max]='/" \
+	-e "s/\$/\'/" )"
+if [ ${#kdump_Protocol[@]} -eq 0 ] ; then
     echo >&2 "kdumptool print_target failed."
     return 1
 fi
-kdump_protocol=$(echo "$target" | grep '^Protocol:' | awk '{ print $2 }')
-kdump_path=$(echo "$target" | grep '^Realpath:' | awk '{ print $2 }')
-kdump_host=$(echo "$target" | grep '^Host:' | awk '{ print $2 }')
 
 kdump_fsmod=
 
 #
 # Check for network file systems
 #
-if [ "$kdump_protocol" = "nfs" ]; then
-    interface=${interface:-default}
-    get_mntmod nfs
-    kdump_fsmod="$kdump_fsmod $mntmod"
-    add_mntprog nfs
-fi
+for protocol in "${kdump_Protocol[@]}" ; do
+    if [ "$protocol" = "nfs" ]; then
+        interface=${interface:-default}
+        get_mntmod nfs
+        kdump_fsmod="$kdump_fsmod $mntmod"
+        add_mntprog nfs
+    fi
 
-if [ "$kdump_protocol" = "cifs" -o "$kdump_protocol" = "smb" ]; then
-    interface=${interface:-default}
-    get_mntmod cifs
-    kdump_fsmod="$kdump_fsmod $mntmod"
-    add_mntprog cifs
-fi
+    if [ "$protocol" = "cifs" -o "$protocol" = "smb" ]; then
+        interface=${interface:-default}
+        get_mntmod cifs
+        kdump_fsmod="$kdump_fsmod $mntmod"
+        add_mntprog cifs
+    fi
+done
 
 #
 # add mount points (below /root)
@@ -313,14 +319,19 @@ while read line ; do
     fi
 
     # add the target file system
-    if [ "$kdump_protocol" = "file" ] &&
-            [ "$mountpoint" != "/" ] &&
-            echo "$kdump_path" | grep "$mountpoint" &> /dev/null ; then
-        resolve_mount "Dump directory" $mountpoint
-        add_fstab "$mntdev" "/root$mountpoint" "$mntfstype" "$mntopts" 0 0
-        blockdev="$blockdev $(resolve_device Dump $mntdev)"
-        kdump_fsmod="$kdump_fsmod $mntmod"
-    fi
+    i=0
+    while [ $i -le $kdump_max ] ; do
+        protocol="${kdump_Protocol[$i]}"
+        realpath="${kdump_Realpath[$i]}"
+        if [ "$protocol" = "file" -a "$mountpoint" != "/" -a \
+             "${realpath#$mountpoint}" != "$realpath" ] ; then
+            resolve_mount "Dump directory" $mountpoint
+            add_fstab "$mntdev" "/root$mountpoint" "$mntfstype" "$mntopts" 0 0
+            blockdev="$blockdev $(resolve_device Dump $mntdev)"
+            kdump_fsmod="$kdump_fsmod $mntmod"
+        fi
+        i=$((i+1))
+    done
 done < /etc/mtab
 
 # vim: set sw=4 ts=4 et:

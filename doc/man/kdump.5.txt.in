@@ -225,6 +225,12 @@ which dump settings are made.
 
 If KDUMP_COPY_KERNEL is set, that directory will also contain the kernel.
 
+You can specify multiple targets separated by spaces. The dump will then be
+split and saved to all target directories in parallel. This is useful if the
+targets are on different storage devices, because their combined I/O bandwidth
+can be used. This feature is supported only for local files using the
+kdump-compressed format.
+
 Default: "file:///var/log/dump".
 
 

@@ -79,10 +79,20 @@ void PrintTarget::execute()
     Debug::debug()->trace("PrintTarget::execute()");
 
     Configuration *config = Configuration::config();
-    string url = config->getSavedir();
 
-    RootDirURL parser(url, m_rootdir);
+    RootDirURLVector urlv(config->getSavedir(), m_rootdir);
+    RootDirURLVector::iterator it;
+    for (it = urlv.begin(); it != urlv.end(); ++it) {
+	if (it != urlv.begin())
+	    cout << endl;
+	print_one(*it);
+    }
+}
 
+// -----------------------------------------------------------------------------
+void PrintTarget::print_one(RootDirURL &parser)
+    throw (KError)
+{
     string port;
 
     if (parser.getPort() != -1)

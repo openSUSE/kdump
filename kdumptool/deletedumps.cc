@@ -108,13 +108,22 @@ void DeleteDumps::execute()
         return;
     }
 
-    RootDirURL parser(config->getSavedir(), m_rootdir);
-    if (parser.getProtocol() != URLParser::PROT_FILE) {
+    RootDirURLVector urls(config->getSavedir(), m_rootdir);
+    RootDirURLVector::const_iterator it;
+    for (it = urls.begin(); it != urls.end(); ++it)
+        delete_one(*it, oldDumps);
+}
+
+// -----------------------------------------------------------------------------
+void DeleteDumps::delete_one(const RootDirURL &url, int oldDumps)
+    throw (KError)
+{
+    if (url.getProtocol() != URLParser::PROT_FILE) {
         cerr << "Deletion of old dump only on local disk." << endl;
         return;
     }
 
-    string dir = parser.getRealPath();
+    string dir = url.getRealPath();
     Debug::debug()->dbg("Using directory %s", dir.c_str());
 
     if (!FileUtil::exists(dir)) {

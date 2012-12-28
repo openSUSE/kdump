@@ -74,7 +74,7 @@ class DataProvider {
          * @exception KError if saving failed or DataProvider::canSaveToFile()
          *            returns @c false.
          */
-        virtual void saveToFile(const RootDirURL &base,
+        virtual void saveToFile(const RootDirURLVector &base,
 				const std::string &target)
         throw (KError) = 0;
 
@@ -184,7 +184,8 @@ class AbstractDataProvider : public DataProvider {
          *            returns @c false in AbstractDataProvider.
          * @see DataProvider::saveToFile().
          */
-        void saveToFile(const RootDirURL &base, const std::string &target)
+        void saveToFile(const RootDirURLVector &base,
+			const std::string &target)
         throw (KError);
 
         /**
@@ -326,7 +327,8 @@ class ProcessDataProvider : public AbstractDataProvider {
          * @param[in] target the target file
          * @param KError if saving to the file failed
          */
-        void saveToFile(const RootDirURL &base, const std::string &target)
+        void saveToFile(const RootDirURLVector &base,
+			const std::string &target)
         throw (KError);
 
         /**

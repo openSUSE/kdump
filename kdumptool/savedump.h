@@ -73,7 +73,7 @@ class SaveDump : public Subcommand {
         throw (KError);
 
     protected:
-        void saveDump()
+        void saveDump(const RootDirURLVector &urlv)
         throw (KError);
 
         void copyMakedumpfile()
@@ -97,11 +97,11 @@ class SaveDump : public Subcommand {
         std::string findMapfile()
         throw (KError);
 
-        void checkAndDelete(const RootDirURL &parser,
+        void checkAndDelete(const RootDirURLVector &urlv,
 			    const std::string &subdir)
         throw (KError);
 
-        void sendNotification(bool failure, const RootDirURL &url_base,
+        void sendNotification(bool failure, const RootDirURLVector &urlv,
 			      const std::string &subdir)
         throw ();
 
@@ -118,6 +118,10 @@ class SaveDump : public Subcommand {
         std::string m_rootdir;
         std::string m_hostname;
         bool m_nomail;
+
+        void check_one(const RootDirURL &parser,
+		       const std::string &subdir)
+        throw (KError);
 };
 
 //}}}

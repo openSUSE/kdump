@@ -137,21 +137,21 @@ void SaveDump::execute()
     // build the transfer object
     // prepend a time stamp to the save dir
     string subdir = Stringutil::formatCurrentTime(ISO_DATETIME);
-    RootDirURL urlParser(config->getSavedir(), m_rootdir);
+    RootDirURLVector urlv(config->getSavedir(), m_rootdir);
 
-    m_transfer = URLTransfer::getTransfer(urlParser, subdir);
+    m_transfer = URLTransfer::getTransfer(urlv, subdir);
 
     // save the dump
     try {
-        saveDump();
+        saveDump(urlv);
     } catch (const KError &error) {
         setErrorCode(1);
 
-        sendNotification(true, urlParser, subdir);
+        sendNotification(true, urlv, subdir);
 
         // run checkAndDelete() in any case
         try {
-            checkAndDelete(urlParser, subdir);
+            checkAndDelete(urlv, subdir);
         } catch (const KError &error) {
             cout << error.what() << endl;
         }
@@ -163,13 +163,13 @@ void SaveDump::execute()
     }
 
     // send the email afterwards
-    sendNotification(false, urlParser, subdir);
+    sendNotification(false, urlv, subdir);
 
     // because we don't know the file size in advance, check
     // afterwards if the disk space is not sufficient and delete
     // the dump again
     try {
-        checkAndDelete(urlParser, subdir);
+        checkAndDelete(urlv, subdir);
     } catch (const KError &error) {
         setErrorCode(1);
         if (config->getContinueOnError())
@@ -237,7 +237,7 @@ void SaveDump::execute()
 }
 
 // -----------------------------------------------------------------------------
-void SaveDump::saveDump()
+void SaveDump::saveDump(const RootDirURLVector &urlv)
     throw (KError)
 {
     Configuration *config = Configuration::config();
@@ -273,6 +273,11 @@ void SaveDump::saveDump()
         // use makedumpfile
         stringstream cmdline;
         cmdline << "makedumpfile ";
+	if (urlv.size() >= 2) {
+	    if (useElf)
+		throw KError("Split cannot be used with ELF format.");
+	    cmdline << "--split ";
+	}
         cmdline << config->getMakedumpfileOptions() << " ";
         cmdline << "-d " << config->getDumpLevel() << " ";
         if (useElf)
@@ -559,11 +564,21 @@ string SaveDump::findMapfile()
 }
 
 // -----------------------------------------------------------------------------
-void SaveDump::checkAndDelete(const RootDirURL &parser,
+void SaveDump::checkAndDelete(const RootDirURLVector &urlv,
 			      const string &subdir)
     throw (KError)
 {
-    Debug::debug()->trace("SaveDump::checkAndDelete(\"%s\", \"%s\")",
+    RootDirURLVector::const_iterator it;
+    for (it = urlv.begin(); it != urlv.end(); ++it)
+	check_one(*it, subdir);
+}
+
+// -----------------------------------------------------------------------------
+void SaveDump::check_one(const RootDirURL &parser,
+			 const string &subdir)
+    throw (KError)
+{
+    Debug::debug()->trace("SaveDump::check_one(\"%s\", \"%s\")",
 			  parser.getURL().c_str(), subdir.c_str());
 
     // only do that check for local files
@@ -588,7 +603,7 @@ void SaveDump::checkAndDelete(const RootDirURL &parser,
 }
 
 // -----------------------------------------------------------------------------
-void SaveDump::sendNotification(bool failure, const RootDirURL &url_base,
+void SaveDump::sendNotification(bool failure, const RootDirURLVector &urlv,
 				const string &subdir)
     throw ()
 {
@@ -643,10 +658,12 @@ void SaveDump::sendNotification(bool failure, const RootDirURL &url_base,
 
         if (failure)
             ss << "Copying dump failed." << endl;
-        else
-	    ss << "Dump has been copied to "
-	       << FileUtil::pathconcat(url_base.getURL(), subdir)
-	       << "." << endl;
+        else {
+	    ss << "Dump has been copied to" << endl;
+	    RootDirURLVector::const_iterator it;
+	    for (it = urlv.begin(); it != urlv.end(); ++it)
+		ss << FileUtil::pathconcat(it->getURL(), subdir) << endl;
+	}
 
         email.setBody(ss.str());
 

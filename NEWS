@@ -22,6 +22,8 @@
   * Ignore unknown NMIs in the kdump kernel.
   * Do not try to recurse non-directories when deleting old dumps.
   * Support for LZO-compressed dumps.
+  * Use makedumpfile --split option if multiple target directories are
+    specified.
 
 0.8.1
 -----

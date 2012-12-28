@@ -98,16 +98,17 @@ class URLTransfer : public Transfer {
          * @param[in] url the URL
          * @throw KError if parsing the URL failed
          */
-        URLTransfer(const RootDirURL &url, const std::string &subdir)
+        URLTransfer(const RootDirURLVector &urlv, const std::string &subdir)
         throw (KError);
 
         /**
          * Returns the URL parser.
          *
-         * @return reference to the URL parser.
+         * @return reference to the URL vector.
          */
-        RootDirURL &getURLParser()
-        throw (KError);
+        RootDirURLVector &getURLVector()
+        throw ()
+	{ return m_urlVector; }
 
 	/**
 	 * Returns the subdirectory part.
@@ -127,12 +128,12 @@ class URLTransfer : public Transfer {
          * @exception KError if parsing the URL failed or there's no
          *            implementation for that class.
          */
-        static Transfer *getTransfer(const RootDirURL &url,
+        static Transfer *getTransfer(const RootDirURLVector &urlv,
 				     const std::string &subdir)
         throw (KError);
 
     private:
-        RootDirURL m_urlParser;
+        RootDirURLVector m_urlVector;
 	std::string m_subDir;
 };
 
@@ -152,7 +153,7 @@ class FileTransfer : public URLTransfer {
          * @param[in] target_url the directory
          * @throw KError if parsing the URL or creating the directory failed
          */
-        FileTransfer(const RootDirURL &target_url, const std::string &subdir)
+        FileTransfer(const RootDirURLVector &urlv, const std::string &subdir)
         throw (KError);
 
         /**
@@ -207,7 +208,7 @@ class FTPTransfer : public URLTransfer {
          *
          * @exception KError when initialising the underlying library fails
          */
-        FTPTransfer(const RootDirURL &target_url, const std::string &subdir)
+        FTPTransfer(const RootDirURLVector &urlv, const std::string &subdir)
         throw (KError);
 
         /**
@@ -255,7 +256,7 @@ class SFTPTransfer : public URLTransfer {
          *
          * @exception KError when initialising the underlying library fails
          */
-        SFTPTransfer(const RootDirURL &target_url, const std::string &subdir)
+        SFTPTransfer(const RootDirURLVector &urlv, const std::string &subdir)
         throw (KError);
 
         /**
@@ -309,7 +310,7 @@ class NFSTransfer : public URLTransfer {
          *
          * @exception KError when mounting the share failes
          */
-        NFSTransfer(const RootDirURL &target_url, const std::string &subdir)
+        NFSTransfer(const RootDirURLVector &urlv, const std::string &subdir)
         throw (KError);
 
         /**
@@ -331,6 +332,15 @@ class NFSTransfer : public URLTransfer {
     protected:
         void close()
         throw (KError);
+
+        /**
+	 * Translate a NFS URL into a file URL
+	 *
+	 * @return RootDirurl
+	 */
+	RootDirURL translate(const RootDirURL &url)
+	throw (KError);
+
 
     private:
         std::string m_mountpoint;
@@ -354,7 +364,7 @@ class CIFSTransfer : public URLTransfer {
          *
          * @exception KError when mounting the share failes
          */
-        CIFSTransfer(const RootDirURL &target_url, const std::string &subdir)
+        CIFSTransfer(const RootDirURLVector &urlv, const std::string &subdir)
         throw (KError);
 
         /**
@@ -376,6 +386,14 @@ class CIFSTransfer : public URLTransfer {
     protected:
         void close()
         throw (KError);
+
+        /**
+	 * Translate a CIFS URL into a file URL
+	 *
+	 * @return RootDirurl
+	 */
+	RootDirURL translate(const RootDirURL &url)
+	throw (KError);
 
     private:
         std::string m_mountpoint;
