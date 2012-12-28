@@ -296,8 +296,31 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
         m_useMakedumpfile = true;
     }
 
+    Terminal terminal;
+
+    // Save a copy of dmesg
     try {
-        Terminal terminal;
+        string directCmdline = "makedumpfile --dump-dmesg " + m_dump;
+	string pipeCmdline = "makedumpfile --dump-dmesg -F " + m_dump;
+	ProcessDataProvider logProvider(
+	    pipeCmdline.c_str(), directCmdline.c_str());
+
+	cout << "Extracting dmesg" << endl;
+	terminal.printLine();
+	TerminalProgress logProgress("Saving dmesg");
+        if (config->getVerbose() & Configuration::VERB_PROGRESS)
+            logProvider.setProgress(&logProgress);
+        else
+            cout << "Saving dmesg ..." << endl;
+        m_transfer->perform(&logProvider, "dmesg.txt", NULL);
+	terminal.printLine();
+    } catch (const KError &error) {
+	cout << error.what() << endl;
+    } catch (...) {
+	cout << "Extracting failed." << endl;
+    }
+
+    try {
         if (m_useMakedumpfile) {
             cout << "Saving dump using makedumpfile" << endl;
             terminal.printLine();
