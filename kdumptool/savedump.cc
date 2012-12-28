@@ -257,13 +257,41 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
         throw KError("Zero size vmcore (" + m_dump + ").");
     }
 
+    Terminal terminal;
+
+    // Save a copy of dmesg
+    try {
+        string directCmdline = "makedumpfile --dump-dmesg " + m_dump;
+	string pipeCmdline = "makedumpfile --dump-dmesg -F " + m_dump;
+	ProcessDataProvider logProvider(
+	    pipeCmdline.c_str(), directCmdline.c_str());
+
+	cout << "Extracting dmesg" << endl;
+	terminal.printLine();
+	TerminalProgress logProgress("Saving dmesg");
+        if (config->getVerbose() & Configuration::VERB_PROGRESS)
+            logProvider.setProgress(&logProgress);
+        else
+            cout << "Saving dmesg ..." << endl;
+        m_transfer->perform(&logProvider, "dmesg.txt", NULL);
+	terminal.printLine();
+    } catch (const KError &error) {
+	cout << error.what() << endl;
+    } catch (...) {
+	cout << "Extracting failed." << endl;
+    }
+
     // dump format
     string dumpformat = config->getDumpFormat();
     DataProvider *provider;
 
+    bool noDump = strcasecmp(dumpformat.c_str(), "none") == 0;
     bool useElf = strcasecmp(dumpformat.c_str(), "elf") == 0;
     bool useCompressed = strcasecmp(dumpformat.c_str(), "compressed") == 0;
     bool useLZO = strcasecmp(dumpformat.c_str(), "lzo") == 0;
+
+    if (noDump)
+	return;			// nothing to be done
 
     if (useElf && dumplevel == 0) {
         // use file source?
@@ -294,30 +322,6 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
         provider = new ProcessDataProvider(pipeCmdline.c_str(),
             directCmdline.c_str());
         m_useMakedumpfile = true;
-    }
-
-    Terminal terminal;
-
-    // Save a copy of dmesg
-    try {
-        string directCmdline = "makedumpfile --dump-dmesg " + m_dump;
-	string pipeCmdline = "makedumpfile --dump-dmesg -F " + m_dump;
-	ProcessDataProvider logProvider(
-	    pipeCmdline.c_str(), directCmdline.c_str());
-
-	cout << "Extracting dmesg" << endl;
-	terminal.printLine();
-	TerminalProgress logProgress("Saving dmesg");
-        if (config->getVerbose() & Configuration::VERB_PROGRESS)
-            logProvider.setProgress(&logProgress);
-        else
-            cout << "Saving dmesg ..." << endl;
-        m_transfer->perform(&logProvider, "dmesg.txt", NULL);
-	terminal.printLine();
-    } catch (const KError &error) {
-	cout << error.what() << endl;
-    } catch (...) {
-	cout << "Extracting failed." << endl;
     }
 
     try {

@@ -157,11 +157,12 @@ KDUMP_VERBOSE=3
 #
 KDUMP_DUMPLEVEL=0
 
-## Type:        list(,compressed,ELF,lzo)
+## Type:        list(,none,ELF,compressed,lzo)
 ## Default:     "compressed"
 ## ServiceRestart:	kdump
 #
-# This variable specifies the dump format.
+# This variable specifies the dump format. Using the "none" option will
+# skip capturing the dump entirely and only save the kernel log buffer.
 #
 # See also: kdump(5).
 KDUMP_DUMPFORMAT="compressed"

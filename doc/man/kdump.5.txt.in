@@ -354,6 +354,11 @@ KDUMP_DUMPFORMAT
 This variable specifies the dump format.
 
 
+*none*::
+  Do not generate any dump file. This is useful if you only want the kernel
+  log buffer, because it minimizes disk space requirements and also greatly
+  reduces the time involved in waiting for the dump to complete.
+
 *ELF*::
   _ELF_ has the advantage that it's a standard format and GDB can be used to
   analyse the dumps. The disadvantage is that the dump files are larger.
