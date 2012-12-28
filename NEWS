@@ -20,6 +20,7 @@
   * Include makedumpfile-R.pl in the kdump initrd.
   * Pass bash options between mkdumprd and mkinitrd to simplify debugging.
   * Ignore unknown NMIs in the kdump kernel.
+  * Do not try to recurse non-directories when deleting old dumps.
 
 0.8.1
 -----

@@ -373,7 +373,7 @@ StringVector FileUtil::listdir(const std::string &dir, bool onlyDirs)
 
     StringVector v;
     struct dirent **namelist;
-    int count = scandir(dir.c_str(), &namelist, filter_dots, alphasort);
+    int count = scandir(dir.c_str(), &namelist, filterfunction, alphasort);
     if (count < 0)
         throw KSystemError("Cannot scan directory " + dir + ".", errno);
 
