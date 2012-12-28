@@ -123,10 +123,12 @@ case "$arch" in
         ;;
 esac
 dir=/usr/$LIBDIR/elfutils
-mkdir -p "${tmp_mnt}${dir}"
 dso=${dir}/libebl_${arch}.so
-fulldso=$(readlink -f "${dso}")
-cp_bin "$fulldso" "$dso" "${tmp_mnt}${dir}"
+if -e "$dso"; then
+    fulldso=$(readlink -f "${dso}")
+    mkdir -p "${tmp_mnt}${dir}"
+    cp_bin "$fulldso" "$dso" "${tmp_mnt}${dir}"
+fi
 
 save_var use_kdump
 save_var kdump_fsmod
