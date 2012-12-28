@@ -18,6 +18,7 @@
   * Correctly recognize ELF and compressed ELF kernel files.
   * Create KDUMP_SAVEDIR if non-existent.
   * Include makedumpfile-R.pl in the kdump initrd.
+  * Pass bash options between mkdumprd and mkinitrd to simplify debugging.
 
 0.8.1
 -----

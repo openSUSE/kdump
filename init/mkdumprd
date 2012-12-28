@@ -176,7 +176,7 @@ fi
 
 status_message "Calling mkinitrd $MKINITRD_ARGS"
 echo "Regenerating kdump initrd ..." >&2
-eval "/sbin/mkinitrd $MKINITRD_ARGS"
+eval "bash -$- /sbin/mkinitrd $MKINITRD_ARGS"
 ret=$?
 
 #

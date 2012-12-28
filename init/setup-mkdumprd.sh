@@ -9,6 +9,6 @@ if ! (( $use_kdump )) ; then
         # Avoid warnings about non-existent path, because
         # $tmp_mnt was already deleted in setup-done.sh
         cd "$oldpwd"
-        mkdumprd -f -K "${kernel_image}" -I "${initrd_image}-kdump"
+        bash -$- mkdumprd -f -K "${kernel_image}" -I "${initrd_image}-kdump"
     fi
 fi
