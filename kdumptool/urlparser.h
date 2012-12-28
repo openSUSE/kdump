@@ -51,23 +51,15 @@ class URLParser {
          * Creates a new URLParser.
          *
          * @param[in] url the URL to parse
+         * @exception KError if the parsing of that URL fails
          */
-        URLParser()
-        throw ();
+        URLParser(const std::string &url)
+        throw (KError);
 
         /**
          * Desctructor.
          */
         virtual ~URLParser () {}
-
-        /**
-         * Parses a URL.
-         *
-         * @param[in] url the URL that should be parsed
-         * @exception KError if the parsing of that URL fails
-         */
-        void parseURL(const std::string &url)
-        throw (KError);
 
         /**
          * Returns the protocol of the URL, i.e. PROT_FILE, @c PROT_FTP,
@@ -179,7 +171,6 @@ class URLParser {
         throw (KError);
 
     private:
-        bool m_parsed;
         std::string m_url;
         Protocol m_protocol;
         std::string m_hostname;

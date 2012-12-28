@@ -138,16 +138,16 @@ void SaveDump::execute()
     string savedir = config->getSavedir();
 
     // root dir support
-    m_urlParser.parseURL(savedir.c_str());
+    URLParser urlParser(savedir.c_str());
 
     if (m_rootdir.size() != 0 &&
-                m_urlParser.getProtocol() == URLParser::PROT_FILE) {
+                urlParser.getProtocol() == URLParser::PROT_FILE) {
         Debug::debug()->dbg("Using root dir support for Transfer (%s)",
             m_rootdir.c_str());
 
-        savedir = m_urlParser.getProtocolAsString() + "://" +
+        savedir = urlParser.getProtocolAsString() + "://" +
             FileUtil::pathconcat(m_rootdir,
-                FileUtil::getCanonicalPath(m_urlParser.getPath(), m_rootdir)
+                FileUtil::getCanonicalPath(urlParser.getPath(), m_rootdir)
             );
     }
 
@@ -578,8 +578,7 @@ void SaveDump::checkAndDelete(const char *dir)
 {
     Debug::debug()->trace("SaveDump::checkAndDelete(\"%s\")", dir);
 
-    URLParser parser;
-    parser.parseURL(dir);
+    URLParser parser(dir);
 
     // only do that check for local files
     if (parser.getProtocol() != URLParser::PROT_FILE) {

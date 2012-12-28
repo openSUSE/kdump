@@ -107,8 +107,7 @@ void DeleteDumps::execute()
         return;
     }
 
-    URLParser parser;
-    parser.parseURL(config->getSavedir());
+    URLParser parser(config->getSavedir());
     if (parser.getProtocol() != URLParser::PROT_FILE) {
         cerr << "Deletion of old dump only on local disk." << endl;
         return;

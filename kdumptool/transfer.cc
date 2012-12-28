@@ -58,9 +58,8 @@ using std::endl;
 // -----------------------------------------------------------------------------
 URLTransfer::URLTransfer(const char *url)
     throw (KError)
-    : m_urlParser()
+    : m_urlParser(url)
 {
-    m_urlParser.parseURL(url);
 }
 
 // -----------------------------------------------------------------------------
@@ -76,8 +75,7 @@ Transfer *URLTransfer::getTransfer(const char *url)
 {
     Debug::debug()->trace("URLTransfer::getTransfer(%s)", url);
 
-    URLParser parser;
-    parser.parseURL(url);
+    URLParser parser(url);
 
     switch (parser.getProtocol()) {
         case URLParser::PROT_FILE:

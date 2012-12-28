@@ -51,8 +51,7 @@ int main(int argc, char *argv[])
 
     Debug::debug()->setStderrLevel(Debug::DL_TRACE);
     try {
-        URLParser urlp;
-        urlp.parseURL(url);
+        URLParser urlp(url);
         cout << "Prot\t"    << urlp.getProtocolAsString() << endl;
         cout << "Host\t"    << urlp.getHostname() << endl;
         cout << "Port\t"    << urlp.getPort() << endl;

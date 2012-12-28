@@ -81,8 +81,7 @@ void PrintTarget::execute()
     Configuration *config = Configuration::config();
     string url = config->getSavedir();
 
-    URLParser parser;
-    parser.parseURL(url);
+    URLParser parser(url);
 
     string path, port, realpath;
 

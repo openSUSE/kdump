@@ -114,7 +114,6 @@ class SaveDump : public Subcommand {
         std::string m_crashrelease;
         std::string m_rootdir;
         std::string m_hostname;
-        URLParser m_urlParser;
         bool m_nomail;
 };
 

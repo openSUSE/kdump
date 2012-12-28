@@ -86,28 +86,20 @@ string URLParser::protocol2string(URLParser::Protocol protocol)
 }
 
 // -----------------------------------------------------------------------------
-URLParser::URLParser()
-    throw ()
-    : m_parsed(false), m_port(-1)
-{}
-
-// -----------------------------------------------------------------------------
-void URLParser::parseURL(const std::string &url)
+URLParser::URLParser(const std::string &url)
     throw (KError)
+    : m_url(url), m_port(-1)
 {
-    Debug::debug()->trace("URLParser::parseURL(%s)", url.c_str());
+    Debug::debug()->trace("URLParser::URLParser(%s)", url.c_str());
 
     if (url.size() == 0)
         throw KError("URL must be longer than 0 characters.");
-
-    m_url = url;
 
     // local files that don't have URL syntax
     // we support that for backward-compatibility
     if (url[0] == '/') {
         m_protocol = PROT_FILE;
         m_path = url;
-        m_parsed = true;
         return;
     }
 
