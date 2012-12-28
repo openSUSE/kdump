@@ -502,6 +502,20 @@ Example: "john@myprovider.de doe@myprovider.de"
 
 Default: ""
 
+KDUMP_SSH_HOST_KEY
+~~~~~~~~~~~~~~~~~~
+
+Target host key encoded with base64, i.e. as found in +~/.ssh/known_hosts+.
+This is used for the SFTP transfer protocol to verify the authenticity of
+the remote host. If this field is left empty, the setup scripts will try
+to get it automatically using *ssh-keygen -F $target_host*.
+
+If you want to disable host key checking, set this variable to "*".
+
+Example: "AAAAB3NzaC1yc2EAAAABIwAAAIEAxIJIeuVX0F0u53wMgH22fdl62ifLXRwaPAXPsCrvyerMEb5DXHnIv1sYdzlJ1g/2Iw+ppjGDh1En/P12Dpl2uLBZh0MOrM71spTjvTwV2MKZtXrYjZUIPIZdd9vrI+/LEI0nw7LSdnKKgkAIXMhaRrq9N6uoZWe41ilU4NpnL/k="
+
+Default: ""
+
 
 
 URL FORMAT

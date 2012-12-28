@@ -302,6 +302,15 @@ class Configuration {
          std::string getNotificationCc()
          throw (KError);
 
+         /**
+          * Returns the value of KDUMP_HOST_KEY.
+          *
+          * @return the target host key, encoded with base64
+          * @exception KError if Configuration::readFile() was not called
+          */
+         std::string getHostKey()
+         throw (KError);
+
     protected:
         Configuration()
         throw ();
@@ -336,6 +345,7 @@ class Configuration {
         std::string m_smtpPassword;
         std::string m_notificationTo;
         std::string m_notificationCc;
+	std::string m_hostKey;
 };
 
 //}}}

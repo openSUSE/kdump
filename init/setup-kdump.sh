@@ -35,15 +35,40 @@ if [ ! -f "$CONFIG" ] ; then
     return 1
 fi
 
+#
+# read in the configuration
 source "$CONFIG"
-mkdir -p ${tmp_mnt}/etc/sysconfig/
-cp "$CONFIG" ${tmp_mnt}/etc/sysconfig/
 
 #
 # replace the KDUMP_SAVEDIR with the resolved path
 if [ "$kdump_protocol" = "file" ] ; then
-    sed -i "s#KDUMP_SAVEDIR=.*#KDUMP_SAVEDIR=\"file://$kdump_path\"#g" ${tmp_mnt}/$CONFIG
+    KDUMP_SAVEDIR="file://$kdump_path"
 fi
+
+#
+# get the host key, if needed
+if [ "$kdump_protocol" = "sftp" -a -z "$KDUMP_HOST_KEY" ] ; then
+    KDUMP_HOST_KEY=$(ssh-keygen -F "$kdump_host" 2>/dev/null | \
+                     awk '/^[^#]/ { if (NF==3) { print $3; exit } }')
+    if [ -z "$KDUMP_HOST_KEY" ] ; then
+        echo "WARNING: target SSH host key not found. " \
+             "Man-in-the-middle attack is possible." >&2
+    fi
+fi
+
+#
+# copy the configuration file, modifying:
+#   KDUMP_SAVEDIR  -> resolved path
+#   KDUMP_HOST_KEY -> target host public key
+mkdir -p ${tmp_mnt}/etc/sysconfig/
+sed -e 's#^[ 	]*\(KDUMP_SAVEDIR\)=.*#\1="'"$KDUMP_SAVEDIR"'"#g' \
+    -e 's#^[ 	]*\(KDUMP_HOST_KEY\)=.*#\1="'"$KDUMP_HOST_KEY"'"#g' \
+    "$CONFIG" > "${tmp_mnt}${CONFIG}"
+
+#
+# add the host key explicitly if the option was missing
+grep '^[ 	]*KDUMP_HOST_KEY=' ${tmp_mnt}${CONFIG} >/dev/null 2>&1 \
+    || echo 'KDUMP_HOST_KEY="'"$KDUMP_HOST_KEY"'"' >> "${tmp_mnt}${CONFIG}"
 
 #
 # remember the host name
@@ -51,17 +76,19 @@ fi
 hostname >> ${tmp_mnt}/etc/hostname.kdump
 
 #
-# copy public and private key
+# copy public and private key if needed
 #
-if [ -f /root/.ssh/id_dsa ] && [ -f /root/.ssh/id_dsa.pub ] ; then
-    mkdir ${tmp_mnt}/.ssh
-    cp /root/.ssh/id_dsa ${tmp_mnt}/.ssh
-    cp /root/.ssh/id_dsa.pub ${tmp_mnt}/.ssh
-fi
-if [ -f /root/.ssh/id_rsa ] && [ -f /root/.ssh/id_rsa.pub ] ; then
-    mkdir ${tmp_mnt}/.ssh
-    cp /root/.ssh/id_rsa ${tmp_mnt}/.ssh
-    cp /root/.ssh/id_rsa.pub ${tmp_mnt}/.ssh
+if [ "$kdump_protocol" = "sftp" ] ; then
+    if [ -f /root/.ssh/id_dsa ] && [ -f /root/.ssh/id_dsa.pub ] ; then
+        mkdir -p ${tmp_mnt}/.ssh
+        cp /root/.ssh/id_dsa ${tmp_mnt}/.ssh
+        cp /root/.ssh/id_dsa.pub ${tmp_mnt}/.ssh
+    fi
+    if [ -f /root/.ssh/id_rsa ] && [ -f /root/.ssh/id_rsa.pub ] ; then
+        mkdir -p ${tmp_mnt}/.ssh
+        cp /root/.ssh/id_rsa ${tmp_mnt}/.ssh
+        cp /root/.ssh/id_rsa.pub ${tmp_mnt}/.ssh
+    fi
 fi
 
 #

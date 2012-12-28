@@ -28,6 +28,11 @@
 #include "global.h"
 #include "debug.h"
 
+#if HAVE_LIBSSL
+#   include <openssl/bio.h>
+#   include <openssl/evp.h>
+#endif
+
 using std::string;
 using std::stringstream;
 using std::strcpy;
@@ -309,6 +314,61 @@ string Stringutil::formatCurrentTime(const char *formatstring)
 {
     return formatUnixTime(formatstring, time(NULL));
 }
+
+#if HAVE_LIBSSL
+
+// -----------------------------------------------------------------------------
+void Stringutil::digest_base64(const void *buf, size_t len,
+			       char *md5sum, char *sha1sum)
+    throw (KError)
+{
+	BIO *bio, *b64bio, *sha1bio, *md5bio;
+	char tmpbuf[256];
+	int res;
+
+	bio = BIO_new_mem_buf(const_cast<void *> (buf), len);
+	if (!bio)
+	    throw KError("Cannot initialize memory stream");
+
+	try {
+	    b64bio = BIO_new(BIO_f_base64());
+	    if (!b64bio)
+		throw KError("Cannot initilaize base64 decoder");
+	    BIO_set_flags(b64bio, BIO_FLAGS_BASE64_NO_NL);
+	    bio = BIO_push(b64bio, bio);
+
+	    sha1bio = BIO_new(BIO_f_md());
+	    if (!sha1bio)
+		throw KError("Cannot initialize MD5 sum");
+	    BIO_set_md(sha1bio, EVP_sha1());
+	    bio = BIO_push(sha1bio, bio);
+
+	    md5bio = BIO_new(BIO_f_md());
+	    if (!md5bio)
+		throw KError("Cannot initialize SHA1 sum");
+	    BIO_set_md(md5bio, EVP_md5());
+	    bio = BIO_push(md5bio, bio);
+
+	    while ( (res = BIO_read(md5bio, tmpbuf, sizeof tmpbuf)) > 0)
+		;
+	    if (res < 0)
+		throw KError("Decoding failed");
+
+	    if (BIO_gets(md5bio, md5sum, MD5SUM_LENGTH) != MD5SUM_LENGTH)
+		throw KError("Error getting MD5 sum");
+
+	    if (BIO_gets(sha1bio, sha1sum, SHA1SUM_LENGTH) != SHA1SUM_LENGTH)
+		throw KError("Error getting SHA1 sum");
+
+	} catch (...) {
+	    BIO_free_all(bio);
+	    throw;
+	}
+
+	BIO_free_all(bio);
+}
+
+#endif	// HAVE_LIBSSL
 
 //}}}
 

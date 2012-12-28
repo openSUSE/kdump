@@ -124,6 +124,21 @@ IF(NOT ESMTP_FOUND)
     SET(ESMTP_FOUND FALSE)
 ENDIF(NOT ESMTP_FOUND)
 
+# OpenSSL
+INCLUDE(Findlibssl)
+
+IF (LIBSSL_FOUND)
+    SET(EXTRA_LIBS ${EXTRA_LIBS} ${LIBSSL_LIBRARIES})
+    INCLUDE_DIRECTORIES(${LIBSSL_INCLUDE_DIRS})
+ENDIF (LIBSSL_FOUND)
+
+IF(NOT LIBSSL_FOUND)
+    MESSAGE(
+        "libssl not found. Install libopenssl-devel or something like that")
+    MESSAGE("Building without OpenSSL support")
+    SET(LIBSSL_FOUND FALSE)
+ENDIF(NOT LIBSSL_FOUND)
+
 
 #
 # Configure file

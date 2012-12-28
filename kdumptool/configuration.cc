@@ -46,7 +46,7 @@ Configuration::Configuration()
       m_dumpFormat("compressed"), m_continueOnError(true),
       m_requiredPrograms(""), m_prescript(""), m_postscript(""),
       m_copyKernel(""), m_kdumptoolFlags(""), m_smtpServer(""),
-      m_smtpUser(""), m_smtpPassword("")
+      m_smtpUser(""), m_smtpPassword(""), m_hostKey("")
 {}
 
 /* -------------------------------------------------------------------------- */
@@ -78,6 +78,7 @@ void Configuration::readFile(const string &filename)
     cp.addVariable("KDUMP_SMTP_PASSWORD");
     cp.addVariable("KDUMP_NOTIFICATION_TO");
     cp.addVariable("KDUMP_NOTIFICATION_CC");
+    cp.addVariable("KDUMP_HOST_KEY");
     cp.parse();
 
     m_kernelVersion = cp.getValue("KDUMP_KERNELVER");
@@ -104,6 +105,7 @@ void Configuration::readFile(const string &filename)
     m_smtpPassword = cp.getValue("KDUMP_SMTP_PASSWORD");
     m_notificationTo = cp.getValue("KDUMP_NOTIFICATION_TO");
     m_notificationCc = cp.getValue("KDUMP_NOTIFICATION_CC");
+    m_hostKey = cp.getValue("KDUMP_HOST_KEY");
 
     m_readConfig = true;
 }
@@ -372,6 +374,16 @@ string Configuration::getNotificationCc()
         throw KError("Configuration has not been read.");
 
     return m_notificationCc;
+}
+
+// -----------------------------------------------------------------------------
+string Configuration::getHostKey()
+    throw (KError)
+{
+    if (!m_readConfig)
+        throw KError("Configuration has not been read.");
+
+    return m_hostKey;
 }
 
 //}}}

@@ -270,8 +270,9 @@ if [ -z "$target" ] ; then
     echo >&2 "kdumptool print_target failed."
     return 1
 fi
-kdump_protocol=$(echo "$target" | grep '^Protocol' | awk '{ print $2 }')
-kdump_path=$(echo "$target" | grep '^Realpath' | awk '{ print $2 }')
+kdump_protocol=$(echo "$target" | grep '^Protocol:' | awk '{ print $2 }')
+kdump_path=$(echo "$target" | grep '^Realpath:' | awk '{ print $2 }')
+kdump_host=$(echo "$target" | grep '^Host:' | awk '{ print $2 }')
 
 kdump_fsmod=
 

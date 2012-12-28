@@ -312,3 +312,13 @@ KDUMP_NOTIFICATION_TO=""
 #
 KDUMP_NOTIFICATION_CC=""
 
+## Type:        string
+## Default:     ""
+## ServiceRestart:	kdump
+#
+# Target host public key, encoded with base64. This is used only for the
+# SFTP transfer protocol. If empty, kdump will run 'ssh-keygen -F' to get
+# the key from known hosts. If set to "*", any host key will be accepted.
+#
+# See also: kdump(5)
+KDUMP_HOST_KEY=""

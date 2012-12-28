@@ -13,6 +13,7 @@
   * Do not re-generate kdump initrd on boot. Instead, hook into the
     normal mkinitrd run.
   * Adjust init-script actions to match LSB better.
+  * Check remote host SSH key if available.
 
 0.8.1
 -----

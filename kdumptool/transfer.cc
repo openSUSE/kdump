@@ -16,6 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  * 02110-1301, USA.
  */
+#include <iostream>
 #include <cstdio>
 #include <cstdarg>
 #include <cerrno>
@@ -47,6 +48,8 @@ using std::fclose;
 using std::string;
 using std::copy;
 using std::strlen;
+using std::cerr;
+using std::endl;
 
 #define DEFAULT_MOUNTPOINT "/mnt"
 
@@ -472,12 +475,40 @@ SFTPTransfer::SFTPTransfer(const char *target_url)
             Stringutil::number2string(ret) +".");
     }
 
-    // get the fingerprint for debugging
-    // XXX: compare the fingerprint
-    const char *fingerprint = libssh2_hostkey_hash(m_sshSession,
-        LIBSSH2_HOSTKEY_HASH_MD5);
-    Debug::debug()->info("SSH fingerprint: %s",
-        Stringutil::bytes2hexstr(fingerprint, 16, true).c_str());
+    // get the hostkey fingerprints
+    const char *hostsha1 =
+	libssh2_hostkey_hash(m_sshSession, LIBSSH2_HOSTKEY_HASH_SHA1);
+    Debug::debug()->info
+	("SSH SHA1 fingerprint: %s",
+	 Stringutil::bytes2hexstr(hostsha1, SHA1SUM_LENGTH, true).c_str());
+
+    const char *hostmd5 =
+	libssh2_hostkey_hash(m_sshSession, LIBSSH2_HOSTKEY_HASH_MD5);
+    Debug::debug()->info
+	("SSH MD5 fingerprint: %s",
+	 Stringutil::bytes2hexstr(hostmd5, MD5SUM_LENGTH, true).c_str());
+
+#if HAVE_LIBSSL
+    // check the fingerprints if possible
+    Configuration *config = Configuration::config();
+    string hostkey = config->getHostKey();
+
+    if (!hostkey.empty() && hostkey != "*") {
+	char expectmd5[MD5SUM_LENGTH];
+	char expectsha1[SHA1SUM_LENGTH];
+	Stringutil::digest_base64(hostkey.c_str(), hostkey.size(),
+				  expectmd5, expectsha1);
+
+	if (memcmp(hostsha1, expectsha1, SHA1SUM_LENGTH))
+	    throw KError("Target host key SHA1 fingerprint mismatch!");
+	Debug::debug()->info("SHA1 fingerprint matches");
+
+	if (memcmp(hostmd5, expectmd5, MD5SUM_LENGTH))
+	    throw KError("Target host key MD5 fingerprint mismatch!");
+	Debug::debug()->info("MD5 fingerprint matches");
+    } else
+	cerr << "WARNING: SSH host key accepted without checking!" << endl;
+#endif	// HAVE_LIBSSL
 
     // SSH authentication
     bool authenticated = false;
