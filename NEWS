@@ -17,6 +17,7 @@
   * Allow dumping if the primary kernel was booted in EFI mode.
   * Correctly recognize ELF and compressed ELF kernel files.
   * Create KDUMP_SAVEDIR if non-existent.
+  * Include makedumpfile-R.pl in the kdump initrd.
 
 0.8.1
 -----
