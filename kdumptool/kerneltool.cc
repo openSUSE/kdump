@@ -56,6 +56,8 @@ using std::list;
 #define MAGIC_END           "IKCFG_ED"
 #define MAGIC_LEN           8
 
+const static unsigned char magic_start[] = MAGIC_START;
+const static unsigned char magic_end[] = MAGIC_END;
 
 // -----------------------------------------------------------------------------
 KernelTool::KernelTool(const std::string &image)
@@ -421,7 +423,7 @@ string KernelTool::extractKernelConfigELF() const
     }
 
     // we overlap the reads, that way searching for the pattern is easier
-    char buffer[BUFSIZ];
+    unsigned char buffer[BUFSIZ];
     memset(buffer, 0, BUFSIZ);
 
     // search for the begin and end offests first
@@ -430,12 +432,12 @@ string KernelTool::extractKernelConfigELF() const
     off_t begin_offset = 0, end_offset = 0;
     while ((chars_read = gzread(fp, buffer+MAGIC_LEN, BUFSIZ-MAGIC_LEN)) > 0) {
         if (begin_offset == 0) {
-            ssize_t pos = Util::findBytes(buffer, BUFSIZ, MAGIC_START, MAGIC_LEN);
+            ssize_t pos = Util::findBytes(buffer, BUFSIZ, magic_start, MAGIC_LEN);
             if (pos > 0) {
                 begin_offset = fileoffset + pos - MAGIC_LEN;
             }
         } else if (end_offset == 0) {
-            ssize_t pos = Util::findBytes(buffer, BUFSIZ, MAGIC_END, MAGIC_LEN);
+            ssize_t pos = Util::findBytes(buffer, BUFSIZ, magic_end, MAGIC_LEN);
             if (pos > 0) {
                 end_offset = fileoffset + pos - MAGIC_LEN;
             }
@@ -479,8 +481,8 @@ string KernelTool::extractKernelConfigbzImage() const
     // that script helped me a lot
     // http://www.cs.caltech.edu/~weixl/research/fast-mon/scripts/extract-ikconfig
 
-    char searchfor[4] = { 0x1f, 0x8b, 0x08, 0x0 };
-    char buffer[BUFSIZ];
+    unsigned char searchfor[4] = { 0x1f, 0x8b, 0x08, 0x0 };
+    unsigned char buffer[BUFSIZ];
     ssize_t chars_read;
 
     off_t oret = lseek(m_fd, 0, SEEK_SET);
@@ -528,12 +530,12 @@ string KernelTool::extractKernelConfigbzImage() const
     fileoffset = 0;
     while ((chars_read = gzread(fp, buffer+MAGIC_LEN, BUFSIZ-MAGIC_LEN)) > 0) {
         if (begin_offset == 0) {
-            ssize_t pos = Util::findBytes(buffer, BUFSIZ, MAGIC_START, MAGIC_LEN);
+            ssize_t pos = Util::findBytes(buffer, BUFSIZ, magic_start, MAGIC_LEN);
             if (pos > 0) {
                 begin_offset = fileoffset + pos - MAGIC_LEN;
             }
         } else if (end_offset == 0) {
-            ssize_t pos = Util::findBytes(buffer, BUFSIZ, MAGIC_END, MAGIC_LEN);
+            ssize_t pos = Util::findBytes(buffer, BUFSIZ, magic_end, MAGIC_LEN);
             if (pos > 0) {
                 end_offset = fileoffset + pos - MAGIC_LEN;
             }

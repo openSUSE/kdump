@@ -234,8 +234,8 @@ string Util::getHostDomain()
 }
 
 // -----------------------------------------------------------------------------
-ssize_t Util::findBytes(const char *haystack, size_t haystack_len,
-                        const char *needle, size_t needle_len)
+ssize_t Util::findBytes(const unsigned char *haystack, size_t haystack_len,
+                        const unsigned char *needle, size_t needle_len)
     throw ()
 {
     for (size_t i = 0; i < (haystack_len-needle_len); i++) {

@@ -138,8 +138,10 @@ class Util {
          * @return the offset in @p haystack or -1 if @p needle was not found
          *         in @p haystack
          */
-        static ssize_t findBytes(const char *haystack, size_t haystack_len,
-                                const char *needle, size_t needle_len)
+        static ssize_t findBytes(const unsigned char *haystack,
+				 size_t haystack_len,
+				 const unsigned char *needle,
+				 size_t needle_len)
         throw ();
 
         /**
