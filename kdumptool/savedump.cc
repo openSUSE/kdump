@@ -45,7 +45,7 @@ using std::cout;
 using std::cerr;
 using std::endl;
 using std::auto_ptr;
-using std::stringstream;
+using std::istringstream;
 using std::ostringstream;
 using std::ifstream;
 
@@ -309,7 +309,7 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
         m_useMakedumpfile = false;
     } else {
         // use makedumpfile
-        stringstream cmdline;
+        ostringstream cmdline;
         cmdline << "makedumpfile ";
 	if (useSplit)
 	    cmdline << "--split ";
@@ -406,7 +406,7 @@ void SaveDump::generateRearrange()
     Configuration *config = Configuration::config();
 
     // and also generate a "rearrange" script
-    stringstream ss;
+    ostringstream ss;
 
     ss << "#!/bin/sh" << endl;
     ss << endl;
@@ -463,7 +463,7 @@ void SaveDump::generateInfo()
     Debug::debug()->trace("SaveDump::generateInfo");
     Configuration *config = Configuration::config();
 
-    stringstream ss;
+    ostringstream ss;
 
     ss << "Kernel crashdump" << endl;
     ss << "----------------" << endl;
@@ -685,17 +685,16 @@ void SaveDump::sendNotification(bool failure, const RootDirURLVector &urlv,
         email.setTo(config->getNotificationTo());
 
         if (config->getNotificationCc().size() != 0) {
-            stringstream split;
+            istringstream split(config->getNotificationCc());
             string cc;
 
-            split << config->getNotificationCc();
             while (split >> cc) {
                 Debug::debug()->dbg("Adding Cc: %s", cc.c_str());
                 email.addCc(cc);
             }
         }
 
-        stringstream ss;
+        ostringstream ss;
         email.setSubject("kdump: " + m_hostname + " crashed");
 
         ss << "Your machine " + m_hostname + " crashed." << endl;
