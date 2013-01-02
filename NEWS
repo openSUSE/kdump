@@ -22,8 +22,8 @@
   * Ignore unknown NMIs in the kdump kernel.
   * Do not try to recurse non-directories when deleting old dumps.
   * Support for LZO-compressed dumps.
-  * Use makedumpfile --split option if multiple target directories are
-    specified.
+  * If KDUMP_CPUS is greater than 1, save multiple partial files in parallel
+    using "makedumpfile --split".
   * Save extracted kernel log messages together with the dump file.
   * Add a "none" format to skip capturing the dump.
 
