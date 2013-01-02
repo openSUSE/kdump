@@ -57,7 +57,7 @@ using std::ifstream;
 SaveDump::SaveDump()
     throw ()
     : m_dump(DEFAULT_DUMP), m_transfer(NULL), m_usedDirectSave(false),
-      m_useMakedumpfile(false), m_nomail(false)
+      m_useMakedumpfile(false), m_useSplit(false), m_nomail(false)
 {
     Debug::debug()->trace("SaveDump::SaveDump()");
 }
@@ -295,10 +295,9 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
     if (noDump)
 	return;			// nothing to be done
 
-    bool useSplit = false;
     if (config->getCPUs() > 1) {
 	if (!useElf)
-	    useSplit = true;
+	    m_useSplit = true;
 	else
 	    cerr << "Splitting ELF dumps is not supported." << endl;
     }
@@ -311,7 +310,7 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
         // use makedumpfile
         ostringstream cmdline;
         cmdline << "makedumpfile ";
-	if (useSplit)
+	if (m_useSplit)
 	    cmdline << "--split ";
         cmdline << config->getMakedumpfileOptions() << " ";
         cmdline << "-d " << config->getDumpLevel() << " ";
@@ -341,7 +340,7 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
             provider->setProgress(&progress);
         else
             cout << "Saving dump ..." << endl;
-	if (useSplit) {
+	if (m_useSplit) {
 	    StringVector targets;
 	    for (int i = 1; i <= config->getCPUs(); ++i) {
 		ostringstream ss;
@@ -480,7 +479,10 @@ void SaveDump::generateInfo()
     ss << "Dump level     : "
        << Stringutil::number2string(config->getDumpLevel()) << endl;
     ss << "Dump format    : " << config->getDumpFormat() << endl;
+    if (m_useSplit && m_usedDirectSave)
+	ss << "Split parts    : " << config->getCPUs() << endl;
     ss << endl;
+
 
     if (m_useMakedumpfile && !m_usedDirectSave) {
         ss << "NOTE:" << endl;
