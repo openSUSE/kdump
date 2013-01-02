@@ -1,3 +1,7 @@
+0.8.3
+-----
+  * Update the text of the license (new FSF address).
+
 0.8.2
 -----
   * Fix missing error reason (string representation  of errno) in the
