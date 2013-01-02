@@ -105,31 +105,6 @@ for program in $KDUMP_REQUIRED_PROGRAMS ; do
     cp_bin "$program" "${tmp_mnt}/${dir}"
 done
 
-#
-# copy the appropriate libebl backend
-#
-arch="$(uname -m)"
-LIBDIR=lib
-case "$arch" in
-    i?86)
-        arch=i386
-        ;;
-    s390x)
-        arch=s390
-        LIBDIR=lib64
-        ;;
-    ppc64|x86_64)
-        LIBDIR=lib64
-        ;;
-esac
-dir=/usr/$LIBDIR/elfutils
-dso=${dir}/libebl_${arch}.so
-if -e "$dso"; then
-    fulldso=$(readlink -f "${dso}")
-    mkdir -p "${tmp_mnt}${dir}"
-    cp_bin "$fulldso" "$dso" "${tmp_mnt}${dir}"
-fi
-
 save_var use_kdump
 save_var kdump_fsmod
 
