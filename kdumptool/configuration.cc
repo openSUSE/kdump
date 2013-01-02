@@ -39,7 +39,7 @@ Configuration *Configuration::config()
 // -----------------------------------------------------------------------------
 Configuration::Configuration()
     throw ()
-    : m_readConfig(false), m_kernelVersion(""), m_commandLine(""),
+    : m_readConfig(false), m_kernelVersion(""), m_CPUs(1), m_commandLine(""),
       m_commandLineAppend(""), m_kexecOptions(""), m_makedumpfileOptions(""),
       m_immediateReboot(true), m_customTransfer(""), m_savedir("/var/log/dump"),
       m_keepOldDumps(0), m_freeDiskSize(64), m_verbose(0), m_dumpLevel(0),
@@ -55,6 +55,7 @@ void Configuration::readFile(const string &filename)
 {
     ConfigParser cp(filename);
     cp.addVariable("KDUMP_KERNELVER");
+    cp.addVariable("KDUMP_CPUS");
     cp.addVariable("KDUMP_COMMANDLINE");
     cp.addVariable("KDUMP_COMMANDLINE_APPEND");
     cp.addVariable("KEXEC_OPTIONS");
@@ -82,6 +83,7 @@ void Configuration::readFile(const string &filename)
     cp.parse();
 
     m_kernelVersion = cp.getValue("KDUMP_KERNELVER");
+    m_CPUs = cp.getIntValue("KDUMP_CPUS");
     m_commandLine = cp.getValue("KDUMP_COMMANDLINE");
     m_commandLineAppend = cp.getValue("KDUMP_COMMANDLINE_APPEND");
     m_kexecOptions = cp.getValue("KEXEC_OPTIONS");
@@ -119,6 +121,17 @@ string Configuration::getKernelVersion() const
 
     return m_kernelVersion;
 }
+
+// -----------------------------------------------------------------------------
+int Configuration::getCPUs() const
+    throw (KError)
+{
+    if (!m_readConfig)
+        throw KError("Configuration has not been read.");
+
+    return m_CPUs;
+}
+
 
 // -----------------------------------------------------------------------------
 string Configuration::getCommandLine() const

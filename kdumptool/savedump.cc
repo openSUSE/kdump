@@ -42,9 +42,11 @@
 
 using std::string;
 using std::cout;
+using std::cerr;
 using std::endl;
 using std::auto_ptr;
 using std::stringstream;
+using std::ostringstream;
 using std::ifstream;
 
 #define KERNELCOMMANDLINE "/proc/cmdline"
@@ -293,6 +295,14 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
     if (noDump)
 	return;			// nothing to be done
 
+    bool useSplit = false;
+    if (config->getCPUs() > 1) {
+	if (!useElf)
+	    useSplit = true;
+	else
+	    cerr << "Splitting ELF dumps is not supported." << endl;
+    }
+
     if (useElf && dumplevel == 0) {
         // use file source?
         provider = new FileDataProvider(m_dump.c_str());
@@ -301,11 +311,8 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
         // use makedumpfile
         stringstream cmdline;
         cmdline << "makedumpfile ";
-	if (urlv.size() >= 2) {
-	    if (useElf)
-		throw KError("Split cannot be used with ELF format.");
+	if (useSplit)
 	    cmdline << "--split ";
-	}
         cmdline << config->getMakedumpfileOptions() << " ";
         cmdline << "-d " << config->getDumpLevel() << " ";
         if (useElf)
@@ -334,7 +341,17 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
             provider->setProgress(&progress);
         else
             cout << "Saving dump ..." << endl;
-        m_transfer->perform(provider, "vmcore", &m_usedDirectSave);
+	if (useSplit) {
+	    StringVector targets;
+	    for (int i = 1; i <= config->getCPUs(); ++i) {
+		ostringstream ss;
+		ss << "vmcore" << i;
+		targets.push_back(ss.str());
+	    }
+	    m_transfer->perform(provider, targets, &m_usedDirectSave);
+	} else {
+	    m_transfer->perform(provider, "vmcore", &m_usedDirectSave);
+	}
         if (m_useMakedumpfile)
             terminal.printLine();
     } catch (...) {

@@ -124,6 +124,23 @@ load the normal initrd that would not save the dump.
 
 
 
+KDUMP_CPUS
+~~~~~~~~~~
+
+If dumping is CPU-bound on your system, you can parallelize it on an SMP
+system. Keep in mind that this increases the stress on the I/O subsystem,
+so you probably don't get the maximum speed if you set this parameter to
+the number of CPUs in your system.
+
+This parameter modifies the _maxcpus_ parameter of the kdump kernel and
+the number of *makedumpfile*(8) processes created.
+
+*Note:* This parameter does not work properly for the _ELF_ format,
+because *makedumpfile*(8) does not support split _ELF_ dump files.
+
+Default is 1.
+
+
 KDUMP_COMMANDLINE
 ~~~~~~~~~~~~~~~~~
 
@@ -134,7 +151,6 @@ create a command line, make sure to include:
 
 * the _root_ parameter,
 * any _console_ parameters (for serial console),
-* _maxcpus=1_,
 * _irqpoll_,
 * _reset_devices_,
 * _elevator=deadline_ to save the memory footprint.
@@ -228,8 +244,14 @@ If KDUMP_COPY_KERNEL is set, that directory will also contain the kernel.
 You can specify multiple targets separated by spaces. The dump will then be
 split and saved to all target directories in parallel. This is useful if the
 targets are on different storage devices, because their combined I/O bandwidth
-can be used. This feature is supported only for local files using the
-kdump-compressed format.
+can be used.
+Note how this option interacts with KDUMP_CPUS.  If you specify more CPUs than
+target locations, then they will be assigned to the available processes in a
+round-robin fashion (i.e. more than one process will be writing to the same
+directory). If you specify more locations than CPUs, then only the first
+KDUMP_CPUS locations will be used.
+This feature is supported only for local files using the kdump-compressed
+format.
 
 Default: "file:///var/log/dump".
 

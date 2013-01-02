@@ -62,18 +62,28 @@ class Transfer {
          * DataProvider objects.
          *
          * @param[in] dataprovider the data provider
-         * @param[in] target_url the URL for the target directory, i.e. without
-         *            the file name
          * @param[in] target_file the actual file name for the target
          * @param[out] directSave if the transfer used
          *             DataProvider::saveToFile()
          * @exception KError on any error
          */
         virtual void perform(DataProvider *dataprovider,
-                             const char *target_file,
+                             const StringVector &target_files,
                              bool *directSave=NULL)
         throw (KError) = 0;
 
+	/**
+	 * Shorthand version of perform() if there is only one file
+	 *
+	 * @param[in] dataprovider the data provider
+	 * @param[in] target_file the file name for the target
+	 * @param[out] directSave @see Transfer::perform()
+         * @exception KError on any error
+	 */
+	void perform(DataProvider *dataprovider,
+		     const std::string &target_file,
+		     bool *directSave=NULL)
+	throw (KError);
 };
 
 //}}}
@@ -168,21 +178,21 @@ class FileTransfer : public URLTransfer {
          * @see Transfer::perform()
          */
         void perform(DataProvider *dataprovider,
-                     const char *target_file,
+                     const StringVector &target_files,
                      bool *directSave)
         throw (KError);
 
     protected:
 
         void performFile(DataProvider *dataprovider,
-			 const std::string &target_file)
+			 const StringVector &target_files)
         throw (KError);
 
         void performPipe(DataProvider *dataprovider,
-			 const std::string &target_file)
+			 const StringVector &target_files)
         throw (KError);
 
-        FILE *open(const char *target_file)
+        FILE *open(const std::string &target_file)
         throw (KError);
 
         void close(FILE *fp)
@@ -223,14 +233,14 @@ class FTPTransfer : public URLTransfer {
          * @see Transfer::perform()
          */
         void perform(DataProvider *dataprovider,
-                     const char *target_file,
+                     const StringVector &target_files,
                      bool *directSave)
         throw (KError);
 
     protected:
 
         void open(DataProvider *dataprovider,
-                   const char *target_file)
+		  const std::string &target_file)
         throw (KError);
 
     private:
@@ -271,7 +281,7 @@ class SFTPTransfer : public URLTransfer {
          * @see Transfer::perform()
          */
         void perform(DataProvider *dataprovider,
-                     const char *target_file,
+                     const StringVector &target_files,
                      bool *directSave)
         throw (KError);
 
@@ -325,7 +335,7 @@ class NFSTransfer : public URLTransfer {
          * @see Transfer::perform()
          */
         void perform(DataProvider *dataprovider,
-                     const char *target_file,
+                     const StringVector &target_files,
                      bool *directSave)
         throw (KError);
 
@@ -379,7 +389,7 @@ class CIFSTransfer : public URLTransfer {
          * @see Transfer::perform()
          */
         void perform(DataProvider *dataprovider,
-                     const char *target_file,
+                     const StringVector &target_files,
                      bool *directSave)
         throw (KError);
 

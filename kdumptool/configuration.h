@@ -78,6 +78,15 @@ class Configuration {
         std::string getKernelVersion() const
         throw (KError);
 
+	/**
+	 * Returns the value of KDUMP_CPUS.
+	 *
+	 * @return the desired parallelism
+	 * @exception KError if Configuration::readFile() was not called
+	 */
+	int getCPUs() const
+        throw (KError);
+
         /**
          * Returns the value of KDUMP_COMMANDLINE.
          *
@@ -322,6 +331,7 @@ class Configuration {
         static Configuration *m_instance;
         bool m_readConfig;
         std::string m_kernelVersion;
+        int m_CPUs;
         std::string m_commandLine;
         std::string m_commandLineAppend;
         std::string m_kexecOptions;

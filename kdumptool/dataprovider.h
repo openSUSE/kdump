@@ -69,13 +69,11 @@ class DataProvider {
          * If DataProvider::canSaveToFile() returns @c true, that method
          * saves the contents that the DataProvider provides to a file.
          *
-         * @param[in] base location for the target
-	 * @param[in] target file where the contents should be saved to
+	 * @param[in] targets files where the contents should be saved to
          * @exception KError if saving failed or DataProvider::canSaveToFile()
          *            returns @c false.
          */
-        virtual void saveToFile(const RootDirURLVector &base,
-				const std::string &target)
+        virtual void saveToFile(const StringVector &targets)
         throw (KError) = 0;
 
         /**
@@ -178,14 +176,12 @@ class AbstractDataProvider : public DataProvider {
         /**
          * Throws a KError.
          *
-         * @param[in] base location for the target
-         * @param[in] target the target file (does not matter)
+         * @param[in] targets the target files (does not matter)
          * @exception KError always because DataProvider::canSaveToFile()
          *            returns @c false in AbstractDataProvider.
          * @see DataProvider::saveToFile().
          */
-        void saveToFile(const RootDirURLVector &base,
-			const std::string &target)
+        void saveToFile(const StringVector &targets)
         throw (KError);
 
         /**
@@ -323,12 +319,10 @@ class ProcessDataProvider : public AbstractDataProvider {
          * Runs the process with @c target as last parameter to save the
          * stuff to a file directly.
          *
-	 * @param[in] base base location for the target
-         * @param[in] target the target file
+         * @param[in] targets the target files
          * @param KError if saving to the file failed
          */
-        void saveToFile(const RootDirURLVector &base,
-			const std::string &target)
+        void saveToFile(const StringVector &targets)
         throw (KError);
 
         /**

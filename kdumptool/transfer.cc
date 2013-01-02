@@ -53,6 +53,18 @@ using std::endl;
 
 #define DEFAULT_MOUNTPOINT "/mnt"
 
+//{{{ Transfer -----------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+void Transfer::perform(DataProvider *dataprovider,
+		       const std::string &target_file,
+		       bool *directSave)
+    throw (KError)
+{
+    const StringVector target_files(1, target_file);
+    perform(dataprovider, target_files, directSave);
+}
+
 //{{{ URLTransfer --------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
@@ -146,21 +158,31 @@ FileTransfer::~FileTransfer()
 
 // -----------------------------------------------------------------------------
 void FileTransfer::perform(DataProvider *dataprovider,
-                           const char *target_file,
+                           const StringVector &target_files,
                            bool *directSave)
     throw (KError)
 {
-    Debug::debug()->trace("FileTransfer::perform(%p, %s)",
-        dataprovider, target_file);
+    Debug::debug()->trace("FileTransfer::perform(%p, [ \"%s\"%s ])",
+	dataprovider, target_files.front().c_str(),
+	target_files.size() > 1 ? ", ..." : "");
 
-    string dir_target = FileUtil::pathconcat(getSubDir(), target_file);
+    StringVector full_targets;
+    StringVector::const_iterator it;
+    RootDirURLVector &urlv = getURLVector();
+    RootDirURLVector::const_iterator itv = urlv.begin();
+    for (it = target_files.begin(); it != target_files.end(); ++it) {
+	full_targets.push_back(FileUtil::pathconcat(
+	    FileUtil::pathconcat(itv->getRealPath(), getSubDir()), *it));
+	if (++itv == urlv.end())
+	    itv = urlv.begin();
+    }
 
     if (dataprovider->canSaveToFile()) {
-	performFile(dataprovider, dir_target);
+	performFile(dataprovider, full_targets);
         if (directSave)
             *directSave = true;
     } else {
-        performPipe(dataprovider, dir_target);
+        performPipe(dataprovider, full_targets);
         if (directSave)
             *directSave = false;
     }
@@ -168,30 +190,29 @@ void FileTransfer::perform(DataProvider *dataprovider,
 
 // -----------------------------------------------------------------------------
 void FileTransfer::performFile(DataProvider *dataprovider,
-			       const string &target_file)
+			       const StringVector &target_files)
     throw (KError)
 {
-    Debug::debug()->trace("FileTransfer::performFile(%p, %s)",
-        dataprovider, target_file.c_str());
+    Debug::debug()->trace("FileTransfer::performFile(%p, [ \"%s\"%s ])",
+	dataprovider, target_files.front().c_str(),
+	target_files.size() > 1 ? ", ..." : "");
 
-    dataprovider->saveToFile(getURLVector(), target_file);
+    dataprovider->saveToFile(target_files);
 }
 
 // -----------------------------------------------------------------------------
 void FileTransfer::performPipe(DataProvider *dataprovider,
-			       const string &target_file)
+			       const StringVector &target_files)
     throw (KError)
 {
-    Debug::debug()->trace("FileTransfer::performPipe(%p, %s)",
-        dataprovider, target_file.c_str());
+    Debug::debug()->trace("FileTransfer::performPipe(%p, [ \"%s\"%s ])",
+        dataprovider, target_files.front().c_str(),
+	target_files.size() > 1 ? ", ..." : "");
 
-    RootDirURLVector &urlv = getURLVector();
-    if (urlv.size() > 1)
+    if (target_files.size() > 1)
 	cerr << "WARNING: First dump target used; rest ignored." << endl;
 
-    const RootDirURL &url = urlv.front();
-    string full_path = FileUtil::pathconcat(url.getRealPath(), target_file);
-    FILE *fp = open(full_path.c_str());
+    FILE *fp = open(target_files.front().c_str());
     bool sparse = !Configuration::config()->kdumptoolContainsFlag("NOSPARSE");
     if (!sparse)
         Debug::debug()->info("Creation of sparse files disabled in "
@@ -255,14 +276,14 @@ void FileTransfer::performPipe(DataProvider *dataprovider,
 }
 
 // -----------------------------------------------------------------------------
-FILE *FileTransfer::open(const char *target_file)
+FILE *FileTransfer::open(const string &target_file)
     throw (KError)
 {
-    Debug::debug()->trace("FileTransfer::open(%s)", target_file);
+    Debug::debug()->trace("FileTransfer::open(%s)", target_file.c_str());
 
-    FILE *fp = fopen(target_file, "w");
+    FILE *fp = fopen(target_file.c_str(), "w");
     if (!fp)
-        throw KSystemError("Error in fopen for " + string(target_file), errno);
+        throw KSystemError("Error in fopen for " + target_file, errno);
 
     return fp;
 }
@@ -398,16 +419,17 @@ FTPTransfer::~FTPTransfer()
 
 // -----------------------------------------------------------------------------
 void FTPTransfer::perform(DataProvider *dataprovider,
-                          const char *target_file,
+                          const StringVector &target_files,
                           bool *directSave)
     throw (KError)
 {
-    Debug::debug()->trace("FTPTransfer::perform(%p, %s)",
-        dataprovider, target_file);
+    Debug::debug()->trace("FTPTransfer::perform(%p, [ \"%s\"%s ])",
+	dataprovider, target_files.front().c_str(),
+	target_files.size() > 1 ? ", ..." : "");
 
     if (directSave)
         *directSave = false;
-    open(dataprovider, target_file);
+    open(dataprovider, target_files.front().c_str());
 
     try {
         dataprovider->prepare();
@@ -426,13 +448,13 @@ void FTPTransfer::perform(DataProvider *dataprovider,
 
 // -----------------------------------------------------------------------------
 void FTPTransfer::open(DataProvider *dataprovider,
-                        const char *target_file)
+                        const string &target_file)
     throw (KError)
 {
     CURLcode err;
 
     Debug::debug()->trace("FTPTransfer::open(%p, %s)", dataprovider,
-        target_file);
+        target_file.c_str());
 
     RootDirURLVector &urlv = getURLVector();
     const RootDirURL &parser = urlv.front();
@@ -674,12 +696,13 @@ void SFTPTransfer::mkdir(const string &dir, bool recursive)
 
 /* -------------------------------------------------------------------------- */
 void SFTPTransfer::perform(DataProvider *dataprovider,
-                           const char *target_file,
+                           const StringVector &target_files,
                            bool *directSave)
     throw (KError)
 {
-    Debug::debug()->trace("SFTPTransfer::perform(%p, %s)",
-        dataprovider, target_file);
+    Debug::debug()->trace("SFTPTransfer::perform(%p, [ \"%s\"%s ])",
+	dataprovider, target_files.front().c_str(),
+	target_files.size() > 1 ? ", ..." : "");
 
     bool prepared = false;
     if (directSave)
@@ -691,7 +714,7 @@ void SFTPTransfer::perform(DataProvider *dataprovider,
     LIBSSH2_SFTP_HANDLE  *handle = NULL;
     string file = FileUtil::pathconcat(
 	FileUtil::pathconcat(parser.getPath(), getSubDir()),
-	target_file
+	target_files.front()
 	);
 
     Debug::debug()->dbg("Using target file %s.", file.c_str());
@@ -808,11 +831,11 @@ NFSTransfer::~NFSTransfer()
 
 // -----------------------------------------------------------------------------
 void NFSTransfer::perform(DataProvider *dataprovider,
-                          const char *target_file,
+                          const StringVector &target_files,
                           bool *directSave)
     throw (KError)
 {
-    m_fileTransfer->perform(dataprovider, target_file, directSave);
+    m_fileTransfer->perform(dataprovider, target_files, directSave);
 }
 
 // -----------------------------------------------------------------------------
@@ -897,11 +920,11 @@ CIFSTransfer::~CIFSTransfer()
 
 // -----------------------------------------------------------------------------
 void CIFSTransfer::perform(DataProvider *dataprovider,
-                          const char *target_file,
+                          const StringVector &target_files,
                           bool *directSave)
     throw (KError)
 {
-    m_fileTransfer->perform(dataprovider, target_file, directSave);
+    m_fileTransfer->perform(dataprovider, target_files, directSave);
 }
 
 // -----------------------------------------------------------------------------
