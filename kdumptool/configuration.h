@@ -365,6 +365,7 @@ class Configuration {
         std::string m_postscript;
         bool m_copyKernel;
         std::string m_kdumptoolFlags;
+        std::string m_netConfig;
         std::string m_smtpServer;
         std::string m_smtpUser;
         std::string m_smtpPassword;

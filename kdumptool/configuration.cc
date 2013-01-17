@@ -50,6 +50,7 @@ const struct Configuration::OptionDesc Configuration::m_optiondesc[] = {
     DEFINE_OPT("KDUMP_POSTSCRIPT", string, m_postscript),
     DEFINE_OPT("KDUMP_COPY_KERNEL", bool, m_copyKernel),
     DEFINE_OPT("KDUMPTOOL_FLAGS", string, m_kdumptoolFlags),
+    DEFINE_OPT("KDUMP_NETCONFIG", string, m_netConfig),
     DEFINE_OPT("KDUMP_SMTP_SERVER", string, m_smtpServer),
     DEFINE_OPT("KDUMP_SMTP_USER", string, m_smtpUser),
     DEFINE_OPT("KDUMP_SMTP_PASSWORD", string, m_smtpPassword),
