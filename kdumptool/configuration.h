@@ -346,7 +346,7 @@ class Configuration {
 	};
 	static const struct OptionDesc m_optiondesc[];
 
-#define DEFINE_OPT(name, type, val) \
+#define DEFINE_OPT(name, type, val, defval)	\
 	type val;
 #define string std::string
 #include "define_opt.h"

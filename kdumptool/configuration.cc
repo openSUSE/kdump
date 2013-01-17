@@ -25,12 +25,12 @@ using std::string;
 
 //{{{ Configuration ------------------------------------------------------------
 
-#define DEFINE_OPT(name, type, val) \
+const struct Configuration::OptionDesc Configuration::m_optiondesc[] = {
+#define DEFINE_OPT(name, type, val, defval)		\
     { name, Configuration::OptionDesc::type_ ## type,	\
 	{ .val_ ## type = &Configuration::val } },
-
-const struct Configuration::OptionDesc Configuration::m_optiondesc[] = {
 #include "define_opt.h"
+#undef DEFINE_OPT
 };
 
 Configuration *Configuration::m_instance = NULL;
@@ -47,14 +47,11 @@ Configuration *Configuration::config()
 // -----------------------------------------------------------------------------
 Configuration::Configuration()
     throw ()
-    : m_readConfig(false), m_kernelVersion(""), m_CPUs(1), m_commandLine(""),
-      m_commandLineAppend(""), m_kexecOptions(""), m_makedumpfileOptions(""),
-      m_immediateReboot(true), m_customTransfer(""), m_savedir("/var/log/dump"),
-      m_keepOldDumps(0), m_freeDiskSize(64), m_verbose(0), m_dumpLevel(0),
-      m_dumpFormat("compressed"), m_continueOnError(true),
-      m_requiredPrograms(""), m_prescript(""), m_postscript(""),
-      m_copyKernel(""), m_kdumptoolFlags(""), m_smtpServer(""),
-      m_smtpUser(""), m_smtpPassword(""), m_hostKey("")
+    : m_readConfig(false)
+#define DEFINE_OPT(name, type, val, defval)		\
+      , val(defval)
+#include "define_opt.h"
+#undef DEFINE_OPT
 {}
 
 /* -------------------------------------------------------------------------- */
