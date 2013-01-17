@@ -328,6 +328,21 @@ class Configuration {
         throw () {}
 
     private:
+	struct OptionDesc {
+	    std::string name;
+	    enum {
+		type_string,
+		type_int,
+		type_bool
+	    } type;
+	    union {
+		std::string Configuration::* val_string;
+		int Configuration::* val_int;
+		bool Configuration::* val_bool;
+	    };
+	};
+	static const struct OptionDesc m_optiondesc[];
+
         static Configuration *m_instance;
         bool m_readConfig;
         std::string m_kernelVersion;

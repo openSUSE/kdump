@@ -25,6 +25,39 @@ using std::string;
 
 //{{{ Configuration ------------------------------------------------------------
 
+#define DEFINE_OPT(name, type, val) \
+    { name, Configuration::OptionDesc::type_ ## type,	\
+      { .val_ ## type = &Configuration::val } }
+
+const struct Configuration::OptionDesc Configuration::m_optiondesc[] = {
+    DEFINE_OPT("KDUMP_KERNELVER", string, m_kernelVersion),
+    DEFINE_OPT("KDUMP_CPUS", int, m_CPUs),
+    DEFINE_OPT("KDUMP_COMMANDLINE", string, m_commandLine),
+    DEFINE_OPT("KDUMP_COMMANDLINE_APPEND", string, m_commandLineAppend),
+    DEFINE_OPT("KEXEC_OPTIONS", string, m_kexecOptions),
+    DEFINE_OPT("MAKEDUMPFILE_OPTIONS", string, m_makedumpfileOptions),
+    DEFINE_OPT("KDUMP_IMMEDIATE_REBOOT", bool, m_immediateReboot),
+    DEFINE_OPT("KDUMP_TRANSFER", string, m_customTransfer),
+    DEFINE_OPT("KDUMP_SAVEDIR", string, m_savedir),
+    DEFINE_OPT("KDUMP_KEEP_OLD_DUMPS", int, m_keepOldDumps),
+    DEFINE_OPT("KDUMP_FREE_DISK_SIZE", int, m_freeDiskSize),
+    DEFINE_OPT("KDUMP_VERBOSE", int, m_verbose),
+    DEFINE_OPT("KDUMP_DUMPLEVEL", int, m_dumpLevel),
+    DEFINE_OPT("KDUMP_DUMPFORMAT", string, m_dumpFormat),
+    DEFINE_OPT("KDUMP_CONTINUE_ON_ERROR", bool, m_continueOnError),
+    DEFINE_OPT("KDUMP_REQUIRED_PROGRAMS", string, m_requiredPrograms),
+    DEFINE_OPT("KDUMP_PRESCRIPT", string, m_prescript),
+    DEFINE_OPT("KDUMP_POSTSCRIPT", string, m_postscript),
+    DEFINE_OPT("KDUMP_COPY_KERNEL", bool, m_copyKernel),
+    DEFINE_OPT("KDUMPTOOL_FLAGS", string, m_kdumptoolFlags),
+    DEFINE_OPT("KDUMP_SMTP_SERVER", string, m_smtpServer),
+    DEFINE_OPT("KDUMP_SMTP_USER", string, m_smtpUser),
+    DEFINE_OPT("KDUMP_SMTP_PASSWORD", string, m_smtpPassword),
+    DEFINE_OPT("KDUMP_NOTIFICATION_TO", string, m_notificationTo),
+    DEFINE_OPT("KDUMP_NOTIFICATION_CC", string, m_notificationCc),
+    DEFINE_OPT("KDUMP_HOST_KEY", string, m_hostKey),
+};
+
 Configuration *Configuration::m_instance = NULL;
 
 // -----------------------------------------------------------------------------
@@ -53,61 +86,28 @@ Configuration::Configuration()
 void Configuration::readFile(const string &filename)
     throw (KError)
 {
+    unsigned i;
     ConfigParser cp(filename);
-    cp.addVariable("KDUMP_KERNELVER");
-    cp.addVariable("KDUMP_CPUS");
-    cp.addVariable("KDUMP_COMMANDLINE");
-    cp.addVariable("KDUMP_COMMANDLINE_APPEND");
-    cp.addVariable("KEXEC_OPTIONS");
-    cp.addVariable("MAKEDUMPFILE_OPTIONS");
-    cp.addVariable("KDUMP_IMMEDIATE_REBOOT");
-    cp.addVariable("KDUMP_TRANSFER");
-    cp.addVariable("KDUMP_SAVEDIR");
-    cp.addVariable("KDUMP_KEEP_OLD_DUMPS");
-    cp.addVariable("KDUMP_FREE_DISK_SIZE");
-    cp.addVariable("KDUMP_VERBOSE");
-    cp.addVariable("KDUMP_DUMPLEVEL");
-    cp.addVariable("KDUMP_DUMPFORMAT");
-    cp.addVariable("KDUMP_CONTINUE_ON_ERROR");
-    cp.addVariable("KDUMP_REQUIRED_PROGRAMS");
-    cp.addVariable("KDUMP_PRESCRIPT");
-    cp.addVariable("KDUMP_POSTSCRIPT");
-    cp.addVariable("KDUMP_COPY_KERNEL");
-    cp.addVariable("KDUMPTOOL_FLAGS");
-    cp.addVariable("KDUMP_SMTP_SERVER");
-    cp.addVariable("KDUMP_SMTP_USER");
-    cp.addVariable("KDUMP_SMTP_PASSWORD");
-    cp.addVariable("KDUMP_NOTIFICATION_TO");
-    cp.addVariable("KDUMP_NOTIFICATION_CC");
-    cp.addVariable("KDUMP_HOST_KEY");
+
+    for (i = 0; i < sizeof(m_optiondesc) / sizeof(m_optiondesc[0]); ++i)
+	cp.addVariable(m_optiondesc[i].name);
+
     cp.parse();
 
-    m_kernelVersion = cp.getValue("KDUMP_KERNELVER");
-    m_CPUs = cp.getIntValue("KDUMP_CPUS");
-    m_commandLine = cp.getValue("KDUMP_COMMANDLINE");
-    m_commandLineAppend = cp.getValue("KDUMP_COMMANDLINE_APPEND");
-    m_kexecOptions = cp.getValue("KEXEC_OPTIONS");
-    m_makedumpfileOptions = cp.getValue("MAKEDUMPFILE_OPTIONS");
-    m_immediateReboot = cp.getBoolValue("KDUMP_IMMEDIATE_REBOOT");
-    m_customTransfer = cp.getValue("KDUMP_TRANSFER");
-    m_savedir = cp.getValue("KDUMP_SAVEDIR");
-    m_keepOldDumps = cp.getIntValue("KDUMP_KEEP_OLD_DUMPS");
-    m_freeDiskSize = cp.getIntValue("KDUMP_FREE_DISK_SIZE");
-    m_verbose = cp.getIntValue("KDUMP_VERBOSE");
-    m_dumpLevel = cp.getIntValue("KDUMP_DUMPLEVEL");
-    m_dumpFormat = cp.getValue("KDUMP_DUMPFORMAT");
-    m_continueOnError = cp.getBoolValue("KDUMP_CONTINUE_ON_ERROR");
-    m_requiredPrograms = cp.getValue("KDUMP_REQUIRED_PROGRAMS");
-    m_prescript = cp.getValue("KDUMP_PRESCRIPT");
-    m_postscript = cp.getValue("KDUMP_POSTSCRIPT");
-    m_copyKernel = cp.getBoolValue("KDUMP_COPY_KERNEL");
-    m_kdumptoolFlags = cp.getValue("KDUMPTOOL_FLAGS");
-    m_smtpServer = cp.getValue("KDUMP_SMTP_SERVER");
-    m_smtpUser = cp.getValue("KDUMP_SMTP_USER");
-    m_smtpPassword = cp.getValue("KDUMP_SMTP_PASSWORD");
-    m_notificationTo = cp.getValue("KDUMP_NOTIFICATION_TO");
-    m_notificationCc = cp.getValue("KDUMP_NOTIFICATION_CC");
-    m_hostKey = cp.getValue("KDUMP_HOST_KEY");
+    for (i = 0; i < sizeof(m_optiondesc) / sizeof(m_optiondesc[0]); ++i) {
+	const struct OptionDesc *opt = &m_optiondesc[i];
+	switch(opt->type) {
+	case OptionDesc::type_string:
+	    *this.*opt->val_string = cp.getValue(opt->name);
+	    break;
+	case OptionDesc::type_int:
+	    *this.*opt->val_int = cp.getIntValue(opt->name);
+	    break;
+	case OptionDesc::type_bool:
+	    *this.*opt->val_bool = cp.getBoolValue(opt->name);
+	    break;
+	}
+    }
 
     m_readConfig = true;
 }
