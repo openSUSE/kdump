@@ -328,6 +328,9 @@ class Configuration {
         throw () {}
 
     private:
+        static Configuration *m_instance;
+        bool m_readConfig;
+
 	struct OptionDesc {
 	    std::string name;
 	    enum {
@@ -343,35 +346,12 @@ class Configuration {
 	};
 	static const struct OptionDesc m_optiondesc[];
 
-        static Configuration *m_instance;
-        bool m_readConfig;
-        std::string m_kernelVersion;
-        int m_CPUs;
-        std::string m_commandLine;
-        std::string m_commandLineAppend;
-        std::string m_kexecOptions;
-        std::string m_makedumpfileOptions;
-        bool m_immediateReboot;
-        std::string m_customTransfer;
-        std::string m_savedir;
-        int m_keepOldDumps;
-        int m_freeDiskSize;
-        int m_verbose;
-        int m_dumpLevel;
-        std::string m_dumpFormat;
-        bool m_continueOnError;
-        std::string m_requiredPrograms;
-        std::string m_prescript;
-        std::string m_postscript;
-        bool m_copyKernel;
-        std::string m_kdumptoolFlags;
-        std::string m_netConfig;
-        std::string m_smtpServer;
-        std::string m_smtpUser;
-        std::string m_smtpPassword;
-        std::string m_notificationTo;
-        std::string m_notificationCc;
-	std::string m_hostKey;
+#define DEFINE_OPT(name, type, val) \
+	type val;
+#define string std::string
+#include "define_opt.h"
+#undef DEFINE_OPT
+#undef string
 };
 
 //}}}
