@@ -40,6 +40,18 @@ class ConfigOption {
 	{ }
 
 	/**
+	 * Return the name of the option.
+	 */
+	const char *name() const
+	throw ()
+	{ return m_name; }
+
+	/**
+	 * Return the string representation of the value.
+	 */
+	virtual std::string valueAsString() const = 0;
+
+	/**
 	 * Register the configuration option with a parser.
 	 *
 	 * @cp   the ConfigParser object where the config option will
@@ -86,6 +98,14 @@ class StringConfigOption : public ConfigOption {
 	{ return m_value; }
 
 	/**
+	 * Return the string representation of the value.
+	 * This is the same as StringConfigOption::value(), but it
+	 * returns a copy of the string rather than a constant reference.
+	 */
+	virtual std::string valueAsString() const
+	throw ();
+
+	/**
 	 * Update the value from a parser.
 	 *
 	 * @cp   the ConfigParser object from which the value will be
@@ -119,6 +139,12 @@ class IntConfigOption : public ConfigOption {
 	int value(void) const
 	throw ()
 	{ return m_value; }
+
+	/**
+	 * Return the string representation of the value.
+	 */
+	virtual std::string valueAsString() const
+	throw ();
 
 	/**
 	 * Update the value from a parser.
@@ -156,6 +182,12 @@ class BoolConfigOption : public ConfigOption {
 	{ return m_value; }
 
 	/**
+	 * Return the string representation of the value.
+	 */
+	virtual std::string valueAsString() const
+	throw ();
+
+	/**
 	 * Update the value from a parser.
 	 *
 	 * @cp   the ConfigParser object from which the value will be
@@ -172,6 +204,8 @@ class BoolConfigOption : public ConfigOption {
 //}}}
 
 //{{{ Configuration ------------------------------------------------------------
+
+typedef std::vector<ConfigOption*>::const_iterator ConfigOptionIterator;
 
 /**
  * Configuration. This is a singleton object. To use it, call
@@ -281,6 +315,14 @@ class Configuration {
 	 */
 	bool kdumptoolContainsFlag(const std::string &flag)
 	throw (KError, std::out_of_range, std::bad_cast);
+
+	ConfigOptionIterator optionsBegin() const
+	throw ()
+	{ return m_options.begin(); }
+
+	ConfigOptionIterator optionsEnd() const
+	throw ()
+	{ return m_options.end(); }
 
     protected:
         Configuration()

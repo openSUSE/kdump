@@ -20,10 +20,18 @@
 
 #include "configuration.h"
 #include "configparser.h"
+#include "stringutil.h"
 
 using std::string;
 
 //{{{ StringConfigOption -------------------------------------------------------
+string StringConfigOption::valueAsString() const
+    throw ()
+{
+    return m_value;
+}
+
+// -----------------------------------------------------------------------------
 void StringConfigOption::update(ConfigParser &cp)
     throw (KError)
 {
@@ -33,6 +41,13 @@ void StringConfigOption::update(ConfigParser &cp)
 //}}}
 
 //{{{ IntConfigOption ----------------------------------------------------------
+string IntConfigOption::valueAsString() const
+    throw ()
+{
+    return Stringutil::number2string(m_value);
+}
+
+// -----------------------------------------------------------------------------
 void IntConfigOption::update(ConfigParser &cp)
     throw (KError)
 {
@@ -42,6 +57,13 @@ void IntConfigOption::update(ConfigParser &cp)
 //}}}
 
 //{{{ BoolConfigOption -------------------------------------------------------
+string BoolConfigOption::valueAsString() const
+    throw ()
+{
+    return m_value ? "true" : "false";
+}
+
+// -----------------------------------------------------------------------------
 void BoolConfigOption::update(ConfigParser &cp)
     throw (KError)
 {

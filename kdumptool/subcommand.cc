@@ -30,6 +30,7 @@
 #include "print_target.h"
 #include "read_ikconfig.h"
 #include "findkernel.h"
+#include "dumpconfig.h"
 
 using std::map;
 using std::list;
@@ -127,6 +128,7 @@ SubcommandManager::SubcommandManager()
     addSubcommand(new PrintTarget());
     addSubcommand(new ReadIKConfig());
     addSubcommand(new FindKernel());
+    addSubcommand(new DumpConfig());
 }
 
 // -----------------------------------------------------------------------------

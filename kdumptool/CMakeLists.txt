@@ -78,6 +78,8 @@ SET(KDUMPTOOL_SRC
     read_ikconfig.cc
     findkernel.cc
     findkernel.h
+    dumpconfig.cc
+    dumpconfig.h
     main.cc
 )
 
