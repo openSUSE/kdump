@@ -93,7 +93,7 @@ void Configuration::readFile(const string &filename)
 }
 
 // -----------------------------------------------------------------------------
-ConfigOption *Configuration::getOption(enum OptionIndex index) const
+ConfigOption *Configuration::getOptionPtr(enum OptionIndex index) const
     throw (KError, std::out_of_range)
 {
     if (!m_readConfig)
@@ -104,7 +104,7 @@ ConfigOption *Configuration::getOption(enum OptionIndex index) const
 
 // -----------------------------------------------------------------------------
 bool Configuration::kdumptoolContainsFlag(const std::string &flag)
-    throw (KError, std::out_of_range)
+    throw (KError, std::out_of_range, std::bad_cast)
 {
     string value = getKdumptoolFlags();
     string::size_type pos = value.find(flag);

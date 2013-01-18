@@ -20,6 +20,7 @@
 #define CONFIGURATION_H
 
 #include <vector>
+#include <typeinfo>
 
 #include "global.h"
 #include "optionparser.h"
@@ -227,121 +228,156 @@ class Configuration {
         throw (KError);
 
 	/**
+	 * Return the value of a string option.
+	 *
+	 * @param index the option index
+	 * @return the option value
+	 * @exception std::bad_cast if the option index is not a string
+	 *            or an exception thrown by Configuration::getOptionPtr()
+	 */
+	const std::string &getStringValue(enum OptionIndex index) const
+	throw (KError, std::out_of_range, std::bad_cast)
+	{
+	    return dynamic_cast<StringConfigOption&>
+		(*getOptionPtr(index)).value();
+	}
+
+	/**
+	 * Return the value of an integer option.
+	 *
+	 * @param index the option index
+	 * @return the option value
+	 * @exception std::bad_cast if the option index is not an int
+	 *            or an exception thrown by Configuration::getOptionPtr()
+	 */
+	int getIntValue(enum OptionIndex index) const
+	throw (KError, std::out_of_range, std::bad_cast)
+	{
+	    return dynamic_cast<IntConfigOption&>
+		(*getOptionPtr(index)).value();
+	}
+
+	/**
+	 * Return the value of a boolean option.
+	 *
+	 * @param index the option index
+	 * @return the option value
+	 * @exception std::bad_cast if the option index is not a boolean
+	 *            or an exception thrown by Configuration::getOptionPtr()
+	 */
+	bool getBoolValue(enum OptionIndex index) const
+	throw (KError, std::out_of_range, std::bad_cast)
+	{
+	    return dynamic_cast<BoolConfigOption&>
+		(*getOptionPtr(index)).value();
+	}
+
+	/**
          * Returns the value of KDUMP_KERNELVER.
          *
          * @return the kernel version
-	 * @exception see Configuration::getOption
-
+	 * @exception see Configuration::getStringValue()
          */
         std::string getKernelVersion() const
-        throw (KError, std::out_of_range)
+	throw (KError, std::out_of_range, std::bad_cast)
 	{
-	    return static_cast<StringConfigOption*>
-		(getOption(KDUMP_KERNELVER))->value();
+	    return getStringValue(KDUMP_KERNELVER);
 	}
 
 	/**
 	 * Returns the value of KDUMP_CPUS.
 	 *
 	 * @return the desired parallelism
-	 * @exception see Configuration::getOption
+	 * @exception see Configuration::getIntValue()
 	 */
 	int getCPUs() const
-        throw (KError, std::out_of_range)
+	throw (KError, std::out_of_range, std::bad_cast)
 	{
-	    return static_cast<IntConfigOption*>
-		(getOption(KDUMP_CPUS))->value();
+	    return getIntValue(KDUMP_CPUS);
 	}
 
 	/**
 	 * Returns the value of MAKEDUMPFILE_OPTIONS.
 	 *
 	 * @return the options for makedumpfile
-	 * @exception see Configuration::getOption
+	 * @exception see Configuration::getStringValue()
 	 */
 	std::string getMakedumpfileOptions() const
-        throw (KError, std::out_of_range)
+	throw (KError, std::out_of_range, std::bad_cast)
 	{
-	    return static_cast<StringConfigOption*>
-		(getOption(MAKEDUMPFILE_OPTIONS))->value();
+	    return getStringValue(MAKEDUMPFILE_OPTIONS);
 	}
 
 	/**
 	 * Returns the value of KDUMP_SAVEDIR.
 	 *
 	 * @return the URL where the dump should be saved to
-	 * @exception see Configuration::getOption
+	 * @exception see Configuration::getStringValue()
 	 */
 	std::string getSavedir() const
-        throw (KError, std::out_of_range)
+	throw (KError, std::out_of_range, std::bad_cast)
 	{
-	    return static_cast<StringConfigOption*>
-		(getOption(KDUMP_SAVEDIR))->value();
+	    return getStringValue(KDUMP_SAVEDIR);
 	}
 
 	/**
 	 * Returns the value of KDUMP_KEEP_OLD_DUMPS.
 	 *
 	 * @return the number of old dumps that should be kept
-	 * @exception see Configuration::getOption
+	 * @exception see Configuration::getIntValue()
 	 */
 	int getKeepOldDumps() const
-        throw (KError, std::out_of_range)
+	throw (KError, std::out_of_range, std::bad_cast)
 	{
-	    return static_cast<IntConfigOption*>
-		(getOption(KDUMP_KEEP_OLD_DUMPS))->value();
+	    return getIntValue(KDUMP_KEEP_OLD_DUMPS);
 	}
 
         /**
 	 * Returns the value of KDUMP_FREE_DISK_SIZE.
 	 *
 	 * @return the disk size in megabytes that should stay free
-	 * @exception see Configuration::getOption
+	 * @exception see Configuration::getIntValue()
 	 */
 	int getFreeDiskSize() const
-        throw (KError, std::out_of_range)
+	throw (KError, std::out_of_range, std::bad_cast)
 	{
-	    return static_cast<IntConfigOption*>
-		(getOption(KDUMP_FREE_DISK_SIZE))->value();
+	    return getIntValue(KDUMP_FREE_DISK_SIZE);
 	}
 
         /**
 	 * Returns the value of KDUMP_VERBOSE.
 	 *
 	 * @return a bit mask that represents the verbosity
-	 * @exception see Configuration::getOption
+	 * @exception see Configuration::getIntValue()
 	 */
 	int getVerbose() const
-        throw (KError, std::out_of_range)
+	throw (KError, std::out_of_range, std::bad_cast)
 	{
-	    return static_cast<IntConfigOption*>
-		(getOption(KDUMP_VERBOSE))->value();
+	    return getIntValue(KDUMP_VERBOSE);
 	}
 
         /**
 	 * Returns the value of KDUMP_DUMPLEVEL.
 	 *
 	 * @return the dump level (for makedumpfile)
-	 * @exception see Configuration::getOption
+	 * @exception see Configuration::getIntValue()
 	 */
 	int getDumpLevel() const
-        throw (KError, std::out_of_range)
+	throw (KError, std::out_of_range, std::bad_cast)
 	{
-	    return static_cast<IntConfigOption*>
-		(getOption(KDUMP_DUMPLEVEL))->value();
+	    return getIntValue(KDUMP_DUMPLEVEL);
 	}
 
         /**
 	 * Returns the value of KDUMP_DUMPFORMAT.
 	 *
 	 * @return the dump format (@c ELF, @c compressed, @c "")
-	 * @exception see Configuration::getOption
+	 * @exception see Configuration::getStringValue()
 	 */
 	std::string getDumpFormat() const
-        throw (KError, std::out_of_range)
+	throw (KError, std::out_of_range, std::bad_cast)
 	{
-	    return static_cast<StringConfigOption*>
-		(getOption(KDUMP_DUMPFORMAT))->value();
+	    return getStringValue(KDUMP_DUMPFORMAT);
 	}
 
         /**
@@ -349,13 +385,12 @@ class Configuration {
 	 *
 	 * @return @c true if kdump should continue on error, @c false
 	 *         otherwise
-	 * @exception see Configuration::getOption
+	 * @exception see Configuration::getBoolValue()
 	 */
 	bool getContinueOnError() const
-        throw (KError, std::out_of_range)
+	throw (KError, std::out_of_range, std::bad_cast)
 	{
-	    return static_cast<BoolConfigOption*>
-		(getOption(KDUMP_CONTINUE_ON_ERROR))->value();
+	    return getBoolValue(KDUMP_CONTINUE_ON_ERROR);
 	}
 
         /**
@@ -363,26 +398,24 @@ class Configuration {
 	 *
 	 * @return @c true if the full kernel should be copied, @c false
 	 *         otherwise
-	 * @exception see Configuration::getOption
+	 * @exception see Configuration::getBoolValue()
 	 */
 	bool getCopyKernel() const
-        throw (KError, std::out_of_range)
+	throw (KError, std::out_of_range, std::bad_cast)
 	{
-	    return static_cast<BoolConfigOption*>
-		(getOption(KDUMP_COPY_KERNEL))->value();
+	    return getBoolValue(KDUMP_COPY_KERNEL);
 	}
 
         /**
 	 * Returns the value of KDUMPTOOL_FLAGS.
 	 *
 	 * @return the flags
-	 * @exception see Configuration::getOption
+	 * @exception see Configuration::getStringValue()
 	 */
 	std::string getKdumptoolFlags() const
-        throw (KError, std::out_of_range)
+	throw (KError, std::out_of_range, std::bad_cast)
 	{
-	    return static_cast<StringConfigOption*>
-		(getOption(KDUMPTOOL_FLAGS))->value();
+	    return getStringValue(KDUMPTOOL_FLAGS);
 	}
 
         /**
@@ -390,23 +423,22 @@ class Configuration {
 	 *
 	 * @return @c true if KDUMPTOOL_FLAGS contains the flag and @c false
 	 *         otherwise
-	 * @exception see Configuration::getOption
+	 * @exception see Configuration::getStringValue()
 	 */
 	bool kdumptoolContainsFlag(const std::string &flag)
-        throw (KError, std::out_of_range);
+	throw (KError, std::out_of_range, std::bad_cast);
 
         /**
 	 * Returns KDUMP_SMTP_SERVER.
 	 *
 	 * @return the STMP server or "" if no SMTP server has been
 	 *         specified in the configuration file
-	 * @exception see Configuration::getOption
+	 * @exception see Configuration::getStringValue()
 	 */
 	std::string getSmtpServer()
-        throw (KError, std::out_of_range)
+	throw (KError, std::out_of_range, std::bad_cast)
 	{
-	    return static_cast<StringConfigOption*>
-		(getOption(KDUMP_SMTP_SERVER))->value();
+	    return getStringValue(KDUMP_SMTP_SERVER);
 	}
 
 	/**
@@ -414,13 +446,12 @@ class Configuration {
 	 * of KDUMP_SMTP_USER.
 	 *
 	 * @return the SMTP user name
-	 * @exception see Configuration::getOption
+	 * @exception see Configuration::getStringValue()
 	 */
         std::string getSmtpUser()
-        throw (KError, std::out_of_range)
+        throw (KError, std::out_of_range, std::bad_cast)
 	{
-	    return static_cast<StringConfigOption*>
-		(getOption(KDUMP_SMTP_USER))->value();
+	    return getStringValue(KDUMP_SMTP_USER);
 	}
 
 	/**
@@ -428,52 +459,48 @@ class Configuration {
 	 * of KDUMP_SMTP_PASSWORD.
 	 *
 	 * @return the STMP password
-	 * @exception see Configuration::getOption
+	 * @exception see Configuration::getStringValue()
 	 */
 	std::string getSmtpPassword()
-        throw (KError, std::out_of_range)
+        throw (KError, std::out_of_range, std::bad_cast)
 	{
-	    return static_cast<StringConfigOption*>
-		(getOption(KDUMP_SMTP_PASSWORD))->value();
+	    return getStringValue(KDUMP_SMTP_PASSWORD);
 	}
 
 	/**
 	 * Returns the value of KDUMP_NOTIFICATION_TO.
 	 *
 	 * @return the notification mail address
-	 * @exception see Configuration::getOption
+	 * @exception see Configuration::getStringValue()
 	 */
 	std::string getNotificationTo()
-        throw (KError, std::out_of_range)
+        throw (KError, std::out_of_range, std::bad_cast)
 	{
-	    return static_cast<StringConfigOption*>
-		(getOption(KDUMP_NOTIFICATION_TO))->value();
+	    return getStringValue(KDUMP_NOTIFICATION_TO);
 	}
 
 	/**
 	 * Returns the value of KDUMP_NOTIFICATION_CC.
 	 *
 	 * @return the notification Cc address
-	 * @exception see Configuration::getOption
+	 * @exception see Configuration::getStringValue()
 	 */
 	std::string getNotificationCc()
-        throw (KError, std::out_of_range)
+        throw (KError, std::out_of_range, std::bad_cast)
 	{
-	    return static_cast<StringConfigOption*>
-		(getOption(KDUMP_NOTIFICATION_CC))->value();
+	    return getStringValue(KDUMP_NOTIFICATION_CC);
 	}
 
         /**
 	 * Returns the value of KDUMP_HOST_KEY.
 	 *
 	 * @return the target host key, encoded with base64
-	 * @exception see Configuration::getOption
+	 * @exception see Configuration::getStringValue()
 	 */
 	std::string getHostKey()
-	throw (KError, std::out_of_range)
+	throw (KError, std::out_of_range, std::bad_cast)
 	{
-	    return static_cast<StringConfigOption*>
-		(getOption(KDUMP_HOST_KEY))->value();
+	    return getStringValue(KDUMP_HOST_KEY);
 	}
 
     protected:
@@ -484,13 +511,13 @@ class Configuration {
         throw () {}
 
 	/**
-	 * Get a configuration option.  No range check!
+	 * Get a pointer to a raw configuration option.
 	 *
-	 * @index  The option index.
+	 * @param index The option index.
 	 * @exception KError if the configuration has not been read yet
 	 *            std::out_of_range if an invalid index is used
 	 */
-	ConfigOption *getOption(enum OptionIndex index) const
+	ConfigOption *getOptionPtr(enum OptionIndex index) const
 	throw (KError, std::out_of_range);
 
     private:
