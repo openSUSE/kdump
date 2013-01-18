@@ -106,7 +106,7 @@ ConfigOption *Configuration::getOptionPtr(enum OptionIndex index) const
 bool Configuration::kdumptoolContainsFlag(const std::string &flag)
     throw (KError, std::out_of_range, std::bad_cast)
 {
-    string value = getKdumptoolFlags();
+    const string &value = getStringValue(KDUMPTOOL_FLAGS);
     string::size_type pos = value.find(flag);
     return pos != string::npos;
 }

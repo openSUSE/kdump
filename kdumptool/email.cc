@@ -45,8 +45,8 @@ static int authinteract(auth_client_request_t request,
     Debug::debug()->trace("authinteract()");
     Configuration *config = Configuration::config();
 
-    strncpy(userbuffer, config->getSmtpUser().c_str(), BUFSIZ);
-    strncpy(passwordbuffer, config->getSmtpPassword().c_str(), BUFSIZ);
+    strncpy(userbuffer, config->getStringValue(Configuration::KDUMP_SMTP_USER).c_str(), BUFSIZ);
+    strncpy(passwordbuffer, config->getStringValue(Configuration::KDUMP_SMTP_PASSWORD).c_str(), BUFSIZ);
 
     for (int i = 0; i < fields; i++) {
         if (request[i].flags & AUTH_PASS)
@@ -208,7 +208,7 @@ void Email::send()
     }
 
     Configuration *config = Configuration::config();
-    string host = config->getSmtpServer();
+    string host = config->getStringValue(Configuration::KDUMP_SMTP_SERVER);
     Debug::debug()->dbg("Host: %s", host.c_str());
 
     // default to "smtp" (25) port instead of 587
@@ -224,8 +224,8 @@ void Email::send()
     //smtp_starttls_enable(session, Starttls_ENABLED);
 
     // need auth?
-    if (config->getSmtpUser().size() > 0 &&
-                config->getSmtpPassword().size() > 0) {
+    if (config->getStringValue(Configuration::KDUMP_SMTP_USER).size() > 0 &&
+	config->getStringValue(Configuration::KDUMP_SMTP_PASSWORD).size() > 0) {
         Debug::debug()->dbg("Setting ESMTP Auth callback");
         authctx = auth_create_context();
         auth_set_mechanism_flags(authctx, AUTH_PLUGIN_PLAIN, 0);

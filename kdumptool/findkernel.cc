@@ -72,7 +72,8 @@ void FindKernel::execute()
 {
     Debug::debug()->trace("FindKernel::execute()");
 
-    string kernelver = Configuration::config()->getKernelVersion();
+    const string &kernelver = Configuration::config()
+	->getStringValue(Configuration::KDUMP_KERNELVER);
 
     // user has specified a specific kernel, check that first
     string kernelimage;

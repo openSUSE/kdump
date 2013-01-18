@@ -100,7 +100,7 @@ void DeleteDumps::execute()
     Debug::debug()->trace("DeleteDumps::execute()");
     Configuration *config = Configuration::config();
 
-    int oldDumps = config->getKeepOldDumps();
+    int oldDumps = config->getIntValue(Configuration::KDUMP_KEEP_OLD_DUMPS);
     Debug::debug()->dbg("keep %d old dumps", oldDumps);
 
     if (oldDumps == 0) {
@@ -108,7 +108,8 @@ void DeleteDumps::execute()
         return;
     }
 
-    RootDirURLVector urls(config->getSavedir(), m_rootdir);
+    RootDirURLVector urls(
+	config->getStringValue(Configuration::KDUMP_SAVEDIR), m_rootdir);
     RootDirURLVector::const_iterator it;
     for (it = urls.begin(); it != urls.end(); ++it)
         delete_one(*it, oldDumps);
