@@ -19,9 +19,156 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
+#include <vector>
+
 #include "global.h"
 #include "optionparser.h"
+#include "configparser.h"
 #include "subcommand.h"
+
+//{{{ ConfigOption -------------------------------------------------------------
+/**
+ * Generic configuration option.
+ */
+class ConfigOption {
+
+    public:
+	ConfigOption(const char *name)
+	throw ()
+	: m_name(name)
+	{ }
+
+	/**
+	 * Register the configuration option with a parser.
+	 *
+	 * @cp   the ConfigParser object where the config option will
+	 *       be registered.
+	 */
+	void registerVar(ConfigParser &cp) const
+	throw ()
+	{
+	    cp.addVariable(m_name);
+	}
+
+	/**
+	 * Update the value from a parser.
+	 *
+	 * @cp   the ConfigParser object from which the value will be
+	 *       obtained.
+	 */
+	virtual void update(ConfigParser &cp)
+	throw (KError) = 0;
+
+    protected:
+	const char *const m_name;
+};
+
+//}}}
+
+//{{{ StringConfigOption -------------------------------------------------------
+/**
+ * String configuration option.
+ */
+class StringConfigOption : public ConfigOption {
+
+    public:
+	StringConfigOption(const char *name, const char *const defvalue)
+	throw ()
+	: ConfigOption(name), m_defvalue(defvalue), m_value(defvalue)
+	{ }
+
+	/**
+	 * Get the config option value.
+	 */
+	const std::string &value(void) const
+	throw ()
+	{ return m_value; }
+
+	/**
+	 * Update the value from a parser.
+	 *
+	 * @cp   the ConfigParser object from which the value will be
+	 *       obtained.
+	 */
+	virtual void update(ConfigParser &cp)
+	throw (KError);
+
+    protected:
+	const char *const m_defvalue;
+	std::string m_value;
+};
+
+//}}}
+
+//{{{ IntConfigOption ----------------------------------------------------------
+/**
+ * Integer configuration option.
+ */
+class IntConfigOption : public ConfigOption {
+
+    public:
+	IntConfigOption(const char *name, const int defvalue)
+	throw ()
+	: ConfigOption(name), m_defvalue(defvalue), m_value(defvalue)
+	{ }
+
+	/**
+	 * Get the config option value.
+	 */
+	int value(void) const
+	throw ()
+	{ return m_value; }
+
+	/**
+	 * Update the value from a parser.
+	 *
+	 * @cp   the ConfigParser object from which the value will be
+	 *       obtained.
+	 */
+	virtual void update(ConfigParser &cp)
+	throw (KError);
+
+    protected:
+	const int m_defvalue;
+	int m_value;
+};
+
+//}}}
+
+//{{{ BoolConfigOption ---------------------------------------------------------
+/**
+ * Boolean configuration option.
+ */
+class BoolConfigOption : public ConfigOption {
+
+    public:
+	BoolConfigOption(const char *name, const bool defvalue)
+	throw ()
+	: ConfigOption(name), m_defvalue(defvalue), m_value(defvalue)
+	{ }
+
+	/**
+	 * Get the config option value.
+	 */
+	bool value(void) const
+	throw ()
+	{ return m_value; }
+
+	/**
+	 * Update the value from a parser.
+	 *
+	 * @cp   the ConfigParser object from which the value will be
+	 *       obtained.
+	 */
+	virtual void update(ConfigParser &cp)
+	throw (KError);
+
+    protected:
+	const bool m_defvalue;
+	bool m_value;
+};
+
+//}}}
 
 //{{{ Configuration ------------------------------------------------------------
 
@@ -48,6 +195,16 @@ class Configuration {
              VERB_DEBUG_TRANSFER    = (1<<3)
         };
 
+	/**
+	 * Configuration option index.
+	 */
+	enum OptionIndex {
+#define DEFINE_OPT(name, type, defval) \
+	    name,
+#include "define_opt.h"
+#undef DEFINE_OPT
+	};
+
     public:
         /**
          * Returns the only configuration object.
@@ -69,256 +226,255 @@ class Configuration {
         void readFile(const std::string &filename)
         throw (KError);
 
-        /**
+	/**
          * Returns the value of KDUMP_KERNELVER.
          *
          * @return the kernel version
-         * @exception KError if Configuration::readFile() was not called
+	 * @exception see Configuration::getOption
+
          */
         std::string getKernelVersion() const
-        throw (KError);
+        throw (KError, std::out_of_range)
+	{
+	    return static_cast<StringConfigOption*>
+		(getOption(KDUMP_KERNELVER))->value();
+	}
 
 	/**
 	 * Returns the value of KDUMP_CPUS.
 	 *
 	 * @return the desired parallelism
-	 * @exception KError if Configuration::readFile() was not called
+	 * @exception see Configuration::getOption
 	 */
 	int getCPUs() const
-        throw (KError);
+        throw (KError, std::out_of_range)
+	{
+	    return static_cast<IntConfigOption*>
+		(getOption(KDUMP_CPUS))->value();
+	}
+
+	/**
+	 * Returns the value of MAKEDUMPFILE_OPTIONS.
+	 *
+	 * @return the options for makedumpfile
+	 * @exception see Configuration::getOption
+	 */
+	std::string getMakedumpfileOptions() const
+        throw (KError, std::out_of_range)
+	{
+	    return static_cast<StringConfigOption*>
+		(getOption(MAKEDUMPFILE_OPTIONS))->value();
+	}
+
+	/**
+	 * Returns the value of KDUMP_SAVEDIR.
+	 *
+	 * @return the URL where the dump should be saved to
+	 * @exception see Configuration::getOption
+	 */
+	std::string getSavedir() const
+        throw (KError, std::out_of_range)
+	{
+	    return static_cast<StringConfigOption*>
+		(getOption(KDUMP_SAVEDIR))->value();
+	}
+
+	/**
+	 * Returns the value of KDUMP_KEEP_OLD_DUMPS.
+	 *
+	 * @return the number of old dumps that should be kept
+	 * @exception see Configuration::getOption
+	 */
+	int getKeepOldDumps() const
+        throw (KError, std::out_of_range)
+	{
+	    return static_cast<IntConfigOption*>
+		(getOption(KDUMP_KEEP_OLD_DUMPS))->value();
+	}
 
         /**
-         * Returns the value of KDUMP_COMMANDLINE.
-         *
-         * @return the kernel command line for the kdump kernel
-         * @exception KError if Configuration::readFile() was not called
-         */
-        std::string getCommandLine() const
-        throw (KError);
+	 * Returns the value of KDUMP_FREE_DISK_SIZE.
+	 *
+	 * @return the disk size in megabytes that should stay free
+	 * @exception see Configuration::getOption
+	 */
+	int getFreeDiskSize() const
+        throw (KError, std::out_of_range)
+	{
+	    return static_cast<IntConfigOption*>
+		(getOption(KDUMP_FREE_DISK_SIZE))->value();
+	}
 
         /**
-         * Returns the value of KDUMP_COMMANDLINE_APPEND.
-         *
-         * @return the append kernel command line
-         * @exception KError if Configuration::readFile() was not called
-         */
-         std::string getCommandLineAppend() const
-         throw (KError);
+	 * Returns the value of KDUMP_VERBOSE.
+	 *
+	 * @return a bit mask that represents the verbosity
+	 * @exception see Configuration::getOption
+	 */
+	int getVerbose() const
+        throw (KError, std::out_of_range)
+	{
+	    return static_cast<IntConfigOption*>
+		(getOption(KDUMP_VERBOSE))->value();
+	}
 
-         /**
-          * Returns the value of KEXEC_OPTIONS.
-          *
-          * @return the the options for kexec
-          * @exception KError if Configuration::readFile() was not called
-          */
-         std::string getKexecOptions() const
-         throw (KError);
+        /**
+	 * Returns the value of KDUMP_DUMPLEVEL.
+	 *
+	 * @return the dump level (for makedumpfile)
+	 * @exception see Configuration::getOption
+	 */
+	int getDumpLevel() const
+        throw (KError, std::out_of_range)
+	{
+	    return static_cast<IntConfigOption*>
+		(getOption(KDUMP_DUMPLEVEL))->value();
+	}
 
-         /**
-          * Returns the value of MAKEDUMPFILE_OPTIONS.
-          *
-          * @return the options for makedumpfile
-          * @exception KError if Configuration::readFile() was not called
-          */
-         std::string getMakedumpfileOptions() const
-         throw (KError);
+        /**
+	 * Returns the value of KDUMP_DUMPFORMAT.
+	 *
+	 * @return the dump format (@c ELF, @c compressed, @c "")
+	 * @exception see Configuration::getOption
+	 */
+	std::string getDumpFormat() const
+        throw (KError, std::out_of_range)
+	{
+	    return static_cast<StringConfigOption*>
+		(getOption(KDUMP_DUMPFORMAT))->value();
+	}
 
-         /**
-          * Returns the value of KDUMP_IMMEDIATE_REBOOT.
-          *
-          * @return the @c true if the system should be rebooted after
-          *         reboot immediately, @c false otherwise
-          * @exception KError if Configuration::readFile() was not called
-          */
-         bool getImmediateReboot() const
-         throw (KError);
+        /**
+	 * Returns the value of KDUMP_CONTINUE_ON_ERROR.
+	 *
+	 * @return @c true if kdump should continue on error, @c false
+	 *         otherwise
+	 * @exception see Configuration::getOption
+	 */
+	bool getContinueOnError() const
+        throw (KError, std::out_of_range)
+	{
+	    return static_cast<BoolConfigOption*>
+		(getOption(KDUMP_CONTINUE_ON_ERROR))->value();
+	}
 
-         /**
-          * Returns the value of KDUMP_TRANSFER.
-          *
-          * @return the custom transfer script
-          * @exception KError if Configuration::readFile() was not called
-          */
-         std::string getCustomTransfer() const
-         throw (KError);
+        /**
+	 * Returns the value of KDUMP_COPY_KERNEL.
+	 *
+	 * @return @c true if the full kernel should be copied, @c false
+	 *         otherwise
+	 * @exception see Configuration::getOption
+	 */
+	bool getCopyKernel() const
+        throw (KError, std::out_of_range)
+	{
+	    return static_cast<BoolConfigOption*>
+		(getOption(KDUMP_COPY_KERNEL))->value();
+	}
 
-         /**
-          * Returns the value of KDUMP_SAVEDIR.
-          *
-          * @return the URL where the dump should be saved to
-          * @exception KError if Configuration::readFile() was not called
-          */
-         std::string getSavedir() const
-         throw (KError);
+        /**
+	 * Returns the value of KDUMPTOOL_FLAGS.
+	 *
+	 * @return the flags
+	 * @exception see Configuration::getOption
+	 */
+	std::string getKdumptoolFlags() const
+        throw (KError, std::out_of_range)
+	{
+	    return static_cast<StringConfigOption*>
+		(getOption(KDUMPTOOL_FLAGS))->value();
+	}
 
-         /**
-          * Returns the value of KDUMP_KEEP_OLD_DUMPS.
-          *
-          * @return the number of old dumps that should be kept
-          * @exception KError if Configuration::readFile() was not called
-          */
-         int getKeepOldDumps() const
-         throw (KError);
+        /**
+	 * Checks if KDUMPTOOL_FLAGS contains @p flag.
+	 *
+	 * @return @c true if KDUMPTOOL_FLAGS contains the flag and @c false
+	 *         otherwise
+	 * @exception see Configuration::getOption
+	 */
+	bool kdumptoolContainsFlag(const std::string &flag)
+        throw (KError, std::out_of_range);
 
-         /**
-          * Returns the value of KDUMP_FREE_DISK_SIZE.
-          *
-          * @return the disk size in megabytes that should stay free
-          * @exception KError if Configuration::readFile() was not called
-          */
-         int getFreeDiskSize() const
-         throw (KError);
+        /**
+	 * Returns KDUMP_SMTP_SERVER.
+	 *
+	 * @return the STMP server or "" if no SMTP server has been
+	 *         specified in the configuration file
+	 * @exception see Configuration::getOption
+	 */
+	std::string getSmtpServer()
+        throw (KError, std::out_of_range)
+	{
+	    return static_cast<StringConfigOption*>
+		(getOption(KDUMP_SMTP_SERVER))->value();
+	}
 
-         /**
-          * Returns the value of KDUMP_VERBOSE.
-          *
-          * @return a bit mask that represents the verbosity
-          * @exception KError if Configuration::readFile() was not called
-          */
-         int getVerbose() const
-         throw (KError);
+	/**
+	 * Returns the SMTP username if SMTP AUTH is used. That's the value
+	 * of KDUMP_SMTP_USER.
+	 *
+	 * @return the SMTP user name
+	 * @exception see Configuration::getOption
+	 */
+        std::string getSmtpUser()
+        throw (KError, std::out_of_range)
+	{
+	    return static_cast<StringConfigOption*>
+		(getOption(KDUMP_SMTP_USER))->value();
+	}
 
-         /**
-          * Returns the value of KDUMP_DUMPLEVEL.
-          *
-          * @return the dump level (for makedumpfile)
-          * @exception KError if Configuration::readFile() was not called
-          */
-         int getDumpLevel() const
-         throw (KError);
+	/**
+	 * Returns the SMTP password if SMTP AUTH is used. That's the value
+	 * of KDUMP_SMTP_PASSWORD.
+	 *
+	 * @return the STMP password
+	 * @exception see Configuration::getOption
+	 */
+	std::string getSmtpPassword()
+        throw (KError, std::out_of_range)
+	{
+	    return static_cast<StringConfigOption*>
+		(getOption(KDUMP_SMTP_PASSWORD))->value();
+	}
 
-         /**
-          * Returns the value of KDUMP_DUMPFORMAT.
-          *
-          * @return the dump format (@c ELF, @c compressed, @c "")
-          * @exception KError if Configuration::readFile() was not called
-          */
-         std::string getDumpFormat() const
-         throw (KError);
+	/**
+	 * Returns the value of KDUMP_NOTIFICATION_TO.
+	 *
+	 * @return the notification mail address
+	 * @exception see Configuration::getOption
+	 */
+	std::string getNotificationTo()
+        throw (KError, std::out_of_range)
+	{
+	    return static_cast<StringConfigOption*>
+		(getOption(KDUMP_NOTIFICATION_TO))->value();
+	}
 
-         /**
-          * Returns the value of KDUMP_CONTINUE_ON_ERROR.
-          *
-          * @return @c true if kdump should continue on error, @c false
-          *         otherwise
-          * @exception KError if Configuration::readFile() was not called
-          */
-         bool getContinueOnError() const
-         throw (KError);
+	/**
+	 * Returns the value of KDUMP_NOTIFICATION_CC.
+	 *
+	 * @return the notification Cc address
+	 * @exception see Configuration::getOption
+	 */
+	std::string getNotificationCc()
+        throw (KError, std::out_of_range)
+	{
+	    return static_cast<StringConfigOption*>
+		(getOption(KDUMP_NOTIFICATION_CC))->value();
+	}
 
-         /**
-          * Returns the value of KDUMP_REQUIRED_PROGRAMS.
-          *
-          * @return a space-separated list of required programs
-          * @exception KError if Configuration::readFile() was not called
-          */
-         std::string getRequiredPrograms() const
-         throw (KError);
-
-         /**
-          * Returns the value of KDUMP_PRESCRIPT.
-          *
-          * @return script that should be executed before the dump is saved
-          * @exception KError if Configuration::readFile() was not called
-          */
-         std::string getPrescript() const
-         throw (KError);
-
-         /**
-          * Returns the value of KDUMP_POSTSCRIPT.
-          *
-          * @return the kernel version
-          * @exception KError if Configuration::readFile() was not called
-          */
-         std::string getPostscript() const
-         throw (KError);
-
-         /**
-          * Returns the value of KDUMP_COPY_KERNEL.
-          *
-          * @return @c true if the full kernel should be copied, @c false
-          *         otherwise
-          * @exception KError if Configuration::readFile() was not called
-          */
-         bool getCopyKernel() const
-         throw (KError);
-
-         /**
-          * Returns the value of KDUMPTOOL_FLAGS.
-          *
-          * @return the flags
-          * @exception KError if Configuration::readFile() was not called
-          */
-         std::string getKdumptoolFlags() const
-         throw (KError);
-
-         /**
-          * Checks if KDUMPTOOL_FLAGS contains @p flag.
-          *
-          * @return @c true if KDUMPTOOL_FLAGS contains the flag and @c false
-          *         otherwise
-          * @exception KError if Configuration::readFile() was not called
-          */
-         bool kdumptoolContainsFlag(const std::string &flag)
-         throw (KError);
-
-         /**
-          * Returns KDUMP_SMTP_SERVER.
-          *
-          * @return the STMP server or "" if no SMTP server has been
-          *         specified in the configuration file
-          * @exception KError if Configuration::readFile() was not called
-          */
-         std::string getSmtpServer()
-         throw (KError);
-
-         /**
-          * Returns the SMTP username if SMTP AUTH is used. That's the value
-          * of KDUMP_SMTP_USER.
-          *
-          * @return the SMTP user name
-          * @exception KError if Configuration::readFile() was not called
-          */
-         std::string getSmtpUser()
-         throw (KError);
-
-         /**
-          * Returns the SMTP password if SMTP AUTH is used. That's the value
-          * of KDUMP_SMTP_PASSWORD.
-          *
-          * @return the STMP server or "" if no SMTP server has been
-          *         specified in the configuration file
-          * @exception KError if Configuration::readFile() was not called
-          */
-         std::string getSmtpPassword()
-         throw (KError);
-
-         /**
-          * Returns the value of KDUMP_NOTIFICATION_TO.
-          *
-          * @return the notification mail address
-          * @exception KError if Configuration::readFile() was not called
-          */
-         std::string getNotificationTo()
-         throw (KError);
-
-         /**
-          * Returns the value of KDUMP_NOTIFICATION_CC.
-          *
-          * @return the notification Cc address
-          * @exception KError if Configuration::readFile() was not called
-          */
-         std::string getNotificationCc()
-         throw (KError);
-
-         /**
-          * Returns the value of KDUMP_HOST_KEY.
-          *
-          * @return the target host key, encoded with base64
-          * @exception KError if Configuration::readFile() was not called
-          */
-         std::string getHostKey()
-         throw (KError);
+        /**
+	 * Returns the value of KDUMP_HOST_KEY.
+	 *
+	 * @return the target host key, encoded with base64
+	 * @exception see Configuration::getOption
+	 */
+	std::string getHostKey()
+	throw (KError, std::out_of_range)
+	{
+	    return static_cast<StringConfigOption*>
+		(getOption(KDUMP_HOST_KEY))->value();
+	}
 
     protected:
         Configuration()
@@ -327,31 +483,21 @@ class Configuration {
         virtual ~Configuration()
         throw () {}
 
+	/**
+	 * Get a configuration option.  No range check!
+	 *
+	 * @index  The option index.
+	 * @exception KError if the configuration has not been read yet
+	 *            std::out_of_range if an invalid index is used
+	 */
+	ConfigOption *getOption(enum OptionIndex index) const
+	throw (KError, std::out_of_range);
+
     private:
         static Configuration *m_instance;
         bool m_readConfig;
 
-	struct OptionDesc {
-	    std::string name;
-	    enum {
-		type_string,
-		type_int,
-		type_bool
-	    } type;
-	    union {
-		std::string Configuration::* val_string;
-		int Configuration::* val_int;
-		bool Configuration::* val_bool;
-	    };
-	};
-	static const struct OptionDesc m_optiondesc[];
-
-#define DEFINE_OPT(name, type, val, defval)	\
-	type val;
-#define string std::string
-#include "define_opt.h"
-#undef DEFINE_OPT
-#undef string
+	std::vector<ConfigOption*> m_options;
 };
 
 //}}}

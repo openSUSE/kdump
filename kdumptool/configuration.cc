@@ -23,15 +23,34 @@
 
 using std::string;
 
-//{{{ Configuration ------------------------------------------------------------
+//{{{ StringConfigOption -------------------------------------------------------
+void StringConfigOption::update(ConfigParser &cp)
+    throw (KError)
+{
+    m_value = cp.getValue(m_name);
+}
 
-const struct Configuration::OptionDesc Configuration::m_optiondesc[] = {
-#define DEFINE_OPT(name, type, val, defval)		\
-    { name, Configuration::OptionDesc::type_ ## type,	\
-	{ .val_ ## type = &Configuration::val } },
-#include "define_opt.h"
-#undef DEFINE_OPT
-};
+//}}}
+
+//{{{ IntConfigOption ----------------------------------------------------------
+void IntConfigOption::update(ConfigParser &cp)
+    throw (KError)
+{
+    m_value = cp.getIntValue(m_name);
+}
+
+//}}}
+
+//{{{ BoolConfigOption -------------------------------------------------------
+void BoolConfigOption::update(ConfigParser &cp)
+    throw (KError)
+{
+    m_value = cp.getBoolValue(m_name);
+}
+
+//}}}
+
+//{{{ Configuration ------------------------------------------------------------
 
 Configuration *Configuration::m_instance = NULL;
 
@@ -48,327 +67,48 @@ Configuration *Configuration::config()
 Configuration::Configuration()
     throw ()
     : m_readConfig(false)
-#define DEFINE_OPT(name, type, val, defval)		\
-      , val(defval)
+{
+#define DEFINE_OPT(name, type, defval) \
+    m_options.push_back(new type ## ConfigOption(#name, defval));
 #include "define_opt.h"
 #undef DEFINE_OPT
-{}
+}
 
 /* -------------------------------------------------------------------------- */
 void Configuration::readFile(const string &filename)
     throw (KError)
 {
-    unsigned i;
     ConfigParser cp(filename);
 
-    for (i = 0; i < sizeof(m_optiondesc) / sizeof(m_optiondesc[0]); ++i)
-	cp.addVariable(m_optiondesc[i].name);
+    std::vector<ConfigOption*>::iterator it;
+    for (it = m_options.begin(); it != m_options.end(); ++it)
+	(*it)->registerVar(cp);
 
     cp.parse();
 
-    for (i = 0; i < sizeof(m_optiondesc) / sizeof(m_optiondesc[0]); ++i) {
-	const struct OptionDesc *opt = &m_optiondesc[i];
-	switch(opt->type) {
-	case OptionDesc::type_string:
-	    *this.*opt->val_string = cp.getValue(opt->name);
-	    break;
-	case OptionDesc::type_int:
-	    *this.*opt->val_int = cp.getIntValue(opt->name);
-	    break;
-	case OptionDesc::type_bool:
-	    *this.*opt->val_bool = cp.getBoolValue(opt->name);
-	    break;
-	}
-    }
+    for (it = m_options.begin(); it != m_options.end(); ++it)
+	(*it)->update(cp);
 
     m_readConfig = true;
 }
 
 // -----------------------------------------------------------------------------
-string Configuration::getKernelVersion() const
-    throw (KError)
+ConfigOption *Configuration::getOption(enum OptionIndex index) const
+    throw (KError, std::out_of_range)
 {
     if (!m_readConfig)
         throw KError("Configuration has not been read.");
 
-    return m_kernelVersion;
-}
-
-// -----------------------------------------------------------------------------
-int Configuration::getCPUs() const
-    throw (KError)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_CPUs;
-}
-
-
-// -----------------------------------------------------------------------------
-string Configuration::getCommandLine() const
-    throw (KError)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_commandLine;
-}
-
-
-// -----------------------------------------------------------------------------
-string Configuration::getCommandLineAppend() const
-     throw (KError)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_commandLineAppend;
-}
-
-
-// -----------------------------------------------------------------------------
-std::string Configuration::getKexecOptions() const
-    throw (KError)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_kexecOptions;
-}
-
-// -----------------------------------------------------------------------------
-string Configuration::getMakedumpfileOptions() const
-    throw (KError)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_makedumpfileOptions;
-}
-
-// -----------------------------------------------------------------------------
-bool Configuration::getImmediateReboot() const
-    throw (KError)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_immediateReboot;
-}
-
-
-// -----------------------------------------------------------------------------
-string Configuration::getCustomTransfer() const
-     throw (KError)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_customTransfer;
-}
-
-
-// -----------------------------------------------------------------------------
-std::string Configuration::getSavedir() const
-     throw (KError)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_savedir;
-}
-
-
-// -----------------------------------------------------------------------------
-int Configuration::getKeepOldDumps() const
-    throw (KError)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_keepOldDumps;
-}
-
-
-// -----------------------------------------------------------------------------
-int Configuration::getFreeDiskSize() const
-    throw (KError)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_freeDiskSize;
-}
-
-
-// -----------------------------------------------------------------------------
-int Configuration::getVerbose() const
-    throw (KError)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_verbose;
-}
-
-
-// -----------------------------------------------------------------------------
-int Configuration::getDumpLevel() const
-    throw (KError)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_dumpLevel;
-}
-
-
-// -----------------------------------------------------------------------------
-std::string Configuration::getDumpFormat() const
-    throw (KError)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_dumpFormat;
-}
-
-
-// -----------------------------------------------------------------------------
-bool Configuration::getContinueOnError() const
-    throw (KError)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_continueOnError;
-}
-
-
-// -----------------------------------------------------------------------------
-std::string Configuration::getRequiredPrograms() const
-    throw (KError)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_requiredPrograms;
-}
-
-
-// -----------------------------------------------------------------------------
-std::string Configuration::getPrescript() const
-    throw (KError)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_prescript;
-}
-
-
-// -----------------------------------------------------------------------------
-std::string Configuration::getPostscript() const
-    throw (KError)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_postscript;
-}
-
-
-// -----------------------------------------------------------------------------
-bool Configuration::getCopyKernel() const
-    throw (KError)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_copyKernel;
-}
-
-// -----------------------------------------------------------------------------
-std::string Configuration::getKdumptoolFlags() const
-    throw (KError)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_kdumptoolFlags;
+    return m_options.at(index);
 }
 
 // -----------------------------------------------------------------------------
 bool Configuration::kdumptoolContainsFlag(const std::string &flag)
-    throw (KError)
+    throw (KError, std::out_of_range)
 {
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
     string value = getKdumptoolFlags();
     string::size_type pos = value.find(flag);
     return pos != string::npos;
-}
-
-// -----------------------------------------------------------------------------
-string Configuration::getSmtpServer()
-    throw (KError)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_smtpServer;
-}
-
-// -----------------------------------------------------------------------------
-string Configuration::getSmtpUser()
-    throw (KError)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_smtpUser;
-}
-
-// -----------------------------------------------------------------------------
-string Configuration::getSmtpPassword()
-    throw (KError)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_smtpPassword;
-}
-
-// -----------------------------------------------------------------------------
-string Configuration::getNotificationTo()
-    throw (KError)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_notificationTo;
-}
-
-// -----------------------------------------------------------------------------
-string Configuration::getNotificationCc()
-    throw (KError)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_notificationCc;
-}
-
-// -----------------------------------------------------------------------------
-string Configuration::getHostKey()
-    throw (KError)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_hostKey;
 }
 
 //}}}
