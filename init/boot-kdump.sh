@@ -98,7 +98,7 @@ function mount_all()
 
 #
 # sanity check
-if ! grep elfcorehdr /proc/cmdline &>/dev/null ; then
+if [ ! -f /proc/vmcore ] ; then
     echo "Kdump initrd booted in non-kdump kernel"
     return 1
 fi
