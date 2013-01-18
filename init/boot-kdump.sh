@@ -162,6 +162,12 @@ else
     fi
 
     #
+    # release memory if using fadump
+    if [ -f /sys/kernel/fadump_release_mem ]; then
+	echo 1 > /sys/kernel/fadump_release_mem
+    fi 
+
+    #
     # postscript
     if [ -n "$KDUMP_POSTSCRIPT" ] ; then
         echo "Running $KDUMP_POSTSCRIPT"

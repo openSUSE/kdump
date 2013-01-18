@@ -30,6 +30,22 @@
 
 KEXEC=/sbin/kexec
 BOOTDIR="/boot"
+FADUMP_ENABLED="/sys/kernel/fadump_enabled"
+FADUMP_REGISTERED="/sys/kernel/fadump_registered"
+
+#
+# Checks if fadump is enabled
+#
+# Returns: 0 (true) if fadump is enabled
+#          1 (false) if fadump is not availabled or disabled
+function use_fadump()
+{
+    if [ -f $FADUMP_ENABLED -a "$(cat $FADUMP_ENABLED)" = "1" ]; then
+	return 0
+    else
+	return 1
+    fi
+}
 
 #
 # Checks if currently a kdump kernel is loaded.
@@ -39,6 +55,14 @@ BOOTDIR="/boot"
 #          -1 (false) if the feature is not implemented (too old kernel)
 function kdump_kernel_loaded()
 {
+    if [ -f $FADUMP_REGISTERED ]; then
+	if [ "$(cat $FADUMP_REGISTERED)" = "1" ]; then
+	    return 0
+	else
+	    return 1
+	fi
+    fi
+
     if [ -r /sys/kernel/kexec_crash_loaded ]; then
         if [ "$(cat /sys/kernel/kexec_crash_loaded)" = "1" ]; then
             return 0
@@ -147,13 +171,9 @@ function build_kexec_options()
     echo "$options"
 }
 
-#
-# Load the kdump kerel specified in /etc/sysconfig/kdump
-function load_kdump()
+# Load kdump using kexec
+function load_kdump_kexec()
 {
-    local find_kernel_args=
-    echo "Loading kdump"
-
     if [ $(($KDUMP_VERBOSE & 16)) -gt 0 ] ; then
         find_kernel_args="-D"
     fi
@@ -210,6 +230,23 @@ function load_kdump()
         fi
     fi
 
+}
+
+#
+# Load the kdump kerel specified in /etc/sysconfig/kdump
+function load_kdump()
+{
+    local find_kernel_args=
+    echo "Loading kdump"
+
+    if use_fadump; then
+	echo 1 > $FADUMP_REGISTERED
+	echo 1 > /proc/sys/kernel/panic_on_oops
+	rc_reset
+    else
+	load_kdump_kexec
+    fi
+
     rc_status -v
 }
 
@@ -226,7 +263,11 @@ case "$1" in
             kdump_kernel_loaded
             if [ $? -ne 1 ] ; then
                 echo -n "Unloading kdump"
-                $KEXEC -p -u
+		if use_fadump; then
+		    echo 0 > $FADUMP_REGISTERED
+		else
+                    $KEXEC -p -u
+		fi
             fi
             rc_status -v
         fi
