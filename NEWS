@@ -1,6 +1,8 @@
 0.8.3
 -----
   * Update the text of the license (new FSF address).
+  * Basic support for fadump (Firmware-assisted dump) on the IBM POWER
+    architecture.
 
 0.8.2
 -----
