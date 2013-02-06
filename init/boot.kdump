@@ -40,11 +40,7 @@ FADUMP_REGISTERED="/sys/kernel/fadump_registered"
 #          1 (false) if fadump is not availabled or disabled
 function use_fadump()
 {
-    if [ -f $FADUMP_ENABLED -a "$(cat $FADUMP_ENABLED)" = "1" ]; then
-	return 0
-    else
-	return 1
-    fi
+    test -f $FADUMP_ENABLED && test "$(cat $FADUMP_ENABLED)" = "1"
 }
 
 #
