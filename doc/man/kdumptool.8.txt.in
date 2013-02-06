@@ -294,6 +294,17 @@ Syntax
 
 *kdumptool* [_globals_] *read_ikconfig* _kernelimage_
 
+DUMP KDUMPTOOL CONFIGURATION
+----------------------------
+
+All configuration variables can be dumped to the standard output in a form
+that can be process by a shell.
+
+Syntax
+~~~~~~
+
+*kdumptool* [_globals_] *dump_config*
+
 
 RETURN VALUE
 ------------

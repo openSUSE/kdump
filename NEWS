@@ -1,6 +1,7 @@
 0.8.4
 -----
   * Do not reboot after taking a dump with fadump.
+  * Add a new command to dump the configuration variables: dump_config
 
 0.8.3
 -----
