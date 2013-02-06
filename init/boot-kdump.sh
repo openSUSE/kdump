@@ -22,6 +22,16 @@
 #%udevmodules: nls_utf8 $kdump_fsmod
 
 #
+# Checks if fadump is enabled
+#
+# Returns: 0 (true) if fadump is enabled
+#          1 (false) if fadump is not availabled or disabled
+function use_fadump()
+{
+    test -f $FADUMP_ENABLED && test "$(cat $FADUMP_ENABLED)" = "1"
+}
+
+#
 # If KDUMP_IMMEDIATE_REBOOT is false, then open a shell. If it's true, then
 # reboot.
 function handle_exit()
@@ -34,7 +44,10 @@ function handle_exit()
         ulimit -c "$backup_ulimit"
     fi
     
-    if [ $KDUMP_IMMEDIATE_REBOOT = "yes" \
+    if use_fadump; then
+        # release memory if possible
+        test -f $FADUMP_RELEASE_MEM && echo 1 > $FADUMP_RELEASE_MEM
+    elif [ $KDUMP_IMMEDIATE_REBOOT = "yes" \
             -o "$KDUMP_IMMEDIATE_REBOOT" = "YES" ] ; then
         reboot -f
     else
@@ -106,6 +119,8 @@ fi
 . /etc/sysconfig/kdump
 
 ROOTDIR=/root
+FADUMP_ENABLED=/sys/kernel/fadump_enabled
+FADUMP_RELEASE_MEM=/sys/kernel/fadump_release_mem
 
 #
 # start LED blinking in background
@@ -160,12 +175,6 @@ else
     if ! continue_error $?; then
         return
     fi
-
-    #
-    # release memory if using fadump
-    if [ -f /sys/kernel/fadump_release_mem ]; then
-	echo 1 > /sys/kernel/fadump_release_mem
-    fi 
 
     #
     # postscript

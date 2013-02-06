@@ -1,3 +1,7 @@
+0.8.4
+-----
+  * Do not reboot after taking a dump with fadump.
+
 0.8.3
 -----
   * Update the text of the license (new FSF address).
