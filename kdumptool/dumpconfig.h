@@ -43,12 +43,31 @@ class DumpConfig : public Subcommand {
         throw ();
 
         /**
+         * Returns the list of options supported by this subcommand.
+         */
+        OptionList getOptions() const
+        throw ();
+
+        /**
+         * Parses the command line options.
+         */
+        void parseCommandline(OptionParser *optionparser)
+        throw (KError);
+
+        /**
          * Executes the function.
          *
          * @throw KError on any error. No exception indicates success.
          */
         void execute()
         throw (KError);
+
+    private:
+	enum Format {
+	    FMT_SHELL,
+	    FMT_KERNEL
+	};
+	enum Format m_format;
 };
 
 //}}}

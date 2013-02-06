@@ -298,12 +298,22 @@ DUMP KDUMPTOOL CONFIGURATION
 ----------------------------
 
 All configuration variables can be dumped to the standard output in a form
-that can be process by a shell.
+that can be process by a shell or that can be passed as kernel parameters.
 
 Syntax
 ~~~~~~
 
-*kdumptool* [_globals_] *dump_config*
+*kdumptool* [_globals_] *dump_config* [-f _format_]
+
+Options
+~~~~~~~
+
+*-f* _format_ | *--format* _format_::
+  Use the specified output format. It must be one of:
+    *shell*;;
+      The output can be read as a shell script. (default)
+    *kernel*;;
+      The output can be passed as a kernel parameter.
 
 
 RETURN VALUE
