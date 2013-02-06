@@ -38,13 +38,13 @@ class ConfigOption {
 	 * These flags determine at which stage the option is used.
 	 */
 	enum UsageFlags {
-	    USE_MKINITRD	= (1<<0), // Used when generating initrd
-	    USE_KEXEC		= (1<<1), // Used when loading the dump kernel
-	    USE_DUMP		= (1<<2), // Used for dumping
+	    USE_MKINITRD,	// Used when generating initrd
+	    USE_KEXEC,		// Used when loading the dump kernel
+	    USE_DUMP,		// Used for dumping
 	};
 
     public:
-	ConfigOption(const char *name, int usage)
+	ConfigOption(const char *name, unsigned usage)
 	throw ()
 	: m_name(name), m_usage(usage)
 	{ }
@@ -59,7 +59,7 @@ class ConfigOption {
 	/**
 	 * Return the usage flags of the option.
 	 */
-	int usage() const
+	unsigned usage() const
 	throw ()
 	{ return m_usage; }
 
@@ -91,7 +91,7 @@ class ConfigOption {
 
     protected:
 	const char *const m_name;
-	const int m_usage;
+	const unsigned m_usage;
 };
 
 //}}}
@@ -103,7 +103,7 @@ class ConfigOption {
 class StringConfigOption : public ConfigOption {
 
     public:
-	StringConfigOption(const char *name, int usage,
+	StringConfigOption(const char *name, unsigned usage,
 			   const char *const defvalue)
 	throw ()
 	: ConfigOption(name, usage), m_defvalue(defvalue), m_value(defvalue)
@@ -147,7 +147,7 @@ class StringConfigOption : public ConfigOption {
 class IntConfigOption : public ConfigOption {
 
     public:
-	IntConfigOption(const char *name, int usage, const int defvalue)
+	IntConfigOption(const char *name, unsigned usage, const int defvalue)
 	throw ()
 	: ConfigOption(name, usage), m_defvalue(defvalue), m_value(defvalue)
 	{ }
@@ -188,7 +188,7 @@ class IntConfigOption : public ConfigOption {
 class BoolConfigOption : public ConfigOption {
 
     public:
-	BoolConfigOption(const char *name, int usage, const bool defvalue)
+	BoolConfigOption(const char *name, unsigned usage, const bool defvalue)
 	throw ()
 	: ConfigOption(name, usage), m_defvalue(defvalue), m_value(defvalue)
 	{ }
