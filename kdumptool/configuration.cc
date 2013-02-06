@@ -90,9 +90,15 @@ Configuration::Configuration()
     throw ()
     : m_readConfig(false)
 {
-#define DEFINE_OPT(name, type, defval) \
-    m_options.push_back(new type ## ConfigOption(#name, defval));
+#define MKINITRD ConfigOption::USE_MKINITRD
+#define KEXEC    ConfigOption::USE_KEXEC
+#define DUMP     ConfigOption::USE_DUMP
+#define DEFINE_OPT(name, type, defval, usage)				\
+    m_options.push_back(new type ## ConfigOption(#name, usage, defval));
 #include "define_opt.h"
+#undef MKINITRD
+#undef KEXEC
+#undef DUMP
 #undef DEFINE_OPT
 }
 
