@@ -24,8 +24,43 @@
 #include "dumpconfig.h"
 #include "configuration.h"
 
+using std::string;
 using std::cout;
 using std::endl;
+
+// -----------------------------------------------------------------------------
+static bool is_shell_safe(const char c)
+{
+    return (c >= '0' && c <= '9') ||
+	(c >= 'A' && c <= 'Z') ||
+	(c >= 'a' && c <= 'z') ||
+	(c == '_' || c == '/' || c == '@' ||
+	 c == '.' || c == ',' || c == ':');
+}
+
+// -----------------------------------------------------------------------------
+static string quote_shell(const string &str)
+{
+    string ret;
+    bool quotes_needed = false;
+    for (string::const_iterator it = str.begin(); it != str.end(); ++it) {
+	ret.push_back(*it);
+	if (!is_shell_safe(*it))
+	    quotes_needed = true;
+	if (*it == '\'')
+	    ret.append("\\\'\'");
+    }
+    if (quotes_needed) {
+	ret.insert(0, "\'");
+	string::iterator last = ret.end();
+	--last;
+	if (*last == '\'')
+	    ret.erase(last);
+	else
+	    ret.push_back('\'');
+    }
+    return ret;
+}
 
 //{{{ DumpConfig ---------------------------------------------------------------
 
@@ -54,7 +89,8 @@ void DumpConfig::execute()
 	end = config->optionsEnd();
 
     for (it = begin; it != end; ++it) {
-	cout << (*it)->name() << "='" << (*it)->valueAsString() << "'" << endl;
+	cout << (*it)->name() << "="
+	     << quote_shell((*it)->valueAsString()) << endl;
     }
 }
 
