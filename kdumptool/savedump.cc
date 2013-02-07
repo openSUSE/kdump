@@ -602,6 +602,13 @@ string SaveDump::findKernel()
         return binary;
     }
 
+    // 4: image
+    binary = FileUtil::pathconcat("/boot", "image-" + m_crashrelease);
+    binaryroot = FileUtil::pathconcat(m_rootdir, binary);
+    Debug::debug()->dbg("Trying %s", binaryroot.c_str());
+    if (FileUtil::exists(binaryroot))
+        return binary;
+
     throw KError("No kernel image found in " +
         FileUtil::pathconcat(m_rootdir, "/boot"));
 }

@@ -2,6 +2,7 @@
 -----
   * Do not reboot after taking a dump with fadump.
   * Add a new command to dump the configuration variables: dump_config
+  * Support for kdump on S/390x.
 
 0.8.3
 -----
