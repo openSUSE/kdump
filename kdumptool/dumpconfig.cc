@@ -27,6 +27,17 @@
 using std::string;
 using std::cout;
 
+const char *DumpConfig::format_names[] = {
+    [FMT_SHELL]  = "shell",
+    [FMT_KERNEL] = "kernel",
+};
+
+const char *DumpConfig::usage_names[] = {
+    [ConfigOption::USE_MKINITRD] = "mkinitrd",
+    [ConfigOption::USE_KEXEC]    = "kexec",
+    [ConfigOption::USE_DUMP]     = "dump",
+};
+
 // -----------------------------------------------------------------------------
 static bool is_shell_safe(const char c)
 {
@@ -95,7 +106,7 @@ static string quote_kernel(const string &str)
 // -----------------------------------------------------------------------------
 DumpConfig::DumpConfig()
     throw ()
-    : m_format(FMT_SHELL)
+    : m_format(FMT_SHELL), m_usage((1 << ConfigOption::USE_MAX) - 1)
 {}
 
 // -----------------------------------------------------------------------------
@@ -113,8 +124,26 @@ OptionList DumpConfig::getOptions() const
 
     Debug::debug()->trace("DumpConfig::getOptions()");
 
+    string formatlist;
+    for (size_t i = 0; i < sizeof(format_names)/sizeof(format_names[0]); ++i) {
+	if (!formatlist.empty())
+	    formatlist += ", ";
+	formatlist.push_back('\'');
+	formatlist += format_names[i];
+	formatlist.push_back('\'');
+    }
     list.push_back(Option("format", 'f', OT_STRING,
-	"Set the output format ('shell' or 'kernel')"));
+	"Set the output format (" + formatlist + ")"));
+
+    string usagelist;
+    for (size_t i = 0; i < sizeof(usage_names)/sizeof(usage_names[0]); ++i) {
+	usagelist.push_back('\'');
+	usagelist += usage_names[i];
+	usagelist += "', ";
+    }
+    list.push_back(Option("usage", 'u', OT_STRING,
+	"Show only options used at a certain stage\n"
+	"\t(" + usagelist + "'all')"));
 
     return list;
 
@@ -124,25 +153,49 @@ OptionList DumpConfig::getOptions() const
 void DumpConfig::parseCommandline(OptionParser *optionparser)
     throw (KError)
 {
-    static const char *fmt_name[] = {
-	[FMT_SHELL] = "shell",
-	[FMT_KERNEL] = "kernel",
-    };
     Debug::debug()->trace("DumpConfig::parseCommandline(%p)", optionparser);
 
     if (optionparser->getValue("format").getType() != OT_INVALID) {
 	string format = optionparser->getValue("format").getString();
 	size_t i;
-	for (i = 0; i < sizeof(fmt_name)/sizeof(fmt_name[0]); ++i)
-	    if (format == fmt_name[i]) {
+	for (i = 0; i < sizeof(format_names)/sizeof(format_names[0]); ++i)
+	    if (format == format_names[i]) {
 		m_format = (enum Format)i;
 		break;
 	    }
-	if (i >= sizeof(fmt_name)/sizeof(fmt_name[0]))
+	if (i >= sizeof(format_names)/sizeof(format_names[0]))
 	    throw KError("Unknown value format: " + format);
     }
 
-    Debug::debug()->dbg("format: %s", fmt_name[m_format]);
+    if (optionparser->getValue("usage").getType() != OT_INVALID) {
+	string usage = optionparser->getValue("usage").getString();
+	m_usage = 0;
+
+	size_t pos = 0;
+	while (pos != string::npos) {
+	    size_t next = usage.find(',', pos);
+	    string token(usage, pos, next - pos);
+	    pos = next;
+	    if (pos != string::npos)
+		++pos;
+
+	    size_t i;
+	    for (i = 0; i < sizeof(usage_names)/sizeof(usage_names[0]); ++i)
+		if (token == usage_names[i]) {
+		    m_usage |= 1 << i;
+		    break;
+		}
+	    if (i >= sizeof(usage_names)/sizeof(usage_names[0])) {
+		if (token == "all")
+		    m_usage = (1 << ConfigOption::USE_MAX) - 1;
+		else
+		    throw KError("Unknown usage string: " + token);
+	    }
+	}
+    }
+
+    Debug::debug()->dbg("format: %s, usage: 0x%x",
+        format_names[m_format], m_usage);
 }
 
 // -----------------------------------------------------------------------------
@@ -165,6 +218,9 @@ void DumpConfig::execute()
     }
 
     for (it = begin; it != end; ++it) {
+	if (((*it)->usage() & m_usage) == 0)
+	    continue;
+
 	cout << (*it)->name() << "="
 	     << quote((*it)->valueAsString()) << delim;
     }

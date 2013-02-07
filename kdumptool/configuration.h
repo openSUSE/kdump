@@ -41,6 +41,7 @@ class ConfigOption {
 	    USE_MKINITRD,	// Used when generating initrd
 	    USE_KEXEC,		// Used when loading the dump kernel
 	    USE_DUMP,		// Used for dumping
+	    USE_MAX		// Max usage bit position
 	};
 
     public:

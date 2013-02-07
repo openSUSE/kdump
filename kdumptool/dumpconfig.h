@@ -68,6 +68,10 @@ class DumpConfig : public Subcommand {
 	    FMT_KERNEL
 	};
 	enum Format m_format;
+	unsigned m_usage;
+
+	static const char *format_names[];
+	static const char *usage_names[];
 };
 
 //}}}

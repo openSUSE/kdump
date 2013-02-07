@@ -315,6 +315,21 @@ Options
     *kernel*;;
       The output can be passed as a kernel parameter.
 
+*-u* _usage_ | *--usage* _usage_::
+  Show only configuration variables that are used for a specific stage.
+  It is possible to specify multiple stages delimited by commas.
+  Recognized stages are:
+    *mkinitrd*;;
+      Variables which control how the kdump initrd is created, e.g. which
+      driver modules must be included.
+    *kexec*;;
+      Variables which are needed when loading the secondary kernel with
+      kexec. Note that fadump does not use these variables.
+    *dump*;;
+      Variables used in the secondary kernel when saving the dump.
+    *all*;;
+      Show all variables. (default)
+
 
 RETURN VALUE
 ------------
