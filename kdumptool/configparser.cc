@@ -116,28 +116,6 @@ string ConfigParser::getValue(const std::string &name) const
     return loc->second;
 }
 
-// -----------------------------------------------------------------------------
-int ConfigParser::getIntValue(const std::string &name) const
-    throw (KError)
-{
-    stringstream ss;
-    ss << getValue(name);
-    int ret;
-    ss >> ret;
-
-    return ret;
-}
-
-/* -------------------------------------------------------------------------- */
-bool ConfigParser::getBoolValue(const std::string &name) const
-    throw (KError)
-{
-    string value = getValue(name);
-
-    return !(value == "0" || value == "false" || value == "FALSE" ||
-             value == "no" || value == "NO");
-}
-
 //}}}
 
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

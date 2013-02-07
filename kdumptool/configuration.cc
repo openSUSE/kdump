@@ -17,6 +17,7 @@
  * 02110-1301, USA.
  */
 #include <string>
+#include <sstream>
 
 #include "configuration.h"
 #include "configparser.h"
@@ -51,7 +52,9 @@ string IntConfigOption::valueAsString() const
 void IntConfigOption::update(ConfigParser &cp)
     throw (KError)
 {
-    m_value = cp.getIntValue(m_name);
+    std::stringstream ss;
+    ss << cp.getValue(m_name);
+    ss >> m_value;
 }
 
 //}}}
@@ -60,14 +63,17 @@ void IntConfigOption::update(ConfigParser &cp)
 string BoolConfigOption::valueAsString() const
     throw ()
 {
-    return m_value ? "true" : "false";
+    return m_value ? "yes" : "no";
 }
 
 // -----------------------------------------------------------------------------
 void BoolConfigOption::update(ConfigParser &cp)
     throw (KError)
 {
-    m_value = cp.getBoolValue(m_name);
+    string val = cp.getValue(m_name);
+    for (string::iterator it = val.begin(); it != val.end(); ++it)
+	*it = tolower(*it);
+    m_value = !(val == "0" || val == "false" || val == "no");
 }
 
 //}}}
