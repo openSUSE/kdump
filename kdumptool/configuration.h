@@ -90,6 +90,12 @@ class ConfigOption {
 	virtual void update(ConfigParser &cp)
 	throw (KError) = 0;
 
+	/**
+	 * Return true if this option is assigned the default value.
+	 */
+	virtual bool isDefault(void)
+	throw () = 0;
+
     protected:
 	const char *const m_name;
 	const unsigned m_usage;
@@ -134,6 +140,13 @@ class StringConfigOption : public ConfigOption {
 	virtual void update(ConfigParser &cp)
 	throw (KError);
 
+	/**
+	 * Return true if this option is assigned the default value.
+	 */
+	virtual bool isDefault(void)
+	throw ()
+	{ return m_value == m_defvalue; }
+
     protected:
 	const char *const m_defvalue;
 	std::string m_value;
@@ -175,6 +188,13 @@ class IntConfigOption : public ConfigOption {
 	virtual void update(ConfigParser &cp)
 	throw (KError);
 
+	/**
+	 * Return true if this option is assigned the default value.
+	 */
+	virtual bool isDefault(void)
+	throw ()
+	{ return m_value == m_defvalue; }
+
     protected:
 	const int m_defvalue;
 	int m_value;
@@ -215,6 +235,13 @@ class BoolConfigOption : public ConfigOption {
 	 */
 	virtual void update(ConfigParser &cp)
 	throw (KError);
+
+	/**
+	 * Return true if this option is assigned the default value.
+	 */
+	virtual bool isDefault(void)
+	throw ()
+	{ return m_value == m_defvalue; }
 
     protected:
 	const bool m_defvalue;

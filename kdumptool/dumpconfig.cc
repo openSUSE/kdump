@@ -106,7 +106,8 @@ static string quote_kernel(const string &str)
 // -----------------------------------------------------------------------------
 DumpConfig::DumpConfig()
     throw ()
-    : m_format(FMT_SHELL), m_usage((1 << ConfigOption::USE_MAX) - 1)
+    : m_format(FMT_SHELL), m_usage((1 << ConfigOption::USE_MAX) - 1),
+      m_nodefault(false)
 {}
 
 // -----------------------------------------------------------------------------
@@ -144,6 +145,9 @@ OptionList DumpConfig::getOptions() const
     list.push_back(Option("usage", 'u', OT_STRING,
 	"Show only options used at a certain stage\n"
 	"\t(" + usagelist + "'all')"));
+
+    list.push_back(Option("nodefault", 'n', OT_FLAG,
+	"Omit variables which have their default values"));
 
     return list;
 
@@ -194,6 +198,9 @@ void DumpConfig::parseCommandline(OptionParser *optionparser)
 	}
     }
 
+    if (optionparser->getValue("nodefault").getFlag())
+        m_nodefault = true;
+
     Debug::debug()->dbg("format: %s, usage: 0x%x",
         format_names[m_format], m_usage);
 }
@@ -219,6 +226,8 @@ void DumpConfig::execute()
 
     for (it = begin; it != end; ++it) {
 	if (((*it)->usage() & m_usage) == 0)
+	    continue;
+	if (m_nodefault && (*it)->isDefault())
 	    continue;
 
 	cout << (*it)->name() << "="

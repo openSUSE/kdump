@@ -70,6 +70,8 @@ class DumpConfig : public Subcommand {
 	enum Format m_format;
 	unsigned m_usage;
 
+	bool m_nodefault;
+
 	static const char *format_names[];
 	static const char *usage_names[];
 };
