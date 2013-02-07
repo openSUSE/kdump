@@ -28,14 +28,14 @@ using std::string;
 using std::cout;
 
 const char *DumpConfig::format_names[] = {
-    [FMT_SHELL]  = "shell",
-    [FMT_KERNEL] = "kernel",
+    "shell",			// DumpConfig::FMT_SHELL
+    "kernel",			// DumpConfig::FMT_KERNEL
 };
 
 const char *DumpConfig::usage_names[] = {
-    [ConfigOption::USE_MKINITRD] = "mkinitrd",
-    [ConfigOption::USE_KEXEC]    = "kexec",
-    [ConfigOption::USE_DUMP]     = "dump",
+    "mkinitrd",			// ConfigOption::USE_MKINITRD
+    "kexec",			// ConfigOption::USE_KEXEC
+    "dump",			// ConfigOption::USE_DUMP
 };
 
 // -----------------------------------------------------------------------------
