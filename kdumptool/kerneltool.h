@@ -40,6 +40,7 @@ class KernelTool {
             KT_ELF,
             KT_ELF_GZ,
             KT_X86,
+            KT_S390,
             KT_NONE
         };
 
@@ -174,6 +175,14 @@ class KernelTool {
          * @return @c true if it's a x86 kernel, @c false otherwise.
          */
         bool isX86Kernel() const
+        throw (KError);
+
+        /**
+         * Checks if the kernel is a S/390 kernel image.
+         *
+         * @return @c true if it's a S/390 kernel image, @c false otherwise.
+         */
+        bool isS390Kernel() const
         throw (KError);
 
         /**

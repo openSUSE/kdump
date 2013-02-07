@@ -107,6 +107,9 @@ void IdentifyKernel::execute()
             case KernelTool::KT_ELF_GZ:
                 cout << "ELF gzip" << endl;
                 break;
+            case KernelTool::KT_S390:
+                cout << "S390" << endl;
+                break;
             default:
                 throw KError("The specified file is not a kernel image.");
         }
