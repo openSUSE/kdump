@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 
     Debug::debug()->setStderrLevel(Debug::DL_TRACE);
     try {
-        ConfigParser cp(configfile);
+        ShellConfigParser cp(configfile);
         cp.addVariable(name, "");
         cp.parse();
 

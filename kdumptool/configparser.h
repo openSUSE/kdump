@@ -30,19 +30,12 @@
 /**
  * Configuration parser.
  *
- * This configuration parser is shell based. This means, it sources the
- * configuration in a shell (/bin/sh), and prints the evaluated value from
- * that shell. This output is parsed.
- *
- * This mechanism is necessary for the /etc/sysconfig files to be parsed
- * according to the standard.
- *
  * To use it
  *
  *  - create a new object with the file name specified in the constructor,
- *  - add variables to the configuration parser that should be parsed
+ *  - add the variables to be parsed to the configuration parser
  *  - parse the file with the @c ConfigParser::parse() method.
- *  - and retrieve the variables using the different get methods.
+ *  - and retrieve the variable values
  *
  * This class implements a read-only parser. You cannot write configuration
  * files with that implementation.
@@ -59,12 +52,15 @@ class ConfigParser {
          *            (here it is not checked if the file exists)
          */
         ConfigParser(const std::string &filename)
-        throw ();
+        throw ()
+	: m_configFile(filename)
+	{}
 
         /**
          * Deletes the ConfigParser object.
          */
-        virtual ~ConfigParser() throw ()
+        virtual ~ConfigParser()
+	throw ()
         {}
 
         /**
@@ -82,8 +78,8 @@ class ConfigParser {
          * @exception KError if opening of the file failed or if spawning the
          *            shell that actually parses the configuration file fails
          */
-        void parse()
-        throw (KError);
+        virtual void parse()
+        throw (KError) = 0;
 
         /**
          * Returns the value of the specified configuration option.
@@ -96,9 +92,45 @@ class ConfigParser {
         std::string getValue(const std::string &name) const
         throw (KError);
 
-    private:
+    protected:
         std::string m_configFile;
         StringStringMap m_variables;
+};
+
+//}}}
+
+//{{{ ShellConfigParser --------------------------------------------------------
+
+/**
+ * This configuration parser is shell based. This means, it sources the
+ * configuration in a shell (/bin/sh), and prints the evaluated value from
+ * that shell. This output is parsed.
+ *
+ * This mechanism is necessary for the /etc/sysconfig files to be parsed
+ * according to the standard.
+ */
+class ShellConfigParser : public ConfigParser {
+
+    public:
+
+        /**
+         * Creates a new ConfigParser object with the specified file name
+         * as configuration file.
+         *
+         * @param[in] filename the file name of the configuration file
+         *            (here it is not checked if the file exists)
+         */
+        ShellConfigParser(const std::string &filename)
+        throw ();
+
+        /**
+         * Parse the configuration file.
+         *
+         * @exception KError if opening of the file failed or if spawning the
+         *            shell that actually parses the configuration file fails
+         */
+        virtual void parse()
+        throw (KError);
 };
 
 //}}}

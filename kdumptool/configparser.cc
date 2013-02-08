@@ -33,12 +33,6 @@ using std::stringstream;
 //{{{ ConfigParser -------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-ConfigParser::ConfigParser(const string &filename)
-    throw ()
-    : m_configFile(filename)
-{}
-
-// -----------------------------------------------------------------------------
 void ConfigParser::addVariable(const string &name, const string &defvalue)
     throw ()
 {
@@ -50,7 +44,29 @@ void ConfigParser::addVariable(const string &name, const string &defvalue)
 }
 
 // -----------------------------------------------------------------------------
-void ConfigParser::parse()
+string ConfigParser::getValue(const std::string &name) const
+    throw (KError)
+{
+    StringStringMap::const_iterator loc = m_variables.find(name);
+
+    if (loc == m_variables.end())
+        throw KError("Variable " + name + " does not exist.");
+
+    return loc->second;
+}
+
+//}}}
+
+//{{{ ShellConfigParser --------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+ShellConfigParser::ShellConfigParser(const string &filename)
+    throw ()
+    : ConfigParser(filename)
+{}
+
+// -----------------------------------------------------------------------------
+void ShellConfigParser::parse()
     throw (KError)
 {
     // check if the configuration file does exist
@@ -111,18 +127,6 @@ void ConfigParser::parse()
 
         m_variables[name] = value;
     }
-}
-
-// -----------------------------------------------------------------------------
-string ConfigParser::getValue(const std::string &name) const
-    throw (KError)
-{
-    StringStringMap::const_iterator loc = m_variables.find(name);
-
-    if (loc == m_variables.end())
-        throw KError("Variable " + name + " does not exist.");
-
-    return loc->second;
 }
 
 //}}}

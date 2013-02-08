@@ -118,7 +118,7 @@ Configuration::Configuration()
 void Configuration::readFile(const string &filename)
     throw (KError)
 {
-    ConfigParser cp(filename);
+    ShellConfigParser cp(filename);
 
     std::vector<ConfigOption*>::iterator it;
     for (it = m_options.begin(); it != m_options.end(); ++it)
