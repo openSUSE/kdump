@@ -80,6 +80,8 @@ SET(KDUMPTOOL_SRC
     findkernel.h
     dumpconfig.cc
     dumpconfig.h
+    quotedstring.cc
+    quotedstring.h
     main.cc
 )
 

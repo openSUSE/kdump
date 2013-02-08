@@ -23,6 +23,7 @@
 #include "debug.h"
 #include "dumpconfig.h"
 #include "configuration.h"
+#include "quotedstring.h"
 
 using std::string;
 using std::cout;
@@ -37,69 +38,6 @@ const char *DumpConfig::usage_names[] = {
     "kexec",			// ConfigOption::USE_KEXEC
     "dump",			// ConfigOption::USE_DUMP
 };
-
-// -----------------------------------------------------------------------------
-static bool is_shell_safe(const char c)
-{
-    return (c >= '0' && c <= '9') ||
-	(c >= 'A' && c <= 'Z') ||
-	(c >= 'a' && c <= 'z') ||
-	(c == '_' || c == '/' || c == '@' ||
-	 c == '.' || c == ',' || c == ':');
-}
-
-// -----------------------------------------------------------------------------
-static string quote_shell(const string &str)
-{
-    string ret;
-    bool quotes_needed = false;
-    for (string::const_iterator it = str.begin(); it != str.end(); ++it) {
-	ret.push_back(*it);
-	if (!is_shell_safe(*it))
-	    quotes_needed = true;
-	if (*it == '\'')
-	    ret.append("\\\'\'");
-    }
-    if (quotes_needed) {
-	ret.insert(0, "\'");
-	string::iterator last = ret.end();
-	--last;
-	if (*last == '\'')
-	    ret.erase(last);
-	else
-	    ret.push_back('\'');
-    }
-    return ret;
-}
-
-// -----------------------------------------------------------------------------
-static bool is_kernel_space(const char c)
-{
-    // follow the definition from lib/ctype.c in the Linux kernel tree
-    return (c >= 9 && c <= 13) || c == 32 || c == (char)160;
-}
-
-// -----------------------------------------------------------------------------
-static string quote_kernel(const string &str)
-{
-    string ret;
-    bool quotes_needed = false;
-    for (string::const_iterator it = str.begin(); it != str.end(); ++it) {
-	if (is_kernel_space(*it))
-	    quotes_needed = true;
-	if (*it == '\"')
-	    ret.append("\\042");
-	else if (*it == '\\')
-	    ret.append("\\\\");
-	else
-	    ret.push_back(*it);
-    }
-    if (quotes_needed) {
-	ret.insert(0, "\"");
-	ret.push_back('\"');
-    }
-    return ret;
-}
 
 //{{{ DumpConfig ---------------------------------------------------------------
 
@@ -217,11 +155,19 @@ void DumpConfig::execute()
 	begin = config->optionsBegin(),
 	end = config->optionsEnd();
 
-    string (*quote)(const string&);
+    QuotedString *qs;
     char delim;
     switch (m_format) {
-    case FMT_SHELL: quote = quote_shell; delim = '\n'; break;
-    case FMT_KERNEL: quote = quote_kernel; delim = ' '; break;
+    case FMT_SHELL:
+        qs = new ShellQuotedString();
+        delim = '\n';
+        break;
+    case FMT_KERNEL:
+        qs = new KernelQuotedString();
+        delim = ' ';
+        break;
+    default:
+        throw KError("Invalid format: " + (int)m_format);
     }
 
     for (it = begin; it != end; ++it) {
@@ -230,9 +176,11 @@ void DumpConfig::execute()
 	if (m_nodefault && (*it)->isDefault())
 	    continue;
 
-	cout << (*it)->name() << "="
-	     << quote((*it)->valueAsString()) << delim;
+        qs->assign((*it)->valueAsString());
+        cout << (*it)->name() << "=" << qs->quoted() << delim;
     }
+
+    delete qs;
 }
 
 //}}}
