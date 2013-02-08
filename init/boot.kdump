@@ -81,7 +81,7 @@ function remove_from_commandline()
     { \
         while(length()) { \
             sub(/^[[:space:]]+/,""); \
-            if (match($0,/^("[^"]*"|[^"[:space:]]+)+/)) { \
+            if (match($0,/^("[^"]*"?|[^"[:space:]]+)+/)) { \
                     plength=RLENGTH; \
                     param=substr($0,1,plength); \
                     gsub(/"/,"",param); \
