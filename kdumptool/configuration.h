@@ -296,12 +296,20 @@ class Configuration {
          * Reads a configuration file.
          *
          * @param filename the file name to read
-         * @param variables a list of variables where to read
          * @exception if the @c filename was not found or the shell that
          *            is necessary to parse the configuration file could not
          *            be spawned
          */
         void readFile(const std::string &filename)
+        throw (KError);
+
+        /**
+         * Reads a kernel command file.
+         *
+         * @param filename the file (e.g. /proc/cmdline)
+         * @exception if the @c filename was not found
+         */
+        void readCmdLine(const std::string &filename)
         throw (KError);
 
 	/**

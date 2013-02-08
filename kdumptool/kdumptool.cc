@@ -58,7 +58,7 @@ static void close_file(int error, void *arg)
 KdumpTool::KdumpTool()
     throw ()
     : m_subcommand(NULL), m_errorcode(false), m_background(false),
-      m_configfile(DEFAULT_CONFIG)
+      m_configfile(DEFAULT_CONFIG), m_kernel_cmdline()
 {}
 
 // -----------------------------------------------------------------------------
@@ -86,6 +86,8 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
         "Uses the specified logfile for the debugging output.");
     m_optionParser.addOption("configfile", 'F', OT_STRING,
         "Use the specified configuration file instead of " DEFAULT_CONFIG " .");
+    m_optionParser.addOption("cmdline", 'C', OT_STRING,
+        "Also parse kernel parameters from a given file (e.g. /proc/cmdline)");
 
     // add options of the subcommands
     SubcommandList subcommands = SubcommandManager::instance()->getSubcommands();
@@ -129,6 +131,10 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
     if (m_optionParser.getValue("configfile").getType() != OT_INVALID)
         m_configfile = m_optionParser.getValue("configfile").getString();
 
+    // kernel command line
+    if (m_optionParser.getValue("cmdline").getType() != OT_INVALID)
+        m_kernel_cmdline = m_optionParser.getValue("cmdline").getString();
+
     // parse arguments
     vector<string> arguments = m_optionParser.getArgs();
     if (arguments.size() < 1)
@@ -151,6 +157,8 @@ void KdumpTool::readConfiguration()
     if (m_subcommand->needsConfigfile()) {
         Configuration *config = Configuration::config();
         config->readFile(m_configfile);
+        if (!m_kernel_cmdline.empty())
+            config->readCmdLine(m_kernel_cmdline);
     }
 }
 

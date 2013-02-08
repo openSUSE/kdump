@@ -132,6 +132,24 @@ void Configuration::readFile(const string &filename)
     m_readConfig = true;
 }
 
+/* -------------------------------------------------------------------------- */
+void Configuration::readCmdLine(const string &filename)
+    throw (KError)
+{
+    KernelConfigParser cp(filename);
+
+    std::vector<ConfigOption*>::iterator it;
+    for (it = m_options.begin(); it != m_options.end(); ++it)
+	(*it)->registerVar(cp);
+
+    cp.parse();
+
+    for (it = m_options.begin(); it != m_options.end(); ++it)
+	(*it)->update(cp);
+
+    m_readConfig = true;
+}
+
 // -----------------------------------------------------------------------------
 ConfigOption *Configuration::getOptionPtr(enum OptionIndex index) const
     throw (KError, std::out_of_range)
