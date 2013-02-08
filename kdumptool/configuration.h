@@ -75,11 +75,7 @@ class ConfigOption {
 	 * @cp   the ConfigParser object where the config option will
 	 *       be registered.
 	 */
-	void registerVar(ConfigParser &cp) const
-	throw ()
-	{
-	    cp.addVariable(m_name);
-	}
+	virtual void registerVar(ConfigParser &cp) const;
 
 	/**
 	 * Update the value from a parser.

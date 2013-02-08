@@ -111,6 +111,8 @@ target_link_libraries(testio ${EXTRA_LIBS})
 SET(TESTCONFIG_SRC
     configparser.cc
     configparser.h
+    quotedstring.cc
+    quotedstring.h
     util.h
     util.cc
     process.cc
@@ -157,6 +159,8 @@ SET(TESTMAIL_SRC
     configuration.h
     configparser.h
     configparser.cc
+    quotedstring.cc
+    quotedstring.h
     process.cc
     process.h
     stringutil.h

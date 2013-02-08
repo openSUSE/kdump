@@ -71,8 +71,9 @@ class ConfigParser {
          * Adds a variable which should be parsed.
          *
          * @param[in] name the name of the variable
+	 * @param[in] defvalue default value for the variable
          */
-        void addVariable(const std::string &name)
+        void addVariable(const std::string &name, const std::string &defvalue)
         throw ();
 
         /**
@@ -93,32 +94,6 @@ class ConfigParser {
          * @exception KError if the value cannot be found
          */
         std::string getValue(const std::string &name) const
-        throw (KError);
-
-        /**
-         * Returns the value of an integer configuration option. The parser
-         * tries to convert the string value which can be obtained by
-         * ConfigParser::getValue() to an integer.
-         *
-         * @param[in] name the configuration option (case matters)
-         * @return the value as integer
-         *
-         * @exception KError if the value cannot be found
-         */
-        int getIntValue(const std::string &name) const
-        throw (KError);
-
-        /**
-         * Returns the value of a boolean configuration option. The parser
-         * tries to convert the string value which can be obtained by
-         * ConfigParser::getValue() to a boolean value.
-         *
-         * @param[in] name the configuration option (case matters)
-         * @return the value as boolean
-         *
-         * @exception KError if the value cannot be found
-         */
-        bool getBoolValue(const std::string &name) const
         throw (KError);
 
     private:

@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     Debug::debug()->setStderrLevel(Debug::DL_TRACE);
     try {
         ConfigParser cp(configfile);
-        cp.addVariable(name);
+        cp.addVariable(name, "");
         cp.parse();
 
         string val;

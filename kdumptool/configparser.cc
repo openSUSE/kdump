@@ -24,6 +24,7 @@
 #include "debug.h"
 #include "stringutil.h"
 #include "process.h"
+#include "quotedstring.h"
 
 using std::string;
 using std::ifstream;
@@ -38,30 +39,38 @@ ConfigParser::ConfigParser(const string &filename)
 {}
 
 // -----------------------------------------------------------------------------
-void ConfigParser::addVariable(const string &name)
+void ConfigParser::addVariable(const string &name, const string &defvalue)
     throw ()
 {
-    Debug::debug()->trace("ConfigParser: Adding %s to variable list.",
-        name.c_str());
+    Debug::debug()->trace("ConfigParser: Adding %s to variable list"
+	" (default: '%s')", name.c_str(), defvalue.c_str());
 
-    // add an empty string to the map
-    m_variables[name] = string();
+    // add the default value to the map
+    m_variables[name] = defvalue;
 }
 
 // -----------------------------------------------------------------------------
 void ConfigParser::parse()
     throw (KError)
 {
-    // build the shell snippet
-    string shell;
-
     // check if the configuration file does exist
     ifstream fin(m_configFile.c_str());
     if (!fin)
         throw KError("The file " + m_configFile + " does not exist.");
     fin.close();
 
-    shell += "#!/bin/sh\n";
+    // build the shell snippet
+    string shell ("#!/bin/sh\n");
+
+    // set default values
+    for (StringStringMap::const_iterator it = m_variables.begin();
+            it != m_variables.end(); ++it) {
+        const string name = it->first;
+	ShellQuotedString value(it->second);
+
+        shell += name + "=" + value.quoted() + "\n";
+    }
+
     shell += "source " + m_configFile + "\n";
 
     for (StringStringMap::const_iterator it = m_variables.begin();

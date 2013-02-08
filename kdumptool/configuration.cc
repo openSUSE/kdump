@@ -25,6 +25,12 @@
 
 using std::string;
 
+//{{{ ConfigOption -------------------------------------------------------------
+void ConfigOption::registerVar(ConfigParser &cp) const
+{
+    cp.addVariable(m_name, valueAsString());
+}
+
 //{{{ StringConfigOption -------------------------------------------------------
 string StringConfigOption::valueAsString() const
     throw ()
