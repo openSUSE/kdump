@@ -184,6 +184,30 @@ void KernelConfigParser::parse()
             name.clear();
             value.clear();
             outp = &name;
+        } else if (c == '\\') {
+            if (ss.peek() == '\\' && ss.get(c)) {
+                outp->push_back(c);
+                continue;
+            }
+
+            char seq[3];
+            int i;
+            for (i = 0; i < 3; ++i) {
+                c = ss.peek();
+                if (c < '0' || c > '7')
+                    break;
+                if (!ss.get(seq[i]))
+                    break;
+            }
+            if (i < 3) {
+		outp->push_back('\\');
+                outp->append(seq, i);
+            } else {
+                c = ((seq[0] - '0') << 6) +
+                    ((seq[1] - '0') << 3) +
+                    (seq[2] - '0');
+                outp->push_back(c);
+            }
         } else {
             outp->push_back(c);
         }
