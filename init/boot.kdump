@@ -228,6 +228,22 @@ function load_kdump_kexec()
 
 }
 
+# Update fadump configuration
+function load_kdump_fadump()
+{
+    # check if the old configuration is still valid
+    boot_opts=$(kdumptool -F /dev/null -C <(kdump-bootloader.pl --get) \
+			  dump_config --usage dump --format kernel --nodefault)
+    curr_opts=$(kdumptool dump_config --usage dump --format kernel --nodefault)
+    if "$boot_opts" != "$curr_opts"; then
+	kdump-bootloader.pl --update "$curr_opts"
+    fi
+
+    echo 1 > $FADUMP_REGISTERED
+    echo 1 > /proc/sys/kernel/panic_on_oops
+    rc_reset
+}
+
 #
 # Load the kdump kerel specified in /etc/sysconfig/kdump
 function load_kdump()
@@ -236,9 +252,7 @@ function load_kdump()
     echo "Loading kdump"
 
     if use_fadump; then
-	echo 1 > $FADUMP_REGISTERED
-	echo 1 > /proc/sys/kernel/panic_on_oops
-	rc_reset
+	load_kdump_fadump
     else
 	load_kdump_kexec
     fi
