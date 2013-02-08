@@ -172,7 +172,7 @@ void KernelConfigParser::parse()
             outp = &value;
             continue;
         }
-        if (is_kernel_space(c) && !inquote) {
+        if ((is_kernel_space(c) && !inquote) || ss.peek() == EOF) {
             if (name.empty())
                 continue;
 
