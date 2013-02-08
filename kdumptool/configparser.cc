@@ -112,7 +112,7 @@ void ShellConfigParser::parse()
     string s;
     int no = 1;
     while (getline(ss, s)) {
-        Debug::debug()->trace("ConfigParser: Parsing line %s", s.c_str());
+        Debug::debug()->trace("ShellConfigParser: Parsing line %s", s.c_str());
 
         string::size_type loc = s.find('=');
         if (loc == string::npos)
@@ -122,10 +122,71 @@ void ShellConfigParser::parse()
         string name = s.substr(0, loc);
         string value = s.substr(loc+1);
 
-        Debug::debug()->trace("ConfigParser: Setting %s to %s",
+        Debug::debug()->trace("ShellConfigParser: Setting %s to %s",
             name.c_str(), value.c_str());
 
         m_variables[name] = value;
+    }
+}
+
+//}}}
+
+//{{{ KernelConfigParser -------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+static bool is_kernel_space(const char c)
+{
+    // follow the definition from lib/ctype.c in the Linux kernel tree
+    return (c >= 9 && c <= 13) || c == 32 || c == (char)160;
+}
+
+// -----------------------------------------------------------------------------
+KernelConfigParser::KernelConfigParser(const string &filename)
+    throw ()
+    : ConfigParser(filename)
+{}
+
+// -----------------------------------------------------------------------------
+void KernelConfigParser::parse()
+    throw (KError)
+{
+    // check if the configuration file does exist
+    ifstream fin(m_configFile.c_str());
+    if (!fin)
+        throw KError("The file " + m_configFile + " does not exist.");
+
+    // slurp the file into a string stream
+    stringstream ss;
+    ss << fin.rdbuf();
+    fin.close();
+
+    string name, value, *outp = &name;
+    bool inquote = false;
+    char c;
+    while (ss.get(c)) {
+        if (c == '\"') {
+            inquote = !inquote;
+            continue;
+        }
+        if (c == '=' && outp == &name) {
+            outp = &value;
+            continue;
+        }
+        if (is_kernel_space(c) && !inquote) {
+            if (name.empty())
+                continue;
+
+            Debug::debug()->trace("KernelConfigParser: Setting %s to %s",
+                name.c_str(), value.c_str());
+
+            m_variables[name] = value;
+
+            name.clear();
+            value.clear();
+            outp = &name;
+        } else {
+            outp->push_back(c);
+        }
     }
 }
 

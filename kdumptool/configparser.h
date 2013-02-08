@@ -114,8 +114,8 @@ class ShellConfigParser : public ConfigParser {
     public:
 
         /**
-         * Creates a new ConfigParser object with the specified file name
-         * as configuration file.
+         * Creates a new ShellConfigParser object with the specified file
+         * name as configuration file.
          *
          * @param[in] filename the file name of the configuration file
          *            (here it is not checked if the file exists)
@@ -128,6 +128,38 @@ class ShellConfigParser : public ConfigParser {
          *
          * @exception KError if opening of the file failed or if spawning the
          *            shell that actually parses the configuration file fails
+         */
+        virtual void parse()
+        throw (KError);
+};
+
+//}}}
+
+//{{{ KernelConfigParser -------------------------------------------------------
+
+/**
+ * This configuration parser parses the kernel command line. It reads a file
+ * (like /proc/cmdline) and applies a reimplementation of the algorithm used
+ * by the Linux kernel.
+ */
+class KernelConfigParser : public ConfigParser {
+
+    public:
+
+        /**
+         * Creates a new KernelConfigParser object with the specified file
+         * name as configuration file.
+         *
+         * @param[in] filename the file name of the configuration file
+         *            (here it is not checked if the file exists)
+         */
+        KernelConfigParser(const std::string &filename)
+        throw ();
+
+        /**
+         * Parse the configuration file.
+         *
+         * @exception KError if opening of the file failed
          */
         virtual void parse()
         throw (KError);
