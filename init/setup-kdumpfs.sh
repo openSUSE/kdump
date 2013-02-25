@@ -20,7 +20,21 @@
 #%provides: kdump
 
 #
-# Find a mount point in /etc/fstab or /etc/mtab, checking the mounted
+# Read and normalize /etc/fstab and /proc/mounts (if exists).
+# The following transformations are done:
+#   - initial TABs and SPACEs are removed
+#   - empty lines and comments are removed
+#   - fields are separated by a single TAB
+function read_mounts()
+{
+    local proc_mounts=/proc/mounts
+    test -e $proc_mounts || proc_mounts=
+    sed -e 's/[ \t][ \t]*/\t/g;s/^\t//;/^$/d;/^#/d' \
+        "$root_dir"/etc/fstab $proc_mounts
+}
+
+#
+# Find a mount point in /etc/fstab or /proc/mounts, checking the mounted
 # device's major and minor numbers.
 #
 # Parameters: 1) mpoint:    mount point
@@ -62,7 +76,7 @@ function find_mount()
             mntopts="$fstab_options"
             break
         fi
-    done < <(sed -e '/^[ \t]*#/d' $root_dir/etc/fstab $root_dir/etc/mtab)
+    done < <(read_mounts)
 
     if [ "$major" -gt 0 -a -z "$mntdev" ] ; then
         # don't check for non-device mounts
@@ -139,10 +153,15 @@ function resolve_mount()
     #if we don't know where the device belongs to
     if [ -z "$mntfstype" ] ; then
         # get type from /etc/fstab or /proc/mounts (actually not needed)
-        local x1=$(cat $root_dir/etc/fstab /proc/mounts 2>/dev/null \
-           | grep -E "$mntdev[[:space:]]" | tail -n 1 | tr -s "[:space:]" "\t")
-        mntfstype=$(echo $x1 | cut -f 3)
-        mntopts=$(echo $x1 | cut -f 4)
+        local fstab_device fstab_mountpoint fstab_type fstab_options dummy
+        while read fstab_device fstab_mountpoint fstab_type fstab_options dummy
+        do
+            if [ "$fstab_device" = "$mntdev" ] ; then
+                mntfstype="$fstab_type"
+                mntopts="$fstab_options"
+                break
+            fi
+        done < <(read_mounts)
     fi
 
     # check for journal device
@@ -304,34 +323,43 @@ done
 #
 
 touch ${tmp_mnt}/etc/fstab.kdump
-while read line ; do
-    device=$(echo "$line" | awk '{ print $1 }')
-    mountpoint=$(echo "$line" | awk '{ print $2 }')
-    filesystem=$(echo "$line" | awk '{ print $3 }')
-    opts=$(echo "$line" | awk '{ print $4 }')
-
-    # add the boot partition
+mnt_boot=
+mnt_kdump=( )
+while read device mountpoint filesystem opts dummy ; do
     if [ "$mountpoint" = "/boot" ] ; then
-        resolve_mount "Boot directory" /boot
-        add_fstab "$mntdev" "/root$mountpoint" "$mntfstype" "$mntopts" 0 0
-        blockdev="$blockdev $(resolve_device Boot $mntdev)"
-        kdump_fsmod="$kdump_fsmod $mntmod"
+        mnt_boot="$mountpoint"
     fi
 
-    # add the target file system
-    i=0
+    local i=0
     while [ $i -le $kdump_max ] ; do
-        protocol="${kdump_Protocol[$i]}"
-        realpath="${kdump_Realpath[$i]}"
+        protocol="${kdump_Protocol[i]}"
+        realpath="${kdump_Realpath[i]}"
         if [ "$protocol" = "file" -a "$mountpoint" != "/" -a \
-             "${realpath#$mountpoint}" != "$realpath" ] ; then
-            resolve_mount "Dump directory" $mountpoint
-            add_fstab "$mntdev" "/root$mountpoint" "$mntfstype" "$mntopts" 0 0
-            blockdev="$blockdev $(resolve_device Dump $mntdev)"
-            kdump_fsmod="$kdump_fsmod $mntmod"
+             "${realpath#$mountpoint}" != "$realpath" -a \
+             "${#mountpoint}" -gt "${#mnt_kdump[i]}" ] ; then
+            mnt_kdump[i]="$mountpoint"
         fi
         i=$((i+1))
     done
-done < /etc/mtab
+done < <(read_mounts)
+
+# add the boot partition
+if [ -n "$mnt_boot" ]
+then
+    mountpoint="$mnt_boot"
+    resolve_mount "Boot directory" "$mountpoint"
+    add_fstab "$mntdev" "/root$mountpoint" "$mntfstype" "$mntopts" 0 0
+    blockdev="$blockdev $(resolve_device Boot $mntdev)"
+    kdump_fsmod="$kdump_fsmod $mntmod"
+fi
+
+# add the target file system
+for mountpoint in "${mnt_kdump[@]}"
+do
+    resolve_mount "Dump directory" "$mountpoint"
+    add_fstab "$mntdev" "/root$mountpoint" "$mntfstype" "$mntopts" 0 0
+    blockdev="$blockdev $(resolve_device Dump $mntdev)"
+    kdump_fsmod="$kdump_fsmod $mntmod"
+done
 
 # vim: set sw=4 ts=4 et:
