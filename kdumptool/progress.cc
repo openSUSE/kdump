@@ -18,6 +18,7 @@
  */
 #include <iomanip>
 #include <iostream>
+#include <cstdlib>
 
 #include <unistd.h>
 #include <termios.h>
@@ -38,6 +39,7 @@ using std::right;
 using std::endl;
 using std::flush;
 using std::ostream;
+using std::getenv;
 
 //{{{ Terminal -----------------------------------------------------------------
 
@@ -55,6 +57,9 @@ Terminal::Terminal(void)
         m_width = DEFAULT_WIDTH;
         m_height = DEFAULT_HEIGHT;
     }
+
+    string term(getenv("TERM") ?: ""); 
+    m_isdumb = (term == "dumb");
 }
 
 // -----------------------------------------------------------------------------

@@ -54,6 +54,10 @@ class Terminal {
 	throw ()
 	{ return m_height; }
 
+	bool isdumb(void) const
+	throw ()
+	{ return m_isdumb; }
+
         /**
          * Prints a horizontal line, as large as the terminal.
          */
@@ -65,6 +69,11 @@ class Terminal {
          * Represents a terminal size.
          */
 	int m_width, m_height;
+
+	/**
+	 * True if this is a dumb terminal.
+	 */
+	bool m_isdumb;
 };
 
 //}}}
