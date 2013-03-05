@@ -167,6 +167,8 @@ class TerminalProgress : public Progress {
         void clearLine()
         throw ();
 
+        Terminal m_term;
+
     private:
         std::string m_name;
         int m_linelen;

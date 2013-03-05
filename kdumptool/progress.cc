@@ -77,19 +77,16 @@ void Terminal::printLine(ostream &os) const
 // -----------------------------------------------------------------------------
 TerminalProgress::TerminalProgress(const string &name)
     throw ()
-    : m_name(name), m_lastUpdate(0)
+    : m_term(), m_name(name), m_lastUpdate(0)
 {
     // truncate the name
     if (m_name.size() > NAME_MAXLENGTH) {
         m_name = m_name.substr(0, NAME_MAXLENGTH);
     }
 
-    Terminal t;
-    m_linelen = t.width();
-
     // subtract 1 for the space between string and bar, 1 for the leading
     // '|' and 1 for the trailing '|', and one space free, 4 for ...%
-    m_progresslen = m_linelen - NAME_MAXLENGTH - 8;
+    m_progresslen = m_term.width() - NAME_MAXLENGTH - 8;
 }
 
 // -----------------------------------------------------------------------------
@@ -97,7 +94,9 @@ void TerminalProgress::start()
     throw ()
 {
     clearLine();
-    cout << "\r" << setw(NAME_MAXLENGTH) << left << m_name << " Starting.";
+    cout << setw(NAME_MAXLENGTH) << left << m_name << " Starting.";
+    if (m_term.isdumb())
+        cout << endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -136,6 +135,8 @@ void TerminalProgress::progressed(unsigned long long current,
         cout << '-';
     cout << "|";
     cout << setw(3) << right << percent << '%'  << flush;
+    if (m_term.isdumb())
+        cout << endl;
 
     m_lastUpdate = now;
 }
@@ -149,7 +150,7 @@ void TerminalProgress::stop(bool success)
         : " Failed.";
 
     clearLine();
-    cout << "\r" << setw(NAME_MAXLENGTH) << left << m_name << finish_msg;
+    cout << setw(NAME_MAXLENGTH) << left << m_name << finish_msg;
     cout << endl;
 }
 
@@ -157,7 +158,8 @@ void TerminalProgress::stop(bool success)
 void TerminalProgress::clearLine()
     throw ()
 {
-    cout << "\r" << setw(m_linelen) << " ";
+    if (!m_term.isdumb())
+        cout << "\r" << setw(m_term.width() - 1) << " " << "\r";
 }
 
 //}}}
