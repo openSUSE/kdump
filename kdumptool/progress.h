@@ -33,44 +33,38 @@ class Terminal {
 
     public:
         /**
-         * Represents a terminal size.
-         */
-        struct Size {
-            /** The width */
-            int width;
-            /** The height */
-            int height;
-        };
-
-    public:
-        /**
-         * Deletes a Terminal object.
-         */
-        virtual ~Terminal()
-        throw () {}
+	 * Initialize a new Terminal object for standard output.
+	 */
+	Terminal (void)
+	throw ();
 
     public:
 
-        /**
-         * Retriesves the terminal size.
-         *
-         * @param[out] defaultUsed if that variable is not @c NULL,
-         *             it will be set to @c true if the size of the terminal
-         *             cannot be detected by ioctl() and a default value
-         *             will be assumed and to @c false otherwise.
-         *
-         * @return a size object that represents the terminal size,
-         *         and (0, 0) if the size cannot be retrieved (mostly because
-         *         the standard output is no terminal but redirected to a file)
-         */
-        Size getSize(bool *defaultUsed = NULL) const
-        throw ();
+	/**
+	 * Get the terminal width.
+	 */
+	int width(void) const
+	throw ()
+	{ return m_width; }
+
+	/**
+	 * Get the terminal height.
+	 */
+	int height(void) const
+	throw ()
+	{ return m_height; }
 
         /**
          * Prints a horizontal line, as large as the terminal.
          */
         void printLine(std::ostream &os = std::cout) const
         throw ();
+
+    protected:
+        /**
+         * Represents a terminal size.
+         */
+	int m_width, m_height;
 };
 
 //}}}

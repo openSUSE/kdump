@@ -42,44 +42,28 @@ using std::ostream;
 //{{{ Terminal -----------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-Terminal::Size Terminal::getSize(bool *defaultUsed) const
+Terminal::Terminal(void)
     throw ()
 {
-    Terminal::Size sz;
     struct winsize winsize;
 
     int err = ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsize);
-    if (err != 0 || (winsize.ws_col == 0 && winsize.ws_row == 0)) {
-        sz.width = DEFAULT_WIDTH;
-        sz.height = DEFAULT_HEIGHT;
-
-        if (defaultUsed) {
-            *defaultUsed = true;
-        }
-
-        return sz;
+    if (!err && winsize.ws_col != 0 && winsize.ws_row != 0) {
+	m_width = winsize.ws_col;
+	m_height = winsize.ws_row;
+    } else {
+        m_width = DEFAULT_WIDTH;
+        m_height = DEFAULT_HEIGHT;
     }
-
-    sz.width = winsize.ws_col;
-    sz.height = winsize.ws_row;
-
-    if (defaultUsed) {
-        *defaultUsed = false;
-    }
-
-
-    return sz;
 }
 
 // -----------------------------------------------------------------------------
 void Terminal::printLine(ostream &os) const
     throw ()
 {
-    int width = getSize().width - 1;
-
-    for (int i = 0; i < width; i++)
-        os << '-';
-    os << endl;
+    char prevfill = os.fill('-');
+    os << setw(m_width-1) << "" << endl;
+    os.fill(prevfill);
 }
 
 //}}}
@@ -96,7 +80,7 @@ TerminalProgress::TerminalProgress(const string &name)
     }
 
     Terminal t;
-    m_linelen = t.getSize().width;
+    m_linelen = t.width();
 
     // subtract 1 for the space between string and bar, 1 for the leading
     // '|' and 1 for the trailing '|', and one space free, 4 for ...%
