@@ -20,6 +20,7 @@
 #include <cstdio>
 #include <cstdarg>
 #include <cstring>
+#include <cstdlib>
 #include <string>
 #include <sstream>
 #include <unistd.h>
@@ -32,8 +33,9 @@ Debug *Debug::m_instance = NULL;
 using std::memset;
 using std::strcat;
 using std::stringstream;
-using std::strcat;
+using std::strcmp;
 using std::strlen;
+using std::getenv;
 using std::string;
 using std::endl;
 using std::cerr;
@@ -219,9 +221,13 @@ void Debug::setStderrUseColor(bool useColor)
 // -----------------------------------------------------------------------------
 bool Debug::getStderrUseColor() const
 {
-    if (m_useColorAuto)
-        return isatty(STDERR_FILENO);
-    else
+    if (m_useColorAuto) {
+        const char *term = getenv("TERM");
+        if (term && !strcmp(term, "dumb"))
+            return false;
+        else
+            return isatty(STDERR_FILENO);
+    } else
         return m_useColor;
 }
 
