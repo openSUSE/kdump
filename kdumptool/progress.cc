@@ -94,9 +94,7 @@ void TerminalProgress::start()
     throw ()
 {
     clearLine();
-    cout << setw(NAME_MAXLENGTH) << left << m_name << " Starting.";
-    if (m_term.isdumb())
-        cout << endl;
+    cout << setw(NAME_MAXLENGTH) << left << m_name << " Starting." << flush;
 }
 
 // -----------------------------------------------------------------------------
@@ -127,7 +125,12 @@ void TerminalProgress::progressed(unsigned long long current,
 
     number_of_dashes = m_progresslen - number_of_hashes;
 
-    cout << "\r" << setw(NAME_MAXLENGTH) << left << m_name << " ";
+    if (m_term.isdumb())
+        cout << endl;
+    else
+        cout << '\r';
+
+    cout << setw(NAME_MAXLENGTH) << left << m_name << " ";
     cout << "|";
     for (int i = 0; i < number_of_hashes; i++)
         cout << '#';
@@ -135,8 +138,6 @@ void TerminalProgress::progressed(unsigned long long current,
         cout << '-';
     cout << "|";
     cout << setw(3) << right << percent << '%'  << flush;
-    if (m_term.isdumb())
-        cout << endl;
 
     m_lastUpdate = now;
 }
@@ -150,6 +151,8 @@ void TerminalProgress::stop(bool success)
         : " Failed.";
 
     clearLine();
+    if (m_term.isdumb())
+        cout << endl;
     cout << setw(NAME_MAXLENGTH) << left << m_name << finish_msg;
     cout << endl;
 }
