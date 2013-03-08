@@ -1,3 +1,10 @@
+0.8.5
+-----
+  * Always use /proc/mounts instead of /etc/mtab.
+  * Do not use formatting on dumb terminals (e.g. the 3270 console).
+  * Add a new command that modifies multipath.conf to blacklist all
+    devices except those specified on the command line: multipath
+
 0.8.4
 -----
   * Do not reboot after taking a dump with fadump.

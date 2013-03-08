@@ -82,6 +82,8 @@ SET(KDUMPTOOL_SRC
     dumpconfig.h
     quotedstring.cc
     quotedstring.h
+    multipath.cc
+    multipath.h
     main.cc
 )
 

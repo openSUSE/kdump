@@ -336,6 +336,30 @@ Options
     *all*;;
       Show all variables. (default)
 
+MODIFY MULTIPATH CONFIGURATION
+------------------------------
+
+If multipath devices are used on a machine, then they should be also
+configured in the dump kernel. However, each multipath device needs
+some amount of RAM at run time, increasing the necessary size of the
+crash reserved area. That way it is even possible to exceed the maximum
+size of that area on machines with a very large number of multipath
+devices, 
+
+This subcommand reads an existing multipath configuration on standard
+input, blacklists all devices except those specified on the command line,
+and sends the modified configuration to standard output. This allows to
+let the dump kernel initialize only multipath devices that are necessary
+for saving the dump.
+
+Syntax
+~~~~~~
+
+*kdumptool* [_globals_] *multipath* _device_[...]
+
+_device_ is a multipath device specification (e.g. "wwid
+360060e801531f800000131f80000a001"). See *multipath.conf(5)* for details.
+
 
 RETURN VALUE
 ------------

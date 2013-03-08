@@ -31,6 +31,7 @@
 #include "read_ikconfig.h"
 #include "findkernel.h"
 #include "dumpconfig.h"
+#include "multipath.h"
 
 using std::map;
 using std::list;
@@ -129,6 +130,7 @@ SubcommandManager::SubcommandManager()
     addSubcommand(new ReadIKConfig());
     addSubcommand(new FindKernel());
     addSubcommand(new DumpConfig());
+    addSubcommand(new Multipath());
 }
 
 // -----------------------------------------------------------------------------
