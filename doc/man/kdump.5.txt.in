@@ -404,11 +404,11 @@ KDUMP_CONTINUE_ON_ERROR
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 If something goes wrong while saving the dump or deleting old dumps in initrd,
-then *kdumptool*(8) normally just tries to execute the next action. However,
-it can be usedful to open a shell at that point of time to fix the problem
-or just debug it, therefore you can set KDUMP_CONTINUE_ON_ERROR to "true".
+then *kdumptool*(8) normally tries to execute the next action. However, it can
+be useful to open a shell at that point in time and fix or debug the problem.
+This happens when KDUMP_CONTINUE_ON_ERROR is set to "false".
 
-Default: "false"
+Default: "true"
 
 
 KDUMP_REQUIRED_PROGRAMS
