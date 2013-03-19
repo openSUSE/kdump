@@ -4,6 +4,7 @@
   * Do not use formatting on dumb terminals (e.g. the 3270 console).
   * Add a new command that modifies multipath.conf to blacklist all
     devices except those specified on the command line: multipath
+  * Store a modified multipath.conf in the initrd if needed.
 
 0.8.4
 -----

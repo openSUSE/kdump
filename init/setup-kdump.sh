@@ -92,6 +92,20 @@ if [ "$kdump_protocol" = "sftp" ] ; then
 fi
 
 #
+# copy modified multipath.conf
+#
+if [ -e /etc/multipath.conf ] ; then
+    i=0
+    for bd in $blockdev ; do
+	scsi_id=$(/lib/udev/scsi_id --whitelisted --device="$bd")
+	[ -z "$scsi_id" ] && continue
+	wwids[i++]="wwid "\""$scsi_id"\"
+    done
+    kdumptool multipath "${wwids[@]}" \
+	< /etc/multipath.conf > "${tmp_mnt}/etc/multipath.conf"
+fi
+
+#
 # copy required programs
 #
 for program in $KDUMP_REQUIRED_PROGRAMS ; do
