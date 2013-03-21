@@ -157,7 +157,8 @@ else
     fi
 fi
 
-MKINITRD_ARGS="-B -k $KERNEL -i $INITRD -f '$FEATURE_LIST'"
+INITRD_TMP=`mktemp --tmpdir mkdumprd.XXXXXXXXXX` || exit $?
+MKINITRD_ARGS="-B -k $KERNEL -i $INITRD_TMP -f '$FEATURE_LIST'"
 
 #
 # the -s parameter is only available when the bootsplash package and its
@@ -178,12 +179,9 @@ status_message "Calling mkinitrd $MKINITRD_ARGS"
 echo "Regenerating kdump initrd ..." >&2
 eval "bash -$- /sbin/mkinitrd $MKINITRD_ARGS"
 ret=$?
-
-#
-# because the root key of /root is stored into initrd, we make the
-# initrd read-only for root
-if [ -f "$INITRD" ] ; then
-    chmod 600 "$INITRD"
+if [ $ret -eq 0 ]; then
+    mv "$INITRD_TMP" "$INITRD"
+    ret=$?
 fi
 
 exit $ret

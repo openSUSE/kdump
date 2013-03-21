@@ -5,6 +5,8 @@
   * Add a new command that modifies multipath.conf to blacklist all
     devices except those specified on the command line: multipath
   * Store a modified multipath.conf in the initrd if needed.
+  * Close a race condition between creating the kdump initrd and
+    restricting its file permissions to avoid information leak.
 
 0.8.4
 -----
