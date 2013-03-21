@@ -75,22 +75,21 @@ function kdump_kernel_loaded()
 function remove_from_commandline()
 {
     local option="$1"
-    local commandline="$2"
 
-    echo "$commandline" | awk 'BEGIN { ORS="" } \
-    { \
-        while(length()) { \
-            sub(/^[[:space:]]+/,""); \
-            if (match($0,/^("[^"]*"?|[^"[:space:]]+)+/)) { \
-                    plength=RLENGTH; \
-                    param=substr($0,1,plength); \
-                    gsub(/"/,"",param); \
-                    if (param !~ /^('"$option"')(=|$)/) \
-                            print substr($0,1,plength),""; \
-                    $0=substr($0,plength+1); \
-            } \
-        } \
-        print "\n"; \
+    awk 'BEGIN { ORS="" }
+    {
+        while(length()) {
+            sub(/^[[:space:]]+/,"");
+            pstart=match($0,/("[^"]*"?|[^"[:space:]])+/);
+            plength=RLENGTH;
+            param=substr($0,pstart,plength);
+            raw=param;
+            gsub(/"/,"",raw);
+            if (raw !~ /^('"$option"')(=|$)/)
+                print param " ";
+            $0=substr($0,pstart+plength);
+        }
+        print "\n";
     }'
 }
 
@@ -101,12 +100,10 @@ function build_kdump_commandline()
     local commandline="$KDUMP_COMMANDLINE"
 
     if [ -z "$commandline" ]; then
-        commandline=`cat /proc/cmdline | \
-            sed -e 's/ *crashkernel=[^ ]*//g' \
-                -e 's/ *splash=[^ ]*/ /g' \
-                -e 's/ *mem=[^ ]*/ /g' \
-                -e 's/ *BOOT_IMAGE=[^ ]* / /g' \
-                -e 's/ *showopts/ /g'`
+        commandline=$(
+            remove_from_commandline \
+                'crashkernel|splash|mem|BOOT_IMAGE|showopts' \
+                < /proc/cmdline)
         # Use deadline for saving the memory footprint
         commandline="$commandline elevator=deadline sysrq=yes reset_devices"
         case `uname -i` in
@@ -136,7 +133,8 @@ function build_kdump_commandline()
 
 	case `uname -i` in
 	i?86|x86_64)
-            commandline=$(remove_from_commandline unknown_nmi_panic "$commandline")
+            commandline=$(echo "$commandline" |
+                remove_from_commandline 'unknown_nmi_panic')
             ;;
 	esac
     fi
