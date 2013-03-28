@@ -367,7 +367,7 @@ dump level   zero page  cache page cache private user data free page
 31           X          X          X             X         X
 ----------------------------------------------------------------------
 
-Default: "0"
+Default: "31"
 
 
 KDUMP_DUMPFORMAT

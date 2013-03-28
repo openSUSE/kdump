@@ -9,6 +9,7 @@
     restricting its file permissions to avoid information leak.
   * Change sysconfig.kdump defaults:
       o KDUMP_CONTINUE_ON_ERROR now defaults to true
+      o KDUMP_DUMPLEVEL now defaults to 31
 
 0.8.4
 -----

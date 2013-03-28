@@ -158,7 +158,7 @@ KDUMP_FREE_DISK_SIZE=64
 KDUMP_VERBOSE=3
 
 ## Type:        integer
-## Default:     0
+## Default:     31
 ## ServiceRestart:	kdump
 #
 # Determines the dump level. If KDUMP_DUMPLEVEL non-zero 0, then makedumpfile
@@ -169,7 +169,7 @@ KDUMP_VERBOSE=3
 # See kdump(5) or makedumpfile(8) for a full description what that different
 # dump levels mean.
 #
-KDUMP_DUMPLEVEL=0
+KDUMP_DUMPLEVEL=31
 
 ## Type:        list(,none,ELF,compressed,lzo)
 ## Default:     "compressed"
