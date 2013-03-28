@@ -182,17 +182,17 @@ KDUMP_DUMPLEVEL=0
 KDUMP_DUMPFORMAT="compressed"
 
 ## Type:        boolean
-## Default:     false
+## Default:     true
 ## ServiceRestart:	kdump
 #
 # By default, kdumptool(8) copies multiple files with the save_dump action.
-# Set that value to "true" to make kdumptool trying to save the next file even
-# if saving the previous file failed, or set that to "false" to let the program
+# Set this value to "true" to make kdumptool try to save the next file even
+# if saving the previous file failed, or set it to "false" to let the program
 # immediately abort.
 #
 # See also: kdump(5).
 #
-KDUMP_CONTINUE_ON_ERROR="false"
+KDUMP_CONTINUE_ON_ERROR="true"
 
 ## Type:        string
 ## Default:     ""
