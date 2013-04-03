@@ -1,3 +1,4 @@
+
 //{{{ Copyright (c) 2008, SUSE LINUX Products GmbH
 //
 // All rights reserved.
@@ -137,6 +138,10 @@ the number of *makedumpfile*(8) processes created.
 
 *Note:* This parameter does not work properly for the _ELF_ format,
 because *makedumpfile*(8) does not support split _ELF_ dump files.
+
+*WARNING:* SETTING THIS NUMBER TO A NUMBER HIGHER THAN 1 IS EXPERIMENTAL!
+SOME MACHINES ARE KNOWN TO HANG OR REBOOT RANDOMLY DURING INITIALISATION
+OF THE DUMP KERNEL IF KDUMP_CPUS > 1.
 
 Default is 1.
 

@@ -10,6 +10,7 @@
   * Change sysconfig.kdump defaults:
       o KDUMP_CONTINUE_ON_ERROR now defaults to true
       o KDUMP_DUMPLEVEL now defaults to 31
+      o KDUMP_CPUS is considered EXPERIMENTAL and unstable
 
 0.8.4
 -----
