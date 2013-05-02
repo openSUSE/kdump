@@ -22,6 +22,10 @@ KDUMP_KERNELVER=""
 # DON'T CHANGE IT unless your system can reliably re-initialize SMP after
 # a kernel crash.
 #
+# WARNING: SETTING THIS NUMBER TO A NUMBER HIGHER THAN 1 IS EXPERIMENTAL!
+# SOME MACHINES ARE KNOWN TO HANG OR REBOOT RANDOMLY DURING INITIALISATION
+# OF THE DUMP KERNEL IF KDUMP_CPUS > 1.
+#
 # See also: kdump(5).
 #
 KDUMP_CPUS=1
@@ -158,7 +162,7 @@ KDUMP_FREE_DISK_SIZE=64
 KDUMP_VERBOSE=3
 
 ## Type:        integer
-## Default:     0
+## Default:     31
 ## ServiceRestart:	kdump
 #
 # Determines the dump level. If KDUMP_DUMPLEVEL non-zero 0, then makedumpfile
@@ -169,7 +173,7 @@ KDUMP_VERBOSE=3
 # See kdump(5) or makedumpfile(8) for a full description what that different
 # dump levels mean.
 #
-KDUMP_DUMPLEVEL=0
+KDUMP_DUMPLEVEL=31
 
 ## Type:        list(,none,ELF,compressed,lzo)
 ## Default:     "compressed"
@@ -182,17 +186,17 @@ KDUMP_DUMPLEVEL=0
 KDUMP_DUMPFORMAT="compressed"
 
 ## Type:        boolean
-## Default:     false
+## Default:     true
 ## ServiceRestart:	kdump
 #
 # By default, kdumptool(8) copies multiple files with the save_dump action.
-# Set that value to "true" to make kdumptool trying to save the next file even
-# if saving the previous file failed, or set that to "false" to let the program
+# Set this value to "true" to make kdumptool try to save the next file even
+# if saving the previous file failed, or set it to "false" to let the program
 # immediately abort.
 #
 # See also: kdump(5).
 #
-KDUMP_CONTINUE_ON_ERROR="false"
+KDUMP_CONTINUE_ON_ERROR="true"
 
 ## Type:        string
 ## Default:     ""
