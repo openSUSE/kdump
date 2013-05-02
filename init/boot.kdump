@@ -94,37 +94,6 @@ function remove_from_commandline()
 }
 
 #
-# Remove one comma-separated token from an option
-function remove_from_option()
-{
-    local option="$1"
-    local token="$2"
-
-    awk 'BEGIN { ORS="" }
-    {
-        while(length()) {
-            sub(/^[[:space:]]+/,"");
-            pstart=match($0,/^("[^"]*"?|[^"[:space:]])+/);
-            plength=RLENGTH;
-            param=substr($0,1,plength);
-            raw=param;
-            gsub(/"/,"",raw);
-            if (raw ~ /^('"$option"')(=|$)/) {
-                while (match(param,/[=,]('"$token"')(,|$)/))
-                    if (RSTART+RLENGTH > length(param))
-                        param=substr(param,1,RSTART-1);
-                    else
-                        param=substr(param,1,RSTART) \
-                              substr(param,RSTART+RLENGTH);
-            }
-            print param " ";
-            $0=substr($0,pstart+plength);
-        }
-        print "\n";
-    }'
-}
-
-#
 # Builds the kdump command line from KDUMP_COMMANDLINE.
 function build_kdump_commandline()
 {
@@ -134,8 +103,7 @@ function build_kdump_commandline()
         commandline=$(
             remove_from_commandline \
                 'crashkernel|splash|mem|BOOT_IMAGE|showopts' \
-                < /proc/cmdline |
-            remove_from_option iommu pt )
+                < /proc/cmdline)
         # Use deadline for saving the memory footprint
         commandline="$commandline elevator=deadline sysrq=yes reset_devices"
         case `uname -i` in
