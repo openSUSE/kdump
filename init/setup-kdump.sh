@@ -19,6 +19,41 @@
 #%provides: kdump
 
 #
+# Checks whether there is a device in the system which is handled
+# by the specified module.
+# Parameters:
+#   1) modname: kernel module name
+# Exit status:
+#   zero     if a matching device was found
+#   non-zero otherwise
+function module_has_device()                                               # {{{
+{
+    local modname="$1"
+    local -a aliaslist
+    local line
+
+    while read line; do
+	aliaslist[${#aliaslist[@]}]="$line"
+    done < <(modinfo -k "$kernel_version" -F alias "$modname" 2>/dev/null)
+
+    # for each device in the system, check the device modalias file ...
+    find /sys/devices -type f -name modalias -print0 | xargs -0 cat | \
+    (
+	while read line; do
+	    # ... against each modalias of the checked module
+	    for modalias in "${aliaslist[@]}"; do
+		case "$line" in
+		    $modalias)
+			exit 0
+			;;
+	        esac
+	    done
+	done
+	exit 1
+    )
+}                                                                          # }}}
+
+#
 # check if we are called with the -f kdump parameter
 #
 if ! (( $use_kdump )) ; then
@@ -74,6 +109,13 @@ grep '^[ 	]*KDUMP_HOST_KEY=' ${tmp_mnt}${CONFIG} >/dev/null 2>&1 \
 # remember the host name
 #
 hostname >> ${tmp_mnt}/etc/hostname.kdump
+
+#
+# check if extra modules are needed
+#
+if module_has_device hpwdt; then
+    kdump_fsmod="$kdump_fsmod hpwdt"
+fi
 
 #
 # copy public and private key if needed
