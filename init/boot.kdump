@@ -102,7 +102,7 @@ function build_kdump_commandline()
     if [ -z "$commandline" ]; then
         commandline=$(
             remove_from_commandline \
-                'crashkernel|splash|mem|BOOT_IMAGE|showopts|zfcp\.allow_lun_scan' \
+                'crashkernel|splash|mem|BOOT_IMAGE|showopts|zfcp\.allow_lun_scan|hugepages' \
                 < /proc/cmdline)
         # Use deadline for saving the memory footprint
         commandline="$commandline elevator=deadline sysrq=yes reset_devices"
