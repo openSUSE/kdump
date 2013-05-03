@@ -240,7 +240,11 @@ function load_kdump_fadump()
 	kdump-bootloader.pl --update "$curr_opts"
     fi
 
-    echo 1 > $FADUMP_REGISTERED
+    # The kernel fails with EINVAL if registered already
+    # (see bnc#814780)
+    if [ "$(cat $FADUMP_REGISTERED)" != "1" ]; then
+	echo 1 > $FADUMP_REGISTERED
+    fi
     echo 1 > /proc/sys/kernel/panic_on_oops
     rc_reset
 }
@@ -275,7 +279,11 @@ case "$1" in
             if [ $? -ne 1 ] ; then
                 echo -n "Unloading kdump"
 		if use_fadump; then
-		    echo 0 > $FADUMP_REGISTERED
+		    # The kernel fails with EINVAL if unregistered already
+		    # (see bnc#814780)
+		    if [ "$(cat $FADUMP_REGISTERED)" != "0" ]; then
+			echo 0 > $FADUMP_REGISTERED
+		    fi
 		else
                     $KEXEC -p -u
 		fi
