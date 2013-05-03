@@ -102,7 +102,7 @@ function build_kdump_commandline()
     if [ -z "$commandline" ]; then
         commandline=$(
             remove_from_commandline \
-                'crashkernel|splash|mem|BOOT_IMAGE|showopts' \
+                'crashkernel|splash|mem|BOOT_IMAGE|showopts|zfcp\.allow_lun_scan' \
                 < /proc/cmdline)
         # Use deadline for saving the memory footprint
         commandline="$commandline elevator=deadline sysrq=yes reset_devices"
@@ -110,6 +110,9 @@ function build_kdump_commandline()
         i?86|x86_64|ia64)
             commandline="$commandline irqpoll maxcpus=${KDUMP_CPUS:-1}"
             ;;
+	s390*)
+	    commandline="$commandline zfcp.allow_lun_scan=0"
+	    ;;
         esac
 
         # Xen does not include the kernel release in VMCOREINFO_XEN
