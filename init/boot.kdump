@@ -28,10 +28,6 @@
 . /etc/rc.status
 . /lib/kdump/rc.kdump.functions
 
-if [ -f ${KDUMP_CONFIG} ] ; then
-    . ${KDUMP_CONFIG}
-fi
-
 case "$1" in
   start|restart|force-reload)
         load_kdump

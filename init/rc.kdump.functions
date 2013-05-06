@@ -152,6 +152,10 @@ function build_kexec_options()
 # Load kdump using kexec
 function load_kdump_kexec()
 {
+    if [ -f ${KDUMP_CONFIG} ] ; then
+        . ${KDUMP_CONFIG}
+    fi
+
     if [ $(($KDUMP_VERBOSE & 16)) -gt 0 ] ; then
         find_kernel_args="-D"
     fi
