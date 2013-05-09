@@ -59,6 +59,17 @@ KDUMP_COMMANDLINE=""
 #
 KDUMP_COMMANDLINE_APPEND=""
 
+## Type:        yesno
+## Default:     "no"
+## ServiceRestart:	kdump
+#
+# Set this option to yes if you want to use fadump (firmware-assisted dump).
+# This option is only meaningful on powerpc.
+#
+# See also: kdump(5).
+#
+KDUMP_FADUMP="no"
+
 ## Type:	string
 ## Default:	""
 ## ServiceRestart:	kdump

@@ -185,6 +185,20 @@ See also KDUMP_COMMANDLINE.
 
 Default is "".
 
+KDUMP_FADUMP
+~~~~~~~~~~~~
+
+If this option is set to "yes", kdump will use the FADUMP mechanism
+(firmware-assisted dump). With this option, the secondary kernel is never
+loaded from the primary kernel. Instead, the kdump feature is added to the
+standard initrd. If the primary kernel crashes, the machine firmware reboots
+the machine in a special environment. The initrd detects this environment on
+boot, saves the dump, and continues with a normal machine startup.
+
+*Note:* FADUMP is only available on powerpc.
+
+Default is "no".
+
 KEXEC_OPTIONS
 ~~~~~~~~~~~~~
 

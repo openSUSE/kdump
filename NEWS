@@ -11,6 +11,7 @@
       o KDUMP_CONTINUE_ON_ERROR now defaults to true
       o KDUMP_DUMPLEVEL now defaults to 31
       o KDUMP_CPUS is considered EXPERIMENTAL and unstable
+  * Add KDUMP_FADUMP as a configuration option.
   * Improve the kdump kernel command line:
       o Disable zfcp LUN scan on s390(x)
       o Do not allocate hugepages
