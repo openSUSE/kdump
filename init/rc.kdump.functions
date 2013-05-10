@@ -152,29 +152,6 @@ function build_kexec_options()
 # Load kdump using kexec
 function load_kdump_kexec()
 {
-    if [ -f ${KDUMP_CONFIG} ] ; then
-        . ${KDUMP_CONFIG}
-    fi
-
-    if [ $(($KDUMP_VERBOSE & 16)) -gt 0 ] ; then
-        find_kernel_args="-D"
-    fi
-
-    output=$(kdumptool find_kernel $find_kernel_args)
-    if [ $? -ne 0 ] ; then
-        rc_status -s
-        rc_failed 6
-        rc_exit
-    fi
-
-    kdump_kernel=$(echo "$output" | grep ^Kernel | cut -f 2)
-    kdump_initrd=$(echo "$output" | grep ^Initrd | cut -f 2)
-
-    # rebuild the kdump initramfs if necessary, but not at boot
-    if [ "$RUNLEVEL" != "B" ]; then
-        mkdumprd -K "$kdump_kernel" -I "$kdump_initrd" -q
-    fi
-
     if [ ! -f $kdump_initrd ]; then
         echo -n ": No kdump initial ramdisk found."
         echo "Tried to locate ${kdump_initrd}"
@@ -238,8 +215,31 @@ function load_kdump_fadump()
 # Load the kdump kerel specified in /etc/sysconfig/kdump
 function load_kdump()
 {
-    local find_kernel_args=
     echo "Loading kdump"
+
+    if [ -f ${KDUMP_CONFIG} ] ; then
+        . ${KDUMP_CONFIG}
+    fi
+
+    local find_kernel_args=
+    if [ $(($KDUMP_VERBOSE & 16)) -gt 0 ] ; then
+        find_kernel_args="-D"
+    fi
+
+    local output=$(kdumptool find_kernel $find_kernel_args)
+    if [ $? -ne 0 ] ; then
+        rc_status -s
+        rc_failed 6
+        rc_exit
+    fi
+
+    kdump_kernel=$(echo "$output" | grep ^Kernel | cut -f 2)
+    kdump_initrd=$(echo "$output" | grep ^Initrd | cut -f 2)
+
+    # rebuild the kdump initramfs if necessary, but not at boot
+    if [ "$RUNLEVEL" != "B" ]; then
+        mkdumprd -K "$kdump_kernel" -I "$kdump_initrd" -q
+    fi
 
     if use_fadump; then
 	load_kdump_fadump
