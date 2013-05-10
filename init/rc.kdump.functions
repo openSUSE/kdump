@@ -245,7 +245,13 @@ function load_kdump()
 
     # rebuild the kdump initramfs if necessary, but not at boot
     if [ "$RUNLEVEL" != "B" ]; then
-        mkdumprd -K "$kdump_kernel" -I "$kdump_initrd" -q
+        output=$(mkdumprd -K "$kdump_kernel" -I "$kdump_initrd" 2>&1)
+        if [ $? -ne 0 ] ; then
+	    echo "$output"
+	    rc_failed
+	    rc_status -v
+	    rc_exit
+        fi
     fi
 
     if [ "$KDUMP_FADUMP" = "yes" ]; then
