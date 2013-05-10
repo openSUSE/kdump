@@ -158,7 +158,14 @@ else
 fi
 
 INITRD_TMP=`mktemp --tmpdir mkdumprd.XXXXXXXXXX` || exit $?
-MKINITRD_ARGS="-B -k $KERNEL -i $INITRD_TMP -f '$FEATURE_LIST'"
+MKINITRD_ARGS="-k $KERNEL -i $INITRD_TMP -f '$FEATURE_LIST'"
+
+#
+# the -B parameter skips bootloader update, which is desirable if the
+# kernel is loaded by kexec, but not if we're using FADUMP
+if [ "$KDUMP_FADUMP" != "yes" ]; then
+    MKINITRD_ARGS="$MKINITRD_ARGS -B"
+fi
 
 #
 # the -s parameter is only available when the bootsplash package and its
