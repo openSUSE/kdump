@@ -18,7 +18,7 @@ if ($ARGV[0] eq "--get") {
 	    my $param = $rawparam;
 	    $param =~ s/"//g;
 	    $param =~ s/=(.*)//;
-	    if (! ($param =~ /^(KDUMP|MAKEDUMPFILE)_/)) {
+	    if (! ($param =~ /^(KDUMP|MAKEDUMPFILE)_|^fadump$/)) {
 		$result .= " " if length($result);
 		$result .= $rawparam;
 	    }

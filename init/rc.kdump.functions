@@ -206,7 +206,7 @@ function load_kdump_fadump()
 			  dump_config --usage dump --format kernel --nodefault)
     curr_opts=$(kdumptool dump_config --usage dump --format kernel --nodefault)
     if [ "$boot_opts" != "$curr_opts" ]; then
-	kdump-bootloader.pl --update "$curr_opts"
+	kdump-bootloader.pl --update fadump=on "$curr_opts"
     fi
 
     # The kernel fails with EINVAL if registered already
