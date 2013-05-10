@@ -141,6 +141,16 @@ ENDIF(NOT LIBSSL_FOUND)
 
 
 #
+# Check for FADUMP
+#
+
+IF(“${CMAKE_SYSTEM_PROCESSOR}” STREQUAL “ppc64”)
+    SET(HAVE_FADUMP TRUE)
+ELSE(“${CMAKE_SYSTEM_PROCESSOR}” STREQUAL “ppc64”)
+    SET(HAVE_FADUMP FALSE)
+ENDIF(“${CMAKE_SYSTEM_PROCESSOR}” STREQUAL “ppc64”)
+
+#
 # Configure file
 #
 
@@ -165,8 +175,26 @@ ENDIF (EXISTS tests)
 #
 # Configuration and Udev
 #
+ADD_CUSTOM_COMMAND(
+    OUTPUT
+        sysconfig.kdump
+    COMMAND
+        HAVE_FADUMP=${HAVE_FADUMP}
+        awk -f ${CMAKE_CURRENT_SOURCE_DIR}/process_cond.awk
+        ${CMAKE_CURRENT_SOURCE_DIR}/sysconfig.kdump.in
+        > ${CMAKE_CURRENT_BINARY_DIR}/sysconfig.kdump
+    DEPENDS
+        sysconfig.kdump.in
+)
+ADD_CUSTOM_TARGET(
+    sysconfig
+    ALL
+    DEPENDS
+        sysconfig.kdump
+)
+
 INSTALL(FILES
-    ${CMAKE_CURRENT_SOURCE_DIR}/sysconfig.kdump
+    ${CMAKE_CURRENT_BINARY_DIR}/sysconfig.kdump
     DESTINATION
         /var/adm/fillup-templates/
 )

@@ -185,6 +185,8 @@ See also KDUMP_COMMANDLINE.
 
 Default is "".
 
+ifeval::['@HAVE_FADUMP@'=='TRUE']
+
 KDUMP_FADUMP
 ~~~~~~~~~~~~
 
@@ -198,6 +200,8 @@ boot, saves the dump, and continues with a normal machine startup.
 *Note:* FADUMP is only available on powerpc.
 
 Default is "no".
+
+endif::[]
 
 KEXEC_OPTIONS
 ~~~~~~~~~~~~~

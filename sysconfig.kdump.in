@@ -59,6 +59,7 @@ KDUMP_COMMANDLINE=""
 #
 KDUMP_COMMANDLINE_APPEND=""
 
+@if @HAVE_FADUMP@ TRUE
 ## Type:        yesno
 ## Default:     "no"
 ## ServiceRestart:	kdump
@@ -70,6 +71,7 @@ KDUMP_COMMANDLINE_APPEND=""
 #
 KDUMP_FADUMP="no"
 
+@endif
 ## Type:	string
 ## Default:	""
 ## ServiceRestart:	kdump
