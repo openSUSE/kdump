@@ -348,6 +348,7 @@ if [ -n "$mnt_boot" ]
 then
     mountpoint="$mnt_boot"
     resolve_mount "Boot directory" "$mountpoint"
+    bootdev="$mntdev"
     add_fstab "$mntdev" "/root$mountpoint" "$mntfstype" "$mntopts" 0 0
     blockdev="$blockdev $(resolve_device Boot $mntdev)"
     kdump_fsmod="$kdump_fsmod $mntmod"
@@ -357,6 +358,7 @@ fi
 for mountpoint in "${mnt_kdump[@]}"
 do
     resolve_mount "Dump directory" "$mountpoint"
+    dumpdev="$mntdev"
     add_fstab "$mntdev" "/root$mountpoint" "$mntfstype" "$mntopts" 0 0
     blockdev="$blockdev $(resolve_device Dump $mntdev)"
     kdump_fsmod="$kdump_fsmod $mntmod"

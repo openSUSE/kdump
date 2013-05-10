@@ -163,5 +163,7 @@ done
 
 save_var use_kdump
 save_var kdump_fsmod
+save_var bootdev
+save_var dumpdev
 
 # vim: set sw=4 ts=4 et:

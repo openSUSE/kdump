@@ -87,6 +87,20 @@ function continue_error()
 }
 
 #
+# Wait for a given device to appear
+wait_for_dumpdev()
+{
+    local dev="$1"
+    test -e "$dev" && return 0
+
+    case "$dev" in
+        *:/*) return 0 ;;
+        /dev/nfs) return 0 ;;
+    esac
+    check_for_device "$@"
+}
+
+#
 # Mounts all partitions listed in /etc/fstab.kdump
 function mount_all()
 {
@@ -142,6 +156,17 @@ if [ -n "$KDUMP_TRANSFER" ] ; then
     echo "Running $KDUMP_TRANSFER"
     eval "$KDUMP_TRANSFER"
 else
+    #
+    # wait for /boot device and dump device
+    wait_for_dumpdev "$bootdev" boot
+    if ! continue_error $?; then
+        return
+    fi
+
+    wait_for_dumpdev "$dumpdev" dump
+    if ! continue_error $?; then
+        return
+    fi
 
     #
     # mount all partitions in fstab
