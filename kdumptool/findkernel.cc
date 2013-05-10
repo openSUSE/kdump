@@ -311,7 +311,14 @@ string FindKernel::findInitrd(const string &kernelPath)
         dash = "-";
     }
 
-    if (isKdumpKernel(stripped)) {
+#if HAVE_FADUMP
+    const bool use_fadump =
+        Configuration::config()->getBoolValue(Configuration::KDUMP_FADUMP);
+#else
+    const bool use_fadump = false;
+#endif
+
+    if (isKdumpKernel(stripped) || use_fadump) {
         return FileUtil::pathconcat(dir, "initrd" + dash + stripped);
     } else {
         return FileUtil::pathconcat(dir, "initrd" + dash + stripped + "-kdump");
