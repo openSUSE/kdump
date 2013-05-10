@@ -40,7 +40,7 @@ case "$1" in
             kdump_kernel_loaded
             if [ $? -ne 1 ] ; then
                 echo -n "Unloading kdump"
-		if use_fadump; then
+		if fadump_enabled; then
 		    # The kernel fails with EINVAL if unregistered already
 		    # (see bnc#814780)
 		    if [ "$(cat $FADUMP_REGISTERED)" != "0" ]; then

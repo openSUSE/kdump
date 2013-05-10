@@ -26,7 +26,7 @@
 #
 # Returns: 0 (true) if fadump is enabled
 #          1 (false) if fadump is not availabled or disabled
-function use_fadump()
+function fadump_enabled()
 {
     test -f $FADUMP_ENABLED && test "$(cat $FADUMP_ENABLED)" = "1"
 }
@@ -44,7 +44,7 @@ function handle_exit()
         ulimit -c "$backup_ulimit"
     fi
     
-    if use_fadump; then
+    if fadump_enabled; then
         # release memory if possible
         test -f $FADUMP_RELEASE_MEM && echo 1 > $FADUMP_RELEASE_MEM
     elif [ $KDUMP_IMMEDIATE_REBOOT = "yes" \

@@ -19,7 +19,7 @@ FADUMP_REGISTERED="/sys/kernel/fadump_registered"
 #
 # Returns: 0 (true) if fadump is enabled
 #          1 (false) if fadump is not availabled or disabled
-function use_fadump()
+function fadump_enabled()
 {
     test -f $FADUMP_ENABLED && test "$(cat $FADUMP_ENABLED)" = "1"
 }
@@ -194,6 +194,13 @@ function load_kdump_kexec()
 # Update fadump configuration
 function load_kdump_fadump()
 {
+    if ! fadump_enabled; then
+        echo ": fadump is not enabled in the kernel."
+        rc_status -s
+        rc_failed 6
+        rc_exit
+    fi
+
     # check if the old configuration is still valid
     boot_opts=$(kdumptool -F /dev/null -C <(kdump-bootloader.pl --get) \
 			  dump_config --usage dump --format kernel --nodefault)
@@ -241,7 +248,7 @@ function load_kdump()
         mkdumprd -K "$kdump_kernel" -I "$kdump_initrd" -q
     fi
 
-    if use_fadump; then
+    if [ "$KDUMP_FADUMP" = "yes" ]; then
 	load_kdump_fadump
     else
 	load_kdump_kexec
