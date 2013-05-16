@@ -191,6 +191,27 @@ function load_kdump_kexec()
 
 }
 
+# Update the bootloader options for fadump
+function fadump_bootloader()
+{
+    local newstate="$1"
+
+    # check if the old configuration is still valid
+    boot_opts=$(kdump-bootloader.pl --get)
+    nofadump_opts=$(echo "$boot_opts" | remove_from_commandline 'fadump')
+    old_opts=$(kdumptool -F /dev/null -C <(echo "$boot_opts") \
+		dump_config --usage dump --format kernel --nodefault)
+    if [ "$newstate" = on ]; then
+	curr_opts=$(kdumptool dump_config --usage dump --format kernel --nodefault)
+	if [ "$old_opts" != "$curr_opts" -o \
+            "$boot_opts" = "$nofadump_opts" ]; then
+	    kdump-bootloader.pl --update fadump=on "$curr_opts"
+	fi
+    elif [ "$boot_opts" != "$nofadump_opts" ]; then
+	kdump-bootloader.pl --update
+    fi
+}
+
 # Update fadump configuration
 function load_kdump_fadump()
 {
@@ -201,13 +222,7 @@ function load_kdump_fadump()
         rc_exit
     fi
 
-    # check if the old configuration is still valid
-    boot_opts=$(kdumptool -F /dev/null -C <(kdump-bootloader.pl --get) \
-			  dump_config --usage dump --format kernel --nodefault)
-    curr_opts=$(kdumptool dump_config --usage dump --format kernel --nodefault)
-    if [ "$boot_opts" != "$curr_opts" ]; then
-	kdump-bootloader.pl --update fadump=on "$curr_opts"
-    fi
+    fadump_bootloader on
 
     # The kernel fails with EINVAL if registered already
     # (see bnc#814780)
