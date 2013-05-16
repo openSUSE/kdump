@@ -194,6 +194,11 @@ function load_kdump_kexec()
 # Update the bootloader options for fadump
 function fadump_bootloader()
 {
+    case $(uname -m) in
+	ppc*) ;;
+	*) return 0 ;;
+    esac
+
     local newstate="$1"
 
     # check if the old configuration is still valid
