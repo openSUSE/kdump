@@ -91,6 +91,7 @@ function continue_error()
 wait_for_dumpdev()
 {
     local dev="$1"
+    test -z "$dev" && return 0
     test -e "$dev" && return 0
 
     case "$dev" in
