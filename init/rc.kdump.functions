@@ -125,6 +125,14 @@ function build_kdump_commandline()
 
     commandline="$commandline $KDUMP_COMMANDLINE_APPEND"
 
+    # Add panic=1 unless there is a panic option already
+    local cmdline_nopanic
+    cmdline_nopanic=$(echo "$commandline" | remove_from_commandline panic)
+    if [ "$commandline" = "$cmdline_nopanic" ]
+    then
+	commandline="$commandline panic=1"
+    fi
+
     echo "$commandline"
 }
 
