@@ -220,17 +220,21 @@ Currently available -d parameters are:
 }
 
 #
-# Returns the UUID for a given disk
-# Parameters: 1) partition device (e.g. /dev/sda5)
-# Returns:    The UUID
-function get_uuid_for_disk()                                               # {{{
+# Translate a block device path into its path by UUID
+# Parameters: 1) blkdev: block device
+# Returns:    blkdev by UUID (or blkdev if blkdev is not a local block device)
+function blkdev_by_uuid()                                                  # {{{
 {
-    local uuid=
-    local device=$1
+    local blkdev="$1"
 
-    local output=$(/sbin/blkid ${device})
-    local uuid=$(echo "$output" | sed -e 's/.*UUID="\([-a-fA-F0-9]*\)".*/\1/')
-    echo "$uuid"
+    if [ -b "$blkdev" ] ; then
+	local uuid=$(/sbin/blkid "$blkdev" |
+	    sed -e 's/.*UUID="\([-a-fA-F0-9]*\)".*/\1/')
+        if [ -n "$uuid" ] && [ -b "/dev/disk/by-uuid/$uuid" ] ; then
+            blkdev="/dev/disk/by-uuid/$uuid"
+        fi
+    fi
+    echo "$blkdev"
 }                                                                          # }}}
 
 #
@@ -249,14 +253,6 @@ function add_fstab()                                                       # {{{
     local opts=$4
     local freq=$5
     local passno=$6
-
-    # translate block devices into UUID
-    if [ -b "$fsname" ] ; then
-        local uuid=$(get_uuid_for_disk "$fsname")
-        if [ -n "$uuid" ] && [ -b "/dev/disk/by-uuid/$uuid" ] ; then
-            fsname="/dev/disk/by-uuid/$uuid"
-        fi
-    fi
 
     # add "nolock" for NFS
     if [ "$fstype" = "nfs" ]; then
@@ -348,9 +344,9 @@ if [ -n "$mnt_boot" ]
 then
     mountpoint="$mnt_boot"
     resolve_mount "Boot directory" "$mountpoint"
-    bootdev="$mntdev"
-    add_fstab "$mntdev" "/root$mountpoint" "$mntfstype" "$mntopts" 0 0
-    blockdev="$blockdev $(resolve_device Boot $mntdev)"
+    bootdev=$(blkdev_by_uuid "$mntdev")
+    add_fstab "$bootdev" "/root$mountpoint" "$mntfstype" "$mntopts" 0 0
+    blockdev="$blockdev $(resolve_device Boot $bootdev)"
     kdump_fsmod="$kdump_fsmod $mntmod"
 fi
 
@@ -358,9 +354,9 @@ fi
 for mountpoint in "${mnt_kdump[@]}"
 do
     resolve_mount "Dump directory" "$mountpoint"
-    dumpdev="$mntdev"
-    add_fstab "$mntdev" "/root$mountpoint" "$mntfstype" "$mntopts" 0 0
-    blockdev="$blockdev $(resolve_device Dump $mntdev)"
+    dumpdev=$(blkdev_by_uuid "$mntdev")
+    add_fstab "$dumpdev" "/root$mountpoint" "$mntfstype" "$mntopts" 0 0
+    blockdev="$blockdev $(resolve_device Dump $dumpdev)"
     kdump_fsmod="$kdump_fsmod $mntmod"
 done
 
