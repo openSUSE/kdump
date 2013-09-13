@@ -54,7 +54,7 @@ EXECUTE_PROCESS(
         asciidoc_version_string
 )
 string(REGEX REPLACE "asciidoc (.*)\n" "\\1"
-    asciidoc_version_string ${asciidoc_version_string})
+    asciidoc_version_string "${asciidoc_version_string}")
 
 #
 # Use -L for asciidoc >= 8.3.0
