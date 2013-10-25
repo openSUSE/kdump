@@ -75,21 +75,33 @@ fi
 source "$CONFIG"
 
 #
-# replace the KDUMP_SAVEDIR with the resolved path
-if [ "$kdump_protocol" = "file" ] ; then
-    KDUMP_SAVEDIR="file://$kdump_path"
-fi
+# Special handling for some protocols
+KDUMP_SAVEDIR=
+kdump_over_ssh=
+local i=0
+while [ $i -le $kdump_max ] ; do
+    protocol="${kdump_Protocol[i]}"
 
-#
-# get the host key, if needed
-if [ "$kdump_protocol" = "sftp" -a -z "$KDUMP_HOST_KEY" ] ; then
-    KDUMP_HOST_KEY=$(ssh-keygen -F "$kdump_host" 2>/dev/null | \
-                     awk '/^[^#]/ { if (NF==3) { print $3; exit } }')
-    if [ -z "$KDUMP_HOST_KEY" ] ; then
-        echo "WARNING: target SSH host key not found. " \
-             "Man-in-the-middle attack is possible." >&2
+    # replace original path with resolved path
+    test -z "$KDUMP_SAVEDIR" || KDUMP_SAVEDIR="$KDUMP_SAVEDIR "
+    if [ "$protocol" = "file" ] ; then
+        KDUMP_SAVEDIR="${KDUMP_SAVEDIR}file://${kdump_Realpath[i]}"
+    else
+        KDUMP_SAVEDIR="${KDUMP_SAVEDIR}${kdump_URL[i]}"
     fi
-fi
+
+    #
+    # get the host key, if needed
+    if [ "$protocol" = "sftp" ] ; then
+        kdump_over_ssh=yes
+        if [ -z "$KDUMP_HOST_KEY" ] ; then
+            KDUMP_HOST_KEY=$(ssh-keygen -F "$kdump_Host" 2>/dev/null | \
+                             awk '/^[^#]/ { if (NF==3) { print $3; exit } }')
+        fi
+    fi
+
+    i=$((i+1))
+done
 
 #
 # copy the configuration file, modifying:
@@ -120,7 +132,11 @@ fi
 #
 # copy public and private key if needed
 #
-if [ "$kdump_protocol" = "sftp" ] ; then
+if [ -n "$kdump_over_ssh" ] ; then
+    if [ -z "$KDUMP_HOST_KEY" ] ; then
+        echo "WARNING: target SSH host key not found. " \
+             "Man-in-the-middle attack is possible." >&2
+    fi
     if [ -f /root/.ssh/id_dsa ] && [ -f /root/.ssh/id_dsa.pub ] ; then
         mkdir -p ${tmp_mnt}/.ssh
         cp /root/.ssh/id_dsa ${tmp_mnt}/.ssh

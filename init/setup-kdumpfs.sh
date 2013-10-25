@@ -282,7 +282,6 @@ fi
 #
 kdump_max=0
 eval "$( kdumptool print_target | \
-    egrep '^(Protocol:|Realpath:|$)' | \
     sed -e "s/'/'\\\\''/g" \
 	-e 's/^$/max=$((kdump_max+1))'\''/' \
 	-e 's/^/kdump_/' \
