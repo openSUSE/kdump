@@ -49,6 +49,7 @@ function handle_exit()
         test -f $FADUMP_RELEASE_MEM && echo 1 > $FADUMP_RELEASE_MEM
     elif [ $KDUMP_IMMEDIATE_REBOOT = "yes" \
             -o "$KDUMP_IMMEDIATE_REBOOT" = "YES" ] ; then
+        umount -a
         reboot -f
     else
         echo
