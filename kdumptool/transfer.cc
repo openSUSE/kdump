@@ -506,7 +506,7 @@ SFTPTransfer::SFTPTransfer(const RootDirURLVector &urlv,
         port = Socket::DP_SSH;
 
     // create the socket and connect
-    m_socket = new Socket(parser.getHostname().c_str(), port, Socket::ST_TCP);
+    m_socket = new Socket(parser.getHostname(), port, Socket::ST_TCP);
     int fd = m_socket->connect();
 
     // start it up

@@ -68,7 +68,7 @@ class Socket {
          * @param[in] port the port to connect
          * @param[in] type the socket type
          */
-        Socket(const char *address, int port,
+        Socket(const std::string &address, int port,
                SocketType socketType, Family family = SF_ANY)
         throw ();
 
