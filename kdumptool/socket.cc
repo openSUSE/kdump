@@ -37,11 +37,18 @@ using std::memcpy;
 Socket::Socket(const char *address, int port,
 	       Socket::SocketType socketType, Socket::Family family)
     throw ()
-    : m_currentFd(-1), m_hostname(address), m_port(port),
+    : m_currentFd(-1), m_port(port),
       m_socketType(socketType), m_family(family)
 {
     Debug::debug()->trace("Socket(%s, %d, %d, %d)",
 			  address, port, socketType, family);
+
+    // Handle literal IPv6 addresses enclosed in brackets
+    size_t addrlen = strlen(address);
+    if (addrlen >= 2 && address[0] == '[' && address[addrlen-1] == ']')
+	m_hostname.assign(address + 1, addrlen - 2);
+    else
+	m_hostname.assign(address);
 }
 
 // -----------------------------------------------------------------------------
