@@ -180,8 +180,15 @@ void URLParser::parseUserPassHostPort(const string &userpasshostport)
             m_username = userpass;
     }
 
-    // and separate host and port
+    // look for a literal IPv6 addresses
     string::size_type last_colon = hostport.rfind(':');
+    if (hostport[0] == '[') {
+        string::size_type bracket = hostport.find(']');
+        if (bracket != string::npos && bracket > last_colon)
+            last_colon = string::npos;
+    }
+
+    // and separate host and port
     if (last_colon != string::npos) {
         m_hostname = hostport.substr(0, last_colon);
         string portstr = hostport.substr(last_colon+1);
@@ -205,6 +212,11 @@ void URLParser::parseNFSUrl(const string &partUrl)
     m_hostname = partUrl.substr(0, first_slash);
 
     string::size_type last_colon = m_hostname.rfind(':');
+    if (m_hostname[0] == '[') {
+        string::size_type bracket = m_hostname.find(']');
+        if (bracket != string::npos && bracket > last_colon)
+            last_colon = string::npos;
+    }
     if (last_colon != string::npos) {
         string hostport = m_hostname;
         m_hostname = hostport.substr(0, last_colon);
