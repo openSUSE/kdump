@@ -126,7 +126,7 @@ fi
 # check if we need to regenerate it?
 if (( ! $FORCE )) ; then
     if [ -f "$INITRD" ] && \
-            [ "$CONFIG" -ot "$INITRD" ] && \
+            [ "$KDUMP_CONFIG" -ot "$INITRD" ] && \
             [ /root/.ssh/id_dsa.pub -ot "$INITRD" ] && \
             [ /root/.ssh/id_dsa -ot "$INITRD" ] && \
             [ "$KERNEL" -ot "$INITRD" ] ; then
