@@ -298,7 +298,7 @@ void Debuglink::readDebuginfoLink(Elf *elf)
     Debug::debug()->trace("Debuglink::readDebuginfoLink(%p)", elf);
 
     size_t shstrndx;
-    if (elf_getshstrndx(elf, &shstrndx) < 0)
+    if (elf_getshdrstrndx(elf, &shstrndx) < 0)
         throw KELFError("Can't get the section index of the string table.",
             elf_errno());
 

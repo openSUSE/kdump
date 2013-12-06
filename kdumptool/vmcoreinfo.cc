@@ -165,9 +165,9 @@ ByteVector Vmcoreinfo::readElfNote(const char *file)
 
         // get the number of program header entries
         size_t n;
-        int ret = elf_getphnum(elf, &n);
-        if (ret == 0)
-            throw KELFError("elf_getphnum() failed.", elf_errno());
+        int ret = elf_getphdrnum(elf, &n);
+        if (ret < 0)
+            throw KELFError("elf_getphdrnum() failed.", elf_errno());
 
         // iterate over that entries to find offset and size of the
         // notes section
