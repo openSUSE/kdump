@@ -1,3 +1,8 @@
+0.8.6
+-----
+  * Support for IPv6 targets
+  * Unmount all filesystems before rebooting in the kdump environment
+
 0.8.5
 -----
   * Always use /proc/mounts instead of /etc/mtab.
