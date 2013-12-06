@@ -34,21 +34,32 @@ using std::memcpy;
 
 //{{{ Socket -------------------------------------------------------------------
 
-Socket::Socket(const std::string &address, int port,
-	       Socket::SocketType socketType, Socket::Family family)
+Socket::Socket(const std::string &address, const std::string &service,
+               Socket::SocketType socketType, Socket::Family family)
     throw ()
-    : m_currentFd(-1), m_port(port),
+    : m_currentFd(-1), m_service(service),
       m_socketType(socketType), m_family(family)
 {
-    Debug::debug()->trace("Socket(%s, %d, %d, %d)",
-			  address.c_str(), port, socketType, family);
+    Debug::debug()->trace("Socket(%s, %s, %d, %d)",
+                          address.c_str(), service.c_str(), socketType, family);
 
-    // Handle literal IPv6 addresses enclosed in brackets
-    size_t addrlen = address.length();
-    if (addrlen >= 2 && address[0] == '[' && address[addrlen-1] == ']')
-	m_hostname.assign(address, 1, addrlen - 2);
-    else
-	m_hostname.assign(address);
+    setHostname(address);
+}
+
+// -----------------------------------------------------------------------------
+Socket::Socket(const std::string &address, int port,
+               Socket::SocketType socketType, Socket::Family family)
+    throw ()
+    : m_currentFd(-1), m_socketType(socketType), m_family(family)
+{
+    Debug::debug()->trace("Socket(%s, %d, %d, %d)",
+                          address.c_str(), port, socketType, family);
+
+    setHostname(address);
+
+    std::ostringstream ss;
+    ss << port;
+    m_service.assign(ss.str());
 }
 
 // -----------------------------------------------------------------------------
@@ -57,6 +68,18 @@ Socket::~Socket()
 {
     Debug::debug()->trace("Socket::~Socket()");
     close();
+}
+
+// -----------------------------------------------------------------------------
+void Socket::setHostname(const std::string &address)
+    throw ()
+{
+    // Handle literal IPv6 addresses enclosed in brackets
+    std::string::size_type addrlen = address.length();
+    if (addrlen >= 2 && address[0] == '[' && address[addrlen-1] == ']')
+        m_hostname.assign(address, 1, addrlen - 2);
+    else
+        m_hostname.assign(address);
 }
 
 // -----------------------------------------------------------------------------
@@ -101,9 +124,7 @@ int Socket::connect()
     hints.ai_family = systemFamily(m_family);
     hints.ai_socktype = systemSocketType(m_socketType);
 
-    std::ostringstream service;
-    service << m_port;
-    n = getaddrinfo(m_hostname.c_str(), service.str().c_str(), &hints, &res);
+    n = getaddrinfo(m_hostname.c_str(), m_service.c_str(), &hints, &res);
     if (n < 0)
         throw KError("getaddrinfo() failed for " + m_hostname + ".");
 

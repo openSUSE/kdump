@@ -65,15 +65,28 @@ class Socket {
          * Creates a new socket.
          *
          * @param[in] address the IP address or the hostname
-         * @param[in] port the port to connect
-         * @param[in] type the socket type
+         * @param[in] service the service to connect (or port as string)
+         * @param[in] socketType the socket type (TCP or UDP)
+         * @param[in] family protocol family (IPv4, IPv6, or both)
+         */
+        Socket(const std::string &address, const std::string &service,
+               SocketType socketType, Family family = SF_ANY)
+        throw ();
+
+        /**
+         * Creates a new socket.
+         *
+         * @param[in] address the IP address or the hostname
+         * @param[in] port the port number to connect
+         * @param[in] socketType the socket type (TCP or UDP)
+         * @param[in] family protocol family (IPv4, IPv6, or both)
          */
         Socket(const std::string &address, int port,
                SocketType socketType, Family family = SF_ANY)
         throw ();
 
         /**
-         * Desctructor. Closes the connection.
+         * Destructor. Closes the connection.
          */
         virtual ~Socket()
         throw ();
@@ -106,9 +119,12 @@ class Socket {
     private:
         int m_currentFd;
         std::string m_hostname;
-        int m_port;
+        std::string m_service;
         SocketType m_socketType;
         Family m_family;
+
+        void setHostname(const std::string &address)
+        throw();
 };
 
 //}}}
