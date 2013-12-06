@@ -24,6 +24,7 @@
 #include <unistd.h>
 #include <cerrno>
 #include <cstring>
+#include <sstream>
 
 #include "global.h"
 #include "socket.h"
@@ -33,11 +34,14 @@ using std::memcpy;
 
 //{{{ Socket -------------------------------------------------------------------
 
-Socket::Socket(const char *address, int port, Socket::Type type)
+Socket::Socket(const char *address, int port,
+	       Socket::SocketType socketType, Socket::Family family)
     throw ()
-    : m_currentFd(-1), m_hostname(address), m_port(port), m_connectionType(type)
+    : m_currentFd(-1), m_hostname(address), m_port(port),
+      m_socketType(socketType), m_family(family)
 {
-    Debug::debug()->trace("Socket(%s, %d, %d)", address, port, type);
+    Debug::debug()->trace("Socket(%s, %d, %d, %d)",
+			  address, port, socketType, family);
 }
 
 // -----------------------------------------------------------------------------
@@ -49,48 +53,76 @@ Socket::~Socket()
 }
 
 // -----------------------------------------------------------------------------
+static int systemFamily(enum Socket::Family family)
+{
+    switch (family) {
+    case Socket::SF_IPv4:
+        return AF_INET;
+
+    case Socket::SF_IPv6:
+        return AF_INET6;
+
+    case Socket::SF_ANY:
+    default:
+        return AF_UNSPEC;
+    }
+}
+
+// -----------------------------------------------------------------------------
+static int systemSocketType(enum Socket::SocketType socketType)
+{
+    switch (socketType) {
+    case Socket::ST_UDP:
+        return SOCK_DGRAM;
+
+    case Socket::ST_TCP:
+    default:
+        return SOCK_STREAM;
+    }
+}
+
+// -----------------------------------------------------------------------------
 int Socket::connect()
     throw (KError)
 {
-    struct in_addr inaddr;
-    struct sockaddr_in addr;
-    struct hostent *machine;
+    struct addrinfo hints, *res, *aip;
+    int n;
 
     Debug::debug()->trace("Socket::connect()");
 
-    int ret = inet_aton(m_hostname.c_str(), &inaddr);
-    if (ret) {
-        Debug::debug()->trace("Socket::connect(): Using numerical IP address");
-	memcpy(&addr.sin_addr, &inaddr, sizeof(addr.sin_addr));
-    } else {
-        Debug::debug()->trace("Socket::connect(): Using gethostbyname()");
-        machine = gethostbyname(m_hostname.c_str());
-        if (!machine)
-            throw KNetError("gethostbyname() failed for "+ m_hostname +".",
-                h_errno);
-	memcpy(&addr.sin_addr, machine->h_addr_list[0], sizeof(addr.sin_addr));
-    }
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = systemFamily(m_family);
+    hints.ai_socktype = systemSocketType(m_socketType);
 
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(m_port);
+    std::ostringstream service;
+    service << m_port;
+    n = getaddrinfo(m_hostname.c_str(), service.str().c_str(), &hints, &res);
+    if (n < 0)
+        throw KError("getaddrinfo() failed for " + m_hostname + ".");
 
-    // UDP or TCP ?
-    int type = m_connectionType == Socket::ST_TCP
-        ? SOCK_STREAM
-        : SOCK_DGRAM;
+    for (aip = res; aip; aip = aip->ai_next) {
+        Debug::debug()->trace("Socket::connect(): socket(%d, %d, %d)",
+                              aip->ai_family, aip->ai_socktype,
+                              aip->ai_protocol);
 
-    Debug::debug()->trace("Socket::connect(): socket(%d, %d, 0)",
-        PF_INET, type);
+        m_currentFd = socket(aip->ai_family, aip->ai_socktype,
+                             aip->ai_protocol);
+        if (m_currentFd < 0) {
+            Debug::debug()->dbg("socket() failed.");
+            continue;
+        }
 
-    m_currentFd = socket(PF_INET, type, 0);
-    if (m_currentFd < 0)
-        KSystemError("socket() failed for " + m_hostname + ".", errno);
+        if (::connect(m_currentFd, res->ai_addr, res->ai_addrlen) == 0)
+            break;
 
-    int err = ::connect(m_currentFd, (struct sockaddr *)&addr, sizeof(addr));
-    if (err != 0) {
+        Debug::debug()->dbg("connect() failed.");
         close();
-        throw KSystemError("connect() failed for " + m_hostname + ".", errno);
     }
+
+    freeaddrinfo(res);
+
+    if (!aip)
+        throw KError("connect() failed for " + m_hostname + ".");
 
     return m_currentFd;
 }

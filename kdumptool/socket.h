@@ -29,18 +29,27 @@
 //{{{ Socket -------------------------------------------------------------------
 
 /**
- * Represents a socket (IPv4).
+ * Represents a socket (IPv4 or IPv6).
  */
 class Socket {
 
     public:
         /**
-         * The type of the socket. Currently, IPv4/TCP and IPv4/UDP are
-         * supported.
+         * The type of the socket. Currently, all combinations of
+         * TCP and UDP over IPv4 or IPv6 are supported.
          */
-        enum Type {
-            ST_TCP,     /**< IPv4 and TCP */
-            ST_UCP      /**< IPv4 and UDP */
+        enum SocketType {
+            ST_TCP,             /**< TCP connections */
+            ST_UDP,             /**< UDP connections */
+        };
+
+        /**
+         * The protocol family.
+         */
+        enum Family {
+            SF_ANY,             /**< Any protocol */
+            SF_IPv4,            /**< IPv4 only */
+            SF_IPv6,            /**< IPv6 only */
         };
 
         /**
@@ -59,7 +68,8 @@ class Socket {
          * @param[in] port the port to connect
          * @param[in] type the socket type
          */
-        Socket(const char *address, int port, Type type)
+        Socket(const char *address, int port,
+               SocketType socketType, Family family = SF_ANY)
         throw ();
 
         /**
@@ -97,7 +107,8 @@ class Socket {
         int m_currentFd;
         std::string m_hostname;
         int m_port;
-        Type m_connectionType;
+        SocketType m_socketType;
+        Family m_family;
 };
 
 //}}}
