@@ -69,11 +69,6 @@ void OptionValue::setInteger(int value)
 }
 
 /* -------------------------------------------------------------------------- */
-Option::Option()
-    : m_type(OT_FLAG)
-{}
-
-/* -------------------------------------------------------------------------- */
 Option::Option(const string &name, char letter, OptionType type,
                const std::string &description)
     : m_longName(name), m_description(description),

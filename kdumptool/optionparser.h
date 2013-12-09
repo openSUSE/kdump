@@ -73,7 +73,6 @@ class OptionValue {
 
 class Option {
     public:
-        Option();
         Option(const std::string &name, char letter,
                 OptionType type = OT_FLAG,
                 const std::string &description = "");
