@@ -81,69 +81,91 @@ string KSFTPErrorCode::message(void) const
     switch (getCode()) {
         case LIBSSH2_FX_OK:
             msg = "OK";
+            break;
 
         case LIBSSH2_FX_EOF:
             msg = "End of file";
+            break;
 
         case LIBSSH2_FX_NO_SUCH_FILE:
             msg = "No such file";
+            break;
 
         case LIBSSH2_FX_PERMISSION_DENIED:
             msg = "Permission denied";
+            break;
 
         case LIBSSH2_FX_FAILURE:
             msg = "Failure";
+            break;
 
         case LIBSSH2_FX_BAD_MESSAGE:
             msg = "Bad message";
+            break;
 
         case LIBSSH2_FX_NO_CONNECTION:
             msg = "No connection";
+            break;
 
         case LIBSSH2_FX_CONNECTION_LOST:
             msg = "Connection lost";
+            break;
 
         case LIBSSH2_FX_OP_UNSUPPORTED:
             msg = "Operation unsupported";
+            break;
 
         case LIBSSH2_FX_INVALID_HANDLE:
             msg = "Invalid handle";
+            break;
 
         case LIBSSH2_FX_NO_SUCH_PATH:
             msg = "No such path";
+            break;
 
         case LIBSSH2_FX_FILE_ALREADY_EXISTS:
             msg = "File already exists";
+            break;
 
         case LIBSSH2_FX_WRITE_PROTECT:
             msg = "Write protect";
+            break;
 
         case LIBSSH2_FX_NO_MEDIA:
             msg = "No media";
+            break;
 
         case LIBSSH2_FX_NO_SPACE_ON_FILESYSTEM:
             msg = "No space on file system";
+            break;
 
         case LIBSSH2_FX_QUOTA_EXCEEDED:
             msg = "Quote exceeded";
+            break;
 
         case LIBSSH2_FX_UNKNOWN_PRINCIPLE:
             msg = "Unknown principle";
+            break;
 
         case LIBSSH2_FX_LOCK_CONFLICT:
             msg = "Lock conflict";
+            break;
 
         case LIBSSH2_FX_DIR_NOT_EMPTY:
             msg = "Directory not empty";
+            break;
 
         case LIBSSH2_FX_NOT_A_DIRECTORY:
             msg = "Not a directory";
+            break;
 
         case LIBSSH2_FX_INVALID_FILENAME:
             msg = "Invalid file name";
+            break;
 
         case LIBSSH2_FX_LINK_LOOP:
             msg = "Link loop";
+            break;
 
         default:
             msg = "Unknown error";
