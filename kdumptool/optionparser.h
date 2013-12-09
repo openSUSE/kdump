@@ -114,7 +114,7 @@ class OptionParser {
                 const std::string &description = "");
 
         void printHelp(std::ostream &os, const std::string &name) const;
-        bool parse(int argc, char *argv[]);
+        void parse(int argc, char *argv[]);
         OptionValue getValue(const std::string &name);
         std::vector<std::string> getArgs();
 

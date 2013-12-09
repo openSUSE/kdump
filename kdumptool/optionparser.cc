@@ -200,16 +200,12 @@ void OptionParser::addOption(const string &name, char letter,
 }
 
 /* -------------------------------------------------------------------------- */
-bool OptionParser::parse(int argc, char *argv[])
+void OptionParser::parse(int argc, char *argv[])
 {
     struct option *cur, *opt;
     string   getopt_string;
 
     opt = new option[m_options.size() + 1];
-    if (!opt) {
-        cerr << "OptionParser::parse(): malloc failed" << endl;
-        return false;
-    }
     cur = opt;
 
     // get a struct option array from the map
@@ -282,8 +278,6 @@ bool OptionParser::parse(int argc, char *argv[])
         cur++;
     }
     delete[] opt;
-
-    return true;
 }
 
 /* -------------------------------------------------------------------------- */

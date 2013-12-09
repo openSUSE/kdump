@@ -96,9 +96,7 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
         m_optionParser.addSubcommand((*it)->getName(), (*it)->getOptions());
     }
 
-    if (!m_optionParser.parse(argc, argv)) {
-        throw KError("Error while parsing command line options.");
-    }
+    m_optionParser.parse(argc, argv);
 
     // read the global options
     if (m_optionParser.getValue("help").getFlag()) {
