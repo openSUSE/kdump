@@ -54,6 +54,26 @@ typedef std::map<std::string, std::string> StringStringMap;
     (x) ? (x) : ("null")
 
 //}}}
+//{{{ KErrorCode ---------------------------------------------------------------
+
+class KErrorCode {
+    public:
+        KErrorCode(int code)
+	    : m_code(code)
+        {}
+
+        virtual std::string message(void) const
+	throw () = 0;
+
+        int getCode(void) const
+        throw ()
+        { return m_code; }
+
+    private:
+        int m_code;
+};
+
+//}}}
 //{{{ KError -------------------------------------------------------------------
 
 /**
@@ -80,32 +100,14 @@ class KError : public std::runtime_error {
 class KSystemError : public KError {
     public:
         /**
-         * Creates a new object of KError with string as error message.
+         * Creates a new object of KError with an error message format:
          *
-         * @param string the error message
+         *   'message (strerror(errorcode))'
+         *
+         * @param message the error message
          * @param errorcode the system error code (errno)
          */
-        KSystemError(const std::string& string, int errorcode)
-            : KError(string), m_errorcode(errorcode),
-              m_errorstring(string) {}
-
-        /**
-         * Returns a readable error message from the string and the error
-         * code.
-         *
-         * @return Error message in the format 'string (strerror(errorcode))'.
-         */
-        virtual const char *what() const
-        throw ();
-
-        /**
-         * Don't know why that is necessary to avoid compiler errors.
-         */
-        virtual ~KSystemError() throw () {}
-
-    private:
-        int m_errorcode;
-        std::string m_errorstring;
+        KSystemError(const std::string& message, int errorcode);
 };
 
 //}}}
@@ -119,31 +121,27 @@ class KNetError : public KError {
     public:
 
         /**
-         * Creates a new object of KError with string as error message.
+         * Creates a new object of KError with an error message format:
          *
-         * @param[in] string the error message
+         *   'message (hstrerror(errorcode))'
+         *
+         * @param[in] message the error message
          * @param[in] errorcode the value of h_errno
          */
-        KNetError(const std::string &string, int errorcode)
-            : KError(string), m_errorcode(errorcode),
-              m_errorstring(string) {}
+        KNetError(const std::string &message, int errorcode);
+};
 
-        /**
-         * Returns a readable error message from the string and the error code.
-         *
-         * @return Error message in the format 'string (strerror(errorcode))'.
-         */
-        virtual const char *what() const
-        throw ();
+//}}}
+//{{{ KSFTPErrorCode -----------------------------------------------------------
 
-        /**
-         * Don't know why that is necessary to avoid compiler errors.
-         */
-        virtual ~KNetError() throw () {}
+class KSFTPErrorCode : public KErrorCode {
+    public:
+        KSFTPErrorCode(int code)
+	    : KErrorCode(code)
+        {}
 
-    private:
-        int m_errorcode;
-        std::string m_errorstring;
+        virtual std::string message(void) const
+	throw ();
 };
 
 //}}}
@@ -156,35 +154,14 @@ class KSFTPError : public KError {
     public:
 
         /**
-         * Creates a new object of KSFTPError with string as error message.
+         * Creates a new object of KSFTPError with an error message format:
+         *
+         *   'message (KSFTPCode(errorcode).message())'
          *
          * @param[in] string the error message
          * @param[in] errorcode the value of the sftp_sftp_get_last_error()
          */
-        KSFTPError(const std::string &string, int errorcode)
-            : KError(string), m_errorcode(errorcode),
-              m_errorstring(string) {}
-
-        /**
-         * Returns a readable error message from the string and the error code.
-         *
-         * @return Error message in the format 'string (strerror(errorcode))'.
-         */
-        virtual const char *what() const
-        throw ();
-
-        /**
-         * Don't know why that is necessary to avoid compiler errors.
-         */
-        virtual ~KSFTPError() throw () {}
-
-    protected:
-        std::string getStringForCode(int code) const
-        throw ();
-
-    private:
-        int m_errorcode;
-        std::string m_errorstring;
+        KSFTPError(const std::string &message, int errorcode);
 };
 
 //}}}
@@ -197,37 +174,31 @@ class KELFError : public KError {
     public:
 
         /**
-         * Creates a new object of KELFError with string as error message.
+         * Creates a new object of KError with an error message format:
          *
-         * @param[in] string the error message
+         *   'message (elf_errmsg(errorcode))'
+         *
+         * @param[in] message the error message
          * @param[in] errorcode the value of elf_errno()
          */
-        KELFError(const std::string &string, int errorcode)
-            : KError(string), m_errorcode(errorcode),
-              m_errorstring(string) {}
-
-        /**
-         * Returns a readable error message from the string and the error code.
-         *
-         * @return Error message in the format 'string (strerror(errorcode))'.
-         */
-        virtual const char *what() const
-        throw ();
-
-        /**
-         * Don't know why that is necessary to avoid compiler errors.
-         */
-        virtual ~KELFError() throw () {}
-
-    private:
-        int m_errorcode;
-        std::string m_errorstring;
+        KELFError(const std::string &message, int errorcode);
 };
 
 //}}}
-//{{{ ESmtpError ---------------------------------------------------------------
+//{{{ KSmtpErrorCode -----------------------------------------------------------
 
-#ifdef HAVE_LIBESMTP
+class KSmtpErrorCode : public KErrorCode {
+    public:
+        KSmtpErrorCode(int code)
+	    : KErrorCode(code)
+        {}
+
+        virtual std::string message(void) const
+	throw ();
+};
+
+//}}}
+//{{{ KSmtpError ---------------------------------------------------------------
 
 /**
  * Standard error class for libelf error.
@@ -236,36 +207,17 @@ class KSmtpError : public KError {
     public:
 
         /**
-         * Creates a new object of ESmtpError with string as error message.
+         * Creates a new object of KError with an error message format:
          *
-         * @param[in] string the error message
+         *   'message (KSmtpCode(errorcode).message())'
+         *
+         * @param[in] message the error message
          * @param[in] errorcode the value of elf_errno()
          */
-        KSmtpError(const std::string &string, int errorcode)
-            : KError(string), m_errorcode(errorcode),
-              m_errorstring(string) {}
-
-        /**
-         * Returns a readable error message from the string and the error code.
-         *
-         * @return Error message in the format 'string (strerror(errorcode))'.
-         */
-        virtual const char *what() const
-        throw ();
-
-        /**
-         * Don't know why that is necessary to avoid compiler errors.
-         */
-        virtual ~KSmtpError() throw () {}
-
-    private:
-        int m_errorcode;
-        std::string m_errorstring;
+        KSmtpError(const std::string &message, int errorcode);
 };
 
 //}}}
-
-#endif // HAVE_LIBESMTP
 
 #endif /* GLOBAL_H */
 

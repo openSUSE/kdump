@@ -42,62 +42,31 @@ using std::string;
 //{{{ KSystemError -------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-const char *KSystemError::what() const
-    throw ()
+KSystemError::KSystemError(const std::string& message, int errorcode)
+    : KError(message + " (" + strerror(errorcode) + ")")
 {
-    static char buffer[MAXERROR];
-
-    string errorstring = m_errorstring + " (" + strerror(m_errorcode) + ")";
-
-    strncpy(buffer, errorstring.c_str(), MAXERROR);
-    buffer[MAXERROR-1] = 0;
-
-    return buffer;
 }
 
 //}}}
 //{{{ KNetError ----------------------------------------------------------------
 
-/* -------------------------------------------------------------------------- */
-const char *KNetError::what() const
-    throw ()
+// -----------------------------------------------------------------------------
+KNetError::KNetError(const std::string& message, int errorcode)
+    : KError(message + " (" + hstrerror(errorcode) + ")")
 {
-    static char buffer[MAXERROR];
-
-    string errorstring = m_errorstring + " (" + hstrerror(m_errorcode) + ")";
-
-    strncpy(buffer, errorstring.c_str(), MAXERROR);
-    buffer[MAXERROR-1] = 0;
-
-    return buffer;
 }
 
 //}}}
-//{{{ KSFTPError ---------------------------------------------------------------
+//{{{ KSFTPErrorCode -----------------------------------------------------------
 
+/* -------------------------------------------------------------------------- */
+string KSFTPErrorCode::message(void) const
+    throw ()
+{
 #if HAVE_LIBSSH2
-/* -------------------------------------------------------------------------- */
-const char *KSFTPError::what() const
-    throw ()
-{
-    static char buffer[MAXERROR];
-
-    string errorstring = m_errorstring + " (" +
-            getStringForCode(m_errorcode) + ")";
-
-    strncpy(buffer, errorstring.c_str(), MAXERROR);
-    buffer[MAXERROR-1] = 0;
-
-    return buffer;
-}
-
-/* -------------------------------------------------------------------------- */
-string KSFTPError::getStringForCode(int code) const
-    throw ()
-{
     const char *msg;
 
-    switch (code) {
+    switch (getCode()) {
         case LIBSSH2_FX_OK:
             msg = "OK";
 
@@ -167,53 +136,59 @@ string KSFTPError::getStringForCode(int code) const
         default:
             msg = "Unknown error";
     }
-
     return string(msg);
-}
+
+#else // HAVE_LIBSSH2
+    return string("Compiled without libssh2 support");
 
 #endif // HAVE_LIBSSH2
+}
+//}}}
+//{{{ KSFTPError ---------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+KSFTPError::KSFTPError(const std::string &message, int errorcode)
+    : KError(message + " (" + KSFTPErrorCode(errorcode).message() + ")")
+{
+}
 
 //}}}
 //{{{ KELFError ----------------------------------------------------------------
 
-/* -------------------------------------------------------------------------- */
-const char *KELFError::what() const
+// -----------------------------------------------------------------------------
+KELFError::KELFError(const std::string &message, int errorcode)
+    : KError(message + " (" + elf_errmsg(errorcode) + ")")
+{
+}
+
+//}}}
+//{{{ KSmtpErrorCode -----------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+string KSmtpErrorCode::message(void) const
     throw ()
 {
-    static char buffer[MAXERROR];
+#if HAVE_LIBESMTP
+    char smtp_buffer[MAXERROR];
 
-    string errorstring = m_errorstring + " (" + elf_errmsg(m_errorcode) + ")";
+    smtp_strerror(getCode(), smtp_buffer, MAXERROR);
+    smtp_buffer[MAXERROR-1] = 0;
+    return string(smtp_buffer);
 
-    strncpy(buffer, errorstring.c_str(), MAXERROR);
-    buffer[MAXERROR-1] = 0;
+#else // HAVE_LIBESMTP
+    return string("Compiled without libesmtp support");
 
-    return buffer;
+#endif // HAVE_LIBESMTP
 }
 
 //}}}
 //{{{ KSmtpError ---------------------------------------------------------------
 
-#if HAVE_LIBESMTP
-
-/* -------------------------------------------------------------------------- */
-const char *KSmtpError::what() const
-    throw ()
+// -----------------------------------------------------------------------------
+KSmtpError::KSmtpError(const std::string &message, int errorcode)
+    : KError(message + " (" + KSmtpErrorCode(errorcode).message() + ")")
 {
-    static char buffer[MAXERROR];
-    static char smtp_buffer[MAXERROR];
-
-    smtp_strerror(m_errorcode, smtp_buffer, MAXERROR);
-    smtp_buffer[MAXERROR-1] = 0;
-
-    string errorstring = m_errorstring + " (" + smtp_buffer + ")";
-
-    strncpy(buffer, errorstring.c_str(), MAXERROR);
-    buffer[MAXERROR-1] = 0;
-
-    return buffer;
 }
-
-#endif // HAVE_LIBESMTP
 
 //}}}
 
