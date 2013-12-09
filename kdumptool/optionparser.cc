@@ -50,21 +50,9 @@ void OptionValue::setType(OptionType type)
 }
 
 /* -------------------------------------------------------------------------- */
-OptionType OptionValue::getType() const
-{
-    return m_type;
-}
-
-/* -------------------------------------------------------------------------- */
 void OptionValue::setString(const string &string)
 {
     m_string = string;
-}
-
-/* -------------------------------------------------------------------------- */
-string OptionValue::getString() const
-{
-    return m_string;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -74,21 +62,9 @@ void OptionValue::setFlag(bool flag)
 }
 
 /* -------------------------------------------------------------------------- */
-bool OptionValue::getFlag() const
-{
-    return m_flag;
-}
-
-/* -------------------------------------------------------------------------- */
 void OptionValue::setInteger(int value)
 {
     m_integer = value;
-}
-
-/* -------------------------------------------------------------------------- */
-int OptionValue::getInteger() const
-{
-    return m_integer;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -110,21 +86,9 @@ void Option::setLongName(const string &name)
 }
 
 /* -------------------------------------------------------------------------- */
-string Option::getLongName() const
-{
-    return m_longName;
-}
-
-/* -------------------------------------------------------------------------- */
 void Option::setLetter(char letter)
 {
     m_letter = letter;
-}
-
-/* -------------------------------------------------------------------------- */
-char Option::getLetter() const
-{
-    return m_letter;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -134,33 +98,15 @@ void Option::setType(OptionType type)
 }
 
 /* -------------------------------------------------------------------------- */
-OptionType Option::getType() const
-{
-    return m_type;
-}
-
-/* -------------------------------------------------------------------------- */
 void Option::setDescription(const std::string &description)
 {
     m_description = description;
 }
 
 /* -------------------------------------------------------------------------- */
-string Option::getDescription() const
-{
-    return m_description;
-}
-
-/* -------------------------------------------------------------------------- */
 void Option::setValue(OptionValue value)
 {
     m_value = value;
-}
-
-/* -------------------------------------------------------------------------- */
-OptionValue Option::getValue() const
-{
-    return m_value;
 }
 
 /* -------------------------------------------------------------------------- */

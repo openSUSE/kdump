@@ -42,16 +42,24 @@ class OptionValue {
 
     public:
         void setType(OptionType type);
-        OptionType getType() const;
+        OptionType getType() const
+            throw ()
+            { return m_type; }
 
         void setString(const std::string &string);
-        std::string getString() const;
+        const std::string& getString() const
+            throw ()
+            { return m_string; }
 
         void setFlag(bool flag);
-        bool getFlag() const;
+        bool getFlag() const
+            throw ()
+            { return m_flag; }
 
         void setInteger(int value);
-        int getInteger() const;
+        int getInteger() const
+            throw ()
+            { return m_integer; }
 
     private:
         OptionType      m_type;
@@ -72,20 +80,30 @@ class Option {
 
     public:
         void setLongName(const std::string &name);
-        std::string getLongName() const;
+        const std::string& getLongName() const
+            throw ()
+            { return m_longName; }
 
         void setLetter(char letter);
-        char getLetter() const;
+        char getLetter() const
+            throw ()
+            { return m_letter; }
 
         void setType(OptionType type);
-        OptionType getType() const;
+        OptionType getType() const
+            throw ()
+            { return m_type; }
 
         void setDescription(const std::string &description);
-        std::string getDescription() const;
+        const std::string& getDescription() const
+            throw ()
+            { return m_description; }
 
         /* that's set by the OptionParser */
         void setValue(OptionValue value);
-        OptionValue getValue() const;
+        const OptionValue& getValue() const
+            throw ()
+            { return m_value; }
 
         bool isValid() const;
         std::string getPlaceholder() const;
