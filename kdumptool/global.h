@@ -56,14 +56,18 @@ typedef std::map<std::string, std::string> StringStringMap;
 //}}}
 //{{{ KErrorCode ---------------------------------------------------------------
 
+/**
+ * Pure virtual class which serves as a base class for errors described
+ * by integer code values.
+ */
 class KErrorCode {
     public:
         KErrorCode(int code)
-	    : m_code(code)
+            : m_code(code)
         {}
 
         virtual std::string message(void) const
-	throw () = 0;
+        throw () = 0;
 
         int getCode(void) const
         throw ()
@@ -92,52 +96,85 @@ class KError : public std::runtime_error {
 };
 
 //}}}
-//{{{ KSystemError -------------------------------------------------------------
+//{{{ KCodeError ---------------------------------------------------------------
 
 /**
- * Standard error class for system errors that have a valid errno information.
+ * Standard error class template for errors that have a numeric code.
  */
-class KSystemError : public KError {
+template <class ErrorCode>
+class KCodeError : public KError {
     public:
         /**
          * Creates a new object of KError with an error message format:
          *
-         *   'message (strerror(errorcode))'
+         *   'message (ErrorCode(errorcode).message())'
          *
          * @param message the error message
          * @param errorcode the system error code (errno)
          */
-        KSystemError(const std::string& message, int errorcode);
+        KCodeError(const std::string& message, int errorcode)
+            : KError(message + " (" + ErrorCode(errorcode).message() + ")")
+        {}
 };
 
 //}}}
-//{{{ KNetError ----------------------------------------------------------------
+//{{{ KSystemErrorCode ---------------------------------------------------------
 
 /**
- * Standard error class for network errors that store the error information
- * in a variable called h_errno.
+ * Class for errors that store a value in the errno variable.
  */
-class KNetError : public KError {
+class KSystemErrorCode : public KErrorCode {
     public:
+        KSystemErrorCode(int code)
+            : KErrorCode(code)
+        {}
 
-        /**
-         * Creates a new object of KError with an error message format:
-         *
-         *   'message (hstrerror(errorcode))'
-         *
-         * @param[in] message the error message
-         * @param[in] errorcode the value of h_errno
-         */
-        KNetError(const std::string &message, int errorcode);
+        virtual std::string message(void) const
+        throw ();
+};
+
+//}}}
+//{{{ KNetErrorCode ------------------------------------------------------------
+
+/**
+ * Class for errors that store a value in the h_errno variable.
+ */
+class KNetErrorCode : public KErrorCode {
+    public:
+        KNetErrorCode(int code)
+            : KErrorCode(code)
+        {}
+
+        virtual std::string message(void) const
+        throw ();
 };
 
 //}}}
 //{{{ KSFTPErrorCode -----------------------------------------------------------
 
+/**
+ * Class for libssh2 errors.
+ */
 class KSFTPErrorCode : public KErrorCode {
     public:
         KSFTPErrorCode(int code)
-	    : KErrorCode(code)
+            : KErrorCode(code)
+        {}
+
+        virtual std::string message(void) const
+        throw ();
+};
+
+//}}}
+//{{{ KELFErrorCode ------------------------------------------------------------
+
+/**
+ * Class for libelf errors.
+ */
+class KELFErrorCode : public KErrorCode {
+    public:
+        KELFErrorCode(int code)
+            : KErrorCode(code)
         {}
 
         virtual std::string message(void) const
@@ -145,48 +182,11 @@ class KSFTPErrorCode : public KErrorCode {
 };
 
 //}}}
-//{{{ KSFTPError ---------------------------------------------------------------
-
-/**
- * Standard error class for SFTP (libssh2) errors.
- */
-class KSFTPError : public KError {
-    public:
-
-        /**
-         * Creates a new object of KSFTPError with an error message format:
-         *
-         *   'message (KSFTPCode(errorcode).message())'
-         *
-         * @param[in] string the error message
-         * @param[in] errorcode the value of the sftp_sftp_get_last_error()
-         */
-        KSFTPError(const std::string &message, int errorcode);
-};
-
-//}}}
-//{{{ KELFError ----------------------------------------------------------------
-
-/**
- * Standard error class for libelf error.
- */
-class KELFError : public KError {
-    public:
-
-        /**
-         * Creates a new object of KError with an error message format:
-         *
-         *   'message (elf_errmsg(errorcode))'
-         *
-         * @param[in] message the error message
-         * @param[in] errorcode the value of elf_errno()
-         */
-        KELFError(const std::string &message, int errorcode);
-};
-
-//}}}
 //{{{ KSmtpErrorCode -----------------------------------------------------------
 
+/**
+ * Class for libesmtp errors.
+ */
 class KSmtpErrorCode : public KErrorCode {
     public:
         KSmtpErrorCode(int code)
@@ -198,24 +198,13 @@ class KSmtpErrorCode : public KErrorCode {
 };
 
 //}}}
-//{{{ KSmtpError ---------------------------------------------------------------
+//{{{ Pre-defined error classes ------------------------------------------------
 
-/**
- * Standard error class for libelf error.
- */
-class KSmtpError : public KError {
-    public:
-
-        /**
-         * Creates a new object of KError with an error message format:
-         *
-         *   'message (KSmtpCode(errorcode).message())'
-         *
-         * @param[in] message the error message
-         * @param[in] errorcode the value of elf_errno()
-         */
-        KSmtpError(const std::string &message, int errorcode);
-};
+typedef KCodeError<KSystemErrorCode> KSystemError;
+typedef KCodeError<KNetErrorCode> KNetError;
+typedef KCodeError<KSFTPErrorCode> KSFTPError;
+typedef KCodeError<KELFErrorCode> KELFError;
+typedef KCodeError<KSmtpErrorCode> KSmtpError;
 
 //}}}
 

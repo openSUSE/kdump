@@ -39,21 +39,23 @@
 using std::strerror;
 using std::string;
 
-//{{{ KSystemError -------------------------------------------------------------
+//{{{ KSystemErrorCode ---------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-KSystemError::KSystemError(const std::string& message, int errorcode)
-    : KError(message + " (" + strerror(errorcode) + ")")
+string KSystemErrorCode::message(void) const
+    throw ()
 {
+    return string(strerror(getCode()));
 }
 
 //}}}
-//{{{ KNetError ----------------------------------------------------------------
+//{{{ KNetErrorCode ------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-KNetError::KNetError(const std::string& message, int errorcode)
-    : KError(message + " (" + hstrerror(errorcode) + ")")
+string KNetErrorCode::message(void) const
+    throw ()
 {
+    return string(hstrerror(getCode()));
 }
 
 //}}}
@@ -144,21 +146,13 @@ string KSFTPErrorCode::message(void) const
 #endif // HAVE_LIBSSH2
 }
 //}}}
-//{{{ KSFTPError ---------------------------------------------------------------
+//{{{ KELFErrorCode ------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-KSFTPError::KSFTPError(const std::string &message, int errorcode)
-    : KError(message + " (" + KSFTPErrorCode(errorcode).message() + ")")
+string KELFErrorCode::message(void) const
+    throw ()
 {
-}
-
-//}}}
-//{{{ KELFError ----------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-KELFError::KELFError(const std::string &message, int errorcode)
-    : KError(message + " (" + elf_errmsg(errorcode) + ")")
-{
+    return string(elf_errmsg(getCode()));
 }
 
 //}}}
@@ -179,15 +173,6 @@ string KSmtpErrorCode::message(void) const
     return string("Compiled without libesmtp support");
 
 #endif // HAVE_LIBESMTP
-}
-
-//}}}
-//{{{ KSmtpError ---------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-KSmtpError::KSmtpError(const std::string &message, int errorcode)
-    : KError(message + " (" + KSmtpErrorCode(errorcode).message() + ")")
-{
 }
 
 //}}}
