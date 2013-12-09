@@ -125,8 +125,8 @@ int Socket::connect()
     hints.ai_socktype = systemSocketType(m_socketType);
 
     n = getaddrinfo(m_hostname.c_str(), m_service.c_str(), &hints, &res);
-    if (n < 0)
-        throw KError("getaddrinfo() failed for " + m_hostname + ".");
+    if (n != 0)
+        throw KGaiError("getaddrinfo() failed for " + m_hostname + ".", n);
 
     for (aip = res; aip; aip = aip->ai_next) {
         Debug::debug()->trace("Socket::connect(): socket(%d, %d, %d)",
