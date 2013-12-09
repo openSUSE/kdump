@@ -158,7 +158,7 @@ void OptionParser::parse(int argc, char *argv[])
     for (vector<Option>::iterator it = m_options.begin();
             it != m_options.end(); ++it) {
         Option opt = *it;
-        cur->name = strdup(opt.getLongName().c_str());
+        cur->name = opt.getLongName().c_str();
         cur->has_arg = opt.getType() != OT_FLAG;
         cur->flag = 0;
         cur->val = opt.getLetter();
@@ -218,11 +218,6 @@ void OptionParser::parse(int argc, char *argv[])
             m_args.push_back(argv[optind++]);
 
     // free stuff
-    cur = opt;
-    for (unsigned int i = 0; i < m_options.size(); i++) {
-        free((void *)cur->name);
-        cur++;
-    }
     delete[] opt;
 }
 
