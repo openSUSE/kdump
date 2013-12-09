@@ -19,6 +19,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
+#include <stdexcept>
 
 #define _GNU_SOURCE 1
 #include <getopt.h>
@@ -159,11 +160,6 @@ void OptionParser::parse(int argc, char *argv[])
             break;
 
         Option &current_option = findOption(c);
-        if (!current_option.isValid()) {
-            cerr << "Invalid option: " << (char)c << endl;
-            break;
-        }
-
         OptionValue v;
         v.setType(current_option.getType());
         switch (current_option.getType()) {
@@ -214,8 +210,6 @@ OptionValue OptionParser::getValue(const string &name)
 /* -------------------------------------------------------------------------- */
 Option &OptionParser::findOption(char letter)
 {
-    static Option invalid;
-
     // get a struct option array from the map
     for (vector<Option>::iterator it = m_options.begin();
             it != m_options.end(); ++it) {
@@ -225,7 +219,7 @@ Option &OptionParser::findOption(char letter)
             return opt;
     }
 
-    return invalid;
+    throw std::out_of_range(string("Invalid option: ") + letter);
 }
 
 /* -------------------------------------------------------------------------- */
