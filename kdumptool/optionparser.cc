@@ -80,30 +80,6 @@ Option::Option(const string &name, char letter, OptionType type,
 {}
 
 /* -------------------------------------------------------------------------- */
-void Option::setLongName(const string &name)
-{
-    m_longName = name;
-}
-
-/* -------------------------------------------------------------------------- */
-void Option::setLetter(char letter)
-{
-    m_letter = letter;
-}
-
-/* -------------------------------------------------------------------------- */
-void Option::setType(OptionType type)
-{
-    m_type = type;
-}
-
-/* -------------------------------------------------------------------------- */
-void Option::setDescription(const std::string &description)
-{
-    m_description = description;
-}
-
-/* -------------------------------------------------------------------------- */
 void Option::setValue(OptionValue value)
 {
     m_value = value;

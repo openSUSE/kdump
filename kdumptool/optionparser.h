@@ -79,22 +79,15 @@ class Option {
                 const std::string &description = "");
 
     public:
-        void setLongName(const std::string &name);
         const std::string& getLongName() const
             throw ()
             { return m_longName; }
-
-        void setLetter(char letter);
         char getLetter() const
             throw ()
             { return m_letter; }
-
-        void setType(OptionType type);
         OptionType getType() const
             throw ()
             { return m_type; }
-
-        void setDescription(const std::string &description);
         const std::string& getDescription() const
             throw ()
             { return m_description; }
