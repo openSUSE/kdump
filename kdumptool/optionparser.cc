@@ -87,12 +87,6 @@ void Option::setValue(OptionValue value)
 }
 
 /* -------------------------------------------------------------------------- */
-bool Option::isValid() const
-{
-    return m_longName.size() > 0 && m_letter != 0;
-}
-
-/* -------------------------------------------------------------------------- */
 string Option::getPlaceholder() const
 {
     switch (getType()) {

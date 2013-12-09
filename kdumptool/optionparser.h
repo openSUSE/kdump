@@ -98,7 +98,6 @@ class Option {
             throw ()
             { return m_value; }
 
-        bool isValid() const;
         std::string getPlaceholder() const;
 
     private:
