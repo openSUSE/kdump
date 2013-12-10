@@ -38,27 +38,18 @@ using std::endl;
 IdentifyKernel::IdentifyKernel()
     throw ()
     : m_checkRelocatable(false), m_checkType(false)
-{}
+{
+    m_options.push_back(Option("relocatable", 'r', OT_FLAG,
+        "Checks if the kernel is relocatable"));
+    m_options.push_back(Option("type", 't', OT_FLAG,
+        "Prints the type of the kernel"));
+}
 
 // -----------------------------------------------------------------------------
 const char *IdentifyKernel::getName() const
     throw ()
 {
     return "identify_kernel";
-}
-
-// -----------------------------------------------------------------------------
-OptionList IdentifyKernel::getOptions() const
-    throw ()
-{
-    OptionList list;
-
-    list.push_back(Option("relocatable", 'r', OT_FLAG,
-        "Checks if the kernel is relocatable"));
-    list.push_back(Option("type", 't', OT_FLAG,
-        "Prints the type of the kernel"));
-
-    return list;
 }
 
 // -----------------------------------------------------------------------------

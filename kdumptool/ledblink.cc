@@ -65,25 +65,16 @@ void led_exit_handler(int signo, void *data)
 LedBlink::LedBlink()
     throw ()
     : m_interval(500)
-{}
+{
+    m_options.push_back(Option("interval", 'i', OT_INTEGER,
+        "Blink interval in ms (default is 500 ms)"));
+}
 
 // -----------------------------------------------------------------------------
 const char *LedBlink::getName() const
     throw ()
 {
     return "ledblink";
-}
-
-// -----------------------------------------------------------------------------
-OptionList LedBlink::getOptions() const
-    throw ()
-{
-    OptionList list;
-
-    list.push_back(Option("interval", 'i', OT_INTEGER,
-        "Blink interval in ms (default is 500 ms)"));
-
-    return list;
 }
 
 // -----------------------------------------------------------------------------

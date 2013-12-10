@@ -39,25 +39,16 @@ using std::endl;
 PrintTarget::PrintTarget()
     throw ()
     : m_rootdir()
-{}
+{
+    m_options.push_back(Option("root", 'R', OT_STRING,
+        "Use the specified root directory instead of /."));
+}
 
 // -----------------------------------------------------------------------------
 const char *PrintTarget::getName() const
     throw ()
 {
     return "print_target";
-}
-
-// -----------------------------------------------------------------------------
-OptionList PrintTarget::getOptions() const
-    throw ()
-{
-    OptionList list;
-
-    list.push_back(Option("root", 'R', OT_STRING,
-        "Use the specified root directory instead of /."));
-
-    return list;
 }
 
 // -----------------------------------------------------------------------------

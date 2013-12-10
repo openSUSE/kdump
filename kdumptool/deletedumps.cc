@@ -55,6 +55,11 @@ DeleteDumps::DeleteDumps()
     : m_dryRun(false)
 {
     Debug::debug()->trace("DeleteDumps::DeleteDumps()");
+
+    m_options.push_back(Option("root", 'R', OT_STRING,
+        "Use the specified root directory instead of /."));
+    m_options.push_back(Option("dry-run", 'y', OT_STRING,
+        "Don't delete, just print out what to delete."));
 }
 
 // -----------------------------------------------------------------------------
@@ -62,20 +67,6 @@ const char *DeleteDumps::getName() const
     throw ()
 {
     return "delete_dumps";
-}
-
-// -----------------------------------------------------------------------------
-OptionList DeleteDumps::getOptions() const
-    throw ()
-{
-    OptionList list;
-
-    list.push_back(Option("root", 'R', OT_STRING,
-        "Use the specified root directory instead of /."));
-    list.push_back(Option("dry-run", 'y', OT_STRING,
-        "Don't delete, just print out what to delete."));
-
-    return list;
 }
 
 // -----------------------------------------------------------------------------

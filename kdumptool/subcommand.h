@@ -67,8 +67,9 @@ class Subcommand {
          * the global option parsing function. The default implementation
          * returns an empty OptionList.
          */
-        virtual OptionList getOptions() const
-        throw ();
+        const OptionList& getOptions() const
+        throw ()
+        { return m_options; }
 
         /**
          * Checks if that subcommand needs the configuration file to be read.
@@ -116,6 +117,14 @@ class Subcommand {
          */
         int getErrorCode() const
         throw ();
+
+    protected:
+        /**
+         * List of options for this command. Child classes are expected to
+         * add their options in the constructor.
+         * A const reference to this list is returned by getOptions().
+         */
+        OptionList m_options;
 
     private:
         int m_errorcode;

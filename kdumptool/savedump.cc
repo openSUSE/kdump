@@ -60,6 +60,18 @@ SaveDump::SaveDump()
       m_useMakedumpfile(false), m_useSplit(false), m_nomail(false)
 {
     Debug::debug()->trace("SaveDump::SaveDump()");
+
+    m_options.push_back(Option("dump", 'u', OT_STRING,
+        "Use the specified dump instead of " DEFAULT_DUMP "."));
+    m_options.push_back(Option("root", 'R', OT_STRING,
+        "Use the specified root directory instead of /."));
+    m_options.push_back(Option("kernelversion", 'k', OT_STRING,
+        "Use the specified kernel version instead of auto-detection via "
+        "VMCOREINFO."));
+    m_options.push_back(Option("hostname", 'H', OT_STRING,
+        "Use the specified hostname instead of uname()."));
+    m_options.push_back(Option("nomail", 'M', OT_FLAG,
+        "Don't send notification email even if email has been configured."));
 }
 
 // -----------------------------------------------------------------------------
@@ -76,30 +88,6 @@ const char *SaveDump::getName() const
     throw ()
 {
     return "save_dump";
-}
-
-// -----------------------------------------------------------------------------
-OptionList SaveDump::getOptions() const
-    throw ()
-{
-    OptionList list;
-
-    Debug::debug()->trace("SaveDump::getOptions()");
-
-    list.push_back(Option("dump", 'u', OT_STRING,
-        "Use the specified dump instead of " DEFAULT_DUMP "."));
-    list.push_back(Option("root", 'R', OT_STRING,
-        "Use the specified root directory instead of /."));
-    list.push_back(Option("kernelversion", 'k', OT_STRING,
-        "Use the specified kernel version instead of auto-detection via "
-        "VMCOREINFO."));
-    list.push_back(Option("hostname", 'H', OT_STRING,
-        "Use the specified hostname instead of uname()."));
-    list.push_back(Option("nomail", 'M', OT_FLAG,
-        "Don't send notification email even if email has been configured."));
-
-    return list;
-
 }
 
 // -----------------------------------------------------------------------------

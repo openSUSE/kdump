@@ -51,25 +51,16 @@ using std::endl;
 ReadVmcoreinfo::ReadVmcoreinfo()
     throw ()
     : m_file(DEFAULT_DUMP)
-{}
+{
+    m_options.push_back(Option("dump", 'u', OT_STRING,
+        "Use the specified dump instead of " DEFAULT_DUMP "."));
+}
 
 // -----------------------------------------------------------------------------
 const char *ReadVmcoreinfo::getName() const
     throw ()
 {
     return "read_vmcoreinfo";
-}
-
-// -----------------------------------------------------------------------------
-OptionList ReadVmcoreinfo::getOptions() const
-    throw ()
-{
-    OptionList list;
-
-    list.push_back(Option("dump", 'u', OT_STRING,
-        "Use the specified dump instead of " DEFAULT_DUMP "."));
-
-    return list;
 }
 
 // -----------------------------------------------------------------------------

@@ -44,12 +44,6 @@ class PrintTarget : public Subcommand {
         throw ();
 
         /**
-         * Returns the list of options supported by this subcommand.
-         */
-        OptionList getOptions() const
-        throw ();
-
-        /**
          * Parses the command line options.
          */
         void parseCommandline(OptionParser *optionparser)

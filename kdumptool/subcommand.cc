@@ -43,7 +43,7 @@ using std::string;
 // -----------------------------------------------------------------------------
 Subcommand::Subcommand()
     throw ()
-    : m_errorcode(0)
+    : m_options(), m_errorcode(0)
 {}
 
 // -----------------------------------------------------------------------------
@@ -61,13 +61,6 @@ int Subcommand::getErrorCode() const
     Debug::debug()->trace("%s: Returning error code of %d", __FUNCTION__,
         m_errorcode);
     return m_errorcode;
-}
-
-// -----------------------------------------------------------------------------
-OptionList Subcommand::getOptions() const
-    throw ()
-{
-    return OptionList();
 }
 
 // -----------------------------------------------------------------------------

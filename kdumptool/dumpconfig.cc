@@ -46,23 +46,7 @@ DumpConfig::DumpConfig()
     throw ()
     : m_format(FMT_SHELL), m_usage((1 << ConfigOption::USE_MAX) - 1),
       m_nodefault(false)
-{}
-
-// -----------------------------------------------------------------------------
-const char *DumpConfig::getName() const
-    throw ()
 {
-    return "dump_config";
-}
-
-// -----------------------------------------------------------------------------
-OptionList DumpConfig::getOptions() const
-    throw ()
-{
-    OptionList list;
-
-    Debug::debug()->trace("DumpConfig::getOptions()");
-
     string formatlist;
     for (size_t i = 0; i < sizeof(format_names)/sizeof(format_names[0]); ++i) {
 	if (!formatlist.empty())
@@ -71,7 +55,7 @@ OptionList DumpConfig::getOptions() const
 	formatlist += format_names[i];
 	formatlist.push_back('\'');
     }
-    list.push_back(Option("format", 'f', OT_STRING,
+    m_options.push_back(Option("format", 'f', OT_STRING,
 	"Set the output format (" + formatlist + ")"));
 
     string usagelist;
@@ -80,15 +64,19 @@ OptionList DumpConfig::getOptions() const
 	usagelist += usage_names[i];
 	usagelist += "', ";
     }
-    list.push_back(Option("usage", 'u', OT_STRING,
+    m_options.push_back(Option("usage", 'u', OT_STRING,
 	"Show only options used at a certain stage\n"
 	"\t(" + usagelist + "'all')"));
 
-    list.push_back(Option("nodefault", 'n', OT_FLAG,
+    m_options.push_back(Option("nodefault", 'n', OT_FLAG,
 	"Omit variables which have their default values"));
+}
 
-    return list;
-
+// -----------------------------------------------------------------------------
+const char *DumpConfig::getName() const
+    throw ()
+{
+    return "dump_config";
 }
 
 // -----------------------------------------------------------------------------
