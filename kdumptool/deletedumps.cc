@@ -56,9 +56,9 @@ DeleteDumps::DeleteDumps()
 {
     Debug::debug()->trace("DeleteDumps::DeleteDumps()");
 
-    m_options.push_back(Option("root", 'R', OT_STRING,
+    m_options.push_back(StringOption("root", 'R',
         "Use the specified root directory instead of /."));
-    m_options.push_back(Option("dry-run", 'y', OT_STRING,
+    m_options.push_back(StringOption("dry-run", 'y',
         "Don't delete, just print out what to delete."));
 }
 

@@ -74,20 +74,20 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
     throw (KError)
 {
     // add global options
-    m_optionParser.addOption("help", 'h', OT_FLAG,
-        "Prints help output.");
-    m_optionParser.addOption("version", 'v', OT_FLAG,
-        "Prints version information and exits.");
-    m_optionParser.addOption("background", 'b', OT_FLAG,
-        "Run in the background (daemon mode).");
-    m_optionParser.addOption("debug", 'D', OT_FLAG,
-        "Prints debugging output.");
-    m_optionParser.addOption("logfile", 'L', OT_STRING,
-        "Uses the specified logfile for the debugging output.");
-    m_optionParser.addOption("configfile", 'F', OT_STRING,
-        "Use the specified configuration file instead of " DEFAULT_CONFIG " .");
-    m_optionParser.addOption("cmdline", 'C', OT_STRING,
-        "Also parse kernel parameters from a given file (e.g. /proc/cmdline)");
+    m_optionParser.addOption(FlagOption("help", 'h',
+        "Prints help output."));
+    m_optionParser.addOption(FlagOption("version", 'v',
+        "Prints version information and exits."));
+    m_optionParser.addOption(FlagOption("background", 'b',
+        "Run in the background (daemon mode)."));
+    m_optionParser.addOption(FlagOption("debug", 'D',
+        "Prints debugging output."));
+    m_optionParser.addOption(StringOption("logfile", 'L',
+        "Uses the specified logfile for the debugging output."));
+    m_optionParser.addOption(StringOption("configfile", 'F',
+        "Use the specified configuration file instead of "DEFAULT_CONFIG" ."));
+    m_optionParser.addOption(StringOption("cmdline", 'C',
+        "Also parse kernel parameters from a given file (e.g. /proc/cmdline)"));
 
     // add options of the subcommands
     SubcommandList subcommands = SubcommandManager::instance()->getSubcommands();

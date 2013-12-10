@@ -96,6 +96,34 @@ string Option::getPlaceholder() const
     }
 }
 
+//{{{ FlagOption ---------------------------------------------------------------
+
+/* -------------------------------------------------------------------------- */
+FlagOption::FlagOption(const std::string &name, char letter,
+                       const std::string &description)
+    : Option(name, letter, OT_FLAG, description)
+{}
+
+//}}}
+//{{{ StringOption -------------------------------------------------------------
+
+/* -------------------------------------------------------------------------- */
+StringOption::StringOption(const std::string &name, char letter,
+                           const std::string &description)
+    : Option(name, letter, OT_STRING, description)
+{}
+
+//}}}
+//{{{ IntOption ----------------------------------------------------------------
+
+/* -------------------------------------------------------------------------- */
+IntOption::IntOption(const std::string &name, char letter,
+                     const std::string &description)
+    : Option(name, letter, OT_INTEGER, description)
+{}
+
+//}}}
+
 /* -------------------------------------------------------------------------- */
 void OptionParser::addOption(const Option &option)
 {

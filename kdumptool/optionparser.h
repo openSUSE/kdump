@@ -110,6 +110,42 @@ class Option {
 typedef std::list<Option> OptionList;
 
 //}}}
+//{{{ FlagOption ---------------------------------------------------------------
+
+/**
+ * Option which serves as a flag toggle.
+ */
+class FlagOption : public Option {
+    public:
+        FlagOption(const std::string &name, char letter,
+                   const std::string &description = "");
+};
+
+//}}}
+//{{{ StringOption -------------------------------------------------------------
+
+/**
+ * Option which takes a string as argument.
+ */
+class StringOption : public Option {
+    public:
+        StringOption(const std::string &name, char letter,
+                     const std::string &description = "");
+};
+
+//}}}
+//{{{ IntOption ----------------------------------------------------------------
+
+/**
+ * Option which takes an integer value as argument.
+ */
+class IntOption : public Option {
+    public:
+        IntOption(const std::string &name, char letter,
+                  const std::string &description = "");
+};
+
+//}}}
 //{{{ OptionParser -------------------------------------------------------------
 
 typedef std::pair<std::string, const OptionList*> StringOptionListPair;

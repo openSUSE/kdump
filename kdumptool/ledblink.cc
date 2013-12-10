@@ -66,7 +66,7 @@ LedBlink::LedBlink()
     throw ()
     : m_interval(500)
 {
-    m_options.push_back(Option("interval", 'i', OT_INTEGER,
+    m_options.push_back(IntOption("interval", 'i',
         "Blink interval in ms (default is 500 ms)"));
 }
 

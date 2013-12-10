@@ -61,16 +61,16 @@ SaveDump::SaveDump()
 {
     Debug::debug()->trace("SaveDump::SaveDump()");
 
-    m_options.push_back(Option("dump", 'u', OT_STRING,
+    m_options.push_back(StringOption("dump", 'u',
         "Use the specified dump instead of " DEFAULT_DUMP "."));
-    m_options.push_back(Option("root", 'R', OT_STRING,
+    m_options.push_back(StringOption("root", 'R',
         "Use the specified root directory instead of /."));
-    m_options.push_back(Option("kernelversion", 'k', OT_STRING,
+    m_options.push_back(StringOption("kernelversion", 'k',
         "Use the specified kernel version instead of auto-detection via "
         "VMCOREINFO."));
-    m_options.push_back(Option("hostname", 'H', OT_STRING,
+    m_options.push_back(StringOption("hostname", 'H',
         "Use the specified hostname instead of uname()."));
-    m_options.push_back(Option("nomail", 'M', OT_FLAG,
+    m_options.push_back(FlagOption("nomail", 'M',
         "Don't send notification email even if email has been configured."));
 }
 
