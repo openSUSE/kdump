@@ -220,7 +220,7 @@ vector<string> OptionParser::getArgs()
 /* -------------------------------------------------------------------------- */
 void OptionParser::addSubcommand(const string &name, const OptionList &options)
 {
-    m_subcommandOptions.push_back(make_pair(name, options));
+    m_subcommandOptions.push_back(make_pair(name, &options));
     m_options.insert(m_options.end(), options.begin(), options.end());
 }
 
@@ -271,10 +271,10 @@ void OptionParser::printHelp(ostream &os, const string &name) const
     for (StringOptionListVector::const_iterator it = m_subcommandOptions.begin();
             it != m_subcommandOptions.end(); ++it) {
         string optionName = it->first;
-        OptionList options = it->second;
+        const OptionList *options = it->second;
 
         os << "Options for " << optionName << ":" << endl << endl;
-        printHelpForOptionList(os, options.begin(), options.end(), "   ");
+        printHelpForOptionList(os, options->begin(), options->end(), "   ");
         os << endl;
     }
 }

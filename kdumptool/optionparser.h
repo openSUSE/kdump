@@ -112,7 +112,7 @@ typedef std::list<Option> OptionList;
 //}}}
 //{{{ OptionParser -------------------------------------------------------------
 
-typedef std::pair<std::string, OptionList> StringOptionListPair;
+typedef std::pair<std::string, const OptionList*> StringOptionListPair;
 typedef std::vector<StringOptionListPair> StringOptionListVector;
 
 class OptionParser {
