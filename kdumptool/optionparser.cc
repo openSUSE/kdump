@@ -123,7 +123,7 @@ void OptionParser::parse(int argc, char *argv[])
     // get a struct option array from the map
     for (vector<Option>::iterator it = m_options.begin();
             it != m_options.end(); ++it) {
-        Option opt = *it;
+        Option &opt = *it;
         cur->name = opt.getLongName().c_str();
         cur->has_arg = opt.getType() != OT_FLAG;
         cur->flag = 0;
