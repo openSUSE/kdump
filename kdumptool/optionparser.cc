@@ -97,7 +97,7 @@ string Option::getPlaceholder() const
 }
 
 /* -------------------------------------------------------------------------- */
-void OptionParser::addOption(Option option)
+void OptionParser::addOption(const Option &option)
 {
     m_options.push_back(option);
     m_globalOptions.push_back(option);
