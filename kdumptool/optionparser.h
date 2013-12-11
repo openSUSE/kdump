@@ -77,6 +77,12 @@ class Option {
                 OptionType type = OT_FLAG,
                 const std::string &description = "");
 
+        /**
+         * Empty (but virtual) constructor.
+         */
+        virtual ~Option()
+        {}
+
     public:
         const std::string& getLongName() const
             throw ()
