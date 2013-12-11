@@ -47,6 +47,14 @@ Subcommand::Subcommand()
 {}
 
 // -----------------------------------------------------------------------------
+Subcommand::~Subcommand()
+{
+    for (OptionList::iterator it = m_options.begin();
+            it != m_options.end(); ++it)
+	delete *it;
+}
+
+// -----------------------------------------------------------------------------
 void Subcommand::setErrorCode(int errorcode)
     throw ()
 {

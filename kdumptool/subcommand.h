@@ -51,7 +51,7 @@ class Subcommand {
         /**
          * Empty destructor.
          */
-        virtual ~Subcommand() {}
+        virtual ~Subcommand();
 
         /**
          * Returns the name of the subcommand.
