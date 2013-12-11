@@ -69,10 +69,10 @@ void OptionValue::setInteger(int value)
 }
 
 /* -------------------------------------------------------------------------- */
-Option::Option(const string &name, char letter, OptionType type,
+Option::Option(const string &name, char letter,
                const std::string &description)
     : m_longName(name), m_description(description),
-      m_letter(letter), m_type(type)
+      m_letter(letter)
 {}
 
 /* -------------------------------------------------------------------------- */
@@ -86,7 +86,7 @@ void Option::setValue(OptionValue value)
 /* -------------------------------------------------------------------------- */
 FlagOption::FlagOption(const std::string &name, char letter,
                        const std::string &description)
-    : Option(name, letter, OT_FLAG, description)
+    : Option(name, letter, description)
 {}
 
 /* -------------------------------------------------------------------------- */
@@ -116,7 +116,7 @@ void FlagOption::setValue(const char *arg)
 /* -------------------------------------------------------------------------- */
 StringOption::StringOption(const std::string &name, char letter,
                            const std::string &description)
-    : Option(name, letter, OT_STRING, description)
+    : Option(name, letter, description)
 {}
 
 /* -------------------------------------------------------------------------- */
@@ -146,7 +146,7 @@ void StringOption::setValue(const char *arg)
 /* -------------------------------------------------------------------------- */
 IntOption::IntOption(const std::string &name, char letter,
                      const std::string &description)
-    : Option(name, letter, OT_INTEGER, description)
+    : Option(name, letter, description)
 {}
 
 /* -------------------------------------------------------------------------- */

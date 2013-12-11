@@ -77,7 +77,6 @@ struct option;
 class Option {
     public:
         Option(const std::string &name, char letter,
-                OptionType type = OT_FLAG,
                 const std::string &description = "");
 
         /**
@@ -93,9 +92,6 @@ class Option {
         char getLetter() const
             throw ()
             { return m_letter; }
-        OptionType getType() const
-            throw ()
-            { return m_type; }
         const std::string& getDescription() const
             throw ()
             { return m_description; }
@@ -131,7 +127,6 @@ class Option {
         std::string m_longName;
         std::string m_description;
         char        m_letter;
-        OptionType  m_type;
         OptionValue m_value;
 };
 
