@@ -74,19 +74,19 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
     throw (KError)
 {
     // add global options
-    m_optionParser.addOption(FlagOption("help", 'h',
+    m_optionParser.addOption(new FlagOption("help", 'h',
         "Prints help output."));
-    m_optionParser.addOption(FlagOption("version", 'v',
+    m_optionParser.addOption(new FlagOption("version", 'v',
         "Prints version information and exits."));
-    m_optionParser.addOption(FlagOption("background", 'b',
+    m_optionParser.addOption(new FlagOption("background", 'b',
         "Run in the background (daemon mode)."));
-    m_optionParser.addOption(FlagOption("debug", 'D',
+    m_optionParser.addOption(new FlagOption("debug", 'D',
         "Prints debugging output."));
-    m_optionParser.addOption(StringOption("logfile", 'L',
+    m_optionParser.addOption(new StringOption("logfile", 'L',
         "Uses the specified logfile for the debugging output."));
-    m_optionParser.addOption(StringOption("configfile", 'F',
+    m_optionParser.addOption(new StringOption("configfile", 'F',
         "Use the specified configuration file instead of "DEFAULT_CONFIG" ."));
-    m_optionParser.addOption(StringOption("cmdline", 'C',
+    m_optionParser.addOption(new StringOption("cmdline", 'C',
         "Also parse kernel parameters from a given file (e.g. /proc/cmdline)"));
 
     // add options of the subcommands

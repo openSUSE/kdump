@@ -125,7 +125,7 @@ IntOption::IntOption(const std::string &name, char letter,
 //}}}
 
 /* -------------------------------------------------------------------------- */
-void OptionParser::addOption(const Option &option)
+void OptionParser::addOption(Option *option)
 {
     m_options.push_back(option);
     m_globalOptions.push_back(option);
@@ -135,8 +135,7 @@ void OptionParser::addOption(const Option &option)
 void OptionParser::addOption(const string &name, char letter,
         OptionType type, const std::string &description)
 {
-    Option op(name, letter, type, description);
-    addOption(op);
+    addOption(new Option(name, letter, type, description));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -149,16 +148,16 @@ void OptionParser::parse(int argc, char *argv[])
     cur = opt;
 
     // get a struct option array from the map
-    for (vector<Option>::iterator it = m_options.begin();
+    for (vector<Option*>::iterator it = m_options.begin();
             it != m_options.end(); ++it) {
-        Option &opt = *it;
-        cur->name = opt.getLongName().c_str();
-        cur->has_arg = opt.getType() != OT_FLAG;
+        Option *opt = *it;
+        cur->name = opt->getLongName().c_str();
+        cur->has_arg = opt->getType() != OT_FLAG;
         cur->flag = 0;
-        cur->val = opt.getLetter();
+        cur->val = opt->getLetter();
 
-        getopt_string += opt.getLetter();
-        if (opt.getType() != OT_FLAG)
+        getopt_string += opt->getLetter();
+        if (opt->getType() != OT_FLAG)
             getopt_string += ":";
 
         cur++;
@@ -213,12 +212,12 @@ void OptionParser::parse(int argc, char *argv[])
 /* -------------------------------------------------------------------------- */
 OptionValue OptionParser::getValue(const string &name)
 {
-    for (vector<Option>::iterator it = m_options.begin();
+    for (vector<Option*>::iterator it = m_options.begin();
             it != m_options.end(); ++it) {
-        Option &op = *it;
+        Option *opt = *it;
 
-        if (op.getLongName() == name)
-            return op.getValue();
+        if (opt->getLongName() == name)
+            return opt->getValue();
     }
 
     return OptionValue();
@@ -228,12 +227,12 @@ OptionValue OptionParser::getValue(const string &name)
 Option &OptionParser::findOption(char letter)
 {
     // get a struct option array from the map
-    for (vector<Option>::iterator it = m_options.begin();
+    for (vector<Option*>::iterator it = m_options.begin();
             it != m_options.end(); ++it) {
 
-        Option &opt = *it;
-        if (opt.getLetter() == letter)
-            return opt;
+        Option *opt = *it;
+        if (opt->getLetter() == letter)
+            return *opt;
     }
 
     throw std::out_of_range(string("Invalid option: ") + letter);
@@ -261,17 +260,17 @@ void OptionParser::printHelpForOptionList(ostream &os,
 {
     for (InputIterator it = begin; it != end; ++it) {
 
-        const Option &opt = *it;
+        const Option *opt = *it;
 
-        os << indent << "--" << opt.getLongName();
-        string placeholder = opt.getPlaceholder();
+        os << indent << "--" << opt->getLongName();
+        string placeholder = opt->getPlaceholder();
         if (placeholder.length() > 0)
-            os << "=" << opt.getPlaceholder();
-        os << " | -" << opt.getLetter();
+            os << "=" << opt->getPlaceholder();
+        os << " | -" << opt->getLetter();
         if (placeholder.length() > 0)
-            os << " " << opt.getPlaceholder();
+            os << " " << opt->getPlaceholder();
         os << endl;
-        os << indent << "     " << opt.getDescription() << endl;
+        os << indent << "     " << opt->getDescription() << endl;
     }
 }
 

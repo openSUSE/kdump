@@ -52,7 +52,7 @@ ReadVmcoreinfo::ReadVmcoreinfo()
     throw ()
     : m_file(DEFAULT_DUMP)
 {
-    m_options.push_back(StringOption("dump", 'u',
+    m_options.push_back(new StringOption("dump", 'u',
         "Use the specified dump instead of " DEFAULT_DUMP "."));
 }
 

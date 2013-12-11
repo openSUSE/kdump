@@ -40,7 +40,7 @@ PrintTarget::PrintTarget()
     throw ()
     : m_rootdir()
 {
-    m_options.push_back(StringOption("root", 'R',
+    m_options.push_back(new StringOption("root", 'R',
         "Use the specified root directory instead of /."));
 }
 

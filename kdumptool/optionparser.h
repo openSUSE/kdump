@@ -107,7 +107,7 @@ class Option {
         OptionValue m_value;
 };
 
-typedef std::list<Option> OptionList;
+typedef std::list<Option*> OptionList;
 
 //}}}
 //{{{ FlagOption ---------------------------------------------------------------
@@ -153,7 +153,7 @@ typedef std::vector<StringOptionListPair> StringOptionListVector;
 
 class OptionParser {
     public:
-        void addOption(const Option &option);
+        void addOption(Option *option);
         void addOption(const std::string &name, char letter,
                 OptionType type = OT_FLAG,
                 const std::string &description = "");
@@ -183,7 +183,7 @@ class OptionParser {
             const std::string &indent = "") const;
 
     private:
-        std::vector<Option> m_options;
+        std::vector<Option*> m_options;
         std::vector<std::string> m_args;
         StringOptionListVector m_subcommandOptions;
         OptionList m_globalOptions;

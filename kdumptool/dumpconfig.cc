@@ -55,7 +55,7 @@ DumpConfig::DumpConfig()
 	formatlist += format_names[i];
 	formatlist.push_back('\'');
     }
-    m_options.push_back(StringOption("format", 'f',
+    m_options.push_back(new StringOption("format", 'f',
 	"Set the output format (" + formatlist + ")"));
 
     string usagelist;
@@ -64,11 +64,11 @@ DumpConfig::DumpConfig()
 	usagelist += usage_names[i];
 	usagelist += "', ";
     }
-    m_options.push_back(StringOption("usage", 'u',
+    m_options.push_back(new StringOption("usage", 'u',
 	"Show only options used at a certain stage\n"
 	"\t(" + usagelist + "'all')"));
 
-    m_options.push_back(FlagOption("nodefault", 'n',
+    m_options.push_back(new FlagOption("nodefault", 'n',
 	"Omit variables which have their default values"));
 }
 
