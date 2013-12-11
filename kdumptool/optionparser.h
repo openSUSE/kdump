@@ -154,9 +154,6 @@ typedef std::vector<StringOptionListPair> StringOptionListVector;
 class OptionParser {
     public:
         void addOption(Option *option);
-        void addOption(const std::string &name, char letter,
-                OptionType type = OT_FLAG,
-                const std::string &description = "");
 
         void printHelp(std::ostream &os, const std::string &name) const;
         void parse(int argc, char *argv[]);

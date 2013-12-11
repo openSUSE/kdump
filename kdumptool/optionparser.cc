@@ -132,13 +132,6 @@ void OptionParser::addOption(Option *option)
 }
 
 /* -------------------------------------------------------------------------- */
-void OptionParser::addOption(const string &name, char letter,
-        OptionType type, const std::string &description)
-{
-    addOption(new Option(name, letter, type, description));
-}
-
-/* -------------------------------------------------------------------------- */
 void OptionParser::parse(int argc, char *argv[])
 {
     struct option *cur, *opt;
