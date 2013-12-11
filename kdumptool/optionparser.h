@@ -97,7 +97,9 @@ class Option {
             throw ()
             { return m_value; }
 
-        std::string getPlaceholder() const;
+        virtual const char *getPlaceholder(void) const
+            throw ()
+            { return NULL; }
 
     private:
         std::string m_longName;
@@ -131,6 +133,10 @@ class StringOption : public Option {
     public:
         StringOption(const std::string &name, char letter,
                      const std::string &description = "");
+
+        virtual const char *getPlaceholder(void) const
+            throw ()
+            { return "<STRING>"; }
 };
 
 //}}}
@@ -143,6 +149,10 @@ class IntOption : public Option {
     public:
         IntOption(const std::string &name, char letter,
                   const std::string &description = "");
+
+        virtual const char *getPlaceholder(void) const
+            throw ()
+            { return "<NUMBER>"; }
 };
 
 //}}}

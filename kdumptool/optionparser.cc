@@ -81,21 +81,6 @@ void Option::setValue(OptionValue value)
     m_value = value;
 }
 
-/* -------------------------------------------------------------------------- */
-string Option::getPlaceholder() const
-{
-    switch (getType()) {
-        case OT_STRING:
-            return "<STRING>";
-
-        case OT_INTEGER:
-            return "<NUMBER>";
-
-        default:
-            return "";
-    }
-}
-
 //{{{ FlagOption ---------------------------------------------------------------
 
 /* -------------------------------------------------------------------------- */
@@ -256,12 +241,12 @@ void OptionParser::printHelpForOptionList(ostream &os,
         const Option *opt = *it;
 
         os << indent << "--" << opt->getLongName();
-        string placeholder = opt->getPlaceholder();
-        if (placeholder.length() > 0)
-            os << "=" << opt->getPlaceholder();
+        const char *placeholder = opt->getPlaceholder();
+        if (placeholder)
+            os << "=" << placeholder;
         os << " | -" << opt->getLetter();
-        if (placeholder.length() > 0)
-            os << " " << opt->getPlaceholder();
+        if (placeholder)
+            os << " " << placeholder;
         os << endl;
         os << indent << "     " << opt->getDescription() << endl;
     }
