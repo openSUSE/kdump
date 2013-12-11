@@ -101,6 +101,15 @@ string FlagOption::getoptArgs(struct option *opt)
     return string(optstring);
 }
 
+/* -------------------------------------------------------------------------- */
+void FlagOption::setValue(const char *arg)
+{
+    OptionValue v;
+    v.setType(OT_FLAG);
+    v.setFlag(true);
+    Option::setValue(v);
+}
+
 //}}}
 //{{{ StringOption -------------------------------------------------------------
 
@@ -122,6 +131,15 @@ string StringOption::getoptArgs(struct option *opt)
     return string(optstring);
 }
 
+/* -------------------------------------------------------------------------- */
+void StringOption::setValue(const char *arg)
+{
+    OptionValue v;
+    v.setType(OT_STRING);
+    v.setString(string(arg));
+    Option::setValue(v);
+}
+
 //}}}
 //{{{ IntOption ----------------------------------------------------------------
 
@@ -141,6 +159,15 @@ string IntOption::getoptArgs(struct option *opt)
 
     char optstring[] = { getLetter(), ':', 0 };
     return string(optstring);
+}
+
+/* -------------------------------------------------------------------------- */
+void IntOption::setValue(const char *arg)
+{
+    OptionValue v;
+    v.setType(OT_INTEGER);
+    v.setInteger(atoi(arg));
+    Option::setValue(v);
 }
 
 //}}}
@@ -179,28 +206,7 @@ void OptionParser::parse(int argc, char *argv[])
             break;
 
         Option &current_option = findOption(c);
-        OptionValue v;
-        v.setType(current_option.getType());
-        switch (current_option.getType()) {
-            case OT_FLAG:
-                v.setFlag(true);
-                current_option.setValue(v);
-                break;
-
-            case OT_INTEGER:
-                v.setInteger(atoi(optarg));
-                break;
-
-            case OT_STRING:
-                v.setString(string(optarg));
-                break;
-
-            default:
-                break;
-
-        }
-        current_option.setValue(v);
-
+	current_option.setValue(optarg);
     }
 
     // save arguments

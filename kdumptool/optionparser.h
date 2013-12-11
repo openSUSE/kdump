@@ -109,8 +109,16 @@ class Option {
         virtual std::string getoptArgs(struct option *opt)
             = 0;
 
+	/**
+	 * Set the option value.
+	 *
+	 * @param[in] arg option value as a C-style string
+	 */
+	virtual void setValue(const char *arg)
+	    = 0;
+
         /* that's set by the OptionParser */
-        void setValue(OptionValue value);
+        virtual void setValue(OptionValue value);
         const OptionValue& getValue() const
             throw ()
             { return m_value; }
@@ -141,6 +149,13 @@ class FlagOption : public Option {
                    const std::string &description = "");
 
         virtual std::string getoptArgs(struct option *opt);
+
+	/**
+	 * Set the flag.
+	 *
+	 * @param[in] arg ignored
+	 */
+	virtual void setValue(const char *arg);
 };
 
 //}}}
@@ -159,6 +174,13 @@ class StringOption : public Option {
             { return "<STRING>"; }
 
         virtual std::string getoptArgs(struct option *opt);
+
+	/**
+	 * Set the option value.
+	 *
+	 * @param[in] arg option value as a C-style string
+	 */
+	virtual void setValue(const char *arg);
 };
 
 //}}}
@@ -177,6 +199,13 @@ class IntOption : public Option {
             { return "<NUMBER>"; }
 
         virtual std::string getoptArgs(struct option *opt);
+
+	/**
+	 * Set the option value.
+	 *
+	 * @param[in] arg option value as a C-style string
+	 */
+	virtual void setValue(const char *arg);
 };
 
 //}}}
