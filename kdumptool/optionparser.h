@@ -119,9 +119,21 @@ class Option {
             throw ()
             { return m_value; }
 
+        /**
+         * Check if a value was set.
+         *
+         * @return true if the option was specified.
+         */
+        bool isSet(void)
+            throw ()
+            { return m_isSet; }
+
         virtual const char *getPlaceholder(void) const
             throw ()
             { return NULL; }
+
+    protected:
+        bool        m_isSet;
 
     private:
         std::string m_longName;

@@ -72,12 +72,13 @@ void OptionValue::setInteger(int value)
 Option::Option(const string &name, char letter,
                const std::string &description)
     : m_longName(name), m_description(description),
-      m_letter(letter)
+      m_letter(letter), m_isSet(false)
 {}
 
 /* -------------------------------------------------------------------------- */
 void Option::setValue(OptionValue value)
 {
+    m_isSet = true;
     m_value = value;
 }
 
