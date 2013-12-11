@@ -89,6 +89,18 @@ FlagOption::FlagOption(const std::string &name, char letter,
     : Option(name, letter, OT_FLAG, description)
 {}
 
+/* -------------------------------------------------------------------------- */
+string FlagOption::getoptArgs(struct option *opt)
+{
+    opt->name = getLongName().c_str();
+    opt->has_arg = 0;
+    opt->flag = 0;
+    opt->val = getLetter();
+
+    char optstring[] = { getLetter(), 0 };
+    return string(optstring);
+}
+
 //}}}
 //{{{ StringOption -------------------------------------------------------------
 
@@ -98,6 +110,18 @@ StringOption::StringOption(const std::string &name, char letter,
     : Option(name, letter, OT_STRING, description)
 {}
 
+/* -------------------------------------------------------------------------- */
+string StringOption::getoptArgs(struct option *opt)
+{
+    opt->name = getLongName().c_str();
+    opt->has_arg = 1;
+    opt->flag = 0;
+    opt->val = getLetter();
+
+    char optstring[] = { getLetter(), ':', 0 };
+    return string(optstring);
+}
+
 //}}}
 //{{{ IntOption ----------------------------------------------------------------
 
@@ -106,6 +130,18 @@ IntOption::IntOption(const std::string &name, char letter,
                      const std::string &description)
     : Option(name, letter, OT_INTEGER, description)
 {}
+
+/* -------------------------------------------------------------------------- */
+string IntOption::getoptArgs(struct option *opt)
+{
+    opt->name = getLongName().c_str();
+    opt->has_arg = 1;
+    opt->flag = 0;
+    opt->val = getLetter();
+
+    char optstring[] = { getLetter(), ':', 0 };
+    return string(optstring);
+}
 
 //}}}
 
@@ -127,19 +163,8 @@ void OptionParser::parse(int argc, char *argv[])
 
     // get a struct option array from the map
     for (vector<Option*>::iterator it = m_options.begin();
-            it != m_options.end(); ++it) {
-        Option *opt = *it;
-        cur->name = opt->getLongName().c_str();
-        cur->has_arg = opt->getType() != OT_FLAG;
-        cur->flag = 0;
-        cur->val = opt->getLetter();
-
-        getopt_string += opt->getLetter();
-        if (opt->getType() != OT_FLAG)
-            getopt_string += ":";
-
-        cur++;
-    }
+            it != m_options.end(); ++it)
+	getopt_string += (*it)->getoptArgs(cur++);
     memset(cur, 0, sizeof(option));
 
     // now parse the options

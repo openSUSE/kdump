@@ -71,6 +71,9 @@ class OptionValue {
 //}}}
 //{{{ Option -------------------------------------------------------------------
 
+/* forward declaration for getoptArgs */
+struct option;
+
 class Option {
     public:
         Option(const std::string &name, char letter,
@@ -96,6 +99,15 @@ class Option {
         const std::string& getDescription() const
             throw ()
             { return m_description; }
+
+        /**
+         * Get the parameters for getopt_long().
+         *
+         * @param[out] opt filled with appropriate data for long options
+         * @return option string to be used by getopt (short)
+         */
+        virtual std::string getoptArgs(struct option *opt)
+            = 0;
 
         /* that's set by the OptionParser */
         void setValue(OptionValue value);
@@ -127,6 +139,8 @@ class FlagOption : public Option {
     public:
         FlagOption(const std::string &name, char letter,
                    const std::string &description = "");
+
+        virtual std::string getoptArgs(struct option *opt);
 };
 
 //}}}
@@ -143,6 +157,8 @@ class StringOption : public Option {
         virtual const char *getPlaceholder(void) const
             throw ()
             { return "<STRING>"; }
+
+        virtual std::string getoptArgs(struct option *opt);
 };
 
 //}}}
@@ -159,6 +175,8 @@ class IntOption : public Option {
         virtual const char *getPlaceholder(void) const
             throw ()
             { return "<NUMBER>"; }
+
+        virtual std::string getoptArgs(struct option *opt);
 };
 
 //}}}
