@@ -1,6 +1,7 @@
 0.8.7
 -----
   * Change libelf interface to elfutils (libelf1)
+  * Fix parsing of command line options (e.g. --dump for save_dump)
 
 0.8.6
 -----
