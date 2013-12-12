@@ -179,6 +179,7 @@ int OptionParser::parsePartial(int argc, char *argv[], const OptionList& opts,
     memset(cur, 0, sizeof(option));
 
     // now parse the options
+    optind = 1;
     for (;;) {
         int option_index = 0;
 
