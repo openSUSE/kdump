@@ -153,7 +153,7 @@ void OptionParser::parse(int argc, char *argv[])
         for (StringOptionListVector::const_iterator it = m_subcommandOptions.begin();
                 it != m_subcommandOptions.end(); ++it) {
             if (it->first == subcommand)
-                i += parsePartial(argc - i, argv + i, *it->second);
+                i += parsePartial(argc - i + 1, argv + i - 1, *it->second) - 1;
         }
     }
 
