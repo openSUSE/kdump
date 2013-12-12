@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <string.h>
 
+#include "global.h"
 #include "optionparser.h"
 
 using std::vector;
@@ -166,6 +167,7 @@ void OptionParser::parse(int argc, char *argv[])
 int OptionParser::parsePartial(int argc, char *argv[], const OptionList& opts,
     bool rearrange)
 {
+    OptionList::const_iterator it;
     struct option *cur, opt[opts.size() + 1];
     string   getopt_string;
 
@@ -174,7 +176,7 @@ int OptionParser::parsePartial(int argc, char *argv[], const OptionList& opts,
 
     // get a struct option array from the map
     cur = opt;
-    for (OptionList::const_iterator it = opts.begin(); it != opts.end(); ++it)
+    for (it = opts.begin(); it != opts.end(); ++it)
         getopt_string += (*it)->getoptArgs(cur++);
     memset(cur, 0, sizeof(option));
 
@@ -188,8 +190,14 @@ int OptionParser::parsePartial(int argc, char *argv[], const OptionList& opts,
         if (c == -1)
             break;
 
-        Option &current_option = findOption(c);
-        current_option.setValue(optarg);
+	for (it = opts.begin(); it != opts.end(); ++it) {
+	    if ((*it)->getLetter() == c) {
+		(*it)->setValue(optarg);
+		break;
+	    }
+	}
+	if (it == opts.end())
+	    throw KError("Invalid command line option");
     }
 
     return optind;
