@@ -207,6 +207,8 @@ class OptionParser {
         void addSubcommand(const std::string &name, const OptionList &options);
 
     protected:
+        int parsePartial(int argc, char *argv[], const OptionList& opts,
+            bool rearrange = true);
         Option &findOption(char letter);
 
         template <class InputIterator>

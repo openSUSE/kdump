@@ -144,40 +144,54 @@ void OptionParser::addGlobalOption(Option *option)
 /* -------------------------------------------------------------------------- */
 void OptionParser::parse(int argc, char *argv[])
 {
-    struct option *cur, *opt;
+    int i = parsePartial(argc, argv, m_globalOptions, false);
+
+    // handle subcommand if present
+    if (i < argc) {
+        string subcommand = argv[i++];
+        m_args.push_back(subcommand);
+        for (StringOptionListVector::const_iterator it = m_subcommandOptions.begin();
+                it != m_subcommandOptions.end(); ++it) {
+            if (it->first == subcommand)
+                i += parsePartial(argc - i, argv + i, *it->second);
+        }
+    }
+
+    // save arguments
+    while (i < argc)
+        m_args.push_back(argv[i++]);
+}
+
+/* -------------------------------------------------------------------------- */
+int OptionParser::parsePartial(int argc, char *argv[], const OptionList& opts,
+    bool rearrange)
+{
+    struct option *cur, opt[opts.size() + 1];
     string   getopt_string;
 
-    opt = new option[m_options.size() + 1];
-    cur = opt;
+    if (!rearrange)
+        getopt_string = "+";
 
     // get a struct option array from the map
-    for (vector<Option*>::iterator it = m_options.begin();
-            it != m_options.end(); ++it)
-	getopt_string += (*it)->getoptArgs(cur++);
+    cur = opt;
+    for (OptionList::const_iterator it = opts.begin(); it != opts.end(); ++it)
+        getopt_string += (*it)->getoptArgs(cur++);
     memset(cur, 0, sizeof(option));
 
     // now parse the options
-    int c;
-
     for (;;) {
         int option_index = 0;
 
-        c = getopt_long(argc, argv, getopt_string.c_str(),
+        int c = getopt_long(argc, argv, getopt_string.c_str(),
                 opt, &option_index);
         if (c == -1)
             break;
 
         Option &current_option = findOption(c);
-	current_option.setValue(optarg);
+        current_option.setValue(optarg);
     }
 
-    // save arguments
-    if (optind < argc)
-        while (optind < argc)
-            m_args.push_back(argv[optind++]);
-
-    // free stuff
-    delete[] opt;
+    return optind;
 }
 
 /* -------------------------------------------------------------------------- */
