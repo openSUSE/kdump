@@ -138,7 +138,6 @@ void IntOption::setValue(const char *arg)
 /* -------------------------------------------------------------------------- */
 void OptionParser::addGlobalOption(Option *option)
 {
-    m_options.push_back(option);
     m_globalOptions.push_back(option);
 }
 
@@ -204,21 +203,6 @@ int OptionParser::parsePartial(int argc, char *argv[], const OptionList& opts,
 }
 
 /* -------------------------------------------------------------------------- */
-Option &OptionParser::findOption(char letter)
-{
-    // get a struct option array from the map
-    for (vector<Option*>::iterator it = m_options.begin();
-            it != m_options.end(); ++it) {
-
-        Option *opt = *it;
-        if (opt->getLetter() == letter)
-            return *opt;
-    }
-
-    throw std::out_of_range(string("Invalid option: ") + letter);
-}
-
-/* -------------------------------------------------------------------------- */
 vector<string> OptionParser::getArgs()
 {
     return m_args;
@@ -228,7 +212,6 @@ vector<string> OptionParser::getArgs()
 void OptionParser::addSubcommand(const string &name, const OptionList &options)
 {
     m_subcommandOptions.push_back(make_pair(name, &options));
-    m_options.insert(m_options.end(), options.begin(), options.end());
 }
 
 // -----------------------------------------------------------------------------

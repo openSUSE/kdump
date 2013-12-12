@@ -209,7 +209,6 @@ class OptionParser {
     protected:
         int parsePartial(int argc, char *argv[], const OptionList& opts,
             bool rearrange = true);
-        Option &findOption(char letter);
 
         template <class InputIterator>
         void printHelpForOptionList(std::ostream &os,
@@ -217,7 +216,6 @@ class OptionParser {
             const std::string &indent = "") const;
 
     private:
-        std::vector<Option*> m_options;
         std::vector<std::string> m_args;
         StringOptionListVector m_subcommandOptions;
         OptionList m_globalOptions;
