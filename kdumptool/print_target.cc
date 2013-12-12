@@ -40,7 +40,7 @@ PrintTarget::PrintTarget()
     throw ()
     : m_rootdir()
 {
-    m_options.push_back(new StringOption("root", 'R',
+    m_options.push_back(new StringOption("root", 'R', &m_rootdir,
         "Use the specified root directory instead of /."));
 }
 
@@ -56,9 +56,6 @@ void PrintTarget::parseCommandline(OptionParser *optionparser)
     throw (KError)
 {
     Debug::debug()->trace("PrintTarget::parseCommandline(%p)", optionparser);
-
-    if (optionparser->getValue("root").getType() != OT_INVALID)
-        m_rootdir = optionparser->getValue("root").getString();
 
     Debug::debug()->dbg("root: %s", m_rootdir.c_str());
 }

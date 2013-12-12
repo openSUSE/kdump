@@ -55,8 +55,9 @@ DumpConfig::DumpConfig()
 	formatlist += format_names[i];
 	formatlist.push_back('\'');
     }
-    m_options.push_back(new StringOption("format", 'f',
-	"Set the output format (" + formatlist + ")"));
+    m_formatOption = new StringOption("format", 'f', &m_formatString,
+        "Set the output format (" + formatlist + ")");
+    m_options.push_back(m_formatOption);
 
     string usagelist;
     for (size_t i = 0; i < sizeof(usage_names)/sizeof(usage_names[0]); ++i) {
@@ -64,11 +65,12 @@ DumpConfig::DumpConfig()
 	usagelist += usage_names[i];
 	usagelist += "', ";
     }
-    m_options.push_back(new StringOption("usage", 'u',
-	"Show only options used at a certain stage\n"
-	"\t(" + usagelist + "'all')"));
+    m_usageOption = new StringOption("usage", 'u', &m_usageString,
+        "Show only options used at a certain stage\n"
+        "\t(" + usagelist + "'all')");
+    m_options.push_back(m_usageOption);
 
-    m_options.push_back(new FlagOption("nodefault", 'n',
+    m_options.push_back(new FlagOption("nodefault", 'n', &m_nodefault,
 	"Omit variables which have their default values"));
 }
 
@@ -85,26 +87,24 @@ void DumpConfig::parseCommandline(OptionParser *optionparser)
 {
     Debug::debug()->trace("DumpConfig::parseCommandline(%p)", optionparser);
 
-    if (optionparser->getValue("format").getType() != OT_INVALID) {
-	string format = optionparser->getValue("format").getString();
+    if (m_formatOption->isSet()) {
 	size_t i;
 	for (i = 0; i < sizeof(format_names)/sizeof(format_names[0]); ++i)
-	    if (format == format_names[i]) {
+	    if (m_formatString == format_names[i]) {
 		m_format = (enum Format)i;
 		break;
 	    }
 	if (i >= sizeof(format_names)/sizeof(format_names[0]))
-	    throw KError("Unknown value format: " + format);
+	    throw KError("Unknown value format: " + m_formatString);
     }
 
-    if (optionparser->getValue("usage").getType() != OT_INVALID) {
-	string usage = optionparser->getValue("usage").getString();
+    if (m_usageOption->isSet()) {
 	m_usage = 0;
 
 	size_t pos = 0;
 	while (pos != string::npos) {
-	    size_t next = usage.find(',', pos);
-	    string token(usage, pos, next - pos);
+	    size_t next = m_usageString.find(',', pos);
+	    string token(m_usageString, pos, next - pos);
 	    pos = next;
 	    if (pos != string::npos)
 		++pos;
@@ -123,9 +123,6 @@ void DumpConfig::parseCommandline(OptionParser *optionparser)
 	    }
 	}
     }
-
-    if (optionparser->getValue("nodefault").getFlag())
-        m_nodefault = true;
 
     Debug::debug()->dbg("format: %s, usage: 0x%x",
         format_names[m_format], m_usage);

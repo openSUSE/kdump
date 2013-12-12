@@ -75,19 +75,13 @@ Option::Option(const string &name, char letter,
       m_letter(letter), m_isSet(false)
 {}
 
-/* -------------------------------------------------------------------------- */
-void Option::setValue(OptionValue value)
-{
-    m_isSet = true;
-    m_value = value;
-}
-
 //{{{ FlagOption ---------------------------------------------------------------
 
 /* -------------------------------------------------------------------------- */
 FlagOption::FlagOption(const std::string &name, char letter,
+                       bool *value,
                        const std::string &description)
-    : Option(name, letter, description)
+    : Option(name, letter, description), m_value(value)
 {}
 
 /* -------------------------------------------------------------------------- */
@@ -105,10 +99,8 @@ string FlagOption::getoptArgs(struct option *opt)
 /* -------------------------------------------------------------------------- */
 void FlagOption::setValue(const char *arg)
 {
-    OptionValue v;
-    v.setType(OT_FLAG);
-    v.setFlag(true);
-    Option::setValue(v);
+    m_isSet = true;
+    *m_value = true;
 }
 
 //}}}
@@ -116,8 +108,9 @@ void FlagOption::setValue(const char *arg)
 
 /* -------------------------------------------------------------------------- */
 StringOption::StringOption(const std::string &name, char letter,
+                           std::string *value,
                            const std::string &description)
-    : Option(name, letter, description)
+    : Option(name, letter, description), m_value(value)
 {}
 
 /* -------------------------------------------------------------------------- */
@@ -135,10 +128,8 @@ string StringOption::getoptArgs(struct option *opt)
 /* -------------------------------------------------------------------------- */
 void StringOption::setValue(const char *arg)
 {
-    OptionValue v;
-    v.setType(OT_STRING);
-    v.setString(string(arg));
-    Option::setValue(v);
+    m_isSet = true;
+    m_value->assign(arg);
 }
 
 //}}}
@@ -146,6 +137,7 @@ void StringOption::setValue(const char *arg)
 
 /* -------------------------------------------------------------------------- */
 IntOption::IntOption(const std::string &name, char letter,
+                     int *value,
                      const std::string &description)
     : Option(name, letter, description)
 {}
@@ -165,10 +157,8 @@ string IntOption::getoptArgs(struct option *opt)
 /* -------------------------------------------------------------------------- */
 void IntOption::setValue(const char *arg)
 {
-    OptionValue v;
-    v.setType(OT_INTEGER);
-    v.setInteger(atoi(arg));
-    Option::setValue(v);
+    m_isSet = true;
+    *m_value = atoi(arg);
 }
 
 //}}}
@@ -217,20 +207,6 @@ void OptionParser::parse(int argc, char *argv[])
 
     // free stuff
     delete[] opt;
-}
-
-/* -------------------------------------------------------------------------- */
-OptionValue OptionParser::getValue(const string &name)
-{
-    for (vector<Option*>::iterator it = m_options.begin();
-            it != m_options.end(); ++it) {
-        Option *opt = *it;
-
-        if (opt->getLongName() == name)
-            return opt->getValue();
-    }
-
-    return OptionValue();
 }
 
 /* -------------------------------------------------------------------------- */

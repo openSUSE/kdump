@@ -73,20 +73,26 @@ KdumpTool::~KdumpTool()
 void KdumpTool::parseCommandline(int argc, char *argv[])
     throw (KError)
 {
+    bool doHelp = false, doVersion = false;
+    bool debugEnabled = false;
+    string logFilename;
+
     // add global options
-    m_optionParser.addOption(new FlagOption("help", 'h',
+    m_optionParser.addOption(new FlagOption("help", 'h', &doHelp,
         "Prints help output."));
-    m_optionParser.addOption(new FlagOption("version", 'v',
+    m_optionParser.addOption(new FlagOption("version", 'v', &doVersion,
         "Prints version information and exits."));
-    m_optionParser.addOption(new FlagOption("background", 'b',
+    m_optionParser.addOption(new FlagOption("background", 'b', &m_background,
         "Run in the background (daemon mode)."));
-    m_optionParser.addOption(new FlagOption("debug", 'D',
+    m_optionParser.addOption(new FlagOption("debug", 'D', &debugEnabled,
         "Prints debugging output."));
-    m_optionParser.addOption(new StringOption("logfile", 'L',
-        "Uses the specified logfile for the debugging output."));
-    m_optionParser.addOption(new StringOption("configfile", 'F',
+    StringOption *logFileOption = new StringOption(
+        "logfile", 'L', &logFilename,
+        "Uses the specified logfile for the debugging output.");
+    m_optionParser.addOption(logFileOption);
+    m_optionParser.addOption(new StringOption("configfile", 'F', &m_configfile,
         "Use the specified configuration file instead of "DEFAULT_CONFIG" ."));
-    m_optionParser.addOption(new StringOption("cmdline", 'C',
+    m_optionParser.addOption(new StringOption("cmdline", 'C', &m_kernel_cmdline,
         "Also parse kernel parameters from a given file (e.g. /proc/cmdline)"));
 
     // add options of the subcommands
@@ -99,24 +105,17 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
     m_optionParser.parse(argc, argv);
 
     // read the global options
-    if (m_optionParser.getValue("help").getFlag()) {
+    if (doHelp) {
         m_optionParser.printHelp(cerr, PROGRAM_VERSION_STRING);
         exit(EXIT_SUCCESS);
-    } else if (m_optionParser.getValue("version").getFlag()) {
+    } else if (doVersion) {
         printVersion();
         exit(EXIT_SUCCESS);
     }
 
-    // background
-    if (m_optionParser.getValue("background").getFlag())
-        m_background = true;
-
     // debug messages
-    bool debugEnabled = m_optionParser.getValue("debug").getFlag();
-    if (m_optionParser.getValue("logfile").getType() != OT_INVALID &&
-            debugEnabled) {
-        string filename = m_optionParser.getValue("logfile").getString();
-        FILE *fp = fopen(filename.c_str(), "a");
+    if (logFileOption->isSet() && debugEnabled) {
+        FILE *fp = fopen(logFilename.c_str(), "a");
         if (fp) {
             Debug::debug()->setFileHandle(fp);
             on_exit(close_file, fp);
@@ -124,14 +123,6 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
         Debug::debug()->dbg("STARTUP ----------------------------------");
     } else if (debugEnabled)
         Debug::debug()->setStderrLevel(Debug::DL_TRACE);
-
-    // configuration file
-    if (m_optionParser.getValue("configfile").getType() != OT_INVALID)
-        m_configfile = m_optionParser.getValue("configfile").getString();
-
-    // kernel command line
-    if (m_optionParser.getValue("cmdline").getType() != OT_INVALID)
-        m_kernel_cmdline = m_optionParser.getValue("cmdline").getString();
 
     // parse arguments
     vector<string> arguments = m_optionParser.getArgs();

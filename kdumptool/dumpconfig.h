@@ -62,7 +62,12 @@ class DumpConfig : public Subcommand {
 	    FMT_KERNEL
 	};
 	enum Format m_format;
+	std::string m_formatString;
+	StringOption *m_formatOption;
+
 	unsigned m_usage;
+	std::string m_usageString;
+	StringOption *m_usageOption;
 
 	bool m_nodefault;
 

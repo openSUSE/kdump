@@ -66,7 +66,7 @@ LedBlink::LedBlink()
     throw ()
     : m_interval(500)
 {
-    m_options.push_back(new IntOption("interval", 'i',
+    m_options.push_back(new IntOption("interval", 'i', &m_interval,
         "Blink interval in ms (default is 500 ms)"));
 }
 
@@ -82,11 +82,6 @@ void LedBlink::parseCommandline(OptionParser *optionparser)
     throw (KError)
 {
     Debug::debug()->trace(__FUNCTION__);
-
-    if (optionparser->getValue("interval").getType() != OT_INVALID) {
-        int value = optionparser->getValue("interval").getInteger();
-        m_interval = value;
-    }
 
     Debug::debug()->dbg("interval=%d", m_interval);
 }

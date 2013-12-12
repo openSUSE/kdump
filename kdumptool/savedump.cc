@@ -61,16 +61,16 @@ SaveDump::SaveDump()
 {
     Debug::debug()->trace("SaveDump::SaveDump()");
 
-    m_options.push_back(new StringOption("dump", 'u',
+    m_options.push_back(new StringOption("dump", 'u', &m_dump,
         "Use the specified dump instead of " DEFAULT_DUMP "."));
-    m_options.push_back(new StringOption("root", 'R',
+    m_options.push_back(new StringOption("root", 'R', &m_rootdir,
         "Use the specified root directory instead of /."));
-    m_options.push_back(new StringOption("kernelversion", 'k',
+    m_options.push_back(new StringOption("kernelversion", 'k', &m_crashrelease,
         "Use the specified kernel version instead of auto-detection via "
         "VMCOREINFO."));
-    m_options.push_back(new StringOption("hostname", 'H',
+    m_options.push_back(new StringOption("hostname", 'H', &m_hostname,
         "Use the specified hostname instead of uname()."));
-    m_options.push_back(new FlagOption("nomail", 'M',
+    m_options.push_back(new FlagOption("nomail", 'M', &m_nomail,
         "Don't send notification email even if email has been configured."));
 }
 
@@ -95,17 +95,6 @@ void SaveDump::parseCommandline(OptionParser *optionparser)
     throw (KError)
 {
     Debug::debug()->trace("SaveDump::parseCommandline(%p)", optionparser);
-
-    if (optionparser->getValue("dump").getType() != OT_INVALID)
-        m_dump = optionparser->getValue("dump").getString();
-    if (optionparser->getValue("root").getType() != OT_INVALID)
-        m_rootdir = optionparser->getValue("root").getString();
-    if (optionparser->getValue("kernelversion").getType() != OT_INVALID)
-        m_crashrelease = optionparser->getValue("kernelversion").getString();
-    if (optionparser->getValue("hostname").getType() != OT_INVALID)
-        m_hostname = optionparser->getValue("hostname").getString();
-    if (optionparser->getValue("nomail").getFlag())
-        m_nomail = true;
 
     Debug::debug()->dbg("dump: %s, root: %s, crashrelease: %s, "
         "hostname: %s, nomail: %d",

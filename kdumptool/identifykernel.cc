@@ -39,9 +39,9 @@ IdentifyKernel::IdentifyKernel()
     throw ()
     : m_checkRelocatable(false), m_checkType(false)
 {
-    m_options.push_back(new FlagOption("relocatable", 'r',
+    m_options.push_back(new FlagOption("relocatable", 'r', &m_checkRelocatable,
         "Checks if the kernel is relocatable"));
-    m_options.push_back(new FlagOption("type", 't',
+    m_options.push_back(new FlagOption("type", 't', &m_checkType,
         "Prints the type of the kernel"));
 }
 
@@ -57,15 +57,6 @@ void IdentifyKernel::parseCommandline(OptionParser *optionparser)
     throw (KError)
 {
     Debug::debug()->trace(__FUNCTION__);
-
-    if (optionparser->getValue("relocatable").getFlag()) {
-        Debug::debug()->dbg("Checking for kernel relocatability.");
-        m_checkRelocatable = true;
-    }
-    if (optionparser->getValue("type").getFlag()) {
-        Debug::debug()->dbg("Checking for kernel type.");
-        m_checkType = true;
-    }
 
     if (!m_checkType && !m_checkRelocatable)
         throw KError("You have to specify either the -r or the -t flag.");

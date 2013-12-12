@@ -56,9 +56,9 @@ DeleteDumps::DeleteDumps()
 {
     Debug::debug()->trace("DeleteDumps::DeleteDumps()");
 
-    m_options.push_back(new StringOption("root", 'R',
+    m_options.push_back(new StringOption("root", 'R', &m_rootdir,
         "Use the specified root directory instead of /."));
-    m_options.push_back(new StringOption("dry-run", 'y',
+    m_options.push_back(new FlagOption("dry-run", 'y', &m_dryRun,
         "Don't delete, just print out what to delete."));
 }
 
@@ -74,11 +74,6 @@ void DeleteDumps::parseCommandline(OptionParser *optionparser)
     throw (KError)
 {
     Debug::debug()->trace("DeleteDumps::parseCommandline(%p)", optionparser);
-
-    if (optionparser->getValue("root").getType() != OT_INVALID)
-        m_rootdir = optionparser->getValue("root").getString();
-    if (optionparser->getValue("dry-run").getType() != OT_INVALID)
-        m_dryRun = optionparser->getValue("dry-run").getFlag();
 
     Debug::debug()->dbg("Using root dir %s, dry run: %d",
         m_rootdir.c_str(), m_dryRun);

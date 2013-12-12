@@ -52,7 +52,7 @@ ReadVmcoreinfo::ReadVmcoreinfo()
     throw ()
     : m_file(DEFAULT_DUMP)
 {
-    m_options.push_back(new StringOption("dump", 'u',
+    m_options.push_back(new StringOption("dump", 'u', &m_file,
         "Use the specified dump instead of " DEFAULT_DUMP "."));
 }
 
@@ -68,9 +68,6 @@ void ReadVmcoreinfo::parseCommandline(OptionParser *optionparser)
     throw (KError)
 {
     Debug::debug()->trace("ReadVmcoreinfo::parseCommandline(%p)", optionparser);
-
-    if (optionparser->getValue("dump").getType() != OT_INVALID)
-        m_file = optionparser->getValue("dump").getString();
 
     if (optionparser->getArgs().size() == 2)
         m_option = optionparser->getArgs()[1];

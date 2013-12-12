@@ -113,12 +113,6 @@ class Option {
 	virtual void setValue(const char *arg)
 	    = 0;
 
-        /* that's set by the OptionParser */
-        virtual void setValue(OptionValue value);
-        const OptionValue& getValue() const
-            throw ()
-            { return m_value; }
-
         /**
          * Check if a value was set.
          *
@@ -132,14 +126,13 @@ class Option {
             throw ()
             { return NULL; }
 
-    protected:
-        bool        m_isSet;
-
     private:
         std::string m_longName;
         std::string m_description;
         char        m_letter;
-        OptionValue m_value;
+
+    protected:
+        bool        m_isSet;
 };
 
 typedef std::list<Option*> OptionList;
@@ -153,6 +146,7 @@ typedef std::list<Option*> OptionList;
 class FlagOption : public Option {
     public:
         FlagOption(const std::string &name, char letter,
+                   bool *value,
                    const std::string &description = "");
 
         virtual std::string getoptArgs(struct option *opt);
@@ -163,6 +157,9 @@ class FlagOption : public Option {
 	 * @param[in] arg ignored
 	 */
 	virtual void setValue(const char *arg);
+
+    private:
+        bool *m_value;
 };
 
 //}}}
@@ -174,6 +171,7 @@ class FlagOption : public Option {
 class StringOption : public Option {
     public:
         StringOption(const std::string &name, char letter,
+                     std::string *value,
                      const std::string &description = "");
 
         virtual const char *getPlaceholder(void) const
@@ -188,6 +186,9 @@ class StringOption : public Option {
 	 * @param[in] arg option value as a C-style string
 	 */
 	virtual void setValue(const char *arg);
+
+    private:
+        std::string *m_value;
 };
 
 //}}}
@@ -199,6 +200,7 @@ class StringOption : public Option {
 class IntOption : public Option {
     public:
         IntOption(const std::string &name, char letter,
+                  int *value,
                   const std::string &description = "");
 
         virtual const char *getPlaceholder(void) const
@@ -213,6 +215,10 @@ class IntOption : public Option {
 	 * @param[in] arg option value as a C-style string
 	 */
 	virtual void setValue(const char *arg);
+
+
+    private:
+        int *m_value;
 };
 
 //}}}
@@ -227,7 +233,6 @@ class OptionParser {
 
         void printHelp(std::ostream &os, const std::string &name) const;
         void parse(int argc, char *argv[]);
-        OptionValue getValue(const std::string &name);
         std::vector<std::string> getArgs();
 
         /**
