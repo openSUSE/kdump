@@ -215,14 +215,11 @@ void OptionParser::addSubcommand(const string &name, const OptionList &options)
 }
 
 // -----------------------------------------------------------------------------
-template <class InputIterator>
-void OptionParser::printHelpForOptionList(ostream &os,
-                                          InputIterator begin,
-                                          InputIterator end,
+void OptionParser::printHelpForOptionList(ostream &os, const OptionList &opts,
                                           const string &indent) const
 {
-    for (InputIterator it = begin; it != end; ++it) {
-
+    for (OptionList::const_iterator it = opts.begin();
+            it != opts.end(); ++it) {
         const Option *opt = *it;
 
         os << indent << "--" << opt->getLongName();
@@ -252,8 +249,7 @@ void OptionParser::printHelp(ostream &os, const string &name) const
         os << endl << endl;
         os << "Global options" << endl << endl;
     }
-    printHelpForOptionList(os, m_globalOptions.begin(), m_globalOptions.end(),
-        "   ");
+    printHelpForOptionList(os, m_globalOptions, "   ");
     if (m_subcommandOptions.size() > 0) {
         os << endl;
     }
@@ -264,7 +260,7 @@ void OptionParser::printHelp(ostream &os, const string &name) const
         const OptionList *options = it->second;
 
         os << "Options for " << optionName << ":" << endl << endl;
-        printHelpForOptionList(os, options->begin(), options->end(), "   ");
+        printHelpForOptionList(os, *options, "   ");
         os << endl;
     }
 }

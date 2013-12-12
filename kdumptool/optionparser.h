@@ -210,9 +210,7 @@ class OptionParser {
         int parsePartial(int argc, char *argv[], const OptionList& opts,
             bool rearrange = true);
 
-        template <class InputIterator>
-        void printHelpForOptionList(std::ostream &os,
-            InputIterator begin, InputIterator end,
+        void printHelpForOptionList(std::ostream &os, const OptionList& opts,
             const std::string &indent = "") const;
 
     private:
