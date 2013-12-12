@@ -24,51 +24,6 @@
 #include <string>
 #include <vector>
 
-//{{{ OptionType ---------------------------------------------------------------
-
-enum OptionType {
-    OT_INVALID,
-    OT_STRING,
-    OT_INTEGER,
-    OT_FLAG
-};
-
-//}}}
-//{{{ OptionValue --------------------------------------------------------------
-
-class OptionValue {
-    public:
-        OptionValue();
-
-    public:
-        void setType(OptionType type);
-        OptionType getType() const
-            throw ()
-            { return m_type; }
-
-        void setString(const std::string &string);
-        const std::string& getString() const
-            throw ()
-            { return m_string; }
-
-        void setFlag(bool flag);
-        bool getFlag() const
-            throw ()
-            { return m_flag; }
-
-        void setInteger(int value);
-        int getInteger() const
-            throw ()
-            { return m_integer; }
-
-    private:
-        OptionType      m_type;
-        int             m_integer;
-        std::string     m_string;
-        bool            m_flag;
-};
-
-//}}}
 //{{{ Option -------------------------------------------------------------------
 
 /* forward declaration for getoptArgs */

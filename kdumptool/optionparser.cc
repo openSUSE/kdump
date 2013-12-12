@@ -40,35 +40,6 @@ using std::ostream;
 using std::memset;
 
 /* -------------------------------------------------------------------------- */
-OptionValue::OptionValue()
-    : m_type(OT_INVALID), m_integer(0), m_string(""), m_flag(false)
-{}
-
-/* -------------------------------------------------------------------------- */
-void OptionValue::setType(OptionType type)
-{
-    m_type = type;
-}
-
-/* -------------------------------------------------------------------------- */
-void OptionValue::setString(const string &string)
-{
-    m_string = string;
-}
-
-/* -------------------------------------------------------------------------- */
-void OptionValue::setFlag(bool flag)
-{
-    m_flag = flag;
-}
-
-/* -------------------------------------------------------------------------- */
-void OptionValue::setInteger(int value)
-{
-    m_integer = value;
-}
-
-/* -------------------------------------------------------------------------- */
 Option::Option(const string &name, char letter,
                const std::string &description)
     : m_longName(name), m_description(description),
