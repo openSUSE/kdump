@@ -184,7 +184,12 @@ typedef std::vector<StringOptionListPair> StringOptionListVector;
 
 class OptionParser {
     public:
-        void addOption(Option *option);
+	/**
+	 * Add a global option to the parser.
+	 *
+	 * @param option the global option to be added
+	 */
+        void addGlobalOption(Option *option);
 
         void printHelp(std::ostream &os, const std::string &name) const;
         void parse(int argc, char *argv[]);

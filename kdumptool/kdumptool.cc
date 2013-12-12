@@ -78,21 +78,27 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
     string logFilename;
 
     // add global options
-    m_optionParser.addOption(new FlagOption("help", 'h', &doHelp,
+    m_optionParser.addGlobalOption(new FlagOption(
+        "help", 'h', &doHelp,
         "Prints help output."));
-    m_optionParser.addOption(new FlagOption("version", 'v', &doVersion,
+    m_optionParser.addGlobalOption(new FlagOption(
+        "version", 'v', &doVersion,
         "Prints version information and exits."));
-    m_optionParser.addOption(new FlagOption("background", 'b', &m_background,
+    m_optionParser.addGlobalOption(new FlagOption(
+        "background", 'b', &m_background,
         "Run in the background (daemon mode)."));
-    m_optionParser.addOption(new FlagOption("debug", 'D', &debugEnabled,
+    m_optionParser.addGlobalOption(new FlagOption(
+        "debug", 'D', &debugEnabled,
         "Prints debugging output."));
     StringOption *logFileOption = new StringOption(
         "logfile", 'L', &logFilename,
         "Uses the specified logfile for the debugging output.");
-    m_optionParser.addOption(logFileOption);
-    m_optionParser.addOption(new StringOption("configfile", 'F', &m_configfile,
+    m_optionParser.addGlobalOption(logFileOption);
+    m_optionParser.addGlobalOption(new StringOption(
+        "configfile", 'F', &m_configfile,
         "Use the specified configuration file instead of "DEFAULT_CONFIG" ."));
-    m_optionParser.addOption(new StringOption("cmdline", 'C', &m_kernel_cmdline,
+    m_optionParser.addGlobalOption(new StringOption(
+        "cmdline", 'C', &m_kernel_cmdline,
         "Also parse kernel parameters from a given file (e.g. /proc/cmdline)"));
 
     // add options of the subcommands

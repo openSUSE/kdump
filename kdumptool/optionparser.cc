@@ -135,7 +135,7 @@ void IntOption::setValue(const char *arg)
 //}}}
 
 /* -------------------------------------------------------------------------- */
-void OptionParser::addOption(Option *option)
+void OptionParser::addGlobalOption(Option *option)
 {
     m_options.push_back(option);
     m_globalOptions.push_back(option);
