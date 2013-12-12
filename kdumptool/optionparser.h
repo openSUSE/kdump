@@ -82,9 +82,9 @@ class Option {
             { return NULL; }
 
     private:
-        std::string m_longName;
-        std::string m_description;
-        char        m_letter;
+        const std::string m_longName;
+        const std::string m_description;
+        const char        m_letter;
 
     protected:
         bool        m_isSet;
