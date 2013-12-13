@@ -19,7 +19,6 @@
 #ifndef OPTIONPARSER_H
 #define OPTIONPARSER_H
 
-#include <list>
 #include <map>
 #include <string>
 #include <vector>
@@ -28,9 +27,6 @@
 #include "subcommand.h"
 
 //{{{ OptionParser -------------------------------------------------------------
-
-typedef std::pair<std::string, const OptionList*> StringOptionListPair;
-typedef std::vector<StringOptionListPair> StringOptionListVector;
 
 class OptionParser {
     public:
@@ -61,7 +57,7 @@ class OptionParser {
 
     private:
         std::vector<std::string> m_args;
-        StringOptionListVector m_subcommandOptions;
+        std::map<std::string, Subcommand*> m_subcommands;
         OptionList m_globalOptions;
 
 };

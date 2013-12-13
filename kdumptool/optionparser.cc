@@ -54,11 +54,11 @@ void OptionParser::parse(int argc, char *argv[])
     if (i < argc) {
         string subcommand = argv[i++];
         m_args.push_back(subcommand);
-        for (StringOptionListVector::const_iterator it = m_subcommandOptions.begin();
-                it != m_subcommandOptions.end(); ++it) {
-            if (it->first == subcommand)
-                i += parsePartial(argc - i + 1, argv + i - 1, *it->second) - 1;
-        }
+        map<string, Subcommand*>::const_iterator it;
+        it = m_subcommands.find(subcommand);
+        if (it != m_subcommands.end())
+            i += parsePartial(argc - i + 1, argv + i - 1,
+                              it->second->getOptions()) - 1;
     }
 
     // save arguments
@@ -117,8 +117,7 @@ void OptionParser::addSubcommands(const Subcommand::List &subcommands)
 {
     Subcommand::List::const_iterator it;
     for (it = subcommands.begin(); it != subcommands.end(); ++it)
-        m_subcommandOptions.push_back(
-            make_pair((*it)->getName(), &(*it)->getOptions()));
+        m_subcommands[(*it)->getName()] = *it;
 }
 
 // -----------------------------------------------------------------------------
@@ -146,10 +145,10 @@ void OptionParser::printHelp(ostream &os, const string &name) const
 {
     os << name << endl << endl;
 
-    if (m_subcommandOptions.size() > 0) {
+    if (m_subcommands.size() > 0) {
         os << "Subcommands" << endl;
-        for (StringOptionListVector::const_iterator it = m_subcommandOptions.begin();
-                it != m_subcommandOptions.end(); ++it) {
+        for (map<string, Subcommand*>::const_iterator it = m_subcommands.begin();
+                it != m_subcommands.end(); ++it) {
             os << endl;
             os << "   * " << it->first << endl;
         }
@@ -157,17 +156,17 @@ void OptionParser::printHelp(ostream &os, const string &name) const
         os << "Global options" << endl << endl;
     }
     printHelpForOptionList(os, m_globalOptions, "   ");
-    if (m_subcommandOptions.size() > 0) {
+    if (m_subcommands.size() > 0) {
         os << endl;
     }
 
-    for (StringOptionListVector::const_iterator it = m_subcommandOptions.begin();
-            it != m_subcommandOptions.end(); ++it) {
+    for (map<string, Subcommand*>::const_iterator it = m_subcommands.begin();
+            it != m_subcommands.end(); ++it) {
         string optionName = it->first;
-        const OptionList *options = it->second;
+        const OptionList& options = it->second->getOptions();
 
         os << "Options for " << optionName << ":" << endl << endl;
-        printHelpForOptionList(os, *options, "   ");
+        printHelpForOptionList(os, options, "   ");
         os << endl;
     }
 }
