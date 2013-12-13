@@ -18,6 +18,8 @@
 #
 
 SET(KDUMPTOOL_SRC
+    option.cc
+    option.h
     optionparser.cc
     optionparser.h
     subcommand.h
@@ -92,6 +94,8 @@ target_link_libraries(kdumptool ${EXTRA_LIBS})
 install (TARGETS kdumptool DESTINATION sbin)
 
 SET(TESTIO_SRC
+    option.cc
+    option.h
     optionparser.cc
     optionparser.h
     process.h

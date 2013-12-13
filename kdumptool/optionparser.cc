@@ -17,7 +17,6 @@
  * 02110-1301, USA.
  */
 #include <iostream>
-#include <cstdlib>
 #include <cstring>
 #include <stdexcept>
 
@@ -39,101 +38,6 @@ using std::map;
 using std::list;
 using std::ostream;
 using std::memset;
-
-/* -------------------------------------------------------------------------- */
-Option::Option(const string &name, char letter,
-               const std::string &description)
-    : m_longName(name), m_description(description),
-      m_letter(letter), m_isSet(false)
-{}
-
-//{{{ FlagOption ---------------------------------------------------------------
-
-/* -------------------------------------------------------------------------- */
-FlagOption::FlagOption(const std::string &name, char letter,
-                       bool *value,
-                       const std::string &description)
-    : Option(name, letter, description), m_value(value)
-{}
-
-/* -------------------------------------------------------------------------- */
-string FlagOption::getoptArgs(struct option *opt)
-{
-    opt->name = getLongName().c_str();
-    opt->has_arg = 0;
-    opt->flag = 0;
-    opt->val = getLetter();
-
-    char optstring[] = { getLetter(), 0 };
-    return string(optstring);
-}
-
-/* -------------------------------------------------------------------------- */
-void FlagOption::setValue(const char *arg)
-{
-    m_isSet = true;
-    *m_value = true;
-}
-
-//}}}
-//{{{ StringOption -------------------------------------------------------------
-
-/* -------------------------------------------------------------------------- */
-StringOption::StringOption(const std::string &name, char letter,
-                           std::string *value,
-                           const std::string &description)
-    : Option(name, letter, description), m_value(value)
-{}
-
-/* -------------------------------------------------------------------------- */
-string StringOption::getoptArgs(struct option *opt)
-{
-    opt->name = getLongName().c_str();
-    opt->has_arg = 1;
-    opt->flag = 0;
-    opt->val = getLetter();
-
-    char optstring[] = { getLetter(), ':', 0 };
-    return string(optstring);
-}
-
-/* -------------------------------------------------------------------------- */
-void StringOption::setValue(const char *arg)
-{
-    m_isSet = true;
-    m_value->assign(arg);
-}
-
-//}}}
-//{{{ IntOption ----------------------------------------------------------------
-
-/* -------------------------------------------------------------------------- */
-IntOption::IntOption(const std::string &name, char letter,
-                     int *value,
-                     const std::string &description)
-    : Option(name, letter, description)
-{}
-
-/* -------------------------------------------------------------------------- */
-string IntOption::getoptArgs(struct option *opt)
-{
-    opt->name = getLongName().c_str();
-    opt->has_arg = 1;
-    opt->flag = 0;
-    opt->val = getLetter();
-
-    char optstring[] = { getLetter(), ':', 0 };
-    return string(optstring);
-}
-
-/* -------------------------------------------------------------------------- */
-void IntOption::setValue(const char *arg)
-{
-    m_isSet = true;
-    *m_value = atoi(arg);
-}
-
-//}}}
 
 /* -------------------------------------------------------------------------- */
 void OptionParser::addGlobalOption(Option *option)
