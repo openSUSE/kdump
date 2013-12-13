@@ -101,10 +101,7 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
         "cmdline", 'C', &m_kernel_cmdline,
         "Also parse kernel parameters from a given file (e.g. /proc/cmdline)"));
 
-    // add options of the subcommands
-    for (Subcommand::List::iterator it = Subcommand::GlobalList.begin();
-            it != Subcommand::GlobalList.end(); ++it)
-        m_optionParser.addSubcommand((*it)->getName(), (*it)->getOptions());
+    m_optionParser.addSubcommands(Subcommand::GlobalList);
 
     m_optionParser.parse(argc, argv);
 

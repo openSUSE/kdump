@@ -21,9 +21,8 @@
 
 #include <list>
 
-#include "optionparser.h"
 #include "global.h"
-#include "optionparser.h"
+#include "option.h"
 
 //{{{ Subcommand ---------------------------------------------------------------
 

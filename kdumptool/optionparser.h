@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "option.h"
+#include "subcommand.h"
 
 //{{{ OptionParser -------------------------------------------------------------
 
@@ -45,15 +46,11 @@ class OptionParser {
         std::vector<std::string> getArgs();
 
         /**
-         * That's only for a pretty help for now. That means:
-         *
-         *   program --option argument --option2
-         *   program argument --option --option2
-         *
-         * are equivalent. So it's not legal to use the same option both as
-         * "global option" and as option for a subcommand.
+	 * Add a list of subcommands.
+	 *
+	 * @param subcommands list of subcommands to add
          */
-        void addSubcommand(const std::string &name, const OptionList &options);
+        void addSubcommands(const Subcommand::List &subcommands);
 
     protected:
         int parsePartial(int argc, char *argv[], const OptionList& opts,

@@ -113,9 +113,12 @@ vector<string> OptionParser::getArgs()
 }
 
 /* -------------------------------------------------------------------------- */
-void OptionParser::addSubcommand(const string &name, const OptionList &options)
+void OptionParser::addSubcommands(const Subcommand::List &subcommands)
 {
-    m_subcommandOptions.push_back(make_pair(name, &options));
+    Subcommand::List::const_iterator it;
+    for (it = subcommands.begin(); it != subcommands.end(); ++it)
+        m_subcommandOptions.push_back(
+            make_pair((*it)->getName(), &(*it)->getOptions()));
 }
 
 // -----------------------------------------------------------------------------
