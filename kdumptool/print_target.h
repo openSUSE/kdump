@@ -44,12 +44,6 @@ class PrintTarget : public Subcommand {
         throw ();
 
         /**
-         * Parses the command line options.
-         */
-        void parseCommandline(OptionParser *optionparser)
-        throw (KError);
-
-        /**
          * Executes the function.
          *
          * @throw KError on any error. No exception indicates success.

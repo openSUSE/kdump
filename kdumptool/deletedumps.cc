@@ -75,20 +75,13 @@ const char *DeleteDumps::getName() const
 }
 
 // -----------------------------------------------------------------------------
-void DeleteDumps::parseCommandline(OptionParser *optionparser)
-    throw (KError)
-{
-    Debug::debug()->trace("DeleteDumps::parseCommandline(%p)", optionparser);
-
-    Debug::debug()->dbg("Using root dir %s, dry run: %d",
-        m_rootdir.c_str(), m_dryRun);
-}
-
-// -----------------------------------------------------------------------------
 void DeleteDumps::execute()
     throw (KError)
 {
     Debug::debug()->trace("DeleteDumps::execute()");
+    Debug::debug()->dbg("Using root dir %s, dry run: %d",
+        m_rootdir.c_str(), m_dryRun);
+
     Configuration *config = Configuration::config();
 
     int oldDumps = config->getIntValue(Configuration::KDUMP_KEEP_OLD_DUMPS);

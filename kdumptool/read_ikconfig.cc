@@ -53,15 +53,15 @@ bool ReadIKConfig::needsConfigfile() const
 }
 
 // -----------------------------------------------------------------------------
-void ReadIKConfig::parseCommandline(OptionParser *optionparser)
+void ReadIKConfig::parseArgs(const StringVector &args)
     throw (KError)
 {
-    Debug::debug()->trace("ReadIKConfig::parseCommandline(%p)", optionparser);
+    Debug::debug()->trace(__FUNCTION__);
 
-    if (optionparser->getArgs().size() != 2)
+    if (args.size() != 2)
         throw KError("kernel image required.");
 
-    m_file = optionparser->getArgs()[1];
+    m_file = args[1];
     Debug::debug()->dbg("file=%s", m_file.c_str());
 }
 

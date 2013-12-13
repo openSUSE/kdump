@@ -83,18 +83,12 @@ const char *LedBlink::getName() const
 }
 
 // -----------------------------------------------------------------------------
-void LedBlink::parseCommandline(OptionParser *optionparser)
-    throw (KError)
-{
-    Debug::debug()->trace(__FUNCTION__);
-
-    Debug::debug()->dbg("interval=%d", m_interval);
-}
-
-// -----------------------------------------------------------------------------
 void LedBlink::execute()
     throw (KError)
 {
+    Debug::debug()->trace(__FUNCTION__);
+    Debug::debug()->dbg("interval=%d", m_interval);
+
     int ret, console = -1;
     struct timespec wait_period;
 

@@ -69,10 +69,10 @@ bool Subcommand::needsConfigfile() const
 }
 
 // -----------------------------------------------------------------------------
-void Subcommand::parseCommandline(OptionParser *optionparser)
+void Subcommand::parseArgs(const StringVector &args)
     throw (KError)
 {
-    Debug::debug()->trace("Subcommand::parseCommandline(%p)", optionparser);
+    Debug::debug()->trace(__FUNCTION__);
 }
 
 //}}}

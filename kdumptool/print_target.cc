@@ -57,19 +57,11 @@ const char *PrintTarget::getName() const
 }
 
 // -----------------------------------------------------------------------------
-void PrintTarget::parseCommandline(OptionParser *optionparser)
-    throw (KError)
-{
-    Debug::debug()->trace("PrintTarget::parseCommandline(%p)", optionparser);
-
-    Debug::debug()->dbg("root: %s", m_rootdir.c_str());
-}
-
-// -----------------------------------------------------------------------------
 void PrintTarget::execute()
     throw (KError)
 {
     Debug::debug()->trace("PrintTarget::execute()");
+    Debug::debug()->dbg("root: %s", m_rootdir.c_str());
 
     Configuration *config = Configuration::config();
 

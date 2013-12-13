@@ -88,9 +88,9 @@ class Multipath : public Subcommand {
         throw ();
 
         /**
-         * Parses the command line options.
+         * Parses the non-option arguments from the command line.
          */
-        void parseCommandline(OptionParser *optionparser)
+        virtual void parseArgs(const StringVector &args)
         throw (KError);
 
         /**

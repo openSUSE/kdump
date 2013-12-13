@@ -143,7 +143,7 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
         throw KError("Subcommand " + arguments[0] + " does not exist.");
     m_subcommand = *it;
 
-    m_subcommand->parseCommandline(&m_optionParser);
+    m_subcommand->parseArgs(m_optionParser.getArgs());
 }
 
 // -----------------------------------------------------------------------------

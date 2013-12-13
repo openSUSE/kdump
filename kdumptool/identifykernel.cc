@@ -57,7 +57,7 @@ const char *IdentifyKernel::getName() const
 }
 
 // -----------------------------------------------------------------------------
-void IdentifyKernel::parseCommandline(OptionParser *optionparser)
+void IdentifyKernel::parseArgs(const StringVector &args)
     throw (KError)
 {
     Debug::debug()->trace(__FUNCTION__);
@@ -65,11 +65,11 @@ void IdentifyKernel::parseCommandline(OptionParser *optionparser)
     if (!m_checkType && !m_checkRelocatable)
         throw KError("You have to specify either the -r or the -t flag.");
 
-    if (optionparser->getArgs().size() != 2)
+    if (args.size() != 2)
         throw KError("You have to specify the kernel image for the "
             "identify_kernel subcommand.");
 
-    m_kernelImage = optionparser->getArgs()[1];
+    m_kernelImage = args[1];
 
     Debug::debug()->dbg("kernelimage = " + m_kernelImage);
 }

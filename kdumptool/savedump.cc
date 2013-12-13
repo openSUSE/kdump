@@ -96,22 +96,15 @@ const char *SaveDump::getName() const
 }
 
 // -----------------------------------------------------------------------------
-void SaveDump::parseCommandline(OptionParser *optionparser)
-    throw (KError)
-{
-    Debug::debug()->trace("SaveDump::parseCommandline(%p)", optionparser);
-
-    Debug::debug()->dbg("dump: %s, root: %s, crashrelease: %s, "
-        "hostname: %s, nomail: %d",
-        m_dump.c_str(), m_rootdir.c_str(), m_crashrelease.c_str(),
-        m_hostname.c_str(), int(m_nomail));
-}
-
-// -----------------------------------------------------------------------------
 void SaveDump::execute()
     throw (KError)
 {
     Debug::debug()->trace(__FUNCTION__);
+    Debug::debug()->dbg("dump: %s, root: %s, crashrelease: %s, "
+        "hostname: %s, nomail: %d",
+        m_dump.c_str(), m_rootdir.c_str(), m_crashrelease.c_str(),
+        m_hostname.c_str(), int(m_nomail));
+
     Configuration *config = Configuration::config();
 
     // check if the dump file actually exists

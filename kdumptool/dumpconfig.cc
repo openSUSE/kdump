@@ -87,10 +87,10 @@ const char *DumpConfig::getName() const
 }
 
 // -----------------------------------------------------------------------------
-void DumpConfig::parseCommandline(OptionParser *optionparser)
+void DumpConfig::parseArgs(const StringVector &args)
     throw (KError)
 {
-    Debug::debug()->trace("DumpConfig::parseCommandline(%p)", optionparser);
+    Debug::debug()->trace(__FUNCTION__);
 
     if (m_formatOption->isSet()) {
 	size_t i;

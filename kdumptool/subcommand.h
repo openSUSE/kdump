@@ -92,12 +92,12 @@ class Subcommand {
         throw ();
 
         /**
-         * Parses the command line. This method gets called before the
-         * Subcommand::execute() method gets called.
+         * Parses the non-option arguments from the command line. This
+         * method gets called before Subcommand::execute().
          *
          * The default implementation just does nothing.
          */
-        virtual void parseCommandline(OptionParser *optionparser)
+        virtual void parseArgs(const StringVector &args)
         throw (KError);
 
         /**

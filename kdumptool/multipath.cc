@@ -246,12 +246,12 @@ bool Multipath::needsConfigfile() const
 }
 
 // -----------------------------------------------------------------------------
-void Multipath::parseCommandline(OptionParser *optionparser)
+void Multipath::parseArgs(const StringVector &args)
     throw (KError)
 {
-    Debug::debug()->trace("Multipath::parseCommandline(%p)", optionparser);
+    Debug::debug()->trace(__FUNCTION__);
 
-    m_exceptions = optionparser->getArgs();
+    m_exceptions = args;
     m_exceptions.erase(m_exceptions.begin());
 }
 

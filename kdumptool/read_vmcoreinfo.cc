@@ -69,13 +69,13 @@ const char *ReadVmcoreinfo::getName() const
 }
 
 // -----------------------------------------------------------------------------
-void ReadVmcoreinfo::parseCommandline(OptionParser *optionparser)
+void ReadVmcoreinfo::parseArgs(const StringVector &args)
     throw (KError)
 {
-    Debug::debug()->trace("ReadVmcoreinfo::parseCommandline(%p)", optionparser);
+    Debug::debug()->trace(__FUNCTION__);
 
-    if (optionparser->getArgs().size() == 2)
-        m_option = optionparser->getArgs()[1];
+    if (args.size() == 2)
+        m_option = args[1];
 
     Debug::debug()->dbg("file=%s, option=%s", m_file.c_str(), m_option.c_str());
 }
