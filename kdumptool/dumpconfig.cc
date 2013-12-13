@@ -41,6 +41,11 @@ const char *DumpConfig::usage_names[] = {
 
 //{{{ DumpConfig ---------------------------------------------------------------
 
+/**
+ * Global instance, automatically registered in the global subcommand list.
+ */
+static DumpConfig globalInstance;
+
 // -----------------------------------------------------------------------------
 DumpConfig::DumpConfig()
     throw ()

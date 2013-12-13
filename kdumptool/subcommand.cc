@@ -16,35 +16,25 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  * 02110-1301, USA.
  */
-#include <map>
-#include <list>
 #include <string>
 
 #include "subcommand.h"
-#include "identifykernel.h"
-#include "ledblink.h"
 #include "debug.h"
-#include "savedump.h"
-#include "read_vmcoreinfo.h"
-#include "deletedumps.h"
-#include "print_target.h"
-#include "read_ikconfig.h"
-#include "findkernel.h"
-#include "dumpconfig.h"
-#include "multipath.h"
 
-using std::map;
-using std::list;
 using std::string;
 
+Subcommand::List Subcommand::GlobalList
+    __attribute__((init_priority(1000)));
 
 //{{{ Subcommand ---------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-Subcommand::Subcommand()
+Subcommand::Subcommand(List &list)
     throw ()
     : m_options(), m_errorcode(0)
-{}
+{
+    list.push_back(this);
+}
 
 // -----------------------------------------------------------------------------
 Subcommand::~Subcommand()
@@ -83,68 +73,6 @@ void Subcommand::parseCommandline(OptionParser *optionparser)
     throw (KError)
 {
     Debug::debug()->trace("Subcommand::parseCommandline(%p)", optionparser);
-}
-
-//}}}
-//{{{ SubcommandManager --------------------------------------------------------
-SubcommandManager *SubcommandManager::m_instance = NULL;
-
-// -----------------------------------------------------------------------------
-Subcommand *SubcommandManager::getSubcommand(const char *name) const
-    throw ()
-{
-    map<string, Subcommand *>::const_iterator it;
-    it = m_subcommandMap.find(string(name));
-    if (it == m_subcommandMap.end())
-        return NULL;
-    else
-        return it->second;
-}
-
-// -----------------------------------------------------------------------------
-void SubcommandManager::addSubcommand(Subcommand *command)
-    throw ()
-{
-    m_subcommandMap[command->getName()] = command;
-}
-
-// -----------------------------------------------------------------------------
-SubcommandManager *SubcommandManager::instance()
-    throw ()
-{
-    if (!m_instance)
-        m_instance = new SubcommandManager();
-
-    return m_instance;
-}
-
-// -----------------------------------------------------------------------------
-SubcommandManager::SubcommandManager()
-    throw ()
-{
-    addSubcommand(new IdentifyKernel());
-    addSubcommand(new SaveDump());
-    addSubcommand(new LedBlink());
-    addSubcommand(new ReadVmcoreinfo());
-    addSubcommand(new DeleteDumps());
-    addSubcommand(new PrintTarget());
-    addSubcommand(new ReadIKConfig());
-    addSubcommand(new FindKernel());
-    addSubcommand(new DumpConfig());
-    addSubcommand(new Multipath());
-}
-
-// -----------------------------------------------------------------------------
-list<Subcommand *> SubcommandManager::getSubcommands() const
-    throw ()
-{
-    list<Subcommand *> ret;
-    map<string, Subcommand *>::const_iterator it;
-
-    for (it =  m_subcommandMap.begin(); it != m_subcommandMap.end(); ++it)
-        ret.push_back(it->second);
-
-    return ret;
 }
 
 //}}}

@@ -46,6 +46,11 @@ using std::endl;
 
 //{{{ LedBlink -----------------------------------------------------------------
 
+/**
+ * Global instance, automatically registered in the global subcommand list.
+ */
+static LedBlink globalInstance;
+
 // -----------------------------------------------------------------------------
 void led_exit_handler(int signo, void *data)
 {

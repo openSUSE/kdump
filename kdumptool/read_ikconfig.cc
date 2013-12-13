@@ -28,6 +28,11 @@ using std::cout;
 
 //{{{ ReadIKConfig -------------------------------------------------------------
 
+/**
+ * Global instance, automatically registered in the global subcommand list.
+ */
+static ReadIKConfig globalInstance;
+
 // -----------------------------------------------------------------------------
 ReadIKConfig::ReadIKConfig()
     throw ()

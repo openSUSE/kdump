@@ -53,6 +53,11 @@ using std::ifstream;
 
 //{{{ SaveDump -----------------------------------------------------------------
 
+/**
+ * Global instance, automatically registered in the global subcommand list.
+ */
+static SaveDump globalInstance;
+
 // -----------------------------------------------------------------------------
 SaveDump::SaveDump()
     throw ()

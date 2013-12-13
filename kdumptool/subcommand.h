@@ -19,7 +19,7 @@
 #ifndef SUBCOMMAND_H
 #define SUBCOMMAND_H
 
-#include <map>
+#include <list>
 
 #include "optionparser.h"
 #include "global.h"
@@ -43,9 +43,19 @@ class Subcommand {
     public:
 
         /**
+         * List of Subcommand pointers.
+         */
+        typedef std::list<Subcommand *> List;
+
+        /**
+         * Default list where new Subcommands are registered.
+         */
+        static List GlobalList;
+
+        /**
          * Creates a new subcommand. This is for initialisation.
          */
-        Subcommand()
+        Subcommand(List &list = GlobalList)
         throw ();
 
         /**
@@ -128,62 +138,6 @@ class Subcommand {
 
     private:
         int m_errorcode;
-};
-
-typedef std::list<Subcommand *> SubcommandList;
-
-//}}}
-//{{{ SubcommandManager --------------------------------------------------------
-
-/**
- * Singleton class where any Subcommand is registered.
- *
- */
-class SubcommandManager {
-
-    public:
-        /**
-         * Returns the only instance of the class.
-         */
-        static SubcommandManager *instance()
-        throw ();
-
-        /**
-         * Gets a Subcommand object for the given name.
-         *
-         * @return a subcommand object if the subcommand exists, or
-         *         @c NULL on failure.
-         */
-        Subcommand *getSubcommand(const char *name) const
-        throw ();
-
-        /**
-         * Returns a list of all subcommands.
-         *
-         * @return the list which may be empty if no subcommands have been
-         *         registered
-         */
-        SubcommandList getSubcommands() const
-        throw ();
-
-    protected:
-        /**
-         * Creates a new SubcommandManager object. This is protected to
-         * implement the singleton.
-         */
-        SubcommandManager()
-        throw ();
-
-        /**
-         * Adds a subcommand. This function is called in the constructor (i.e.
-         * when the first object is generated.
-         */
-        void addSubcommand(Subcommand *command)
-        throw ();
-
-    private:
-        std::map<std::string, Subcommand *> m_subcommandMap;
-        static SubcommandManager *m_instance;
 };
 
 //}}}

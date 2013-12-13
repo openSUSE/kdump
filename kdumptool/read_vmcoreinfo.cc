@@ -47,6 +47,11 @@ using std::endl;
 
 //{{{ ReadVmcoreinfo -----------------------------------------------------------------
 
+/**
+ * Global instance, automatically registered in the global subcommand list.
+ */
+static ReadVmcoreinfo globalInstance;
+
 // -----------------------------------------------------------------------------
 ReadVmcoreinfo::ReadVmcoreinfo()
     throw ()

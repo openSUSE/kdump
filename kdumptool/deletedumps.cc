@@ -49,6 +49,11 @@ using std::back_inserter;
 
 //{{{ DeleteDumps --------------------------------------------------------------
 
+/**
+ * Global instance, automatically registered in the global subcommand list.
+ */
+static DeleteDumps globalInstance;
+
 // -----------------------------------------------------------------------------
 DeleteDumps::DeleteDumps()
     throw ()

@@ -102,11 +102,9 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
         "Also parse kernel parameters from a given file (e.g. /proc/cmdline)"));
 
     // add options of the subcommands
-    SubcommandList subcommands = SubcommandManager::instance()->getSubcommands();
-    for (SubcommandList::const_iterator it = subcommands.begin();
-            it != subcommands.end(); ++it) {
+    for (Subcommand::List::iterator it = Subcommand::GlobalList.begin();
+            it != Subcommand::GlobalList.end(); ++it)
         m_optionParser.addSubcommand((*it)->getName(), (*it)->getOptions());
-    }
 
     m_optionParser.parse(argc, argv);
 
@@ -135,10 +133,15 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
     if (arguments.size() < 1)
         throw KError("You must provide a subcommand.");
 
-    m_subcommand = SubcommandManager::instance()->getSubcommand(
-        arguments[0].c_str());
-    if (!m_subcommand)
+    Subcommand::List::iterator it;
+    for (it = Subcommand::GlobalList.begin();
+	    it != Subcommand::GlobalList.end(); ++it) {
+	if ((*it)->getName() == arguments[0])
+	    break;
+    }
+    if (it == Subcommand::GlobalList.end())
         throw KError("Subcommand " + arguments[0] + " does not exist.");
+    m_subcommand = *it;
 
     m_subcommand->parseCommandline(&m_optionParser);
 }
