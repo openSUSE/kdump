@@ -75,38 +75,39 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
     bool doHelp = false, doVersion = false;
     bool debugEnabled = false;
     string logFilename;
+    OptionParser optionParser;
 
     // add global options
-    m_optionParser.addGlobalOption(new FlagOption(
+    optionParser.addGlobalOption(new FlagOption(
         "help", 'h', &doHelp,
         "Prints help output."));
-    m_optionParser.addGlobalOption(new FlagOption(
+    optionParser.addGlobalOption(new FlagOption(
         "version", 'v', &doVersion,
         "Prints version information and exits."));
-    m_optionParser.addGlobalOption(new FlagOption(
+    optionParser.addGlobalOption(new FlagOption(
         "background", 'b', &m_background,
         "Run in the background (daemon mode)."));
-    m_optionParser.addGlobalOption(new FlagOption(
+    optionParser.addGlobalOption(new FlagOption(
         "debug", 'D', &debugEnabled,
         "Prints debugging output."));
     StringOption *logFileOption = new StringOption(
         "logfile", 'L', &logFilename,
         "Uses the specified logfile for the debugging output.");
-    m_optionParser.addGlobalOption(logFileOption);
-    m_optionParser.addGlobalOption(new StringOption(
+    optionParser.addGlobalOption(logFileOption);
+    optionParser.addGlobalOption(new StringOption(
         "configfile", 'F', &m_configfile,
         "Use the specified configuration file instead of "DEFAULT_CONFIG" ."));
-    m_optionParser.addGlobalOption(new StringOption(
+    optionParser.addGlobalOption(new StringOption(
         "cmdline", 'C', &m_kernel_cmdline,
         "Also parse kernel parameters from a given file (e.g. /proc/cmdline)"));
 
-    m_optionParser.addSubcommands(Subcommand::GlobalList);
+    optionParser.addSubcommands(Subcommand::GlobalList);
 
-    m_optionParser.parse(argc, argv);
+    optionParser.parse(argc, argv);
 
     // read the global options
     if (doHelp) {
-        m_optionParser.printHelp(cerr, PROGRAM_VERSION_STRING);
+        optionParser.printHelp(cerr, PROGRAM_VERSION_STRING);
         exit(EXIT_SUCCESS);
     } else if (doVersion) {
         printVersion();
@@ -125,7 +126,7 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
         Debug::debug()->setStderrLevel(Debug::DL_TRACE);
 
     // get subcommand
-    m_subcommand = m_optionParser.getSubcommand();
+    m_subcommand = optionParser.getSubcommand();
     if (!m_subcommand)
         throw KError("You must provide a subcommand.");
 }

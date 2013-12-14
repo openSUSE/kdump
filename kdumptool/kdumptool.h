@@ -22,7 +22,6 @@
 #include <string>
 
 #include "global.h"
-#include "optionparser.h"
 #include "subcommand.h"
 
 //{{{ KdumpTool ----------------------------------------------------------------
@@ -81,7 +80,6 @@ class KdumpTool {
         void printVersion();
 
     private:
-        OptionParser m_optionParser;
         Subcommand *m_subcommand;
         int m_errorcode;
         bool m_background;
