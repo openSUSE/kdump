@@ -58,10 +58,10 @@ void ReadIKConfig::parseArgs(const StringVector &args)
 {
     Debug::debug()->trace(__FUNCTION__);
 
-    if (args.size() != 2)
+    if (args.size() != 1)
         throw KError("kernel image required.");
 
-    m_file = args[1];
+    m_file = args[0];
     Debug::debug()->dbg("file=%s", m_file.c_str());
 }
 

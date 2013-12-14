@@ -252,7 +252,6 @@ void Multipath::parseArgs(const StringVector &args)
     Debug::debug()->trace(__FUNCTION__);
 
     m_exceptions = args;
-    m_exceptions.erase(m_exceptions.begin());
 }
 
 // -----------------------------------------------------------------------------

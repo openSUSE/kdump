@@ -74,8 +74,8 @@ void ReadVmcoreinfo::parseArgs(const StringVector &args)
 {
     Debug::debug()->trace(__FUNCTION__);
 
-    if (args.size() == 2)
-        m_option = args[1];
+    if (args.size() == 1)
+        m_option = args[0];
 
     Debug::debug()->dbg("file=%s, option=%s", m_file.c_str(), m_option.c_str());
 }

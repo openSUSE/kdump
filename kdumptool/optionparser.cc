@@ -54,7 +54,6 @@ void OptionParser::parse(int argc, char *argv[])
     m_subcommand = NULL;
     if (i < argc) {
         string subcommand = argv[i++];
-        m_args.push_back(subcommand);
         map<string, Subcommand*>::const_iterator it;
         it = m_subcommands.find(subcommand);
         if (it == m_subcommands.end())
