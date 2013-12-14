@@ -124,12 +124,10 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
     } else if (debugEnabled)
         Debug::debug()->setStderrLevel(Debug::DL_TRACE);
 
-    // parse arguments
+    // get subcommand
     m_subcommand = m_optionParser.getSubcommand();
     if (!m_subcommand)
         throw KError("You must provide a subcommand.");
-
-    m_subcommand->parseArgs(m_optionParser.getArgs());
 }
 
 // -----------------------------------------------------------------------------

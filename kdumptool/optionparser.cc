@@ -68,6 +68,10 @@ void OptionParser::parse(int argc, char *argv[])
     // save arguments
     while (i < argc)
         m_args.push_back(argv[i++]);
+
+    // parse non-option subcommand arguments
+    if (m_subcommand)
+        m_subcommand->parseArgs(m_args);
 }
 
 /* -------------------------------------------------------------------------- */
