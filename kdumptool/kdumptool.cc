@@ -76,30 +76,36 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
     bool debugEnabled = false;
     string logFilename;
     OptionParser optionParser;
-
-    // add global options
-    optionParser.addGlobalOption(new FlagOption(
+    FlagOption helpOption(
         "help", 'h', &doHelp,
-        "Prints help output."));
-    optionParser.addGlobalOption(new FlagOption(
+        "Prints help output.");
+    FlagOption versionOption(
         "version", 'v', &doVersion,
-        "Prints version information and exits."));
-    optionParser.addGlobalOption(new FlagOption(
+        "Prints version information and exits.");
+    FlagOption backgroundOption(
         "background", 'b', &m_background,
-        "Run in the background (daemon mode)."));
-    optionParser.addGlobalOption(new FlagOption(
+        "Run in the background (daemon mode).");
+    FlagOption debugOption(
         "debug", 'D', &debugEnabled,
-        "Prints debugging output."));
-    StringOption *logFileOption = new StringOption(
+        "Prints debugging output.");
+    StringOption logFileOption(
         "logfile", 'L', &logFilename,
         "Uses the specified logfile for the debugging output.");
-    optionParser.addGlobalOption(logFileOption);
-    optionParser.addGlobalOption(new StringOption(
+    StringOption configFileOption(
         "configfile", 'F', &m_configfile,
-        "Use the specified configuration file instead of "DEFAULT_CONFIG" ."));
-    optionParser.addGlobalOption(new StringOption(
+        "Use the specified configuration file instead of "DEFAULT_CONFIG" .");
+    StringOption cmdlineOption(
         "cmdline", 'C', &m_kernel_cmdline,
-        "Also parse kernel parameters from a given file (e.g. /proc/cmdline)"));
+        "Also parse kernel parameters from a given file (e.g. /proc/cmdline)");
+
+    // add global options
+    optionParser.addGlobalOption(&helpOption);
+    optionParser.addGlobalOption(&versionOption);
+    optionParser.addGlobalOption(&backgroundOption);
+    optionParser.addGlobalOption(&debugOption);
+    optionParser.addGlobalOption(&logFileOption);
+    optionParser.addGlobalOption(&configFileOption);
+    optionParser.addGlobalOption(&cmdlineOption);
 
     optionParser.addSubcommands(Subcommand::GlobalList);
 
@@ -115,7 +121,7 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
     }
 
     // debug messages
-    if (logFileOption->isSet() && debugEnabled) {
+    if (logFileOption.isSet() && debugEnabled) {
         FILE *fp = fopen(logFilename.c_str(), "a");
         if (fp) {
             Debug::debug()->setFileHandle(fp);
