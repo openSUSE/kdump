@@ -39,7 +39,14 @@ class OptionParser {
 
         void printHelp(std::ostream &os, const std::string &name) const;
         void parse(int argc, char *argv[]);
-        std::vector<std::string> getArgs();
+
+        Subcommand *getSubcommand()
+            throw ()
+            { return m_subcommand; }
+
+        const std::vector<std::string>& getArgs()
+            throw ()
+            { return m_args; }
 
         /**
 	 * Add a list of subcommands.
@@ -56,6 +63,7 @@ class OptionParser {
             const std::string &indent = "") const;
 
     private:
+        Subcommand *m_subcommand;
         std::vector<std::string> m_args;
         std::map<std::string, Subcommand*> m_subcommands;
         OptionList m_globalOptions;

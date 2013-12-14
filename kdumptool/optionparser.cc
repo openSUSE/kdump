@@ -51,14 +51,18 @@ void OptionParser::parse(int argc, char *argv[])
     int i = parsePartial(argc, argv, m_globalOptions, false);
 
     // handle subcommand if present
+    m_subcommand = NULL;
     if (i < argc) {
         string subcommand = argv[i++];
         m_args.push_back(subcommand);
         map<string, Subcommand*>::const_iterator it;
         it = m_subcommands.find(subcommand);
-        if (it != m_subcommands.end())
-            i += parsePartial(argc - i + 1, argv + i - 1,
-                              it->second->getOptions()) - 1;
+        if (it == m_subcommands.end())
+            throw KError("Subcommand " + subcommand + " does not exist.");
+
+        m_subcommand = it->second;
+        i += parsePartial(argc - i + 1, argv + i - 1,
+                          it->second->getOptions()) - 1;
     }
 
     // save arguments
@@ -104,12 +108,6 @@ int OptionParser::parsePartial(int argc, char *argv[], const OptionList& opts,
     }
 
     return optind;
-}
-
-/* -------------------------------------------------------------------------- */
-vector<string> OptionParser::getArgs()
-{
-    return m_args;
 }
 
 /* -------------------------------------------------------------------------- */

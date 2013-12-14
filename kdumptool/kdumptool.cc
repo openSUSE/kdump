@@ -125,19 +125,9 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
         Debug::debug()->setStderrLevel(Debug::DL_TRACE);
 
     // parse arguments
-    vector<string> arguments = m_optionParser.getArgs();
-    if (arguments.size() < 1)
+    m_subcommand = m_optionParser.getSubcommand();
+    if (!m_subcommand)
         throw KError("You must provide a subcommand.");
-
-    Subcommand::List::iterator it;
-    for (it = Subcommand::GlobalList.begin();
-	    it != Subcommand::GlobalList.end(); ++it) {
-	if ((*it)->getName() == arguments[0])
-	    break;
-    }
-    if (it == Subcommand::GlobalList.end())
-        throw KError("Subcommand " + arguments[0] + " does not exist.");
-    m_subcommand = *it;
 
     m_subcommand->parseArgs(m_optionParser.getArgs());
 }
