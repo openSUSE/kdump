@@ -52,6 +52,7 @@ void OptionParser::parse(int argc, char *argv[])
 
     // handle subcommand if present
     m_subcommand = NULL;
+    m_args.clear();
     if (i < argc) {
         string subcommand = argv[i++];
         map<string, Subcommand*>::const_iterator it;
@@ -64,6 +65,7 @@ void OptionParser::parse(int argc, char *argv[])
                           it->second->getOptions()) - 1;
 
         // save and parse arguments
+        m_args.reserve(argc - i);
         while (i < argc)
             m_args.push_back(argv[i++]);
         m_subcommand->parseArgs(m_args);
