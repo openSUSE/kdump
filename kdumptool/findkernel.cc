@@ -54,11 +54,6 @@ using std::list;
 
 //{{{ FindKernel ---------------------------------------------------------------
 
-/**
- * Global instance, automatically registered in the global subcommand list.
- */
-static FindKernel globalInstance;
-
 // -----------------------------------------------------------------------------
 FindKernel::FindKernel()
     throw ()

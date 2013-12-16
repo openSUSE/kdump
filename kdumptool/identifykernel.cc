@@ -33,11 +33,6 @@ using std::endl;
 
 //{{{ IdentifyKernel -----------------------------------------------------------
 
-/**
- * Global instance, automatically registered in the global subcommand list.
- */
-static IdentifyKernel globalInstance;
-
 // -----------------------------------------------------------------------------
 IdentifyKernel::IdentifyKernel()
     throw ()

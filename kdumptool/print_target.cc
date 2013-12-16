@@ -35,11 +35,6 @@ using std::endl;
 
 //{{{ PrintTarget --------------------------------------------------------------------
 
-/**
- * Global instance, automatically registered in the global subcommand list.
- */
-static PrintTarget globalInstance;
-
 // -----------------------------------------------------------------------------
 PrintTarget::PrintTarget()
     throw ()

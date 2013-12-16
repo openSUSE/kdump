@@ -220,11 +220,6 @@ void AddBlacklistHandler::doExceptions(lineHandler handler)
 
 //{{{ Multipath ---------------------------------------------------------------
 
-/**
- * Global instance, automatically registered in the global subcommand list.
- */
-static Multipath globalInstance;
-
 // -----------------------------------------------------------------------------
 Multipath::Multipath()
     throw ()

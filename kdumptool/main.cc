@@ -27,6 +27,32 @@
 #include "progress.h"
 #include "stringutil.h"
 
+// Subcommand initialization
+#include "deletedumps.h"
+#include "dumpconfig.h"
+#include "findkernel.h"
+#include "identifykernel.h"
+#include "ledblink.h"
+#include "multipath.h"
+#include "print_target.h"
+#include "read_ikconfig.h"
+#include "read_vmcoreinfo.h"
+#include "savedump.h"
+
+/**
+ * Global instances, automatically registered in the global subcommand list.
+ */
+static DeleteDumps deleteDumps;
+static DumpConfig dumpConfig;
+static FindKernel findKernel;
+static IdentifyKernel identifyKernel;
+static LedBlink ledBlink;
+static Multipath multipath;
+static PrintTarget printTarget;
+static ReadIKConfig readIKConfig;
+static ReadVmcoreinfo readVmcoreinfo;
+static SaveDump saveDump;
+
 using std::cerr;
 using std::cout;
 using std::endl;
