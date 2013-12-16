@@ -160,7 +160,7 @@ string Debuglink::findDebugfile()
 
     // 1st: EXECDIR/DEBUGFILE
     string path = FileUtil::pathconcat(
-        FileUtil::dirname(m_filename),
+        m_filename.dirName(),
         m_debuglink);
     string rootpath = FileUtil::pathconcat(m_rootdir, path);
     try {
@@ -174,7 +174,7 @@ string Debuglink::findDebugfile()
 
     // 2nd: EXECDIR/.debug/DEBUGFILE
     path = FileUtil::pathconcat(
-        FileUtil::dirname(m_filename),
+        m_filename.dirName(),
         ".debug",
         m_debuglink);
     rootpath = FileUtil::pathconcat(m_rootdir, path);
@@ -190,7 +190,7 @@ string Debuglink::findDebugfile()
     // 3rd: GLOBALDEBUGDIR/EXECDIR/DEBUGFILE
     path = FileUtil::pathconcat(
         GLOBALDEBUGDIR,
-        FileUtil::dirname(m_filename),
+        m_filename.dirName(),
         m_debuglink
         );
     rootpath = FileUtil::pathconcat(m_rootdir, path);

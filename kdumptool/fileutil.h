@@ -103,25 +103,6 @@ class FileUtil {
         throw ();
 
         /**
-         * Gets the base name of a file. This function is not thread-safe!
-         *
-         * @param[in] path the path for which the base name should be provided
-         * @return the base name
-         */
-        static std::string baseName(const std::string &file)
-        throw ();
-
-        /**
-         * Gets the directory name of a file. This function is not thread-safe!
-         *
-         * @param[in] path the path for which the directory name should be
-         *            provided
-         * @return the directory name
-         */
-        static std::string dirname(const std::string &file)
-        throw ();
-
-        /**
          * Concatenates two path components.
          *
          * @param[in] a the first path component
@@ -253,6 +234,59 @@ class FileUtil {
           */
          static unsigned long long fileSize(const std::string &path)
          throw (KError);
+};
+
+//}}}
+//{{{ FilePath -----------------------------------------------------------------
+
+/**
+ * File path.
+ */
+class FilePath : public std::string {
+    public:
+        /**
+         * Standard constructors (refer to std::string).
+         */
+        FilePath()
+        : std::string()
+        {}
+        FilePath(const std::string& str)
+        : std::string(str)
+        {}
+        FilePath(const std::string& str, size_type pos, size_type len = npos)
+        : std::string(str, pos, len)
+        {}
+        FilePath(const char* s)
+        : std::string(s)
+        {}
+        FilePath(const char* s, size_type n)
+        : std::string(s, n)
+        {}
+        FilePath(size_type n, char c)
+        : std::string(n, c)
+        {}
+        template <class InputIterator>
+            FilePath(InputIterator first, InputIterator last)
+        : std::string(first, last)
+        {}
+
+        /**
+         * Gets the base name of a file. This function is not thread-safe!
+         *
+         * @return the base name
+         */
+        std::string baseName() const
+        throw ();
+
+        /**
+         * Gets the directory name of a file. This function is not thread-safe!
+         *
+         * @return the directory name
+         */
+        std::string dirName() const
+        throw ();
+
+
 };
 
 //}}}

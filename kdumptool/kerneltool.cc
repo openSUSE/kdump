@@ -137,12 +137,12 @@ list<string> KernelTool::imageNames(const std::string &arch)
 }
 
 // -----------------------------------------------------------------------------
-bool KernelTool::stripImageName(const string &kernelImage, string &directory,
+bool KernelTool::stripImageName(const FilePath &kernelImage, string &directory,
                                 string &rest)
     throw (KError)
 {
-    directory = FileUtil::dirname(kernelImage);
-    string kernel = FileUtil::baseName(kernelImage);
+    directory = kernelImage.dirName();
+    string kernel = kernelImage.baseName();
 
     list<string> imageNames = KernelTool::imageNames(Util::getArch());
     for (list<string>::const_iterator it = imageNames.begin();

@@ -22,6 +22,7 @@
 #include <string>
 
 #include "global.h"
+#include "fileutil.h"
 
 class Kconfig;
 
@@ -82,7 +83,7 @@ class KernelTool {
          *         otherwise. The result is valid in any case.
          * @exception KError if something went wrong
          */
-        static bool stripImageName(const std::string &kernelImage,
+        static bool stripImageName(const FilePath &kernelImage,
                                    std::string &directory,
                                    std::string &rest)
         throw (KError);

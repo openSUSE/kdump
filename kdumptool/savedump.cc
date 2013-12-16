@@ -490,8 +490,8 @@ void SaveDump::copyKernel()
 
     Configuration *config = Configuration::config();
 
-    string mapfile = findMapfile();
-    string kernel = findKernel();
+    FilePath mapfile = findMapfile();
+    FilePath kernel = findKernel();
 
     // mapfile
     TerminalProgress mapProgress("Copying System.map");
@@ -503,7 +503,7 @@ void SaveDump::copyKernel()
         mapProvider.setProgress(&mapProgress);
     else
         cout << "Copying System.map" << endl;
-    m_transfer->perform(&mapProvider, FileUtil::baseName(mapfile).c_str());
+    m_transfer->perform(&mapProvider, mapfile.baseName().c_str());
 
     TerminalProgress kernelProgress("Copying kernel");
     FileDataProvider kernelProvider(
@@ -514,13 +514,13 @@ void SaveDump::copyKernel()
         kernelProvider.setProgress(&kernelProgress);
     else
         cout << "Copying kernel" << endl;
-    m_transfer->perform(&kernelProvider, FileUtil::baseName(kernel).c_str());
+    m_transfer->perform(&kernelProvider, kernel.baseName().c_str());
 
     // try to find debugging information
     try {
         Debuglink dbg(m_rootdir, kernel);
         dbg.readDebuglink();
-        string debuglink = dbg.findDebugfile();
+        FilePath debuglink = dbg.findDebugfile();
         Debug::debug()->dbg("Found debuginfo file: %s", debuglink.c_str());
 
         TerminalProgress debugkernelProgress("Copying kernel.debug");
@@ -533,7 +533,7 @@ void SaveDump::copyKernel()
         else
             cout << "Generating kernel.debug" << endl;
         m_transfer->perform(&debugkernelProvider,
-            FileUtil::baseName(debuglink).c_str());
+            debuglink.baseName().c_str());
 
     } catch (const KError &err) {
         Debug::debug()->info("Cannot find debug information: %s", err.what());

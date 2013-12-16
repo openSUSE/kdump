@@ -26,6 +26,7 @@
 #include <gelf.h>
 
 #include "global.h"
+#include "fileutil.h"
 
 //{{{ Debuglink ----------------------------------------------------------------
 
@@ -107,7 +108,7 @@ class Debuglink {
 
     private:
         std::string m_rootdir;
-        std::string m_filename;
+        FilePath m_filename;
         std::string m_debuglink;
         uint32_t m_crc;
 };

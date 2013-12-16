@@ -216,28 +216,6 @@ bool FileUtil::exists(const string &file)
 }
 
 // -----------------------------------------------------------------------------
-string FileUtil::baseName(const string &file)
-    throw ()
-{
-    // modification of the arguments is allowed
-    char *path = strdup(file.c_str());
-    string ret(::basename(path));
-    free(path);
-    return ret;
-}
-
-// -----------------------------------------------------------------------------
-string FileUtil::dirname(const string &file)
-    throw ()
-{
-    // modification of the arguments is allowed
-    char *path = strdup(file.c_str());
-    string ret(::dirname(path));
-    free(path);
-    return ret;
-}
-
-// -----------------------------------------------------------------------------
 string FileUtil::pathconcat(const string &a, const string &b)
     throw ()
 {
@@ -454,6 +432,30 @@ unsigned long long FileUtil::fileSize(const std::string &path)
     return (unsigned long long)mystat.st_size;
 }
 
+//}}}
+//{{{ FilePath -----------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+string FilePath::baseName() const
+    throw ()
+{
+    // modification of the arguments is allowed
+    char *path = strdup(c_str());
+    string ret(::basename(path));
+    free(path);
+    return ret;
+}
+
+// -----------------------------------------------------------------------------
+string FilePath::dirName() const
+    throw ()
+{
+    // modification of the arguments is allowed
+    char *path = strdup(c_str());
+    string ret(::dirname(path));
+    free(path);
+    return ret;
+}
 //}}}
 
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:
