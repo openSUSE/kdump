@@ -69,14 +69,14 @@ int main(int argc, char *argv[])
         fout << Stringutil::bytes2str(stdoutV);
         fout.close();
 
-        Debug::debug()->info("1st test: %s -> %s",
+        Debug::debug()->info("2nd test: %s -> %s",
             testdata.c_str(), output2.c_str());
 
         Process p2;
         ifstream fin(testdata.c_str());
         string s;
         if (!fin)
-            cerr << "Eingabe-Datei kann nicht geöffnet werden" << endl;
+            cerr << "Input file cannnot be opened" << endl;
         else {
             char c;
             while (fin.get(c))
