@@ -17,7 +17,7 @@
 # 02110-1301, USA.
 #
 
-SET(KDUMPTOOL_SRC
+SET(COMMON_SRC
     option.cc
     option.h
     optionparser.cc
@@ -86,161 +86,47 @@ SET(KDUMPTOOL_SRC
     quotedstring.h
     multipath.cc
     multipath.h
+)
+
+add_library(common STATIC ${COMMON_SRC})
+
+add_executable(kdumptool
     main.cc
 )
-
-add_executable(kdumptool ${KDUMPTOOL_SRC})
-target_link_libraries(kdumptool ${EXTRA_LIBS})
+target_link_libraries(kdumptool common ${EXTRA_LIBS})
 install (TARGETS kdumptool DESTINATION sbin)
 
-SET(TESTIO_SRC
-    option.cc
-    option.h
-    optionparser.cc
-    optionparser.h
-    process.h
-    process.cc
-    util.h
-    util.cc
-    stringutil.h
-    stringutil.cc
-    global.cc
-    global.h
-    debug.cc
-    debug.h
+add_executable(testio
     testio.cc
 )
+target_link_libraries(testio common ${EXTRA_LIBS})
 
-add_executable(testio ${TESTIO_SRC})
-target_link_libraries(testio ${EXTRA_LIBS})
-
-SET(TESTCONFIG_SRC
-    configparser.cc
-    configparser.h
-    quotedstring.cc
-    quotedstring.h
-    util.h
-    util.cc
-    process.cc
-    process.h
-    stringutil.h
-    stringutil.cc
-    global.cc
-    global.h
-    debug.cc
-    debug.h
+add_executable(testconfig
     testconfig.cc
 )
+target_link_libraries(testconfig common ${EXTRA_LIBS})
 
-add_executable(testconfig ${TESTCONFIG_SRC})
-target_link_libraries(testconfig ${EXTRA_LIBS})
-
-
-SET(TESTURLPARSER_SRC
-    urlparser.cc
-    urlparser.h
-    util.h
-    util.cc
-    process.cc
-    process.h
-    stringutil.h
-    stringutil.cc
-    global.cc
-    global.h
-    debug.cc
-    debug.h
+add_executable(testurlparser
     testurlparser.cc
 )
+target_link_libraries(testurlparser common ${EXTRA_LIBS})
 
-add_executable(testurlparser ${TESTURLPARSER_SRC})
-target_link_libraries(testurlparser ${EXTRA_LIBS})
-
-
-SET(TESTMAIL_SRC
-    urlparser.cc
-    urlparser.h
-    util.h
-    util.cc
-    configuration.cc
-    configuration.h
-    configparser.h
-    configparser.cc
-    quotedstring.cc
-    quotedstring.h
-    process.cc
-    process.h
-    stringutil.h
-    stringutil.cc
-    global.cc
-    global.h
-    debug.cc
-    debug.h
-    email.cc
-    email.h
+add_executable(testmail
     testmail.cc
 )
+target_link_libraries(testmail common ${EXTRA_LIBS})
 
-add_executable(testmail ${TESTMAIL_SRC})
-target_link_libraries(testmail ${EXTRA_LIBS})
-
-SET(TESTREADLINK_SRC
-    util.h
-    util.cc
-    process.cc
-    process.h
-    stringutil.h
-    stringutil.cc
-    fileutil.h
-    fileutil.cc
-    global.cc
-    global.h
-    debug.cc
-    debug.h
+add_executable(testreadlink
     testreadlink.cc
 )
+target_link_libraries(testreadlink common ${EXTRA_LIBS})
 
-add_executable(testreadlink ${TESTREADLINK_SRC})
-target_link_libraries(testreadlink ${EXTRA_LIBS})
-
-SET(TESTKCONFIG_SRC
-    util.h
-    util.cc
-    process.cc
-    process.h
-    stringutil.h
-    stringutil.cc
-    global.cc
-    global.h
-    debug.cc
-    debug.h
-    kconfig.h
-    kconfig.cc
-    kerneltool.h
-    kerneltool.cc
-    fileutil.h
-    fileutil.cc
+add_executable(testkconfig
     testkconfig.cc
 )
+target_link_libraries(testkconfig common ${EXTRA_LIBS})
 
-add_executable(testkconfig ${TESTKCONFIG_SRC})
-target_link_libraries(testkconfig ${EXTRA_LIBS})
-
-SET(TESTCANONICAL_SRC
-    util.h
-    util.cc
-    process.cc
-    process.h
-    stringutil.h
-    stringutil.cc
-    global.cc
-    global.h
-    debug.cc
-    debug.h
-    fileutil.h
-    fileutil.cc
+add_executable(testcanonical
     testcanonical.cc
 )
-
-add_executable(testcanonical ${TESTCANONICAL_SRC})
-target_link_libraries(testcanonical ${EXTRA_LIBS})
-
+target_link_libraries(testcanonical common ${EXTRA_LIBS})
