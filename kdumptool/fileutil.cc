@@ -36,6 +36,7 @@
 #include "stringutil.h"
 
 using std::string;
+using std::strcpy;
 using std::free;
 
 
@@ -440,9 +441,10 @@ string FilePath::baseName() const
     throw ()
 {
     // modification of the arguments is allowed
-    char *path = strdup(c_str());
+    char *path = new char[length() + 1];
+    strcpy(path, c_str());
     string ret(::basename(path));
-    free(path);
+    delete[] path;
     return ret;
 }
 
@@ -451,9 +453,10 @@ string FilePath::dirName() const
     throw ()
 {
     // modification of the arguments is allowed
-    char *path = strdup(c_str());
+    char *path = new char[length() + 1];
+    strcpy(path, c_str());
     string ret(::dirname(path));
-    free(path);
+    delete[] path;
     return ret;
 }
 //}}}
