@@ -19,6 +19,7 @@
 #ifndef OPTIONPARSER_H
 #define OPTIONPARSER_H
 
+#include <list>
 #include <map>
 #include <string>
 #include <vector>
@@ -53,7 +54,7 @@ class OptionParser {
 	 *
 	 * @param subcommands list of subcommands to add
          */
-        void addSubcommands(const Subcommand::List &subcommands);
+        void addSubcommands(const std::list<Subcommand *> &subcommands);
 
     protected:
         int parsePartial(int argc, char *argv[], const OptionList& opts,

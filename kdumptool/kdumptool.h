@@ -19,6 +19,7 @@
 #ifndef KDUMPTOOL_H
 #define KDUMPTOOL_H
 
+#include <list>
 #include <string>
 
 #include "global.h"
@@ -45,6 +46,11 @@ class KdumpTool {
         throw ();
 
     public:
+        /**
+         * Add a new subcommand.
+         */
+        void addSubcommand(Subcommand *subcommand);
+
         /**
          * Parses the command line. This method must be called before the
          * execute() method is called.
@@ -80,6 +86,7 @@ class KdumpTool {
         void printVersion();
 
     private:
+        std::list<Subcommand *> m_subcommandList;
         Subcommand *m_subcommand;
         int m_errorcode;
         bool m_background;

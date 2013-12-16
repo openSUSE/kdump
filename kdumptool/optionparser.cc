@@ -113,9 +113,9 @@ int OptionParser::parsePartial(int argc, char *argv[], const OptionList& opts,
 }
 
 /* -------------------------------------------------------------------------- */
-void OptionParser::addSubcommands(const Subcommand::List &subcommands)
+void OptionParser::addSubcommands(const list<Subcommand *> &subcommands)
 {
-    Subcommand::List::const_iterator it;
+    list<Subcommand *>::const_iterator it;
     for (it = subcommands.begin(); it != subcommands.end(); ++it)
         m_subcommands[(*it)->getName()] = *it;
 }

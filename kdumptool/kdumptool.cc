@@ -69,6 +69,12 @@ KdumpTool::~KdumpTool()
 }
 
 // -----------------------------------------------------------------------------
+void KdumpTool::addSubcommand(Subcommand *subcommand)
+{
+    m_subcommandList.push_back(subcommand);
+}
+
+// -----------------------------------------------------------------------------
 void KdumpTool::parseCommandline(int argc, char *argv[])
     throw (KError)
 {
@@ -107,7 +113,7 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
     optionParser.addGlobalOption(&configFileOption);
     optionParser.addGlobalOption(&cmdlineOption);
 
-    optionParser.addSubcommands(Subcommand::GlobalList);
+    optionParser.addSubcommands(m_subcommandList);
 
     optionParser.parse(argc, argv);
 

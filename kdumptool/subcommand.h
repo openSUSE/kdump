@@ -19,8 +19,6 @@
 #ifndef SUBCOMMAND_H
 #define SUBCOMMAND_H
 
-#include <list>
-
 #include "global.h"
 #include "option.h"
 
@@ -40,21 +38,10 @@
  */
 class Subcommand {
     public:
-
-        /**
-         * List of Subcommand pointers.
-         */
-        typedef std::list<Subcommand *> List;
-
-        /**
-         * Default list where new Subcommands are registered.
-         */
-        static List GlobalList;
-
         /**
          * Creates a new subcommand. This is for initialisation.
          */
-        Subcommand(List &list = GlobalList)
+        Subcommand()
         throw ();
 
         /**

@@ -39,23 +39,10 @@
 #include "read_vmcoreinfo.h"
 #include "savedump.h"
 
-/**
- * Global instances, automatically registered in the global subcommand list.
- */
-static DeleteDumps deleteDumps;
-static DumpConfig dumpConfig;
-static FindKernel findKernel;
-static IdentifyKernel identifyKernel;
-static LedBlink ledBlink;
-static Multipath multipath;
-static PrintTarget printTarget;
-static ReadIKConfig readIKConfig;
-static ReadVmcoreinfo readVmcoreinfo;
-static SaveDump saveDump;
-
 using std::cerr;
 using std::cout;
 using std::endl;
+using std::list;
 
 // -----------------------------------------------------------------------------
 int main(int argc, char *argv[])
@@ -64,6 +51,17 @@ int main(int argc, char *argv[])
     bool exception = false;
 
     try {
+        kdt.addSubcommand(new DeleteDumps);
+        kdt.addSubcommand(new DumpConfig);
+        kdt.addSubcommand(new FindKernel);
+        kdt.addSubcommand(new IdentifyKernel);
+        kdt.addSubcommand(new LedBlink);
+        kdt.addSubcommand(new Multipath);
+        kdt.addSubcommand(new PrintTarget);
+        kdt.addSubcommand(new ReadIKConfig);
+        kdt.addSubcommand(new ReadVmcoreinfo);
+        kdt.addSubcommand(new SaveDump);
+
         kdt.parseCommandline(argc, argv);
         kdt.readConfiguration();
         kdt.execute();

@@ -23,17 +23,13 @@
 
 using std::string;
 
-Subcommand::List Subcommand::GlobalList
-    __attribute__((init_priority(1000)));
-
 //{{{ Subcommand ---------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-Subcommand::Subcommand(List &list)
+Subcommand::Subcommand()
     throw ()
     : m_options(), m_errorcode(0)
 {
-    list.push_back(this);
 }
 
 // -----------------------------------------------------------------------------
