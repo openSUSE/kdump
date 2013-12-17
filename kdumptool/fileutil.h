@@ -32,14 +32,6 @@ class FileUtil {
     public:
 
         /**
-         * Get the current working directory.
-         *
-         * @throw KError on any error
-         */
-        static std::string getcwd(void)
-        throw (KError);
-
-        /**
          * Mounts a file system to a given mountpoint.
          *
          * @param[in] device the device or a CIFS share or a NFS target
@@ -138,6 +130,14 @@ class FilePath : public KString {
             FilePath(InputIterator first, InputIterator last)
         : KString(first, last)
         {}
+
+        /**
+         * Get the current working directory.
+         *
+         * @throw KError on any error
+         */
+        static FilePath getcwd(void)
+        throw (KError);
 
         /**
          * Gets the base name of a file. This function is not thread-safe!

@@ -43,22 +43,6 @@ using std::free;
 //{{{ FileUtil -----------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-string FileUtil::getcwd(void)
-    throw (KError)
-{
-    char *cwd = ::getcwd(NULL, 0);
-
-    if (!cwd)
-	throw KSystemError("getcwd failed", errno);
-
-    string ret(cwd);
-    free(cwd);
-    Debug::debug()->dbg("Current directory: " + ret);
-
-    return ret;
-}
-
-// -----------------------------------------------------------------------------
 void FileUtil::nfsmount(const string &host,
                         const string &dir,
                         const string &mountpoint,
@@ -183,6 +167,22 @@ StringVector FileUtil::listdir(const std::string &dir, bool onlyDirs)
 const string FilePath::m_slash("/");
 
 // -----------------------------------------------------------------------------
+FilePath FilePath::getcwd(void)
+    throw (KError)
+{
+    char *cwd = ::getcwd(NULL, 0);
+
+    if (!cwd)
+        throw KSystemError("getcwd failed", errno);
+
+    FilePath ret(cwd);
+    free(cwd);
+    Debug::debug()->dbg("Current directory: " + ret);
+
+    return ret;
+}
+
+// -----------------------------------------------------------------------------
 string FilePath::baseName() const
     throw ()
 {
@@ -272,7 +272,7 @@ FilePath FilePath::getCanonicalPath(const string &root) const
     FilePath ret;
     const_iterator p = begin();
     if (*p != '/') {
-        ret = FileUtil::getcwd();
+        ret = getcwd();
 
         if (ret.size() < rootp->size() ||
             ret.substr(0, rootp->size()) != *rootp)
