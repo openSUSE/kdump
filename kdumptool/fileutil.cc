@@ -65,12 +65,10 @@ void FileUtil::mkdir(const std::string &dir, bool recursive)
     Debug::debug()->trace("mkdir(%s, %d)", dir.c_str(), int(recursive));
 
     if (!recursive) {
-        if (!FileUtil::exists(dir)) {
-            Debug::debug()->dbg("::mkdir(%s)", dir.c_str());
-            int ret = ::mkdir(dir.c_str(), 0755);
-            if (ret != 0)
-                throw KSystemError("mkdir of " + dir + " failed.", errno);
-        }
+        Debug::debug()->dbg("::mkdir(%s)", dir.c_str());
+        int ret = ::mkdir(dir.c_str(), 0755);
+        if (ret != 0 && errno != EEXIST)
+            throw KSystemError("mkdir of " + dir + " failed.", errno);
     } else {
         string directory = dir;
 
