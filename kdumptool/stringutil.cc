@@ -63,19 +63,6 @@ bool Stringutil::isNumber(const string &str)
 }
 
 // -----------------------------------------------------------------------------
-bool Stringutil::isAlpha(const string &str)
-    throw ()
-{
-    for (size_t i = 0; i < str.size(); ++i) {
-        if (!isalpha(str[i])) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-// -----------------------------------------------------------------------------
 int Stringutil::string2number(const std::string &string)
     throw ()
 {

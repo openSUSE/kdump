@@ -47,15 +47,6 @@ class Stringutil {
         throw ();
 
         /**
-         * Checks if @p str contains only of alpha characters.
-         *
-         * @param[in] str the string that should be checked
-         * @return true if it's only alpha, false otherwise
-         */
-        static bool isAlpha(const std::string &str)
-        throw ();
-
-        /**
          * Transforms a numeric value into a string.
          *
          * @param[in] number the number to transform
