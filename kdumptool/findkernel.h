@@ -19,6 +19,7 @@
 #ifndef FINDKERNEL_H
 #define FINDKERNEL_H
 
+#include "stringutil.h"
 #include "fileutil.h"
 #include "subcommand.h"
 
@@ -78,7 +79,7 @@ class FindKernel : public Subcommand {
          * @return @c true if the image is a kernel image, @c false otherwise
          * @exception KError on any error
          */
-        bool isKdumpKernel(const std::string &kernelimage)
+        bool isKdumpKernel(const KString &kernelimage)
         throw (KError);
 
         /**

@@ -142,7 +142,7 @@ bool KernelTool::stripImageName(const FilePath &kernelImage, string &directory,
     throw (KError)
 {
     directory = kernelImage.dirName();
-    string kernel = kernelImage.baseName();
+    KString kernel = kernelImage.baseName();
 
     list<string> imageNames = KernelTool::imageNames(Util::getArch());
     for (list<string>::const_iterator it = imageNames.begin();
@@ -151,7 +151,7 @@ bool KernelTool::stripImageName(const FilePath &kernelImage, string &directory,
             rest = "";
             return true;
         }
-        rest = Stringutil::stripPrefix(kernel, *it + "-");
+        rest = kernel.stripPrefix(*it + "-");
         if (rest != kernel) {
             return true;
         }

@@ -197,38 +197,6 @@ string Stringutil::join(const StringVector &stringvector, char joinchar)
 }
 
 // -----------------------------------------------------------------------------
-bool Stringutil::startsWith(const string &long_string,
-                            const string &part)
-    throw ()
-{
-    return strncmp(long_string.c_str(), part.c_str(), part.size()) == 0;
-}
-
-// -----------------------------------------------------------------------------
-bool Stringutil::endsWith(const string &long_string,
-                          const string &part)
-    throw ()
-{
-    if (part.size() > long_string.size()) {
-        return false;
-    } else {
-        return part ==
-        long_string.substr(long_string.size()-part.size(), long_string.size());
-    }
-}
-
-// -----------------------------------------------------------------------------
-string Stringutil::stripPrefix(const string &str, const string &prefix)
-    throw ()
-{
-    if (startsWith(str, prefix)) {
-        return str.substr(prefix.size());
-    } else {
-        return str;
-    }
-}
-
-// -----------------------------------------------------------------------------
 string Stringutil::formatUnixTime(const char *formatstring, time_t value)
     throw ()
 {
@@ -346,6 +314,34 @@ KString& KString::rtrim(const char *chars)
 {
     erase(find_last_not_of(chars) + 1);
     return *this;
+}
+
+// -----------------------------------------------------------------------------
+bool KString::startsWith(const string &part) const
+    throw ()
+{
+    return strncmp(c_str(), part.c_str(), part.size()) == 0;
+}
+
+// -----------------------------------------------------------------------------
+bool KString::endsWith(const string &part) const
+    throw ()
+{
+    if (part.size() > size())
+        return false;
+
+    return strcmp(c_str() + size() - part.size(), part.c_str()) == 0;
+}
+
+// -----------------------------------------------------------------------------
+KString KString::stripPrefix(const string &prefix) const
+    throw ()
+{
+    if (startsWith(prefix)) {
+        return substr(prefix.size());
+    } else {
+        return *this;
+    }
 }
 
 //}}}

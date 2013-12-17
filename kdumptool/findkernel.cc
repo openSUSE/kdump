@@ -285,10 +285,10 @@ string FindKernel::findKernelAuto()
 }
 
 // -----------------------------------------------------------------------------
-bool FindKernel::isKdumpKernel(const string &kernelimage)
+bool FindKernel::isKdumpKernel(const KString &kernelimage)
     throw (KError)
 {
-    bool ret = Stringutil::endsWith(kernelimage, "kdump");
+    bool ret = kernelimage.endsWith("kdump");
     Debug::debug()->trace("FindKernel::isKdumpKernel(%s)=%s",
         kernelimage.c_str(), ret ? "true" : "false");
     return ret;

@@ -727,12 +727,12 @@ string SaveDump::getKernelReleaseCommandline()
         throw KError("Unable to open " + string(KERNELCOMMANDLINE) + ".");
     }
 
-    string s;
-    string version;
+    KString s;
+    KString version;
     while (fin >> s) {
         Debug::debug()->trace("Token: %s", s.c_str());
-        if (Stringutil::startsWith(s, "kernelversion=")) {
-            version = Stringutil::stripPrefix(s, "kernelversion=");
+        if (s.startsWith("kernelversion=")) {
+	    version = s.stripPrefix("kernelversion=");
         }
     }
 

@@ -166,41 +166,6 @@ class Stringutil {
          
 
         /**
-         * Checks if @p long_string starts with @p part.
-         *
-         * @param[in] long_string the long string
-         * @param[in] part the string part
-         * @return @c true if @p long_string starts with @p part, @c false
-         *         otherwise
-         */
-        static bool startsWith(const std::string &long_string,
-                               const std::string &part)
-        throw ();
-
-        /**
-         * Checks if @p long_string ends with @p part.
-         *
-         * @param[in] long_string the long string
-         * @param[in] part the string part
-         * @return @c true if @p long_string ends with @p part, @c false
-         *         otherwise
-         */
-        static bool endsWith(const std::string &long_string,
-                             const std::string &part)
-        throw ();
-
-        /**
-         * Strips off the prefix @p prefix from @p str.
-         *
-         * @param[in] str the string
-         * @param[in] prefix the prefix to strip off
-         * @return the resulting string
-         */
-        static std::string stripPrefix(const std::string &str,
-                                       const std::string &prefix)
-        throw ();
-
-        /**
          * Formats the current time as specified in @p formatstring.
          *
          * @param[in] formatstring strftime(3)-like format string
@@ -305,6 +270,33 @@ class KString : public std::string {
          */
         KString& rtrim(const char *chars = " \t\n")
         throw();
+
+        /**
+         * Checks if the string starts with @p part.
+         *
+         * @param[in] part the string part
+         * @return @c true if string starts with @p part, @c false otherwise
+         */
+        bool startsWith(const std::string &part) const
+        throw ();
+
+        /**
+         * Checks if the string ends with @p part.
+         *
+         * @param[in] part the string part
+         * @return @c true if string ends with @p part, @c false otherwise
+         */
+        bool endsWith(const std::string &part) const
+        throw ();
+
+        /**
+         * Strips off the prefix @p prefix.
+         *
+         * @param[in] prefix the prefix to strip off
+         * @return copy of the string with @p prefix removed
+         */
+        KString stripPrefix(const std::string &prefix) const
+        throw ();
 
 };
 
