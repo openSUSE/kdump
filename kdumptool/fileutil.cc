@@ -91,38 +91,6 @@ void FileUtil::mkdir(const std::string &dir, bool recursive)
 }
 
 // -----------------------------------------------------------------------------
-string FileUtil::pathconcat(const string &a, const string &b)
-    throw ()
-{
-    KString _a = a, _b = b;
-    return _a.rtrim("/") + PATH_SEPARATOR + _b.ltrim("/");
-}
-
-// -----------------------------------------------------------------------------
-string FileUtil::pathconcat(const string &a, const string &b, const string &c)
-    throw ()
-{
-    KString _a = a, _b = b, _c = c;
-    return _a.rtrim("/") + PATH_SEPARATOR +
-           _b.trim("/") + PATH_SEPARATOR +
-           _c.ltrim("/");
-}
-
-// -----------------------------------------------------------------------------
-string FileUtil::pathconcat(const string &a,
-                            const string &b,
-                            const string &c,
-                            const string &d)
-    throw ()
-{
-    KString _a = a, _b = b, _c = c, _d = d;
-    return _a.rtrim("/") + PATH_SEPARATOR +
-           _b.trim("/") + PATH_SEPARATOR +
-           _c.trim("/") + PATH_SEPARATOR +
-           _d.ltrim("/");
-}
-
-// -----------------------------------------------------------------------------
 void FileUtil::nfsmount(const string &host,
                         const string &dir,
                         const string &mountpoint,
@@ -254,14 +222,15 @@ void FileUtil::rmdir(const std::string &dir, bool recursive)
         struct dirent *ptr;
         try {
             while ((ptr = readdir(dirptr)) != NULL) {
+                FilePath fn = dir;
                 if (strcmp(ptr->d_name, ".") == 0 ||
                         strcmp(ptr->d_name, "..") == 0)
                     continue;
                 if (ptr->d_type == DT_DIR)
-                    rmdir(pathconcat(dir, ptr->d_name).c_str(), true);
+                    rmdir(fn.appendPath(ptr->d_name).c_str(), true);
                 else {
                     Debug::debug()->trace("Calling remove(%s)", ptr->d_name);
-                    int ret = ::remove(pathconcat(dir, ptr->d_name).c_str());
+                    int ret = ::remove(fn.appendPath(ptr->d_name).c_str());
                     if (ret != 0)
                         throw KSystemError("Cannot remove " +
                             string(ptr->d_name) + ".", errno);
@@ -336,6 +305,18 @@ string FilePath::dirName() const
     string ret(::dirname(path));
     delete[] path;
     return ret;
+}
+
+// -----------------------------------------------------------------------------
+FilePath& FilePath::appendPath(const string &p)
+    throw ()
+{
+    rtrim(PATH_SEPARATOR);
+    append(PATH_SEPARATOR);
+    size_type idx = p.find_first_not_of(PATH_SEPARATOR);
+    if (idx != npos)
+        append(p.substr(idx));
+    return *this;
 }
 
 // -----------------------------------------------------------------------------

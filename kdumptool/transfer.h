@@ -357,7 +357,7 @@ class NFSTransfer : public URLTransfer {
     private:
         std::string m_mountpoint;
         KString m_rest;
-        std::string m_prefix;
+        FilePath m_prefix;
         FileTransfer *m_fileTransfer;
 };
 

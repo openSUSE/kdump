@@ -494,12 +494,12 @@ void SaveDump::copyKernel()
 
     FilePath mapfile = findMapfile();
     FilePath kernel = findKernel();
+    FilePath fp;
 
     // mapfile
     TerminalProgress mapProgress("Copying System.map");
-    FileDataProvider mapProvider(
-        FileUtil::pathconcat(m_rootdir, mapfile).c_str()
-    );
+    (fp = m_rootdir).appendPath(mapfile);
+    FileDataProvider mapProvider(fp.c_str());
     if (config->getIntValue(Configuration::KDUMP_VERBOSE)
 	& Configuration::VERB_PROGRESS)
         mapProvider.setProgress(&mapProgress);
@@ -508,9 +508,8 @@ void SaveDump::copyKernel()
     m_transfer->perform(&mapProvider, mapfile.baseName().c_str());
 
     TerminalProgress kernelProgress("Copying kernel");
-    FileDataProvider kernelProvider(
-        FileUtil::pathconcat(m_rootdir, kernel).c_str()
-    );
+    (fp = m_rootdir).appendPath(kernel);
+    FileDataProvider kernelProvider(fp.c_str());
     if (config->getIntValue(Configuration::KDUMP_VERBOSE)
 	& Configuration::VERB_PROGRESS)
         kernelProvider.setProgress(&kernelProgress);
@@ -526,9 +525,8 @@ void SaveDump::copyKernel()
         Debug::debug()->dbg("Found debuginfo file: %s", debuglink.c_str());
 
         TerminalProgress debugkernelProgress("Copying kernel.debug");
-        FileDataProvider debugkernelProvider(
-            FileUtil::pathconcat(m_rootdir, debuglink).c_str()
-        );
+        (fp = m_rootdir).appendPath(debuglink);
+        FileDataProvider debugkernelProvider(fp.c_str());
         if (config->getIntValue(Configuration::KDUMP_VERBOSE)
 	    & Configuration::VERB_PROGRESS)
             debugkernelProvider.setProgress(&debugkernelProgress);
@@ -552,8 +550,8 @@ string SaveDump::findKernel()
     FilePath binary, binaryroot;
 
     // 1: vmlinux
-    binary = FileUtil::pathconcat("/boot", "vmlinux-" + m_crashrelease);
-    binaryroot = FileUtil::pathconcat(m_rootdir, binary);
+    (binary = "/boot").appendPath("vmlinux-" + m_crashrelease);
+    (binaryroot = m_rootdir).appendPath(binary);
     Debug::debug()->dbg("Trying %s", binaryroot.c_str());
     if (binaryroot.exists())
         return binary;
@@ -566,8 +564,8 @@ string SaveDump::findKernel()
         return binary;
 
     // 3: vmlinuz (check if ELF file)
-    binary = FileUtil::pathconcat("/boot", "vmlinuz-" + m_crashrelease);
-    binaryroot = FileUtil::pathconcat(m_rootdir, binary);
+    (binary = "/boot").appendPath("vmlinuz-" + m_crashrelease);
+    (binaryroot = m_rootdir).appendPath(binary);
     Debug::debug()->dbg("Trying %s", binaryroot.c_str());
     if (binaryroot.exists() &&
             Util::isElfFile(binaryroot.c_str())) {
@@ -575,14 +573,15 @@ string SaveDump::findKernel()
     }
 
     // 4: image
-    binary = FileUtil::pathconcat("/boot", "image-" + m_crashrelease);
-    binaryroot = FileUtil::pathconcat(m_rootdir, binary);
+    (binary = "/boot").appendPath("image-" + m_crashrelease);
+    (binaryroot = m_rootdir).appendPath(binary);
     Debug::debug()->dbg("Trying %s", binaryroot.c_str());
     if (binaryroot.exists())
         return binary;
 
-    throw KError("No kernel image found in " +
-        FileUtil::pathconcat(m_rootdir, "/boot"));
+    FilePath fp = m_rootdir;
+    fp.appendPath("/boot");
+    throw KError("No kernel image found in " + fp);
 }
 
 // -----------------------------------------------------------------------------
@@ -591,14 +590,16 @@ string SaveDump::findMapfile()
 {
     Debug::debug()->trace("SaveDump::findMapfile()");
 
-    string map = FileUtil::pathconcat("/boot", "System.map-" + m_crashrelease);
-    FilePath maproot = FileUtil::pathconcat(m_rootdir, map);
+    FilePath map, maproot;
+    (map = "/boot").appendPath("System.map-" + m_crashrelease);
+    (maproot = m_rootdir).appendPath(map);
     Debug::debug()->dbg("Trying %s", maproot.c_str());
     if (maproot.exists())
         return map;
 
-    throw KError("No System.map found in " +
-        FileUtil::pathconcat(m_rootdir, "/boot"));
+    FilePath fp = m_rootdir;
+    fp.appendPath("/boot");
+    throw KError("No System.map found in " + fp);
 }
 
 // -----------------------------------------------------------------------------
@@ -625,7 +626,8 @@ void SaveDump::check_one(const RootDirURL &parser,
         return;
     }
 
-    string path = FileUtil::pathconcat(parser.getRealPath(), subdir);
+    FilePath path = parser.getRealPath();
+    path.appendPath(subdir);
     Configuration *config = Configuration::config();
 
     unsigned long long freeSize = FileUtil::freeDiskSize(path);
@@ -703,8 +705,10 @@ void SaveDump::sendNotification(bool failure, const RootDirURLVector &urlv,
         else {
 	    ss << "Dump has been copied to" << endl;
 	    RootDirURLVector::const_iterator it;
-	    for (it = urlv.begin(); it != urlv.end(); ++it)
-		ss << FileUtil::pathconcat(it->getURL(), subdir) << endl;
+            for (it = urlv.begin(); it != urlv.end(); ++it) {
+                FilePath fp = it->getURL();
+                ss << fp.appendPath(subdir) << endl;
+            }
 	}
 
         email.setBody(ss.str());

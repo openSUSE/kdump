@@ -129,8 +129,9 @@ FileTransfer::FileTransfer(const RootDirURLVector &urlv,
 
     // create directories
     for (it = urlv.begin(); it != urlv.end(); ++it) {
-	string dir = FileUtil::pathconcat(it->getRealPath(), subdir);
-	FileUtil::mkdir(dir, true);
+        FilePath dir = it->getRealPath();
+        dir.appendPath(subdir);
+        FileUtil::mkdir(dir, true);
     }
 
     // try to get the buffer size
@@ -171,8 +172,8 @@ void FileTransfer::perform(DataProvider *dataprovider,
     RootDirURLVector &urlv = getURLVector();
     RootDirURLVector::const_iterator itv = urlv.begin();
     for (it = target_files.begin(); it != target_files.end(); ++it) {
-	full_targets.push_back(FileUtil::pathconcat(
-	    FileUtil::pathconcat(itv->getRealPath(), getSubDir()), *it));
+        FilePath fp = itv->getRealPath();
+        full_targets.push_back(fp.appendPath(getSubDir()).appendPath(*it));
 	if (++itv == urlv.end())
 	    itv = urlv.begin();
     }
@@ -460,10 +461,8 @@ void FTPTransfer::open(DataProvider *dataprovider,
     const RootDirURL &parser = urlv.front();
 
     // set the URL
-    string full_url = FileUtil::pathconcat(
-	FileUtil::pathconcat(parser.getURL(), getSubDir()),
-	target_file
-	);
+    FilePath full_url = parser.getURL();
+    full_url.appendPath(getSubDir()).appendPath(target_file);
     err = curl_easy_setopt(m_curl, CURLOPT_URL, full_url.c_str());
     if (err != CURLE_OK)
         throw KError(string("CURL error: ") + m_curlError);
@@ -566,8 +565,8 @@ SFTPTransfer::SFTPTransfer(const RootDirURLVector &urlv,
     FilePath privkey;
 
     // DSA
-    pubkey = FileUtil::pathconcat(homedir, ".ssh", "id_dsa.pub");
-    privkey = FileUtil::pathconcat(homedir, ".ssh", "id_dsa");
+    (pubkey = homedir).appendPath(".ssh").appendPath("id_dsa.pub");
+    (privkey = homedir).appendPath(".ssh").appendPath("id_dsa");
     if (!authenticated && pubkey.exists() && privkey.exists()) {
         Debug::debug()->dbg("Using private key %s and public key %s",
                 privkey.c_str(), pubkey.c_str());
@@ -584,8 +583,8 @@ SFTPTransfer::SFTPTransfer(const RootDirURLVector &urlv,
     }
 
     // RSA
-    pubkey = FileUtil::pathconcat(homedir, ".ssh", "id_rsa.pub");
-    privkey = FileUtil::pathconcat(homedir, ".ssh", "id_rsa");
+    (pubkey = homedir).appendPath(".ssh").appendPath("id_rsa.pub");
+    (privkey = homedir).appendPath(".ssh").appendPath("id_rsa");
     if (!authenticated && pubkey.exists() && privkey.exists()) {
         Debug::debug()->dbg("Using private key %s and public key %s",
                 privkey.c_str(), pubkey.c_str());
@@ -627,7 +626,8 @@ SFTPTransfer::SFTPTransfer(const RootDirURLVector &urlv,
             Stringutil::number2string(ret) + ".");
     }
 
-    mkdir(FileUtil::pathconcat(parser.getPath(), subdir), true);
+    FilePath fp = parser.getPath();
+    mkdir(fp.appendPath(subdir), true);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -713,10 +713,8 @@ void SFTPTransfer::perform(DataProvider *dataprovider,
     const RootDirURL &parser = urlv.front();
 
     LIBSSH2_SFTP_HANDLE  *handle = NULL;
-    string file = FileUtil::pathconcat(
-	FileUtil::pathconcat(parser.getPath(), getSubDir()),
-	target_files.front()
-	);
+    FilePath file = parser.getPath();
+    file.appendPath(getSubDir()).appendPath(target_files.front());
 
     Debug::debug()->dbg("Using target file %s.", file.c_str());
 
@@ -809,7 +807,7 @@ RootDirURL NFSTransfer::translate(const RootDirURL &parser)
     m_rest.replace(m_rest.begin(), m_rest.begin() + mountedDir.size(), "");
     m_rest.ltrim("/");
 
-    m_prefix = FileUtil::pathconcat(m_mountpoint, m_rest);
+    (m_prefix = m_mountpoint).appendPath(m_rest);
 
     Debug::debug()->dbg("Mountpoint: %s, Rest: %s, Prefix: $s",
         m_mountpoint.c_str(), m_rest.c_str(), m_prefix.c_str());
@@ -898,7 +896,8 @@ RootDirURL CIFSTransfer::translate(const RootDirURL &parser)
         throw KError("Internal error in CIFSTransfer::CIFSTransfer.");
     }
     rest = rest.substr(shareBegin + share.size());
-    string prefix = FileUtil::pathconcat(m_mountpoint, rest);
+    FilePath prefix = m_mountpoint;
+    prefix.appendPath(rest);
 
     Debug::debug()->dbg("Mountpoint: %s, Rest: %s, Prefix: %s",
         m_mountpoint.c_str(), rest.c_str(), prefix.c_str());

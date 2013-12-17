@@ -129,8 +129,11 @@ void DeleteDumps::delete_one(const RootDirURL &url, int oldDumps)
     for (StringVector::const_iterator it = toDelete.begin();
             it != toDelete.end(); ++it) {
         Debug::debug()->info("Deleting %s.", (*it).c_str());
-        if (!m_dryRun)
-            FileUtil::rmdir(FileUtil::pathconcat(dir, (*it)), true);
+        if (!m_dryRun) {
+            FilePath fp = dir;
+            fp.appendPath(*it);
+            FileUtil::rmdir(fp, true);
+        }
     }
 }
 

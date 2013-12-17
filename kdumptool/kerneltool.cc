@@ -413,7 +413,8 @@ Kconfig *KernelTool::retrieveKernelConfig() const
 
         if (KernelTool::stripImageName(
                 m_kernel.getCanonicalPath(), dir, stripped)) {
-            FilePath config = FileUtil::pathconcat(dir, "config-" + stripped);
+            FilePath config = dir;
+            config.appendPath("config-" + stripped);
             Debug::debug()->dbg("Trying %s for config", config.c_str());
             if (config.exists()) {
                 kconfig->readFromConfig(config);
