@@ -59,38 +59,6 @@ string FileUtil::getcwd(void)
 }
 
 // -----------------------------------------------------------------------------
-void FileUtil::mkdir(const std::string &dir, bool recursive)
-    throw (KError)
-{
-    Debug::debug()->trace("mkdir(%s, %d)", dir.c_str(), int(recursive));
-
-    if (!recursive) {
-        Debug::debug()->dbg("::mkdir(%s)", dir.c_str());
-        int ret = ::mkdir(dir.c_str(), 0755);
-        if (ret != 0 && errno != EEXIST)
-            throw KSystemError("mkdir of " + dir + " failed.", errno);
-    } else {
-        string directory = dir;
-
-        // remove trailing '/' if there are any
-        while (directory[directory.size()-1] == '/')
-            directory = directory.substr(0, directory.size()-1);
-
-        string::size_type current_slash = 0;
-
-        while (true) {
-            current_slash = directory.find('/', current_slash+1);
-            if (current_slash == string::npos) {
-                FileUtil::mkdir(directory, false);
-                break;
-            }
-
-            mkdir(directory.substr(0, current_slash), false);
-        }
-    }
-}
-
-// -----------------------------------------------------------------------------
 void FileUtil::nfsmount(const string &host,
                         const string &dir,
                         const string &mountpoint,
@@ -207,46 +175,6 @@ StringVector FileUtil::listdir(const std::string &dir, bool onlyDirs)
     free(namelist);
 
     return v;
-}
-
-// -----------------------------------------------------------------------------
-void FileUtil::rmdir(const std::string &dir, bool recursive)
-    throw (KError)
-{
-    Debug::debug()->trace("FileUtil::rmdir(%s, %d)", dir.c_str(), recursive);
-
-    if (recursive) {
-        DIR *dirptr = opendir(dir.c_str());
-        if (!dirptr)
-            throw KSystemError("Cannot opendir(" + dir + ").", errno);
-        struct dirent *ptr;
-        try {
-            while ((ptr = readdir(dirptr)) != NULL) {
-                FilePath fn = dir;
-                if (strcmp(ptr->d_name, ".") == 0 ||
-                        strcmp(ptr->d_name, "..") == 0)
-                    continue;
-                if (ptr->d_type == DT_DIR)
-                    rmdir(fn.appendPath(ptr->d_name).c_str(), true);
-                else {
-                    Debug::debug()->trace("Calling remove(%s)", ptr->d_name);
-                    int ret = ::remove(fn.appendPath(ptr->d_name).c_str());
-                    if (ret != 0)
-                        throw KSystemError("Cannot remove " +
-                            string(ptr->d_name) + ".", errno);
-                }
-            }
-        } catch (...) {
-            closedir(dirptr);
-            throw;
-        }
-        closedir(dirptr);
-        rmdir(dir, false);
-    } else {
-        int ret = ::rmdir(dir.c_str());
-        if (ret != 0)
-            throw KSystemError("Cannot rmdir(" + dir + ").", errno);
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -436,6 +364,77 @@ FilePath FilePath::getCanonicalPath(const string &root) const
     }
 
     return ret;
+}
+
+// -----------------------------------------------------------------------------
+void FilePath::mkdir(bool recursive)
+    throw (KError)
+{
+    Debug::debug()->trace("mkdir(%s, %d)", c_str(), int(recursive));
+
+    if (!recursive) {
+        Debug::debug()->dbg("::mkdir(%s)", c_str());
+        int ret = ::mkdir(c_str(), 0755);
+        if (ret != 0 && errno != EEXIST)
+            throw KSystemError("mkdir of " + *this + " failed.", errno);
+    } else {
+        FilePath directory = *this;
+
+        // remove trailing '/' if there are any
+        while (directory[directory.size()-1] == '/')
+            directory = directory.substr(0, directory.size()-1);
+
+        size_type current_slash = 0;
+
+        while (true) {
+            current_slash = directory.find('/', current_slash+1);
+            if (current_slash == npos) {
+                directory.mkdir(false);
+                break;
+            }
+
+            FilePath fp = directory.substr(0, current_slash);
+            fp.mkdir(false);
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+void FilePath::rmdir(bool recursive)
+    throw (KError)
+{
+    Debug::debug()->trace("FileUtil::rmdir(%s, %d)", c_str(), recursive);
+
+    if (recursive) {
+        DIR *dirptr = opendir(c_str());
+        if (!dirptr)
+            throw KSystemError("Cannot opendir(" + *this + ").", errno);
+        struct dirent *ptr;
+        try {
+            while ((ptr = readdir(dirptr)) != NULL) {
+                FilePath fn = *this;
+                if (strcmp(ptr->d_name, ".") == 0 ||
+                        strcmp(ptr->d_name, "..") == 0)
+                    continue;
+                if (ptr->d_type == DT_DIR)
+                    fn.appendPath(ptr->d_name).rmdir(true);
+                else {
+                    Debug::debug()->trace("Calling remove(%s)", ptr->d_name);
+                    int ret = ::remove(fn.appendPath(ptr->d_name).c_str());
+                    if (ret != 0)
+                        throw KSystemError("Cannot remove " +
+                            string(ptr->d_name) + ".", errno);
+                }
+            }
+        } catch (...) {
+            closedir(dirptr);
+            throw;
+        }
+        closedir(dirptr);
+    }
+    int ret = ::rmdir(c_str());
+    if (ret != 0)
+        throw KSystemError("Cannot rmdir(" + *this + ").", errno);
 }
 
 //}}}

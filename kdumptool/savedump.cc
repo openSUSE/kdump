@@ -637,7 +637,7 @@ void SaveDump::check_one(const RootDirURL &parser,
             bytes_to_megabytes(freeSize), targetDiskSize);
 
     if (bytes_to_megabytes(freeSize) < targetDiskSize) {
-        FileUtil::rmdir(path, true);
+        path.rmdir(true);
         throw KError("Dump too large. Aborting. Check KDUMP_FREE_DISK_SIZE.");
     }
 }

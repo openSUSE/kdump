@@ -131,7 +131,7 @@ FileTransfer::FileTransfer(const RootDirURLVector &urlv,
     for (it = urlv.begin(); it != urlv.end(); ++it) {
         FilePath dir = it->getRealPath();
         dir.appendPath(subdir);
-        FileUtil::mkdir(dir, true);
+        dir.mkdir(true);
     }
 
     // try to get the buffer size
@@ -627,7 +627,8 @@ SFTPTransfer::SFTPTransfer(const RootDirURLVector &urlv,
     }
 
     FilePath fp = parser.getPath();
-    mkdir(fp.appendPath(subdir), true);
+    fp.appendPath(subdir);
+    fp.mkdir(true);
 }
 
 /* -------------------------------------------------------------------------- */

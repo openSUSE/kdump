@@ -132,7 +132,7 @@ void DeleteDumps::delete_one(const RootDirURL &url, int oldDumps)
         if (!m_dryRun) {
             FilePath fp = dir;
             fp.appendPath(*it);
-            FileUtil::rmdir(fp, true);
+            fp.rmdir(true);
         }
     }
 }

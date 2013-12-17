@@ -40,18 +40,6 @@ class FileUtil {
         throw (KError);
 
         /**
-         * Creates a new directory.
-         *
-         * @param[in] dir the name of the directory that should be created
-         * @param[in] recursive @b true if the behaviour of <tt>mkdir -p</tt>
-         *            should be copied, @c false otherwise.
-         *
-         * @throw KError on any error
-         */
-        static void mkdir(const std::string &dir, bool recursive)
-        throw (KError);
-
-        /**
          * Mounts a file system to a given mountpoint.
          *
          * @param[in] device the device or a CIFS share or a NFS target
@@ -110,17 +98,6 @@ class FileUtil {
           * @exception KError if something went wrong
           */
          static StringVector listdir(const std::string &dir, bool onlyDirs)
-         throw (KError);
-
-         /**
-          * Delete the specified directory.
-          *
-          * @param[in] dir the name of the directory
-          * @param[in] recursive @c true if all contents of non-empty
-          *            directories should be deleted, @c false otherwise
-          * @exception KError if something went wrong
-          */
-         static void rmdir(const std::string &dir, bool recursive)
          throw (KError);
 
          /**
@@ -248,6 +225,27 @@ class FilePath : public KString {
          * @throw KError when chroot or realpath() fail
          */
         FilePath getCanonicalPath(const std::string &root = m_slash) const
+        throw (KError);
+
+        /**
+         * Creates a new directory in the specified path.
+         *
+         * @param[in] recursive @b true if the behaviour of <tt>mkdir -p</tt>
+         *            should be copied, @c false otherwise.
+         *
+         * @throw KError on any error
+         */
+        void mkdir(bool recursive)
+        throw (KError);
+
+        /**
+         * Delete the specified directory.
+         *
+         * @param[in] recursive @c true if all contents of non-empty
+         *            directories should be deleted, @c false otherwise
+         * @exception KError if something went wrong
+         */
+        void rmdir(bool recursive)
         throw (KError);
 
 };
