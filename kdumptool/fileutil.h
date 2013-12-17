@@ -99,28 +99,6 @@ class FileUtil {
           */
          static StringVector listdir(const std::string &dir, bool onlyDirs)
          throw (KError);
-
-         /**
-          * Get the free disk size in bytes.
-          *
-          * @param[in] path the path where the disk size should be reported
-          * @return the free disk size in megabytes
-          * @exception KError if the underlying statfs() call fails
-          */
-         static unsigned long long freeDiskSize(const std::string &path)
-         throw (KError);
-
-         /**
-          * Returns the size of a given file.
-          *
-          * @param[in] path the full path to the file whose size should be
-          *            retrieved
-          * @return the size of the file
-          * @exception KError if the file does not exist or if stat() does
-          *            fail for another reason
-          */
-         static unsigned long long fileSize(const std::string &path)
-         throw (KError);
 };
 
 //}}}
@@ -225,6 +203,25 @@ class FilePath : public KString {
          * @throw KError when chroot or realpath() fail
          */
         FilePath getCanonicalPath(const std::string &root = m_slash) const
+        throw (KError);
+
+        /**
+         * Returns the size of a given file.
+         *
+         * @return the size of the file
+         * @exception KError if the file does not exist or if stat() does
+         *            fail for another reason
+         */
+        unsigned long long fileSize() const
+        throw (KError);
+
+        /**
+         * Get the free disk size in bytes.
+         *
+         * @return the free disk size in bytes
+         * @exception KError if the underlying statfs() call fails
+         */
+        unsigned long long freeDiskSize() const
         throw (KError);
 
         /**

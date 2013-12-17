@@ -177,35 +177,6 @@ StringVector FileUtil::listdir(const std::string &dir, bool onlyDirs)
     return v;
 }
 
-// -----------------------------------------------------------------------------
-unsigned long long FileUtil::freeDiskSize(const std::string &path)
-    throw (KError)
-{
-    Debug::debug()->trace("FileUtil::freeDiskSize(%s)", path.c_str());
-
-    struct statfs mystatfs;
-    int ret = statfs(path.c_str(), &mystatfs);
-    if (ret != 0)
-        throw KSystemError("statfs() on " + path + " failed.", errno);
-
-    return (unsigned long long)mystatfs.f_bfree * mystatfs.f_bsize;
-}
-
-// -----------------------------------------------------------------------------
-unsigned long long FileUtil::fileSize(const std::string &path)
-    throw (KError)
-{
-    Debug::debug()->trace("FileUtil::fileSize(%s)", path.c_str());
-
-    struct stat mystat;
-    int ret = ::stat(path.c_str(), &mystat);
-    if (ret != 0) {
-        throw KSystemError("stat() on " + path + " failed.", errno);
-    }
-
-    return (unsigned long long)mystat.st_size;
-}
-
 //}}}
 //{{{ FilePath -----------------------------------------------------------------
 
@@ -364,6 +335,35 @@ FilePath FilePath::getCanonicalPath(const string &root) const
     }
 
     return ret;
+}
+
+// -----------------------------------------------------------------------------
+unsigned long long FilePath::freeDiskSize() const
+    throw (KError)
+{
+    Debug::debug()->trace("FileUtil::freeDiskSize(%s)", c_str());
+
+    struct statfs mystatfs;
+    int ret = statfs(c_str(), &mystatfs);
+    if (ret != 0)
+        throw KSystemError("statfs() on " + *this + " failed.", errno);
+
+    return (unsigned long long)mystatfs.f_bfree * mystatfs.f_bsize;
+}
+
+// -----------------------------------------------------------------------------
+unsigned long long FilePath::fileSize() const
+    throw (KError)
+{
+    Debug::debug()->trace("FileUtil::fileSize(%s)", c_str());
+
+    struct stat mystat;
+    int ret = ::stat(c_str(), &mystat);
+    if (ret != 0) {
+        throw KSystemError("stat() on " + *this + " failed.", errno);
+    }
+
+    return (unsigned long long)mystat.st_size;
 }
 
 // -----------------------------------------------------------------------------

@@ -228,7 +228,7 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
     if (!m_dump.exists()) {
         throw KError("Core file " + m_dump + " does not exist.");
     }
-    if (FileUtil::fileSize(m_dump) == 0) {
+    if (m_dump.fileSize() == 0) {
         throw KError("Zero size vmcore (" + m_dump + ").");
     }
 
@@ -630,7 +630,7 @@ void SaveDump::check_one(const RootDirURL &parser,
     path.appendPath(subdir);
     Configuration *config = Configuration::config();
 
-    unsigned long long freeSize = FileUtil::freeDiskSize(path);
+    unsigned long long freeSize = path.freeDiskSize();
     unsigned long long targetDiskSize = (unsigned long long)config->getIntValue(Configuration::KDUMP_FREE_DISK_SIZE);
 
     Debug::debug()->dbg("Free MB: %lld, Configuration: %lld",
