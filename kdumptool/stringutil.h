@@ -38,15 +38,6 @@ class Stringutil {
 
     public:
         /**
-         * Checks if @p str is a integer number ('+' or '-' is allowed).
-         *
-         * @param[in] str the string that should be checked
-         * @return true if it's an number, false otherwise
-         */
-        static bool isNumber(const std::string &str)
-        throw ();
-
-        /**
          * Transforms a numeric value into a string.
          *
          * @param[in] number the number to transform
@@ -277,6 +268,50 @@ class Stringutil {
 	throw (KError);
 
 #endif	// HAVE_LIBSSL
+};
+
+//}}}
+//{{{ KString implementation ---------------------------------------------------
+
+/**
+ * Enhancements of class std::string.
+ */
+class KString : public std::string {
+    public:
+        /**
+         * Standard constructors (refer to std::string).
+         */
+        KString()
+        : std::string()
+        {}
+        KString(const std::string& str)
+        : std::string(str)
+        {}
+        KString(const std::string& str, size_type pos, size_type len = npos)
+        : std::string(str, pos, len)
+        {}
+        KString(const char* s)
+        : std::string(s)
+        {}
+        KString(const char* s, size_type n)
+        : std::string(s, n)
+        {}
+        KString(size_type n, char c)
+        : std::string(n, c)
+        {}
+        template <class InputIterator>
+            KString(InputIterator first, InputIterator last)
+        : std::string(first, last)
+        {}
+
+        /**
+         * Checks if the string is an integer number ('+' or '-' is allowed).
+         *
+         * @return true if it's an number, false otherwise
+         */
+        bool isNumber()
+        throw ();
+
 };
 
 //}}}

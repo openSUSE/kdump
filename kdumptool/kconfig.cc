@@ -111,7 +111,7 @@ KconfigValue KconfigValue::fromString(const string &line, string &name)
             str + "'.");
     }
 
-    string value = str.substr(equalSign+1);
+    KString value = str.substr(equalSign+1);
 
     if (value.size() == 1 && value[0] == 'y') {
         ret.m_type = T_TRISTATE;
@@ -123,7 +123,7 @@ KconfigValue KconfigValue::fromString(const string &line, string &name)
         return ret;
     }
 
-    if (Stringutil::isNumber(value)) {
+    if (value.isNumber()) {
         ret.m_type = T_INTEGER;
         ret.m_integer = Stringutil::string2number(value);
         return ret;

@@ -43,26 +43,6 @@ using std::setw;
 //{{{ Stringutil ---------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-bool Stringutil::isNumber(const string &str)
-    throw ()
-{
-    for (size_t i = 0; i < str.size(); ++i) {
-        char c = str[i];
-
-        // leading sign
-        if (i == 0 && (c == '-' || c == '+')) {
-            continue;
-        } else {
-            if (!isdigit(c)) {
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
-
-// -----------------------------------------------------------------------------
 int Stringutil::string2number(const std::string &string)
     throw ()
 {
@@ -356,6 +336,29 @@ void Stringutil::digest_base64(const void *buf, size_t len,
 }
 
 #endif	// HAVE_LIBSSL
+
+//}}}
+//{{{ KString ------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+bool KString::isNumber()
+    throw ()
+{
+    for (size_t i = 0; i < size(); ++i) {
+        char c = operator[](i);
+
+        // leading sign
+        if (i == 0 && (c == '-' || c == '+')) {
+            continue;
+        } else {
+            if (!isdigit(c)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
 
 //}}}
 
