@@ -333,17 +333,6 @@ bool KString::endsWith(const string &part) const
     return strcmp(c_str() + size() - part.size(), part.c_str()) == 0;
 }
 
-// -----------------------------------------------------------------------------
-KString KString::stripPrefix(const string &prefix) const
-    throw ()
-{
-    if (startsWith(prefix)) {
-        return substr(prefix.size());
-    } else {
-        return *this;
-    }
-}
-
 //}}}
 
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

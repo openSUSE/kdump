@@ -731,9 +731,9 @@ string SaveDump::getKernelReleaseCommandline()
     KString version;
     while (fin >> s) {
         Debug::debug()->trace("Token: %s", s.c_str());
-        if (s.startsWith("kernelversion=")) {
-	    version = s.stripPrefix("kernelversion=");
-        }
+        const string pfx = "kernelversion=";
+        if (s.startsWith(pfx))
+            version = s.substr(pfx.size());
     }
 
     if (version.size() == 0) {

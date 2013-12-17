@@ -151,11 +151,11 @@ bool KernelTool::stripImageName(const FilePath &kernelImage, string &directory,
             rest = "";
             return true;
         }
-        rest = kernel.stripPrefix(*it + "-");
-        if (rest != kernel) {
-            return true;
+        const string pfx = *it + "-";
+        if (kernel.startsWith(pfx)) {
+          rest = kernel.substr(pfx.size());
+          return true;
         }
-        
     }
 
     return false;

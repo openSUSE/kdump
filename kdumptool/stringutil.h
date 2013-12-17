@@ -289,15 +289,6 @@ class KString : public std::string {
         bool endsWith(const std::string &part) const
         throw ();
 
-        /**
-         * Strips off the prefix @p prefix.
-         *
-         * @param[in] prefix the prefix to strip off
-         * @return copy of the string with @p prefix removed
-         */
-        KString stripPrefix(const std::string &prefix) const
-        throw ();
-
 };
 
 //}}}
