@@ -122,39 +122,6 @@ class Stringutil {
         throw ();
 
         /**
-         * Remove trailing or leading stuff.
-         *
-         * @param[in] string the string
-         * @param[in] chars the characters to remove (default: white space)
-         * @return the trimmed string
-         */
-        static std::string trim(const std::string &string,
-                                const char *chars = " \t\n")
-        throw ();
-
-        /**
-         * Removes trailing stuff. (Left trim.)
-         *
-         * @param[in] string the string to trim
-         * @param[in] chars the characters to remove (default: white space)
-         * @return the trimmed string
-         */
-        static std::string ltrim(const std::string &string,
-                                const char *chars = " \t\n")
-        throw();
-
-        /**
-         * Removes leading stuff. (Left trim.)
-         *
-         * @param[in] string the string to trim
-         * @param[in] chars the characters to remove (default: white space)
-         * @return the trimmed string
-         */
-        static std::string rtrim(const std::string &string,
-                                const char *chars = " \t\n")
-        throw();
-
-        /**
          * Converts a string vector to a string.
          *
          * @param[in] begin start of the sequence
@@ -311,6 +278,33 @@ class KString : public std::string {
          */
         bool isNumber()
         throw ();
+
+        /**
+         * Remove trailing or leading stuff.
+         *
+         * @param[in] chars the characters to remove (default: white space)
+         * @return reference to this instance
+         */
+        KString& trim(const char *chars = " \t\n")
+        throw ();
+
+        /**
+         * Removes trailing stuff. (Left trim.)
+         *
+         * @param[in] chars the characters to remove (default: white space)
+         * @return reference to this instance
+         */
+        KString& ltrim(const char *chars = " \t\n")
+        throw();
+
+        /**
+         * Removes leading stuff. (Left trim.)
+         *
+         * @param[in] chars the characters to remove (default: white space)
+         * @return the trimmed string
+         */
+        KString& rtrim(const char *chars = " \t\n")
+        throw();
 
 };
 

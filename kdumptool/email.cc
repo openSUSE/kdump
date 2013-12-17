@@ -296,11 +296,11 @@ void Email::send()
     const smtp_status_t *status = smtp_message_transfer_status(message);
 
     if (status && status->code >= 400) {
-        string statustext = SAVE_CHARSTRING(status->text);
+        KString statustext = SAVE_CHARSTRING(status->text);
         int statuscode = status->code;
 
         // remove newlines from the status text
-        statustext = Stringutil::rtrim(statustext, "\n \t\r");
+        statustext.rtrim("\n \t\r");
 
         smtp_destroy_session(session);
         if (authctx) {

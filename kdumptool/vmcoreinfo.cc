@@ -78,12 +78,12 @@ void Vmcoreinfo::readFromELF(const char *elf_file)
 
     for (StringVector::const_iterator it = lines.begin();
             it != lines.end(); ++it) {
-        string line = *it;
+        KString line = *it;
 
         Debug::debug()->trace("Line: %s", line.c_str());
 
         // skip empty lines
-        if (Stringutil::trim(line).size() == 0 || line[0] == '\0') {
+        if (line.trim().size() == 0 || line[0] == '\0') {
             continue;
         }
 

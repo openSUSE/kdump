@@ -807,7 +807,7 @@ RootDirURL NFSTransfer::translate(const RootDirURL &parser)
     m_mountpoint = DEFAULT_MOUNTPOINT;
     m_rest = parser.getPath();
     m_rest.replace(m_rest.begin(), m_rest.begin() + mountedDir.size(), "");
-    m_rest = Stringutil::ltrim(m_rest, "/");
+    m_rest.ltrim("/");
 
     m_prefix = FileUtil::pathconcat(m_mountpoint, m_rest);
 
@@ -870,8 +870,8 @@ CIFSTransfer::CIFSTransfer(const RootDirURLVector &urlv,
 RootDirURL CIFSTransfer::translate(const RootDirURL &parser)
     throw (KError)
 {
-    string share = parser.getPath();
-    share = Stringutil::ltrim(share, "/");
+    KString share = parser.getPath();
+    share.ltrim("/");
     string::size_type first_slash = share.find("/");
     if (first_slash == string::npos)
         throw KError("Path ("+ parser.getPath() +") must contain a \"/\".");

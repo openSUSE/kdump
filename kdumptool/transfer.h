@@ -29,6 +29,7 @@
 #endif
 
 #include "global.h"
+#include "stringutil.h"
 #include "fileutil.h"
 #include "rootdirurl.h"
 #include "socket.h"
@@ -355,7 +356,7 @@ class NFSTransfer : public URLTransfer {
 
     private:
         std::string m_mountpoint;
-        std::string m_rest;
+        KString m_rest;
         std::string m_prefix;
         FileTransfer *m_fileTransfer;
 };

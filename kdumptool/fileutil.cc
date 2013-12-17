@@ -94,17 +94,18 @@ void FileUtil::mkdir(const std::string &dir, bool recursive)
 string FileUtil::pathconcat(const string &a, const string &b)
     throw ()
 {
-    return Stringutil::rtrim(a, "/") + PATH_SEPARATOR +
-           Stringutil::ltrim(b, "/");
+    KString _a = a, _b = b;
+    return _a.rtrim("/") + PATH_SEPARATOR + _b.ltrim("/");
 }
 
 // -----------------------------------------------------------------------------
 string FileUtil::pathconcat(const string &a, const string &b, const string &c)
     throw ()
 {
-    return Stringutil::rtrim(a, "/") + PATH_SEPARATOR +
-           Stringutil::trim(b, "/") + PATH_SEPARATOR +
-           Stringutil::ltrim(c, "/");
+    KString _a = a, _b = b, _c = c;
+    return _a.rtrim("/") + PATH_SEPARATOR +
+           _b.trim("/") + PATH_SEPARATOR +
+           _c.ltrim("/");
 }
 
 // -----------------------------------------------------------------------------
@@ -114,10 +115,11 @@ string FileUtil::pathconcat(const string &a,
                             const string &d)
     throw ()
 {
-    return Stringutil::rtrim(a, "/") + PATH_SEPARATOR +
-           Stringutil::trim(b, "/") + PATH_SEPARATOR +
-           Stringutil::trim(c, "/") + PATH_SEPARATOR +
-           Stringutil::ltrim(d, "/");
+    KString _a = a, _b = b, _c = c, _d = d;
+    return _a.rtrim("/") + PATH_SEPARATOR +
+           _b.trim("/") + PATH_SEPARATOR +
+           _c.trim("/") + PATH_SEPARATOR +
+           _d.ltrim("/");
 }
 
 // -----------------------------------------------------------------------------
@@ -165,8 +167,8 @@ void FileUtil::mount(const std::string &device, const std::string &mountpoint,
     int ret = p.execute("mount", args);
     Debug::debug()->dbg("Mount:%d", ret);
     if (ret != 0) {
-        string error = Stringutil::trim(Stringutil::bytes2str(stderrBuffer));
-        throw KError("mount failed: " + error + ".");
+        KString error = Stringutil::bytes2str(stderrBuffer);
+        throw KError("mount failed: " + error.trim() + ".");
     }
 }
 
@@ -185,8 +187,8 @@ void FileUtil::umount(const std::string &mountpoint)
 
     int ret = p.execute("umount", args);
     if (ret != 0) {
-        string error = Stringutil::trim(Stringutil::bytes2str(stderrBuffer));
-        throw KError("umount failed: " + error);
+        KString error = Stringutil::bytes2str(stderrBuffer);
+        throw KError("umount failed: " + error.trim());
     }
 }
 

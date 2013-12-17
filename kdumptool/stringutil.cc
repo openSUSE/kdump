@@ -125,41 +125,6 @@ string Stringutil::bytes2hexstr(const char *bytes, size_t len, bool colons)
 }
 
 // -----------------------------------------------------------------------------
-string Stringutil::trim(const std::string &string, const char *chars)
-    throw ()
-{
-    string::size_type start = string.find_first_not_of(chars);
-    if (start == string::npos)
-        return "";
-
-    string::size_type end = string.find_last_not_of(chars);
-
-    return string.substr(start, end-start+1);
-}
-
-// -----------------------------------------------------------------------------
-string Stringutil::ltrim(const std::string &string, const char *chars)
-    throw ()
-{
-    string::size_type start = string.find_first_not_of(chars);
-    if (start == string::npos)
-        return "";
-
-    return string.substr(start);
-}
-
-// -----------------------------------------------------------------------------
-string Stringutil::rtrim(const std::string &string, const char *chars)
-    throw ()
-{
-    string::size_type end = string.find_last_not_of(chars);
-    if (end == string::npos)
-        return "";
-
-    return string.substr(0, end+1);
-}
-
-// -----------------------------------------------------------------------------
 string Stringutil::vector2string(const StringVector &vector,
                                  const char *delimiter)
     throw ()
@@ -358,6 +323,29 @@ bool KString::isNumber()
     }
 
     return true;
+}
+
+// -----------------------------------------------------------------------------
+KString& KString::trim(const char *chars)
+    throw ()
+{
+    return rtrim(chars).ltrim(chars);
+}
+
+// -----------------------------------------------------------------------------
+KString& KString::ltrim(const char *chars)
+    throw ()
+{
+    erase(0, find_first_not_of(chars));
+    return *this;
+}
+
+// -----------------------------------------------------------------------------
+KString& KString::rtrim(const char *chars)
+    throw ()
+{
+    erase(find_last_not_of(chars) + 1);
+    return *this;
 }
 
 //}}}

@@ -60,9 +60,9 @@ KconfigValue KconfigValue::fromString(const string &line, string &name)
     throw (KError)
 {
     KconfigValue ret;
-    string str;
+    KString str = line;
 
-    str = Stringutil::trim(line, "\n");
+    str.trim("\n");
 
     // empty line => T_INVALID
     if (str.size() == 0) {
