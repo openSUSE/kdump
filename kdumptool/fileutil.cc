@@ -112,55 +112,6 @@ void FileUtil::umount(const std::string &mountpoint)
     }
 }
 
-// -----------------------------------------------------------------------------
-static int filter_dots(const struct dirent *d)
-{
-    if (strcmp(d->d_name, ".") == 0)
-        return 0;
-    if (strcmp(d->d_name, "..") == 0)
-        return 0;
-    else
-        return 1;
-}
-
-// -----------------------------------------------------------------------------
-static int filter_dots_and_nondirs(const struct dirent *d)
-{
-    if (strcmp(d->d_name, ".") == 0)
-        return 0;
-    if (strcmp(d->d_name, "..") == 0)
-        return 0;
-    else
-        return d->d_type == DT_DIR;
-}
-
-// -----------------------------------------------------------------------------
-StringVector FileUtil::listdir(const std::string &dir, bool onlyDirs)
-    throw (KError)
-{
-    Debug::debug()->trace("FileUtil::listdir(%s)", dir.c_str());
-
-    int (*filterfunction)(const struct dirent *);
-    if (onlyDirs)
-        filterfunction = filter_dots_and_nondirs;
-    else
-        filterfunction = filter_dots;
-
-    StringVector v;
-    struct dirent **namelist;
-    int count = scandir(dir.c_str(), &namelist, filterfunction, alphasort);
-    if (count < 0)
-        throw KSystemError("Cannot scan directory " + dir + ".", errno);
-
-    for (int i = 0; i < count; i++) {
-        v.push_back(namelist[i]->d_name);
-        free(namelist[i]);
-    }
-    free(namelist);
-
-    return v;
-}
-
 //}}}
 //{{{ FilePath -----------------------------------------------------------------
 
@@ -335,6 +286,55 @@ FilePath FilePath::getCanonicalPath(const string &root) const
     }
 
     return ret;
+}
+
+// -----------------------------------------------------------------------------
+static int filter_dots(const struct dirent *d)
+{
+    if (strcmp(d->d_name, ".") == 0)
+        return 0;
+    if (strcmp(d->d_name, "..") == 0)
+        return 0;
+    else
+        return 1;
+}
+
+// -----------------------------------------------------------------------------
+static int filter_dots_and_nondirs(const struct dirent *d)
+{
+    if (strcmp(d->d_name, ".") == 0)
+        return 0;
+    if (strcmp(d->d_name, "..") == 0)
+        return 0;
+    else
+        return d->d_type == DT_DIR;
+}
+
+// -----------------------------------------------------------------------------
+StringVector FilePath::listDir(bool onlyDirs)
+    throw (KError)
+{
+    Debug::debug()->trace("FileUtil::listdir(%s)", c_str());
+
+    int (*filterfunction)(const struct dirent *);
+    if (onlyDirs)
+        filterfunction = filter_dots_and_nondirs;
+    else
+        filterfunction = filter_dots;
+
+    StringVector v;
+    struct dirent **namelist;
+    int count = scandir(c_str(), &namelist, filterfunction, alphasort);
+    if (count < 0)
+        throw KSystemError("Cannot scan directory " + *this + ".", errno);
+
+    for (int i = 0; i < count; i++) {
+        v.push_back(namelist[i]->d_name);
+        free(namelist[i]);
+    }
+    free(namelist);
+
+    return v;
 }
 
 // -----------------------------------------------------------------------------

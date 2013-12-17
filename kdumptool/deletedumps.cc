@@ -111,7 +111,7 @@ void DeleteDumps::delete_one(const RootDirURL &url, int oldDumps)
         return;
     }
 
-    StringVector contents = FileUtil::listdir(dir, true);
+    StringVector contents = dir.listDir(true);
     int deleteItems;
     if (oldDumps == -1)
         deleteItems = contents.size();

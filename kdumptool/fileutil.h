@@ -78,19 +78,6 @@ class FileUtil {
           */
          static void umount(const std::string &device)
          throw (KError);
-
-         /**
-          * Gets the sorted list of the contents of the specified directory.
-          * The contents is sorted alphabetically, and "." and ".." entries
-          * are omitted.
-          *
-          * @param[in] dir the directory to list
-          * @param[in] @c true if only dirs should be included in the directory
-          *            list, @c false if all files should be included
-          * @exception KError if something went wrong
-          */
-         static StringVector listdir(const std::string &dir, bool onlyDirs)
-         throw (KError);
 };
 
 //}}}
@@ -213,6 +200,18 @@ class FilePath : public KString {
          *            fail for another reason
          */
         unsigned long long fileSize() const
+        throw (KError);
+
+        /**
+         * Gets a sorted list of the contents of the specified directory.
+         * The contents is sorted alphabetically, and "." and ".." entries
+         * are omitted.
+         *
+         * @param[in] @c true if only dirs should be included in the directory
+         *            list, @c false if all files should be included
+         * @exception KError if something went wrong
+         */
+        StringVector listDir(bool onlyDirs)
         throw (KError);
 
         /**
