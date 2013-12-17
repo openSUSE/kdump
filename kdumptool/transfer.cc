@@ -562,13 +562,13 @@ SFTPTransfer::SFTPTransfer(const RootDirURLVector &urlv,
 
     // public and private key
     string homedir = getenv("HOME");
-    string pubkey;
-    string privkey;
+    FilePath pubkey;
+    FilePath privkey;
 
     // DSA
     pubkey = FileUtil::pathconcat(homedir, ".ssh", "id_dsa.pub");
     privkey = FileUtil::pathconcat(homedir, ".ssh", "id_dsa");
-    if (!authenticated && FileUtil::exists(pubkey) && FileUtil::exists(privkey)) {
+    if (!authenticated && pubkey.exists() && privkey.exists()) {
         Debug::debug()->dbg("Using private key %s and public key %s",
                 privkey.c_str(), pubkey.c_str());
 
@@ -586,7 +586,7 @@ SFTPTransfer::SFTPTransfer(const RootDirURLVector &urlv,
     // RSA
     pubkey = FileUtil::pathconcat(homedir, ".ssh", "id_rsa.pub");
     privkey = FileUtil::pathconcat(homedir, ".ssh", "id_rsa");
-    if (!authenticated && FileUtil::exists(pubkey) && FileUtil::exists(privkey)) {
+    if (!authenticated && pubkey.exists() && privkey.exists()) {
         Debug::debug()->dbg("Using private key %s and public key %s",
                 privkey.c_str(), pubkey.c_str());
 
@@ -661,14 +661,14 @@ bool SFTPTransfer::exists(const string &file)
 }
 
 // -----------------------------------------------------------------------------
-void SFTPTransfer::mkdir(const string &dir, bool recursive)
+void SFTPTransfer::mkdir(const FilePath &dir, bool recursive)
     throw (KError)
 {
     Debug::debug()->trace("SFTPTransfer::mkdir(%s, %d)",
         dir.c_str(), int(recursive));
 
     if (!recursive) {
-        if (!exists(dir)) {
+        if (!dir.exists()) {
             int ret = libssh2_sftp_mkdir(m_sftp, dir.c_str(), 0755);
             if (ret != 0)
                 throw KSFTPError("mkdir of " + dir + " failed.",

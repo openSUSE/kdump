@@ -115,9 +115,9 @@ Debuglink::Debuglink(const string &rootdir, const string &file)
     if (elf_version(EV_CURRENT) == EV_NONE )
         throw KError("Elf library out of date!");
 
-    string rootkernel = FileUtil::pathconcat(m_rootdir, file);
-    if (!FileUtil::exists(rootkernel))
-        throw KError("File " + string(rootkernel) + " does not exist.");
+    FilePath rootkernel = FileUtil::pathconcat(m_rootdir, file);
+    if (!rootkernel.exists())
+        throw KError("File " + rootkernel + " does not exist.");
 }
 
 // -----------------------------------------------------------------------------

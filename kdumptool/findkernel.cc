@@ -174,7 +174,7 @@ string FindKernel::findForVersion(const string &kernelver)
     for (list<string>::const_iterator it = imageNames.begin();
             it != imageNames.end(); ++it) {
         string imagename = *it;
-        string kernel;
+        FilePath kernel;
         if (kernelver.size() == 0) {
             kernel = FileUtil::pathconcat(BOOTDIR, imagename);
         } else {
@@ -182,7 +182,7 @@ string FindKernel::findForVersion(const string &kernelver)
         }
 
         Debug::debug()->dbg("findForVersion: Trying %s", kernel.c_str());
-        if (FileUtil::exists(kernel)) {
+        if (kernel.exists()) {
             Debug::debug()->dbg("%s exists", kernel.c_str());
             return kernel;
         }
@@ -295,7 +295,7 @@ bool FindKernel::isKdumpKernel(const string &kernelimage)
 }
 
 // -----------------------------------------------------------------------------
-string FindKernel::findInitrd(const string &kernelPath)
+string FindKernel::findInitrd(const FilePath &kernelPath)
     throw ()
 {
     Debug::debug()->trace("FindKernel::findInitrd(%s)", kernelPath.c_str());
@@ -303,7 +303,7 @@ string FindKernel::findInitrd(const string &kernelPath)
     // use the resolved name, not the symlink to generate the initrd
     string dir, stripped;
     KernelTool::stripImageName(
-        FileUtil::getCanonicalPath(kernelPath), dir, stripped
+        kernelPath.getCanonicalPath(), dir, stripped
     );
 
     string dash;

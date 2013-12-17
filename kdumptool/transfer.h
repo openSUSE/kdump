@@ -29,6 +29,7 @@
 #endif
 
 #include "global.h"
+#include "fileutil.h"
 #include "rootdirurl.h"
 #include "socket.h"
 
@@ -289,7 +290,7 @@ class SFTPTransfer : public URLTransfer {
         void close()
         throw ();
 
-        void mkdir(const std::string &dir, bool recursive)
+        void mkdir(const FilePath &dir, bool recursive)
         throw (KError);
 
         bool exists(const std::string &file)

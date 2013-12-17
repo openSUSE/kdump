@@ -35,7 +35,8 @@ RootDirURL::RootDirURL(const std::string &url, const std::string &rootdir)
     : URLParser(url)
 {
     if (getProtocol() == PROT_FILE) {
-	m_realpath = FileUtil::getCanonicalPath(getPath(), rootdir);
+        FilePath fp(getPath());
+        m_realpath = fp.getCanonicalPath(rootdir);
         Debug::debug()->trace("Real path using root dir (%s): %s",
 			      rootdir.c_str(), m_realpath.c_str());
     }

@@ -29,9 +29,6 @@
  */
 class FileUtil {
 
-    private:
-        static const std::string m_slash;
-
     public:
 
         /**
@@ -53,54 +50,6 @@ class FileUtil {
          */
         static void mkdir(const std::string &dir, bool recursive)
         throw (KError);
-
-        /**
-         * Checks if the given path is a symbolic link.
-         *
-         * @param[in] path the path which should be checked for being a symbolic
-         *            link
-         *
-         * @throw KError on any error
-         */
-        static bool isSymlink(const std::string &path)
-        throw (KError);
-
-        /**
-         * Reads a symbolic link. Does the same like readlink(2), only
-         * that it's C++ and an exception is thrown on error instead of
-         * giving an error code.
-         *
-         * @param[in] path the path to read the link
-         * @return the resolved link
-         *
-         * @throw KError if an error occured
-         */
-        static std::string readlink(const std::string &path)
-        throw (KError);
-
-        /**
-         * Returns the canonical representation of the specified path.
-         * This means that all symbolic links are resolved. It does that
-         * as if the root directory was @p root.
-         *
-         * @param[in] path the path that should be canonicalized
-         * @param[in] root the new root where the function should chroot to
-         * @return the canonical representation of the path
-         *
-         * @throw KError when chroot or realpath() fail
-         */
-        static std::string getCanonicalPath(const std::string &path,
-					    const std::string &root = m_slash)
-        throw (KError);
-
-        /**
-         * Checks if the specified file exists.
-         *
-         * @param[in] file the file that should be checked
-         * @return @c true on success, @c false otherwise
-         */
-        static bool exists(const std::string &file)
-        throw ();
 
         /**
          * Concatenates two path components.
@@ -243,6 +192,10 @@ class FileUtil {
  * File path.
  */
 class FilePath : public std::string {
+
+    private:
+        static const std::string m_slash;
+
     public:
         /**
          * Standard constructors (refer to std::string).
@@ -286,6 +239,46 @@ class FilePath : public std::string {
         std::string dirName() const
         throw ();
 
+        /**
+         * Checks if the specified file exists.
+         *
+         * @return @c true on success, @c false otherwise
+         */
+        bool exists() const
+        throw ();
+
+        /**
+         * Checks if the given path is a symbolic link.
+         *
+         * @throw KError on any error
+         */
+        bool isSymlink() const
+        throw (KError);
+
+        /**
+         * Reads a symbolic link. Does the same like readlink(2), only
+         * that it's C++ and an exception is thrown on error instead of
+         * giving an error code.
+         *
+         * @return the resolved link
+         *
+         * @throw KError if an error occured
+         */
+        std::string readLink() const
+        throw (KError);
+
+        /**
+         * Returns the canonical representation of the specified path.
+         * This means that all symbolic links are resolved. It does that
+         * as if the root directory was @p root.
+         *
+         * @param[in] root the new root where the function should chroot to
+         * @return the canonical representation of the path
+         *
+         * @throw KError when chroot or realpath() fail
+         */
+        FilePath getCanonicalPath(const std::string &root = m_slash) const
+        throw (KError);
 
 };
 

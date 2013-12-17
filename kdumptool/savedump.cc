@@ -18,6 +18,7 @@
  */
 #include <iostream>
 #include <string>
+#include <list>
 #include <strings.h>
 #include <cerrno>
 #include <memory>
@@ -41,6 +42,7 @@
 #include "email.h"
 
 using std::string;
+using std::list;
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -103,7 +105,7 @@ void SaveDump::execute()
     Configuration *config = Configuration::config();
 
     // check if the dump file actually exists
-    if (!FileUtil::exists(m_dump))
+    if (!m_dump.exists())
         throw KError("The dump file " + m_dump + " does not exist.");
 
     // build the transfer object
@@ -223,7 +225,7 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
     }
 
     // check if the vmcore file does exist and has a size of > 0
-    if (!FileUtil::exists(m_dump)) {
+    if (!m_dump.exists()) {
         throw KError("Core file " + m_dump + " does not exist.");
     }
     if (FileUtil::fileSize(m_dump) == 0) {
@@ -339,7 +341,7 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
 void SaveDump::copyMakedumpfile()
     throw (KError)
 {
-    StringList paths;
+    list<FilePath> paths;
     Configuration *config = Configuration::config();
 
     paths.push_back("/bin/makedumpfile-R.pl");
@@ -352,9 +354,9 @@ void SaveDump::copyMakedumpfile()
 
     string makedumpfile_binary;
 
-    for (StringList::const_iterator it = paths.begin();
+    for (list<FilePath>::const_iterator it = paths.begin();
             it != paths.end(); ++it) {
-        if (FileUtil::exists(*it)) {
+        if (it->exists()) {
             makedumpfile_binary = *it;
             break;
         }
@@ -547,27 +549,27 @@ string SaveDump::findKernel()
     Debug::debug()->trace("SaveDump::findKernel()");
 
     // find the kernel binary
-    string binary, binaryroot;
+    FilePath binary, binaryroot;
 
     // 1: vmlinux
     binary = FileUtil::pathconcat("/boot", "vmlinux-" + m_crashrelease);
     binaryroot = FileUtil::pathconcat(m_rootdir, binary);
     Debug::debug()->dbg("Trying %s", binaryroot.c_str());
-    if (FileUtil::exists(binaryroot))
+    if (binaryroot.exists())
         return binary;
 
     // 2: vmlinux.gz
     binary += ".gz";
     binaryroot += ".gz";
     Debug::debug()->dbg("Trying %s", binaryroot.c_str());
-    if (FileUtil::exists(binaryroot))
+    if (binaryroot.exists())
         return binary;
 
     // 3: vmlinuz (check if ELF file)
     binary = FileUtil::pathconcat("/boot", "vmlinuz-" + m_crashrelease);
     binaryroot = FileUtil::pathconcat(m_rootdir, binary);
     Debug::debug()->dbg("Trying %s", binaryroot.c_str());
-    if (FileUtil::exists(binaryroot) &&
+    if (binaryroot.exists() &&
             Util::isElfFile(binaryroot.c_str())) {
         return binary;
     }
@@ -576,7 +578,7 @@ string SaveDump::findKernel()
     binary = FileUtil::pathconcat("/boot", "image-" + m_crashrelease);
     binaryroot = FileUtil::pathconcat(m_rootdir, binary);
     Debug::debug()->dbg("Trying %s", binaryroot.c_str());
-    if (FileUtil::exists(binaryroot))
+    if (binaryroot.exists())
         return binary;
 
     throw KError("No kernel image found in " +
@@ -590,9 +592,9 @@ string SaveDump::findMapfile()
     Debug::debug()->trace("SaveDump::findMapfile()");
 
     string map = FileUtil::pathconcat("/boot", "System.map-" + m_crashrelease);
-    string maproot = FileUtil::pathconcat(m_rootdir, map);
+    FilePath maproot = FileUtil::pathconcat(m_rootdir, map);
     Debug::debug()->dbg("Trying %s", maproot.c_str());
-    if (FileUtil::exists(maproot))
+    if (maproot.exists())
         return map;
 
     throw KError("No System.map found in " +

@@ -19,6 +19,7 @@
 #ifndef SAVE_DUMP_H
 #define SAVE_DUMP_H
 
+#include "fileutil.h"
 #include "subcommand.h"
 #include "urlparser.h"
 #include "rootdirurl.h"
@@ -97,7 +98,7 @@ class SaveDump : public Subcommand {
         throw (KError);
 
     private:
-        std::string m_dump;
+        FilePath m_dump;
         Transfer *m_transfer;
         bool m_usedDirectSave;
         bool m_useMakedumpfile;

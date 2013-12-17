@@ -103,10 +103,10 @@ void DeleteDumps::delete_one(const RootDirURL &url, int oldDumps)
         return;
     }
 
-    string dir = url.getRealPath();
+    FilePath dir = url.getRealPath();
     Debug::debug()->dbg("Using directory %s", dir.c_str());
 
-    if (!FileUtil::exists(dir)) {
+    if (!dir.exists()) {
         cerr << "Nothing to delete in " + dir + "." << endl;
         return;
     }

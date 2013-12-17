@@ -91,130 +91,6 @@ void FileUtil::mkdir(const std::string &dir, bool recursive)
 }
 
 // -----------------------------------------------------------------------------
-bool FileUtil::isSymlink(const std::string &path)
-    throw (KError)
-{
-    struct stat mystat;
-
-    Debug::debug()->trace("isSymlink(%s)", path.c_str());
-
-    int ret = lstat(path.c_str(), &mystat);
-    if (ret < 0) {
-        throw KSystemError("Stat failed", errno);
-    }
-
-    return S_ISLNK(mystat.st_mode);
-}
-
-// -----------------------------------------------------------------------------
-string FileUtil::readlink(const std::string &path)
-    throw (KError)
-{
-    Debug::debug()->trace("readlink(%s)", path.c_str());
-    char buffer[BUFSIZ];
-
-    int ret = ::readlink(path.c_str(), buffer, BUFSIZ-1);
-    if (ret < 0) {
-        throw KSystemError("readlink() failed", errno);
-    }
-
-    buffer[ret] = '\0';
-    return string(buffer);
-}
-
-// -----------------------------------------------------------------------------
-const string FileUtil::m_slash("/");
-
-string FileUtil::getCanonicalPath(const string &path, const string &root)
-    throw (KError)
-{
-    Debug::debug()->trace("getCanonicalPathRoot(%s, %s)",
-			  path.c_str(), root.c_str());
-
-    if (path.size() == 0)
-        return path;
-
-    static const string *rootp = root.empty() ? &m_slash : &root;
-
-    // Use the current directory for relative paths
-    string ret;
-    string::const_iterator p = path.begin();
-    if (*p != '/') {
-	ret = getcwd();
-
-	if (ret.size() < rootp->size() ||
-	    ret.substr(0, rootp->size()) != *rootp)
-	    throw KSystemError("Cannot get current directory", ENOENT);
-    } else
-	ret = *rootp;
-
-    string extra;
-    int num_links = 0;
-    const string *rpath = &path;
-    while (p != rpath->end()) {
-	// Skip sequence of multiple path-separators.
-	while (p != rpath->end() && *p == '/')
-	    ++p;
-
-	// Find end of path component.
-	string::const_iterator dirp = p;
-	while (p != rpath->end() && *p != '/')
-	    ++p;
-	string dir(dirp, p);
-
-	// Handle the last component
-	if (dir.empty())
-	    ;			// extra slash(es) at end - ignore
-	else if (dir == ".")
-	    ;			// nothing
-	else if (dir == "..") {
-	    // Back up to previous component
-	    if (ret.size() > rootp->size())
-		ret.resize(ret.rfind('/'));
-	} else {
-	    if (*ret.rbegin() != '/')
-		ret += '/';
-	    ret += dir;
-
-	    struct stat st;
-	    if (lstat(ret.c_str(), &st) < 0) {
-		if (errno == ENOENT)
-		    ;		// non-existent elements will be created
-		else
-		    throw KSystemError("Stat failed", errno);
-	    } else if (S_ISLNK(st.st_mode)) {
-		if (rpath == &extra) {
-		    extra.replace(0, p - extra.begin(), readlink(ret));
-		} else {
-		    extra = readlink(ret);
-		    extra.append(p, rpath->end());
-		    rpath = &extra;
-		}
-
-		if (++num_links > MAXSYMLINKS)
-		    throw KSystemError("getCanonicalPath() failed", ELOOP);
-
-		p = rpath->begin();
-		ret.resize(*p == '/' ? rootp->size() : ret.rfind('/'));
-	    } else if (!S_ISDIR(st.st_mode) && p != rpath->end()) {
-		throw KSystemError("getCanonicalPath() failed", ENOTDIR);
-	    }
-	}
-    }
-
-    return ret;
-}
-
-// -----------------------------------------------------------------------------
-bool FileUtil::exists(const string &file)
-    throw ()
-{
-    struct stat mystat;
-    int ret = stat(file.c_str(), &mystat);
-    return ret == 0;
-}
-
-// -----------------------------------------------------------------------------
 string FileUtil::pathconcat(const string &a, const string &b)
     throw ()
 {
@@ -434,6 +310,8 @@ unsigned long long FileUtil::fileSize(const std::string &path)
 //}}}
 //{{{ FilePath -----------------------------------------------------------------
 
+const string FilePath::m_slash("/");
+
 // -----------------------------------------------------------------------------
 string FilePath::baseName() const
     throw ()
@@ -457,6 +335,126 @@ string FilePath::dirName() const
     delete[] path;
     return ret;
 }
+
+// -----------------------------------------------------------------------------
+bool FilePath::exists() const
+    throw ()
+{
+    struct stat mystat;
+    int ret = stat(c_str(), &mystat);
+    return ret == 0;
+}
+
+// -----------------------------------------------------------------------------
+bool FilePath::isSymlink() const
+    throw (KError)
+{
+    struct stat mystat;
+
+    int ret = lstat(c_str(), &mystat);
+    if (ret < 0) {
+        throw KSystemError("Stat failed", errno);
+    }
+
+    return S_ISLNK(mystat.st_mode);
+}
+
+// -----------------------------------------------------------------------------
+string FilePath::readLink() const
+    throw (KError)
+{
+    char buffer[BUFSIZ];
+
+    int ret = ::readlink(c_str(), buffer, BUFSIZ-1);
+    if (ret < 0) {
+        throw KSystemError("readlink() failed", errno);
+    }
+
+    buffer[ret] = '\0';
+    return string(buffer);
+}
+
+// -----------------------------------------------------------------------------
+FilePath FilePath::getCanonicalPath(const string &root) const
+    throw (KError)
+{
+    Debug::debug()->trace("getCanonicalPathRoot(%s, %s)",
+                          c_str(), root.c_str());
+
+    if (empty())
+        return *this;
+
+    const string *rootp = root.empty() ? &m_slash : &root;
+
+    // Use the current directory for relative paths
+    FilePath ret;
+    const_iterator p = begin();
+    if (*p != '/') {
+        ret = FileUtil::getcwd();
+
+        if (ret.size() < rootp->size() ||
+            ret.substr(0, rootp->size()) != *rootp)
+            throw KSystemError("Cannot get current directory", ENOENT);
+    } else
+        ret = *rootp;
+
+    string extra;
+    int num_links = 0;
+    const string *rpath = this;
+    while (p != rpath->end()) {
+        // Skip sequence of multiple path-separators.
+        while (p != rpath->end() && *p == '/')
+            ++p;
+
+        // Find end of path component.
+        const_iterator dirp = p;
+        while (p != rpath->end() && *p != '/')
+            ++p;
+        string dir(dirp, p);
+
+        // Handle the last component
+        if (dir.empty())
+            ;                   // extra slash(es) at end - ignore
+        else if (dir == ".")
+            ;                   // nothing
+        else if (dir == "..") {
+            // Back up to previous component
+            if (ret.size() > rootp->size())
+                ret.resize(ret.rfind('/'));
+        } else {
+            if (*ret.rbegin() != '/')
+                ret += '/';
+            ret += dir;
+
+            struct stat st;
+            if (lstat(ret.c_str(), &st) < 0) {
+                if (errno == ENOENT)
+                    ;           // non-existent elements will be created
+                else
+                    throw KSystemError("Stat failed", errno);
+            } else if (S_ISLNK(st.st_mode)) {
+                if (rpath == &extra) {
+                    extra.replace(0, p - extra.begin(), ret.readLink());
+                } else {
+                    extra = ret.readLink();
+                    extra.append(p, rpath->end());
+                    rpath = &extra;
+                }
+
+                if (++num_links > MAXSYMLINKS)
+                    throw KSystemError("getCanonicalPath() failed", ELOOP);
+
+                p = rpath->begin();
+                ret.resize(*p == '/' ? rootp->size() : ret.rfind('/'));
+            } else if (!S_ISDIR(st.st_mode) && p != rpath->end()) {
+                throw KSystemError("getCanonicalPath() failed", ENOTDIR);
+            }
+        }
+    }
+
+    return ret;
+}
+
 //}}}
 
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

@@ -37,7 +37,7 @@ using std::boolalpha;
 // -----------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
-    string path;
+    FilePath path;
 
     if (argc != 2) {
         cerr << "Usage: " << argv[0] << " path" << endl;
@@ -47,15 +47,15 @@ int main(int argc, char *argv[])
     path = argv[1];
 
     try {
-        bool isLink = FileUtil::isSymlink(path);
+        bool isLink = path.isSymlink();
         cout << "Symbolic Link?\t"     << boolalpha << isLink << endl;
 
         if (isLink) {
-            string readlink = FileUtil::readlink(path);
+            string readlink = path.readLink();
             cout << "Readlink\t"  << readlink << endl;
         }
 
-        string canonical = FileUtil::getCanonicalPath(path);
+        string canonical = path.getCanonicalPath();
         cout << "Canonical\t" << canonical << endl;
 
     } catch (const std::exception &ex) {

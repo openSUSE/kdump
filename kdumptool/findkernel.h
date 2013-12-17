@@ -19,6 +19,7 @@
 #ifndef FINDKERNEL_H
 #define FINDKERNEL_H
 
+#include "fileutil.h"
 #include "subcommand.h"
 
 //{{{ FindKernel ---------------------------------------------------------------
@@ -108,7 +109,7 @@ class FindKernel : public Subcommand {
          * @param[in] kernelPath a full path to a kernel image
          * @return the initrd or an empty string if there's no initrd
          */
-        std::string findInitrd(const std::string &kernelPath)
+        std::string findInitrd(const FilePath &kernelPath)
         throw ();
 
     private:

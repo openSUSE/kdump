@@ -49,7 +49,8 @@ int main(int argc, char *argv[])
 
     Debug::debug()->setStderrLevel(Debug::DL_TRACE);
     try {
-	string cpath = FileUtil::getCanonicalPath(argv[1], argv[2]);
+        FilePath fp = argv[1];
+        string cpath = fp.getCanonicalPath(argv[2]);
 	cout << "Path\t" << cpath << endl;
 
     } catch (const std::exception &ex) {

@@ -229,7 +229,7 @@ class KernelTool {
         const throw (KError);
 
     private:
-        std::string m_kernel;
+        FilePath m_kernel;
         int m_fd;
 };
 
