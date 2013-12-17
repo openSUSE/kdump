@@ -20,7 +20,7 @@
 #define FILEUTIL_H
 
 #include "global.h"
-
+#include "stringutil.h"
 
 //{{{ FileUtil -----------------------------------------------------------------
 
@@ -191,7 +191,7 @@ class FileUtil {
 /**
  * File path.
  */
-class FilePath : public std::string {
+class FilePath : public KString {
 
     private:
         static const std::string m_slash;
@@ -201,26 +201,26 @@ class FilePath : public std::string {
          * Standard constructors (refer to std::string).
          */
         FilePath()
-        : std::string()
+        : KString()
         {}
         FilePath(const std::string& str)
-        : std::string(str)
+        : KString(str)
         {}
         FilePath(const std::string& str, size_type pos, size_type len = npos)
-        : std::string(str, pos, len)
+        : KString(str, pos, len)
         {}
         FilePath(const char* s)
-        : std::string(s)
+        : KString(s)
         {}
         FilePath(const char* s, size_type n)
-        : std::string(s, n)
+        : KString(s, n)
         {}
         FilePath(size_type n, char c)
-        : std::string(n, c)
+        : KString(n, c)
         {}
         template <class InputIterator>
             FilePath(InputIterator first, InputIterator last)
-        : std::string(first, last)
+        : KString(first, last)
         {}
 
         /**
