@@ -33,10 +33,10 @@ string StringConfigOption::valueAsString() const
 }
 
 // -----------------------------------------------------------------------------
-void StringConfigOption::update(ConfigParser &cp)
+void StringConfigOption::update(const string &value)
     throw (KError)
 {
-    m_value = cp.getValue(m_name);
+    m_value = value;
 }
 
 //}}}
@@ -49,11 +49,11 @@ string IntConfigOption::valueAsString() const
 }
 
 // -----------------------------------------------------------------------------
-void IntConfigOption::update(ConfigParser &cp)
+void IntConfigOption::update(const string &value)
     throw (KError)
 {
     std::stringstream ss;
-    ss << cp.getValue(m_name);
+    ss << value;
     ss >> m_value;
 }
 
@@ -67,10 +67,10 @@ string BoolConfigOption::valueAsString() const
 }
 
 // -----------------------------------------------------------------------------
-void BoolConfigOption::update(ConfigParser &cp)
+void BoolConfigOption::update(const string &value)
     throw (KError)
 {
-    string val = cp.getValue(m_name);
+    string val = value;
     for (string::iterator it = val.begin(); it != val.end(); ++it)
 	*it = tolower(*it);
     m_value = !(val == "0" || val == "false" || val == "no");
@@ -122,8 +122,10 @@ void Configuration::readFile(const string &filename)
 
     cp.parse();
 
-    for (it = m_options.begin(); it != m_options.end(); ++it)
-	(*it)->update(cp);
+    for (it = m_options.begin(); it != m_options.end(); ++it) {
+        ConfigOption *opt = *it;
+        opt->update(cp.getValue(opt->name()));
+    }
 
     m_readConfig = true;
 }
@@ -142,8 +144,10 @@ void Configuration::readCmdLine(const string &filename)
 
     cp.parse();
 
-    for (it = m_options.begin(); it != m_options.end(); ++it)
-	(*it)->update(cp);
+    for (it = m_options.begin(); it != m_options.end(); ++it) {
+        ConfigOption *opt = *it;
+        opt->update(cp.getValue(opt->name()));
+    }
 
     m_readConfig = true;
 }

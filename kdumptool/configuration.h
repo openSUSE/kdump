@@ -72,10 +72,9 @@ class ConfigOption {
 	/**
 	 * Update the value from a parser.
 	 *
-	 * @cp   the ConfigParser object from which the value will be
-	 *       obtained.
+	 * @param val new value of the option (as a string)
 	 */
-	virtual void update(ConfigParser &cp)
+	virtual void update(const std::string &value)
 	throw (KError) = 0;
 
 	/**
@@ -122,10 +121,9 @@ class StringConfigOption : public ConfigOption {
 	/**
 	 * Update the value from a parser.
 	 *
-	 * @cp   the ConfigParser object from which the value will be
-	 *       obtained.
+	 * @param val new value of the option (as a string)
 	 */
-	virtual void update(ConfigParser &cp)
+	virtual void update(const std::string &value)
 	throw (KError);
 
 	/**
@@ -170,10 +168,9 @@ class IntConfigOption : public ConfigOption {
 	/**
 	 * Update the value from a parser.
 	 *
-	 * @cp   the ConfigParser object from which the value will be
-	 *       obtained.
+	 * @param val new value of the option (as a string)
 	 */
-	virtual void update(ConfigParser &cp)
+	virtual void update(const std::string &value)
 	throw (KError);
 
 	/**
@@ -218,10 +215,9 @@ class BoolConfigOption : public ConfigOption {
 	/**
 	 * Update the value from a parser.
 	 *
-	 * @cp   the ConfigParser object from which the value will be
-	 *       obtained.
+	 * @param val new value of the option (as a string)
 	 */
-	virtual void update(ConfigParser &cp)
+	virtual void update(const std::string &value)
 	throw (KError);
 
 	/**
