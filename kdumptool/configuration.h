@@ -23,9 +23,6 @@
 #include <typeinfo>
 
 #include "global.h"
-#include "optionparser.h"
-#include "configparser.h"
-#include "subcommand.h"
 
 //{{{ ConfigOption -------------------------------------------------------------
 /**

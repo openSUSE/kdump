@@ -29,6 +29,7 @@
 #include "debug.h"
 #include "util.h"
 #include "configuration.h"
+#include "optionparser.h"
 #include "config.h"
 
 using std::list;

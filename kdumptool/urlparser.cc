@@ -22,8 +22,6 @@
 #include <stdint.h>
 
 #include "global.h"
-#include "optionparser.h"
-#include "subcommand.h"
 #include "debug.h"
 #include "urlparser.h"
 #include "stringutil.h"
