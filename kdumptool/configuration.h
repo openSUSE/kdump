@@ -268,6 +268,11 @@ class Configuration {
 #undef DEFINE_OPT
 	};
 
+#define DEFINE_OPT(name, type, defval, usage)		\
+	type ## ConfigOption m_ ## name;
+#include "define_opt.h"
+#undef DEFINE_OPT
+
     public:
         /**
          * Returns the only configuration object.
