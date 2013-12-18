@@ -25,12 +25,6 @@
 
 using std::string;
 
-//{{{ ConfigOption -------------------------------------------------------------
-void ConfigOption::registerVar(ConfigParser &cp) const
-{
-    cp.addVariable(m_name, valueAsString());
-}
-
 //{{{ StringConfigOption -------------------------------------------------------
 string StringConfigOption::valueAsString() const
     throw ()
@@ -121,8 +115,10 @@ void Configuration::readFile(const string &filename)
     ShellConfigParser cp(filename);
 
     std::vector<ConfigOption*>::iterator it;
-    for (it = m_options.begin(); it != m_options.end(); ++it)
-	(*it)->registerVar(cp);
+    for (it = m_options.begin(); it != m_options.end(); ++it) {
+        ConfigOption *opt = *it;
+        cp.addVariable(opt->name(), opt->valueAsString());
+    }
 
     cp.parse();
 
@@ -139,8 +135,10 @@ void Configuration::readCmdLine(const string &filename)
     KernelConfigParser cp(filename);
 
     std::vector<ConfigOption*>::iterator it;
-    for (it = m_options.begin(); it != m_options.end(); ++it)
-	(*it)->registerVar(cp);
+    for (it = m_options.begin(); it != m_options.end(); ++it) {
+        ConfigOption *opt = *it;
+        cp.addVariable(opt->name(), opt->valueAsString());
+    }
 
     cp.parse();
 

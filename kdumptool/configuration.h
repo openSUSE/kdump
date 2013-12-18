@@ -70,14 +70,6 @@ class ConfigOption {
 	virtual std::string valueAsString() const = 0;
 
 	/**
-	 * Register the configuration option with a parser.
-	 *
-	 * @cp   the ConfigParser object where the config option will
-	 *       be registered.
-	 */
-	virtual void registerVar(ConfigParser &cp) const;
-
-	/**
 	 * Update the value from a parser.
 	 *
 	 * @cp   the ConfigParser object from which the value will be
