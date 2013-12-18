@@ -84,22 +84,22 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
     OptionParser optionParser;
     FlagOption helpOption(
         "help", 'h', &doHelp,
-        "Prints help output.");
+        "Print help output");
     FlagOption versionOption(
         "version", 'v', &doVersion,
-        "Prints version information and exits.");
+        "Print version information and exit");
     FlagOption backgroundOption(
         "background", 'b', &m_background,
-        "Run in the background (daemon mode).");
+        "Run in the background (daemon mode)");
     FlagOption debugOption(
         "debug", 'D', &debugEnabled,
-        "Prints debugging output.");
+        "Print debugging output");
     StringOption logFileOption(
         "logfile", 'L', &logFilename,
-        "Uses the specified logfile for the debugging output.");
+        "Use the specified logfile for debugging output");
     StringOption configFileOption(
         "configfile", 'F', &m_configfile,
-        "Use the specified configuration file instead of "DEFAULT_CONFIG" .");
+        "Use the specified configuration file instead of "DEFAULT_CONFIG);
     StringOption cmdlineOption(
         "cmdline", 'C', &m_kernel_cmdline,
         "Also parse kernel parameters from a given file (e.g. /proc/cmdline)");

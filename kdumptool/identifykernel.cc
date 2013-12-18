@@ -39,9 +39,9 @@ IdentifyKernel::IdentifyKernel()
     : m_checkRelocatable(false), m_checkType(false)
 {
     m_options.push_back(new FlagOption("relocatable", 'r', &m_checkRelocatable,
-        "Checks if the kernel is relocatable"));
+        "Check if the kernel is relocatable"));
     m_options.push_back(new FlagOption("type", 't', &m_checkType,
-        "Prints the type of the kernel"));
+        "Print the type of the kernel"));
 }
 
 // -----------------------------------------------------------------------------
