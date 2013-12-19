@@ -141,6 +141,7 @@ uint8_t Process::execute(const string &name, const StringVector &args)
             if (fds[0].revents & POLLOUT) {
                 // Buffer underflow
                 if (inbufptr >= inbufend) {
+                    m_stdin->clear();
                     m_stdin->read(inbufptr = inbuf, BUFSIZ);
                     if (m_stdin->bad())
                         throw KSystemError("Cannot get data for stdin pipe",
