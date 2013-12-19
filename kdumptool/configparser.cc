@@ -74,7 +74,6 @@ void ShellConfigParser::parse()
     ifstream fin(m_configFile.c_str());
     if (!fin)
         throw KSystemError("Cannot open config file " + m_configFile, errno);
-    fin.close();
 
     // build the shell snippet
     stringstream shell;
@@ -89,7 +88,8 @@ void ShellConfigParser::parse()
         shell << name << "=" << value.quoted() << "\n";
     }
 
-    shell << "source " << m_configFile << "\n";
+    shell << fin.rdbuf();
+    fin.close();
 
     for (StringStringMap::const_iterator it = m_variables.begin();
             it != m_variables.end(); ++it) {
