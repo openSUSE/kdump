@@ -19,6 +19,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <cerrno>
 
 #include "configparser.h"
 #include "debug.h"
@@ -72,7 +73,7 @@ void ShellConfigParser::parse()
     // check if the configuration file does exist
     ifstream fin(m_configFile.c_str());
     if (!fin)
-        throw KError("The file " + m_configFile + " does not exist.");
+        throw KSystemError("Cannot open config file " + m_configFile, errno);
     fin.close();
 
     // build the shell snippet
@@ -148,7 +149,7 @@ void KernelConfigParser::parse()
     // check if the configuration file does exist
     ifstream fin(m_configFile.c_str());
     if (!fin)
-        throw KError("The file " + m_configFile + " does not exist.");
+        throw KSystemError("Cannot open config file " + m_configFile, errno);
 
     // slurp the file into a string stream
     stringstream ss;
