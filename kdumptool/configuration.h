@@ -258,18 +258,11 @@ class Configuration {
              VERB_DEBUG_TRANSFER    = (1<<3)
         };
 
-	/**
-	 * Configuration option index.
-	 */
-	enum OptionIndex {
+        /**
+         * Configuration options.
+         */
 #define DEFINE_OPT(name, type, defval, usage)		\
-	    name,
-#include "define_opt.h"
-#undef DEFINE_OPT
-	};
-
-#define DEFINE_OPT(name, type, defval, usage)		\
-	type ## ConfigOption m_ ## name;
+        type ## ConfigOption name;
 #include "define_opt.h"
 #undef DEFINE_OPT
 
@@ -302,51 +295,6 @@ class Configuration {
         void readCmdLine(const std::string &filename)
         throw (KError);
 
-	/**
-	 * Return the value of a string option.
-	 *
-	 * @param index the option index
-	 * @return the option value
-	 * @exception std::bad_cast if the option index is not a string
-	 *            or an exception thrown by Configuration::getOptionPtr()
-	 */
-	const std::string &getStringValue(enum OptionIndex index) const
-	throw (KError, std::out_of_range, std::bad_cast)
-	{
-	    return dynamic_cast<StringConfigOption&>
-		(*getOptionPtr(index)).value();
-	}
-
-	/**
-	 * Return the value of an integer option.
-	 *
-	 * @param index the option index
-	 * @return the option value
-	 * @exception std::bad_cast if the option index is not an int
-	 *            or an exception thrown by Configuration::getOptionPtr()
-	 */
-	int getIntValue(enum OptionIndex index) const
-	throw (KError, std::out_of_range, std::bad_cast)
-	{
-	    return dynamic_cast<IntConfigOption&>
-		(*getOptionPtr(index)).value();
-	}
-
-	/**
-	 * Return the value of a boolean option.
-	 *
-	 * @param index the option index
-	 * @return the option value
-	 * @exception std::bad_cast if the option index is not a boolean
-	 *            or an exception thrown by Configuration::getOptionPtr()
-	 */
-	bool getBoolValue(enum OptionIndex index) const
-	throw (KError, std::out_of_range, std::bad_cast)
-	{
-	    return dynamic_cast<BoolConfigOption&>
-		(*getOptionPtr(index)).value();
-	}
-
         /**
 	 * Checks if KDUMPTOOL_FLAGS contains @p flag.
 	 *
@@ -371,16 +319,6 @@ class Configuration {
 
         virtual ~Configuration()
         throw () {}
-
-	/**
-	 * Get a pointer to a raw configuration option.
-	 *
-	 * @param index The option index.
-	 * @exception KError if the configuration has not been read yet
-	 *            std::out_of_range if an invalid index is used
-	 */
-	ConfigOption *getOptionPtr(enum OptionIndex index) const
-	throw (KError, std::out_of_range);
 
     private:
         static Configuration *m_instance;

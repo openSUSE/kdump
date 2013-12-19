@@ -532,8 +532,7 @@ SFTPTransfer::SFTPTransfer(const RootDirURLVector &urlv,
 #if HAVE_LIBSSL
     // check the fingerprints if possible
     Configuration *config = Configuration::config();
-    const string &hostkey =
-	config->getStringValue(Configuration::KDUMP_HOST_KEY);
+    const string &hostkey = config->KDUMP_HOST_KEY.value();
 
     if (!hostkey.empty() && hostkey != "*") {
 	char expectmd5[MD5SUM_LENGTH];

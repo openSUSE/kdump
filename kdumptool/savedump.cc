@@ -110,8 +110,7 @@ void SaveDump::execute()
     // build the transfer object
     // prepend a time stamp to the save dir
     string subdir = Stringutil::formatCurrentTime(ISO_DATETIME);
-    RootDirURLVector urlv(
-	config->getStringValue(Configuration::KDUMP_SAVEDIR), m_rootdir);
+    RootDirURLVector urlv(config->KDUMP_SAVEDIR.value(), m_rootdir);
 
     m_transfer = URLTransfer::getTransfer(urlv, subdir);
 
@@ -130,7 +129,7 @@ void SaveDump::execute()
             cout << error.what() << endl;
         }
 
-        if (config->getBoolValue(Configuration::KDUMP_CONTINUE_ON_ERROR))
+        if (config->KDUMP_CONTINUE_ON_ERROR.value())
             cout << error.what() << endl;
         else
             throw;
@@ -146,7 +145,7 @@ void SaveDump::execute()
         checkAndDelete(urlv, subdir);
     } catch (const KError &error) {
         setErrorCode(1);
-        if (config->getBoolValue(Configuration::KDUMP_CONTINUE_ON_ERROR))
+        if (config->KDUMP_CONTINUE_ON_ERROR.value())
             cout << error.what() << endl;
         else
             throw;
@@ -158,7 +157,7 @@ void SaveDump::execute()
             copyMakedumpfile();
     } catch (const KError &error) {
         setErrorCode(1);
-        if (config->getBoolValue(Configuration::KDUMP_CONTINUE_ON_ERROR))
+        if (config->KDUMP_CONTINUE_ON_ERROR.value())
             cout << error.what() << endl;
         else
             throw;
@@ -186,7 +185,7 @@ void SaveDump::execute()
         generateInfo();
     } catch (const KError &error) {
         setErrorCode(1);
-        if (config->getBoolValue(Configuration::KDUMP_CONTINUE_ON_ERROR))
+        if (config->KDUMP_CONTINUE_ON_ERROR.value())
             cout << error.what() << endl;
         else
             throw;
@@ -195,11 +194,11 @@ void SaveDump::execute()
     // copy kernel
     if (m_crashrelease.size() > 0) {
         try {
-            if (config->getBoolValue(Configuration::KDUMP_COPY_KERNEL))
+            if (config->KDUMP_COPY_KERNEL.value())
                 copyKernel();
         } catch (const KError &error) {
             setErrorCode(1);
-            if (config->getBoolValue(Configuration::KDUMP_CONTINUE_ON_ERROR))
+            if (config->KDUMP_CONTINUE_ON_ERROR.value())
                 cout << error.what() << endl;
             else
                 throw;
@@ -217,7 +216,7 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
     Configuration *config = Configuration::config();
 
     // build the data provider object
-    int dumplevel = config->getIntValue(Configuration::KDUMP_DUMPLEVEL);
+    int dumplevel = config->KDUMP_DUMPLEVEL.value();
     if (dumplevel < 0 || dumplevel > 31) {
         Debug::debug()->info("Dumplevel %d is invalid. Using 0.", dumplevel);
         dumplevel = 0;
@@ -243,7 +242,7 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
 	cout << "Extracting dmesg" << endl;
 	terminal.printLine();
 	TerminalProgress logProgress("Saving dmesg");
-        if (config->getIntValue(Configuration::KDUMP_VERBOSE)
+        if (config->KDUMP_VERBOSE.value()
 	    & Configuration::VERB_PROGRESS)
             logProvider.setProgress(&logProgress);
         else
@@ -257,8 +256,7 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
     }
 
     // dump format
-    const string &dumpformat =
-	config->getStringValue(Configuration::KDUMP_DUMPFORMAT);
+    const string &dumpformat = config->KDUMP_DUMPFORMAT.value();
     DataProvider *provider;
 
     bool noDump = strcasecmp(dumpformat.c_str(), "none") == 0;
@@ -269,7 +267,7 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
     if (noDump)
 	return;			// nothing to be done
 
-    if (config->getIntValue(Configuration::KDUMP_CPUS) > 1) {
+    if (config->KDUMP_CPUS.value() > 1) {
 	if (!useElf)
 	    m_useSplit = true;
 	else
@@ -286,9 +284,8 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
         cmdline << "makedumpfile ";
 	if (m_useSplit)
 	    cmdline << "--split ";
-        cmdline << config->getStringValue(Configuration::MAKEDUMPFILE_OPTIONS) << " ";
-        cmdline << "-d "
-		<< config->getIntValue(Configuration::KDUMP_DUMPLEVEL) << " ";
+        cmdline << config->MAKEDUMPFILE_OPTIONS.value() << " ";
+        cmdline << "-d " << config->KDUMP_DUMPLEVEL.value() << " ";
         if (useElf)
             cmdline << "-E ";
         if (useCompressed)
@@ -311,14 +308,14 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
             terminal.printLine();
         }
         TerminalProgress progress("Saving dump");
-        if (config->getIntValue(Configuration::KDUMP_VERBOSE)
+        if (config->KDUMP_VERBOSE.value()
 	    & Configuration::VERB_PROGRESS)
             provider->setProgress(&progress);
         else
             cout << "Saving dump ..." << endl;
 	if (m_useSplit) {
 	    StringVector targets;
-	    const int cpus = config->getIntValue(Configuration::KDUMP_CPUS);
+            const int cpus = config->KDUMP_CPUS.value();
 	    for (int i = 1; i <= cpus; ++i) {
 		ostringstream ss;
 		ss << "vmcore" << i;
@@ -366,7 +363,7 @@ void SaveDump::copyMakedumpfile()
 
     FileDataProvider provider(makedumpfile_binary.c_str());
     TerminalProgress progress("Saving makedumpfile-R.pl");
-    if (config->getIntValue(Configuration::KDUMP_VERBOSE)
+    if (config->KDUMP_VERBOSE.value()
 	& Configuration::VERB_PROGRESS)
         provider.setProgress(&progress);
     else
@@ -408,7 +405,7 @@ void SaveDump::generateRearrange()
     TerminalProgress progress2("Generating rearrange script");
     ByteVector bv = Stringutil::str2bytes(ss.str());
     BufferDataProvider provider2(bv);
-    if (config->getIntValue(Configuration::KDUMP_VERBOSE)
+    if (config->KDUMP_VERBOSE.value()
 	& Configuration::VERB_PROGRESS)
         provider2.setProgress(&progress2);
     else
@@ -456,11 +453,10 @@ void SaveDump::generateInfo()
         ss << "Kernel version : " << m_crashrelease << endl;
     ss << "Host           : " << m_hostname << endl;
     ss << "Dump level     : "
-       << Stringutil::number2string(config->getIntValue(Configuration::KDUMP_DUMPLEVEL)) << endl;
-    ss << "Dump format    : " << config->getStringValue(Configuration::KDUMP_DUMPFORMAT) << endl;
+       << Stringutil::number2string(config->KDUMP_DUMPLEVEL.value()) << endl;
+    ss << "Dump format    : " << config->KDUMP_DUMPFORMAT.value() << endl;
     if (m_useSplit && m_usedDirectSave)
-	ss << "Split parts    : "
-	   << config->getIntValue(Configuration::KDUMP_CPUS) << endl;
+        ss << "Split parts    : " << config->KDUMP_CPUS.value() << endl;
     ss << endl;
 
 
@@ -475,7 +471,7 @@ void SaveDump::generateInfo()
     TerminalProgress progress("Generating README");
     ByteVector bv = Stringutil::str2bytes(ss.str());
     BufferDataProvider provider(bv);
-    if (config->getIntValue(Configuration::KDUMP_VERBOSE)
+    if (config->KDUMP_VERBOSE.value()
 	& Configuration::VERB_PROGRESS)
         provider.setProgress(&progress);
     else
@@ -499,7 +495,7 @@ void SaveDump::copyKernel()
     TerminalProgress mapProgress("Copying System.map");
     (fp = m_rootdir).appendPath(mapfile);
     FileDataProvider mapProvider(fp.c_str());
-    if (config->getIntValue(Configuration::KDUMP_VERBOSE)
+    if (config->KDUMP_VERBOSE.value()
 	& Configuration::VERB_PROGRESS)
         mapProvider.setProgress(&mapProgress);
     else
@@ -509,7 +505,7 @@ void SaveDump::copyKernel()
     TerminalProgress kernelProgress("Copying kernel");
     (fp = m_rootdir).appendPath(kernel);
     FileDataProvider kernelProvider(fp.c_str());
-    if (config->getIntValue(Configuration::KDUMP_VERBOSE)
+    if (config->KDUMP_VERBOSE.value()
 	& Configuration::VERB_PROGRESS)
         kernelProvider.setProgress(&kernelProgress);
     else
@@ -526,7 +522,7 @@ void SaveDump::copyKernel()
         TerminalProgress debugkernelProgress("Copying kernel.debug");
         (fp = m_rootdir).appendPath(debuglink);
         FileDataProvider debugkernelProvider(fp.c_str());
-        if (config->getIntValue(Configuration::KDUMP_VERBOSE)
+        if (config->KDUMP_VERBOSE.value()
 	    & Configuration::VERB_PROGRESS)
             debugkernelProvider.setProgress(&debugkernelProgress);
         else
@@ -630,7 +626,7 @@ void SaveDump::check_one(const RootDirURL &parser,
     Configuration *config = Configuration::config();
 
     unsigned long long freeSize = path.freeDiskSize();
-    unsigned long long targetDiskSize = (unsigned long long)config->getIntValue(Configuration::KDUMP_FREE_DISK_SIZE);
+    unsigned long long targetDiskSize = config->KDUMP_FREE_DISK_SIZE.value();
 
     Debug::debug()->dbg("Free MB: %lld, Configuration: %lld",
             bytes_to_megabytes(freeSize), targetDiskSize);
@@ -658,10 +654,8 @@ void SaveDump::sendNotification(bool failure, const RootDirURLVector &urlv,
     }
 
     Configuration *config = Configuration::config();
-    const std::string &SmtpServer =
-	config->getStringValue(Configuration::KDUMP_SMTP_SERVER);
-    const std::string &NotificationTo =
-	config->getStringValue(Configuration::KDUMP_NOTIFICATION_TO);
+    const std::string &SmtpServer = config->KDUMP_SMTP_SERVER.value();
+    const std::string &NotificationTo = config->KDUMP_NOTIFICATION_TO.value();
 
     // Email not configured
     if (SmtpServer.size() == 0 && NotificationTo.size() == 0) {
@@ -683,7 +677,7 @@ void SaveDump::sendNotification(bool failure, const RootDirURLVector &urlv,
         email.setTo(NotificationTo);
 
 	const std::string &NotificationCc =
-	    config->getStringValue(Configuration::KDUMP_NOTIFICATION_CC);
+            config->KDUMP_NOTIFICATION_CC.value();
         if (NotificationCc.size() != 0) {
             istringstream split(NotificationCc);
             string cc;

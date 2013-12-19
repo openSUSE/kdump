@@ -60,8 +60,7 @@ void PrintTarget::execute()
 
     Configuration *config = Configuration::config();
 
-    RootDirURLVector urlv(
-	config->getStringValue(Configuration::KDUMP_SAVEDIR), m_rootdir);
+    RootDirURLVector urlv(config->KDUMP_SAVEDIR.value(), m_rootdir);
     RootDirURLVector::iterator it;
     for (it = urlv.begin(); it != urlv.end(); ++it) {
 	if (it != urlv.begin())

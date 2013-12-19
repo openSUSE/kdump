@@ -72,8 +72,7 @@ void FindKernel::execute()
 {
     Debug::debug()->trace("FindKernel::execute()");
 
-    const string &kernelver = Configuration::config()
-	->getStringValue(Configuration::KDUMP_KERNELVER);
+    const string &kernelver = Configuration::config()->KDUMP_KERNELVER.value();
 
     // user has specified a specific kernel, check that first
     string kernelimage;
@@ -314,7 +313,7 @@ string FindKernel::findInitrd(const FilePath &kernelPath)
 
 #if HAVE_FADUMP
     const bool use_fadump =
-        Configuration::config()->getBoolValue(Configuration::KDUMP_FADUMP);
+        Configuration::config()->KDUMP_FADUMP.value();
 #else
     const bool use_fadump = false;
 #endif

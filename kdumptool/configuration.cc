@@ -99,7 +99,7 @@ Configuration::Configuration()
 #define KEXEC    (1<<ConfigOption::USE_KEXEC)
 #define DUMP     (1<<ConfigOption::USE_DUMP)
 #define DEFINE_OPT(name, type, defval, usage)				\
-    m_ ## name (#name, usage, defval),
+    name (#name, usage, defval),
 #include "define_opt.h"
 #undef MKINITRD
 #undef KEXEC
@@ -108,7 +108,7 @@ Configuration::Configuration()
     m_readConfig(false)
 {
 #define DEFINE_OPT(name, type, defval, usage)				\
-    m_options.push_back(&m_ ## name);
+    m_options.push_back(&name);
 #include "define_opt.h"
 #undef DEFINE_OPT
 }
@@ -158,21 +158,10 @@ void Configuration::readCmdLine(const string &filename)
 }
 
 // -----------------------------------------------------------------------------
-ConfigOption *Configuration::getOptionPtr(enum OptionIndex index) const
-    throw (KError, std::out_of_range)
-{
-    if (!m_readConfig)
-        throw KError("Configuration has not been read.");
-
-    return m_options.at(index);
-}
-
-// -----------------------------------------------------------------------------
 bool Configuration::kdumptoolContainsFlag(const std::string &flag)
     throw (KError, std::out_of_range, std::bad_cast)
 {
-    const string &value = getStringValue(KDUMPTOOL_FLAGS);
-    string::size_type pos = value.find(flag);
+    string::size_type pos = KDUMPTOOL_FLAGS.value().find(flag);
     return pos != string::npos;
 }
 
