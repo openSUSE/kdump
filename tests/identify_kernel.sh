@@ -50,6 +50,7 @@ TYPE=(         "x86"
 
 KDUMPTOOL=$1
 DIR=$2
+KDUMPOPT="-F $2/empty.conf"
 
 if [ -z "$DIR" ] || [ -z "$KDUMPTOOL" ] ; then
     echo "Usage: $0 kdumptool directory"
@@ -71,10 +72,10 @@ for kernel in ${KERNEL_IMAGES[@]}; do
         continue
     fi
 
-    reloc_output=$($KDUMPTOOL identify_kernel -r $path)
+    reloc_output=$($KDUMPTOOL $KDUMPOPT identify_kernel -r $path)
     reloc_exit=$?
 
-    type_output=$($KDUMPTOOL identify_kernel -t $path)
+    type_output=$($KDUMPTOOL $KDUMPOPT identify_kernel -t $path)
     type_exit=$?
 
     echo "$reloc_output ($reloc_exit) $type_output ($type_exit)"
