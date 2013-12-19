@@ -60,33 +60,6 @@ class Process {
         throw (KError);
 
         /**
-         * Sets a file descriptor for stdin which will be used for the process
-         * executed in Process::execute().
-         *
-         * @param[in] fd the file descriptor
-         */
-        void setStdinFd(int fd)
-        throw ();
-
-        /**
-         * Sets a file descriptor for stdout which will be used for the process
-         * executed in Process::execute().
-         *
-         * @param[in] fd the file descriptor
-         */
-        void setStdoutFd(int fd)
-        throw ();
-
-        /**
-         * Sets a file descriptor for stderr which will be used for the process
-         * executed in Process::execute().
-         *
-         * @param[in] fd the file descriptor
-         */
-        void setStderrFd(int fd)
-        throw ();
-
-        /**
          * Sets a file name for stdin which will be used for the process
          * executed in Process::execute(). Calling Process::setStdinFd()
          * overwrites Process::setStdinFile() and vice versa.

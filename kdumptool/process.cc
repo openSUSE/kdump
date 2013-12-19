@@ -45,30 +45,6 @@ Process::Process()
 {}
 
 // -----------------------------------------------------------------------------
-void Process::setStdinFd(int fd)
-    throw ()
-{
-    m_stdinFd = fd;
-    m_needCloseStdin = false;
-}
-
-// -----------------------------------------------------------------------------
-void Process::setStdoutFd(int fd)
-    throw ()
-{
-    m_stdoutFd = fd;
-    m_needCloseStdout = false;
-}
-
-// -----------------------------------------------------------------------------
-void Process::setStderrFd(int fd)
-    throw ()
-{
-    m_stderrFd = fd;
-    m_needCloseStderr = false;
-}
-
-// -----------------------------------------------------------------------------
 void Process::setStdinFile(const char *filename)
     throw (KError)
 {
