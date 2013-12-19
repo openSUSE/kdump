@@ -89,6 +89,8 @@ void ShellConfigParser::parse()
     }
 
     shell << fin.rdbuf();
+    if (fin && !fin.tellg())
+        shell.clear(shell.rdstate() & ~shell.failbit);
     fin.close();
 
     for (StringStringMap::const_iterator it = m_variables.begin();
