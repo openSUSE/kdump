@@ -107,6 +107,7 @@ Configuration::Configuration()
 #undef DEFINE_OPT
     m_readConfig(false)
 {
+    m_options.reserve(optionCount);
 #define DEFINE_OPT(name, type, defval, usage)				\
     m_options.push_back(&name);
 #include "define_opt.h"

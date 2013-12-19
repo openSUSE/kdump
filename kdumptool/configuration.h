@@ -266,6 +266,19 @@ class Configuration {
 #include "define_opt.h"
 #undef DEFINE_OPT
 
+        /**
+         * Total number of configuration options.
+         */
+        static const int optionCount = sizeof(
+/* Since the include file does not contain anything beyond tokens removed
+ * or interpreted by the preprocessor, we can use string concatenation to
+ * create a dummy string with as many characters as there are options.
+ */
+#define DEFINE_OPT(name, type, defval, usage) "."
+#include "define_opt.h"
+#undef DEFINE_OPT
+            ) - 1;           /* for the NUL character */
+
     public:
         /**
          * Returns the only configuration object.
