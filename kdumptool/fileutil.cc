@@ -24,6 +24,7 @@
 #include <cstdlib>
 #include <libgen.h>
 #include <dirent.h>
+#include <sstream>
 #include <sys/vfs.h>
 #include <sys/param.h>
 
@@ -35,6 +36,7 @@
 #include "process.h"
 #include "stringutil.h"
 
+using std::ostringstream;
 using std::string;
 using std::strcpy;
 using std::free;
@@ -81,13 +83,13 @@ void FileUtil::mount(const std::string &device, const std::string &mountpoint,
     args.push_back(mountpoint);
 
     Process p;
-    ByteVector stderrBuffer;
-    p.setStderrBuffer(&stderrBuffer);
+    ostringstream stderrStream;
+    p.setStderr(&stderrStream);
 
     int ret = p.execute("mount", args);
     Debug::debug()->dbg("Mount:%d", ret);
     if (ret != 0) {
-        KString error = Stringutil::bytes2str(stderrBuffer);
+        KString error = stderrStream.str();
         throw KError("mount failed: " + error.trim() + ".");
     }
 }
@@ -102,12 +104,12 @@ void FileUtil::umount(const std::string &mountpoint)
     Debug::debug()->trace("FileUtil::umount(%s)", mountpoint.c_str());
 
     Process p;
-    ByteVector stderrBuffer;
-    p.setStderrBuffer(&stderrBuffer);
+    ostringstream stderrStream;
+    p.setStderr(&stderrStream);
 
     int ret = p.execute("umount", args);
     if (ret != 0) {
-        KString error = Stringutil::bytes2str(stderrBuffer);
+        KString error = stderrStream.str();
         throw KError("umount failed: " + error.trim());
     }
 }

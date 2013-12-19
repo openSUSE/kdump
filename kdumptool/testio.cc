@@ -17,6 +17,7 @@
  * 02110-1301, USA.
  */
 #include <string>
+#include <sstream>
 #include <iostream>
 #include <cstdlib>
 #include <stdexcept>
@@ -35,6 +36,7 @@ using std::endl;
 using std::string;
 using std::ifstream;
 using std::ofstream;
+using std::stringstream;
 
 // -----------------------------------------------------------------------------
 int main(int argc, char *argv[])
@@ -56,24 +58,29 @@ int main(int argc, char *argv[])
         StringVector v;
         v.push_back("-");
 
+        ifstream fin;
+        ofstream fout;
+
         Debug::debug()->info("1st test: %s -> %s",
             testdata.c_str(), output1.c_str());
         Process p;
 
-        ByteVector stdoutV;
-        p.setStdinFile(testdata.c_str());
-        p.setStdoutBuffer(&stdoutV);
+        stringstream stdoutStream;
+        fin.open(testdata.c_str());
+        p.setStdin(&fin);
+        p.setStdout(&stdoutStream);
         p.execute("cat", v);
+        fin.close();
 
-        ofstream fout(output1.c_str());
-        fout << Stringutil::bytes2str(stdoutV);
+        fout.open(output1.c_str());
+        fout << stdoutStream.str();
         fout.close();
 
         Debug::debug()->info("2nd test: %s -> %s",
             testdata.c_str(), output2.c_str());
 
         Process p2;
-        ifstream fin(testdata.c_str());
+        fin.open(testdata.c_str());
         string s;
         if (!fin)
             cerr << "Input file cannnot be opened" << endl;
@@ -82,10 +89,12 @@ int main(int argc, char *argv[])
             while (fin.get(c))
                 s += c;
         }
-        ByteVector bv = Stringutil::str2bytes(s);
-        p2.setStdinBuffer(&bv);
-        p2.setStdoutFile(output2.c_str());
+        stringstream bs(s);
+        fout.open(output2.c_str());
+        p2.setStdin(&bs);
+        p2.setStdout(&fout);
         p2.execute("cat", v);
+        fout.close();
 
     } catch (const std::exception &ex) {
         cerr << "Fatal exception: " << ex.what() << endl;

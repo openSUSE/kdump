@@ -60,88 +60,40 @@ class Process {
         throw (KError);
 
         /**
-         * Sets a file name for stdin which will be used for the process
-         * executed in Process::execute(). Calling Process::setStdinFd()
-         * overwrites Process::setStdinFile() and vice versa.
+         * Sets the stream which will be used as stdin for the process
+         * executed in Process::execute().
          *
-         * @param[in] filename the filename of the file. This file will be
-         *            opened readonly.
-         * @throw KError if opening the specified @p filename failed
+         * @param[in] stream the stream to be used as input
          */
-        void setStdinFile(const char *filename)
-        throw (KError);
-
-        /**
-         * Sets a file name for stdout which will be used for the process
-         * executed in Process::executable(). Calling Process::setStdoutFd()
-         * overwrites Process::setStdoutFile() and vice versa.
-         *
-         * @param[in] filename the filename of the file. This file will be
-         *            opened writeonly.
-         * @throw KError if opening the specified @p filename failed
-         */
-        void setStdoutFile(const char *filename)
-        throw (KError);
-
-        /**
-         * Sets a file name for stderr which will be used for the process
-         * executed in Process::executable(). Calling Process::setStderrFd()
-         * overwrites Process::setStderrFile() and vice versa.
-         *
-         * @param[in] filename the filename of the file. This file will be
-         *            opened writeonly.
-         * @throw KError if opening the specified @p filename failed
-         */
-        void setStderrFile(const char *filename)
-        throw (KError);
-
-        /**
-         * Sets the buffer where the bytes from stdin are read from to
-         * @p buffer. This function overwrites the Process::setStdinFd()
-         * and Process::setStdinFile().
-         *
-         * @param[in] buffer a byte vector
-         */
-        void setStdinBuffer(ByteVector *buffer)
+        void setStdin(std::istream *stream)
         throw ();
 
         /**
-         * Sets the buffer where the bytes from stdout are written to.
-         * This function overwrites the Process::setStdoutFd() and
-         * Process::setStdoutFile().
+         * Sets the stream which will be used as stdout for the process
+         * executed in Process::executable().
          *
-         * @param[in] buffer a byte vector
+         * @param[in] stream the stream to be used as output
          */
-        void setStdoutBuffer(ByteVector *buffer)
+        void setStdout(std::ostream *stream)
         throw ();
 
         /**
-         * Sets the buffer where the bytes from stdout are written to.
-         * This function overwrites the Process::setStderrFd() and
-         * Process::setStderrFile().
+         * Sets the stream which will be used as stderr for the process
+         * executed in Process::executable().
          *
-         * @param[in] buffer a byte vector
+         * @param[in] stream the stream to be used as error output
          */
-        void setStderrBuffer(ByteVector *buffer)
+        void setStderr(std::ostream *stream)
         throw ();
 
     protected:
         void executeProcess(const std::string &name, const StringVector &args)
         throw (KError);
 
-        void closeFds()
-        throw ();
-
     private:
-        int m_stdinFd;
-        int m_stdoutFd;
-        int m_stderrFd;
-        bool m_needCloseStdin;
-        bool m_needCloseStdout;
-        bool m_needCloseStderr;
-        ByteVector *m_stdinBuffer;
-        ByteVector *m_stdoutBuffer;
-        ByteVector *m_stderrBuffer;
+        std::istream *m_stdin;
+        std::ostream *m_stdout;
+        std::ostream *m_stderr;
 };
 
 //}}}

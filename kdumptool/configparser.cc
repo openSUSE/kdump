@@ -76,7 +76,8 @@ void ShellConfigParser::parse()
     fin.close();
 
     // build the shell snippet
-    string shell ("#!/bin/sh\n");
+    stringstream shell;
+    shell << "#!/bin/sh\n";
 
     // set default values
     for (StringStringMap::const_iterator it = m_variables.begin();
@@ -84,34 +85,28 @@ void ShellConfigParser::parse()
         const string name = it->first;
 	ShellQuotedString value(it->second);
 
-        shell += name + "=" + value.quoted() + "\n";
+        shell << name << "=" << value.quoted() << "\n";
     }
 
-    shell += "source " + m_configFile + "\n";
+    shell << "source " << m_configFile << "\n";
 
     for (StringStringMap::const_iterator it = m_variables.begin();
             it != m_variables.end(); ++it) {
         const string name = it->first;
 
-        shell += "echo '" + name + "='$" + name + "\n";
+        shell << "echo '" << name << "='$" << name << "\n";
     }
 
-    ByteVector shellInputBytes = Stringutil::str2bytes(shell);
-    ByteVector shellOutputBytes;
+    stringstream shelloutput;
 
     Process p;
-    p.setStdinBuffer(&shellInputBytes);
-    p.setStdoutBuffer(&shellOutputBytes);
+    p.setStdin(&shell);
+    p.setStdout(&shelloutput);
     p.execute("/bin/sh", StringVector());
-
-    string shelloutput = Stringutil::bytes2str(shellOutputBytes);
-    stringstream ss;
-
-    ss << shelloutput;
 
     string s;
     int no = 1;
-    while (getline(ss, s)) {
+    while (getline(shelloutput, s)) {
         Debug::debug()->trace("ShellConfigParser: Parsing line %s", s.c_str());
 
         string::size_type loc = s.find('=');
