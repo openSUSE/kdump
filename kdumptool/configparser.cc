@@ -151,15 +151,10 @@ void KernelConfigParser::parse()
     if (!fin)
         throw KSystemError("Cannot open config file " + m_configFile, errno);
 
-    // slurp the file into a string stream
-    stringstream ss;
-    ss << fin.rdbuf();
-    fin.close();
-
     string name, value, *outp = &name;
     bool inquote = false;
     char c;
-    while (ss.get(c)) {
+    while (fin.get(c)) {
         if (c == '\"') {
             inquote = !inquote;
             continue;
@@ -168,7 +163,7 @@ void KernelConfigParser::parse()
             outp = &value;
             continue;
         }
-        if ((is_kernel_space(c) && !inquote) || ss.peek() == EOF) {
+        if ((is_kernel_space(c) && !inquote) || fin.peek() == EOF) {
             if (name.empty())
                 continue;
 
@@ -181,7 +176,7 @@ void KernelConfigParser::parse()
             value.clear();
             outp = &name;
         } else if (c == '\\') {
-            if (ss.peek() == '\\' && ss.get(c)) {
+            if (fin.peek() == '\\' && fin.get(c)) {
                 outp->push_back(c);
                 continue;
             }
@@ -189,10 +184,10 @@ void KernelConfigParser::parse()
             char seq[3];
             int i;
             for (i = 0; i < 3; ++i) {
-                c = ss.peek();
+                c = fin.peek();
                 if (c < '0' || c > '7')
                     break;
-                if (!ss.get(seq[i]))
+                if (!fin.get(seq[i]))
                     break;
             }
             if (i < 3) {
