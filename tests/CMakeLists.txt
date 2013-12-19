@@ -36,3 +36,8 @@ ADD_TEST(testconfig
 ADD_TEST(urlparser
          ${CMAKE_CURRENT_SOURCE_DIR}/testurlparser.sh
          ${CMAKE_BINARY_DIR}/kdumptool/testurlparser)
+
+ADD_TEST(quoting
+         ${CMAKE_CURRENT_SOURCE_DIR}/quoting.sh
+         ${CMAKE_BINARY_DIR}/kdumptool/kdumptool
+         ${CMAKE_CURRENT_SOURCE_DIR}/data)
