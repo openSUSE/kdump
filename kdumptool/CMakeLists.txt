@@ -86,6 +86,8 @@ SET(COMMON_SRC
     quotedstring.h
     multipath.cc
     multipath.h
+    calibrate.cc
+    calibrate.h
 )
 
 add_library(common STATIC ${COMMON_SRC})

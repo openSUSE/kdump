@@ -38,6 +38,7 @@
 #include "read_ikconfig.h"
 #include "read_vmcoreinfo.h"
 #include "savedump.h"
+#include "calibrate.h"
 
 using std::cerr;
 using std::cout;
@@ -61,6 +62,7 @@ int main(int argc, char *argv[])
         kdt.addSubcommand(new ReadIKConfig);
         kdt.addSubcommand(new ReadVmcoreinfo);
         kdt.addSubcommand(new SaveDump);
+        kdt.addSubcommand(new Calibrate);
 
         kdt.parseCommandline(argc, argv);
         kdt.readConfiguration();
