@@ -75,9 +75,25 @@ function remove_from_commandline()
 }
 
 #
+# Get the name of kernel parameter to limit CPUs
+# Linux 2.6.34+ has nr_cpus, older versions must use maxcpus
+function cpus_param()
+{
+    local version=$(get_kernel_version "$1")
+    version="${version%%-*}"
+    local verhex=$(IFS=. ; set -- $version ; printf "0x%02x%02x%02x" $1 $2 $3)
+    if [ $(( $verhex )) -ge $(( 0x020622 )) ] ; then
+	echo nr_cpus
+    else
+	echo maxcpus
+    fi
+}
+
+#
 # Builds the kdump command line from KDUMP_COMMANDLINE.
 function build_kdump_commandline()
 {
+    local kdump_kernel="$1"
     local commandline="$KDUMP_COMMANDLINE"
 
     if [ -z "$commandline" ]; then
@@ -90,7 +106,8 @@ function build_kdump_commandline()
         local arch=$(uname -i)
         case "$arch" in
         i?86|x86_64|ia64)
-            commandline="$commandline irqpoll maxcpus=${KDUMP_CPUS:-1}"
+            local nr_cpus=$(cpus_param "$kdump_kernel")
+            commandline="$commandline irqpoll ${nr_cpus}=${KDUMP_CPUS:-1}"
             if [ "$arch" = "x86_64" -o -z "${arch#i?86}" ]; then
                 local boot_apicid=$(
                     awk -F':[ \t]' '/^initial apicid[ \t]*:/ {print $2; exit}' \
@@ -176,7 +193,7 @@ function load_kdump_kexec()
         rc_exit
     fi
 
-    local kdump_commandline=$(build_kdump_commandline)
+    local kdump_commandline=$(build_kdump_commandline "$kdump_kernel")
     local kexec_options=$(build_kexec_options "$kdump_kernel")
 
     KEXEC_CALL="$KEXEC -p $kdump_kernel --append=\"$kdump_commandline\""

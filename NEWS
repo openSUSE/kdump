@@ -3,6 +3,7 @@
   * New command: calibrate
   * Add disable_cpu_apicid parameter to the command line on x86 to prevent
     bringing up the BSP in the kdump kernel.
+  * Use nr_cpus instead of maxcpus with recent kernels.
 
 0.8.7
 -----
