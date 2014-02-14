@@ -37,7 +37,7 @@
 # define DEF_RESERVE_MB 128
 #elif defined(__ia64__)
 # define DEF_RESERVE_MB 512
-#elif defined(__arm64__)
+#elif defined(__aarch64__)
 # define DEF_RESERVE_MB 128
 #elif defined(__arm__)
 # define DEF_RESERVE_MB 128
