@@ -22,6 +22,29 @@
 #include "debug.h"
 #include "calibrate.h"
 
+// Default reservation size depends on architecture
+#if defined(__x86_64__)
+# define DEF_RESERVE_MB 128
+#elif defined(__i386__)
+# define DEF_RESERVE_MB 128
+#elif defined(__powerpc64__)
+# define DEF_RESERVE_MB 256
+#elif defined(__powerpc__)
+# define DEF_RESERVE_MB 128
+#elif defined(__s390x__)
+# define DEF_RESERVE_MB 128
+#elif defined(__s390__)
+# define DEF_RESERVE_MB 128
+#elif defined(__ia64__)
+# define DEF_RESERVE_MB 512
+#elif defined(__arm64__)
+# define DEF_RESERVE_MB 128
+#elif defined(__arm__)
+# define DEF_RESERVE_MB 128
+#else
+# error "No default crashkernel reservation for your architecture!"
+#endif
+
 using std::cout;
 using std::endl;
 
@@ -43,9 +66,10 @@ const char *Calibrate::getName() const
 void Calibrate::execute()
     throw (KError)
 {
-    unsigned long required = 256;
+    unsigned long required;
     Debug::debug()->trace("Calibrate::execute()");
 
+    required = DEF_RESERVE_MB;
     cout << required << endl;
 }
 
