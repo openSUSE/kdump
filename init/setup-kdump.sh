@@ -82,8 +82,6 @@ for program in $KDUMP_REQUIRED_PROGRAMS ; do
     cp_bin "$program" "${tmp_mnt}/${dir}"
 done
 
-save_var use_kdump
-save_var kdump_fsmod
 save_var bootdev
 save_var dumpdev
 
