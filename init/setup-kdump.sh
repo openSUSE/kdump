@@ -30,12 +30,12 @@ fi
 #
 # Copy or create all necessary files for the initrd
 #
-setup_kdumprd_files "$tmp_mnt" "$blockdev"
+kdump_setup_files "$tmp_mnt" "$blockdev"
 
 #
 # check if extra modules are needed
 #
-if module_has_device hpwdt; then
+if kdump_module_has_device hpwdt; then
     kdump_fsmod="$kdump_fsmod hpwdt"
 fi
 

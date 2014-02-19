@@ -292,7 +292,7 @@ function add_fstab()                                                       # {{{
 ################################################################################
 
 # Populate kdump_*[] arrays with dump target info
-if ! get_kdump_targets ; then
+if ! kdump_get_targets ; then
     return 1
 fi
 
