@@ -20,6 +20,18 @@
 #%provides: kdump
 
 #
+# check if we are called with the -f kdump parameter
+#
+use_kdump=
+if use_script kdump ; then
+    use_kdump=1
+else
+    return 0
+fi
+
+. /lib/kdump/setup-kdump.functions
+
+#
 # Read and normalize /etc/fstab and /proc/mounts (if exists).
 # The following transformations are done:
 #   - initial TABs and SPACEs are removed
@@ -263,21 +275,7 @@ function add_fstab()                                                       # {{{
         >> ${tmp_mnt}/etc/fstab.kdump
 }                                                                          # }}}
 
-#######################################################################################
-
-#
-# check if we are called with the -f kdump parameter
-#
-use_kdump=
-if use_script kdump ; then
-    use_kdump=1
-fi
-
-if ! (( $use_kdump )) ; then
-    return 0
-fi
-
-. /lib/kdump/setup-kdump.functions
+################################################################################
 
 # Populate kdump_*[] arrays with dump target info
 if ! get_kdump_targets ; then
