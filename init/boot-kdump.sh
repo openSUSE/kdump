@@ -17,7 +17,7 @@
 #
 #%stage: setup
 #%depends: mount network
-#%programs: grep makedumpfile makedumpfile-R.pl kdumptool $kdump_fsprog
+#%programs: makedumpfile makedumpfile-R.pl kdumptool $kdump_fsprog
 #%if: "$use_kdump"
 #%udevmodules: nls_utf8 $kdump_fsmod
 
