@@ -28,19 +28,18 @@ fi
 . /lib/kdump/setup-kdump.functions
 
 #
-# copy /etc/sysconfig/kdump
+# get the configuration
 #
-
-if [ ! -f "$CONFIG" ] ; then
-    echo "kdump configuration not installed"
+kdump_config=$( kdumptool dump_config --format=shell )
+if [ $? -ne 0 ] ; then
+    echo "kdump configuration failed"
     return 1
 fi
+eval "$kdump_config"
 
 #
-# read in the configuration
-. "$CONFIG"
-
 # create target configuration
+#
 mkdir -p "${tmp_mnt}${CONFIG%/*}"
 modify_config > "${tmp_mnt}${CONFIG}"
 
