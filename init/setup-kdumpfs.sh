@@ -136,6 +136,21 @@ function add_mntprog()
 }
 
 #
+# Add a filesystem to the initrd
+# Parameters: 1) fstype: filesystem type
+# Global state:
+#     kdump_fsmod:  updated with required kernel modules
+#     kdump_fsprog: updated with required helper programs
+function add_fstype()							   # {{{
+{
+    local fstype="$1"
+
+    get_mntmod "$mntfstype"
+    kdump_fsmod="$kdump_fsmod $mntmod"
+    add_mntprog "$mntfstype"
+}									   # }}}
+
+#
 # Resolve which devices are necessary for a mount point
 # Parameters: 1) desc:       human-readable description of the mount point
 #             2) mntdir:     mount directory
@@ -227,8 +242,7 @@ Currently available -d parameters are:
         URL             <protocol>://<path>"
     fi
 
-    get_mntmod "$mntfstype"
-    add_mntprog "$mntfstype"
+    add_fstype "$mntfstype"
 }
 
 #
@@ -292,16 +306,12 @@ kdump_fsmod=
 for protocol in "${kdump_Protocol[@]}" ; do
     if [ "$protocol" = "nfs" ]; then
         interface=${interface:-default}
-        get_mntmod nfs
-        kdump_fsmod="$kdump_fsmod $mntmod"
-        add_mntprog nfs
+        add_fstype nfs
     fi
 
     if [ "$protocol" = "cifs" -o "$protocol" = "smb" ]; then
         interface=${interface:-default}
-        get_mntmod cifs
-        kdump_fsmod="$kdump_fsmod $mntmod"
-        add_mntprog cifs
+        add_fstype cifs
     fi
 done
 
@@ -338,7 +348,6 @@ then
     bootdev=$(blkdev_by_uuid "$mntdev")
     add_fstab "$bootdev" "/root$mountpoint" "$mntfstype" "$mntopts" 0 0
     blockdev="$blockdev $(resolve_device Boot $bootdev)"
-    kdump_fsmod="$kdump_fsmod $mntmod"
 fi
 
 # add the target file system
@@ -348,7 +357,6 @@ do
     dumpdev=$(blkdev_by_uuid "$mntdev")
     add_fstab "$dumpdev" "/root$mountpoint" "$mntfstype" "$mntopts" 0 0
     blockdev="$blockdev $(resolve_device Dump $dumpdev)"
-    kdump_fsmod="$kdump_fsmod $mntmod"
 done
 
 save_var bootdev
