@@ -75,6 +75,23 @@ function get_kdump_targets()						   # {{{
 }									   # }}}
 
 #
+# Get the kdump configuration
+# Output variables (consult kdumptool for a complete list):
+#   KDUMP_*
+#   KEXEC_OPTIONS
+#   MAKEDUMPFILE_OPTIONS
+# Exit status:
+#   zero     on success
+#   non-zero if dump_config failed
+function get_kdump_config()						   # {{{
+{
+    local kdump_config=$( kdumptool dump_config --format=shell )
+    test $? -eq 0 || return 1
+    eval "$kdump_config"
+    return 0
+}									   # }}}
+
+#
 # Get adjusted kdump configuration.
 #
 # Input variables:

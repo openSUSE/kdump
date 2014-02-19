@@ -29,13 +29,10 @@ fi
 
 #
 # get the configuration
-#
-kdump_config=$( kdumptool dump_config --format=shell )
-if [ $? -ne 0 ] ; then
+if ! get_kdump_config ; then
     echo "kdump configuration failed"
     return 1
 fi
-eval "$kdump_config"
 
 #
 # create target configuration
