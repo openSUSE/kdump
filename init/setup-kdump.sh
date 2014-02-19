@@ -53,4 +53,7 @@ for program in $KDUMP_REQUIRED_PROGRAMS ; do
     cp_bin "$program" "${tmp_mnt}/${dir}"
 done
 
+save_var bootdev
+save_var dumpdev
+
 # vim: set sw=4 ts=4 et:
