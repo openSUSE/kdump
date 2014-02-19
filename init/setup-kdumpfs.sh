@@ -289,6 +289,23 @@ function add_fstab()                                                       # {{{
         >> ${tmp_mnt}/etc/fstab.kdump
 }                                                                          # }}}
 
+#
+# Add a fstab entry by its mount point
+# Parameters: 1) mountpoint
+#             2) human-readable type of the mount
+function kdump_add_mount						   # {{{
+{
+    local mountpoint="$1"
+    local desc="$2"
+    local blkdev
+
+    resolve_mount "$desc directory" "$mountpoint"
+    blkdev=$(blkdev_by_uuid "$mntdev")
+    add_fstab "$blkdev" "/root$mountpoint" "$mntfstype" "$mntopts" 0 0
+    blockdev="$blockdev "$(resolve_device "$desc" "$blkdev")
+    echo "$blkdev"
+}									   # }}}
+
 ################################################################################
 
 # Populate kdump_*[] arrays with dump target info
@@ -343,20 +360,13 @@ done < <(read_mounts)
 # add the boot partition
 if [ -n "$mnt_boot" ]
 then
-    mountpoint="$mnt_boot"
-    resolve_mount "Boot directory" "$mountpoint"
-    bootdev=$(blkdev_by_uuid "$mntdev")
-    add_fstab "$bootdev" "/root$mountpoint" "$mntfstype" "$mntopts" 0 0
-    blockdev="$blockdev $(resolve_device Boot $bootdev)"
+    bootdev=$(kdump_add_mount "$mnt_boot" "Boot")
 fi
 
 # add the target file system
 for mountpoint in "${mnt_kdump[@]}"
 do
-    resolve_mount "Dump directory" "$mountpoint"
-    dumpdev=$(blkdev_by_uuid "$mntdev")
-    add_fstab "$dumpdev" "/root$mountpoint" "$mntfstype" "$mntopts" 0 0
-    blockdev="$blockdev $(resolve_device Dump $dumpdev)"
+    dumpdev=$(kdump_add_mount "$mountpoint" "Dump")
 done
 
 save_var bootdev
