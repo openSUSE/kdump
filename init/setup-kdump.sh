@@ -25,7 +25,7 @@ if ! (( $use_kdump )) ; then
     return 0
 fi
 
-. /lib/kdump/setup-kdump.functions
+# /lib/kdump/setup-kdump.functions was sourced from setup-kdumpfs.sh already
 
 #
 # get the configuration
