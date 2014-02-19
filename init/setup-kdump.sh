@@ -28,40 +28,15 @@ fi
 # /lib/kdump/setup-kdump.functions was sourced from setup-kdumpfs.sh already
 
 #
-# get the configuration
-if ! get_kdump_config ; then
-    echo "kdump configuration failed"
-    return 1
-fi
-
+# Copy or create all necessary files for the initrd
 #
-# create target configuration
-#
-mkdir -p "${tmp_mnt}${CONFIG%/*}"
-modify_config > "${tmp_mnt}${CONFIG}"
-
-#
-# remember the host name
-#
-hostname >> ${tmp_mnt}/etc/hostname.kdump
+setup_kdumprd_files "$tmp_mnt" "$blockdev"
 
 #
 # check if extra modules are needed
 #
 if module_has_device hpwdt; then
     kdump_fsmod="$kdump_fsmod hpwdt"
-fi
-
-#
-# copy public and private key if needed
-#
-if [ -n "$kdump_over_ssh" ] ; then
-    copy_ssh_keys "$tmp_mnt"
-fi
-
-# create modified multipath.conf
-if [ -e /etc/multipath.conf ] ; then
-    modify_multipath "$blockdev" > "${tmp_mnt}/etc/multipath.conf"
 fi
 
 #

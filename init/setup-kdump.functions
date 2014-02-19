@@ -198,3 +198,52 @@ function copy_ssh_keys()						   # {{{
         cp /root/.ssh/id_rsa.pub "${dest}/.ssh"
     fi
 }									   # }}}
+
+#
+# Set up or create all necessary files
+# Parameters:
+#   1) outdir:   initrd temporary root
+#   2) dumpdevs: space-separated list of all block devices required by kdump
+# Output variables:
+#   see get_kdump_config
+function setup_kdumprd_files()						   # {{{
+{
+    local outdir="${1%/}"
+    local dumpdevs="$2"
+    local kdump_over_ssh
+
+    #
+    # get the configuration
+    #
+    if ! get_kdump_config ; then
+	echo >&2 "kdump configuration failed"
+	return 1
+    fi
+
+    #
+    # create target configuration
+    #
+    mkdir -p "${outdir}${CONFIG%/*}"
+    modify_config > "${outdir}${CONFIG}"
+
+    #
+    # remember the host name
+    #
+    hostname >> "${outdir}/etc/hostname.kdump"
+
+    #
+    # copy public and private key if needed
+    #
+    if [ -n "$kdump_over_ssh" ] ; then
+	copy_ssh_keys "$outdir"
+    fi
+
+    #
+    # create modified multipath.conf
+    #
+    if [ -e /etc/multipath.conf ] ; then
+	modify_multipath "$dumpdevs" > "${outdir}/etc/multipath.conf"
+    fi
+
+    return 0
+}									   # }}}
