@@ -19,51 +19,17 @@
 #%provides: kdump
 
 #
-# Checks whether there is a device in the system which is handled
-# by the specified module.
-# Parameters:
-#   1) modname: kernel module name
-# Exit status:
-#   zero     if a matching device was found
-#   non-zero otherwise
-function module_has_device()                                               # {{{
-{
-    local modname="$1"
-    local -a aliaslist
-    local line
-
-    while read line; do
-	aliaslist[${#aliaslist[@]}]="$line"
-    done < <(modinfo -k "$kernel_version" -F alias "$modname" 2>/dev/null)
-
-    # for each device in the system, check the device modalias file ...
-    find /sys/devices -type f -name modalias -print0 | xargs -0 cat | \
-    (
-	while read line; do
-	    # ... against each modalias of the checked module
-	    for modalias in "${aliaslist[@]}"; do
-		case "$line" in
-		    $modalias)
-			exit 0
-			;;
-	        esac
-	    done
-	done
-	exit 1
-    )
-}                                                                          # }}}
-
-#
 # check if we are called with the -f kdump parameter
 #
 if ! (( $use_kdump )) ; then
     return 0
 fi
 
+. /lib/kdump/setup-kdump.functions
+
 #
 # copy /etc/sysconfig/kdump
 #
-CONFIG=/etc/sysconfig/kdump
 
 if [ ! -f "$CONFIG" ] ; then
     echo "kdump configuration not installed"
@@ -72,50 +38,11 @@ fi
 
 #
 # read in the configuration
-source "$CONFIG"
+. "$CONFIG"
 
-#
-# Special handling for some protocols
-KDUMP_SAVEDIR=
-kdump_over_ssh=
-local i=0
-while [ $i -le $kdump_max ] ; do
-    protocol="${kdump_Protocol[i]}"
-
-    # replace original path with resolved path
-    test -z "$KDUMP_SAVEDIR" || KDUMP_SAVEDIR="$KDUMP_SAVEDIR "
-    if [ "$protocol" = "file" ] ; then
-        KDUMP_SAVEDIR="${KDUMP_SAVEDIR}file://${kdump_Realpath[i]}"
-    else
-        KDUMP_SAVEDIR="${KDUMP_SAVEDIR}${kdump_URL[i]}"
-    fi
-
-    #
-    # get the host key, if needed
-    if [ "$protocol" = "sftp" ] ; then
-        kdump_over_ssh=yes
-        if [ -z "$KDUMP_HOST_KEY" ] ; then
-            KDUMP_HOST_KEY=$(ssh-keygen -F "$kdump_Host" 2>/dev/null | \
-                             awk '/^[^#]/ { if (NF==3) { print $3; exit } }')
-        fi
-    fi
-
-    i=$((i+1))
-done
-
-#
-# copy the configuration file, modifying:
-#   KDUMP_SAVEDIR  -> resolved path
-#   KDUMP_HOST_KEY -> target host public key
-mkdir -p ${tmp_mnt}/etc/sysconfig/
-sed -e 's#^[ 	]*\(KDUMP_SAVEDIR\)=.*#\1="'"$KDUMP_SAVEDIR"'"#g' \
-    -e 's#^[ 	]*\(KDUMP_HOST_KEY\)=.*#\1="'"$KDUMP_HOST_KEY"'"#g' \
-    "$CONFIG" > "${tmp_mnt}${CONFIG}"
-
-#
-# add the host key explicitly if the option was missing
-grep '^[ 	]*KDUMP_HOST_KEY=' ${tmp_mnt}${CONFIG} >/dev/null 2>&1 \
-    || echo 'KDUMP_HOST_KEY="'"$KDUMP_HOST_KEY"'"' >> "${tmp_mnt}${CONFIG}"
+# create target configuration
+mkdir -p "${tmp_mnt}${CONFIG%/*}"
+modify_config > "${tmp_mnt}${CONFIG}"
 
 #
 # remember the host name
@@ -133,34 +60,12 @@ fi
 # copy public and private key if needed
 #
 if [ -n "$kdump_over_ssh" ] ; then
-    if [ -z "$KDUMP_HOST_KEY" ] ; then
-        echo "WARNING: target SSH host key not found. " \
-             "Man-in-the-middle attack is possible." >&2
-    fi
-    if [ -f /root/.ssh/id_dsa ] && [ -f /root/.ssh/id_dsa.pub ] ; then
-        mkdir -p ${tmp_mnt}/.ssh
-        cp /root/.ssh/id_dsa ${tmp_mnt}/.ssh
-        cp /root/.ssh/id_dsa.pub ${tmp_mnt}/.ssh
-    fi
-    if [ -f /root/.ssh/id_rsa ] && [ -f /root/.ssh/id_rsa.pub ] ; then
-        mkdir -p ${tmp_mnt}/.ssh
-        cp /root/.ssh/id_rsa ${tmp_mnt}/.ssh
-        cp /root/.ssh/id_rsa.pub ${tmp_mnt}/.ssh
-    fi
+    copy_ssh_keys "$tmp_mnt"
 fi
 
-#
-# copy modified multipath.conf
-#
+# create modified multipath.conf
 if [ -e /etc/multipath.conf ] ; then
-    i=0
-    for bd in $blockdev ; do
-	scsi_id=$(/lib/udev/scsi_id --whitelisted --device="$bd")
-	[ -z "$scsi_id" ] && continue
-	wwids[i++]="wwid "\""$scsi_id"\"
-    done
-    kdumptool multipath "${wwids[@]}" \
-	< /etc/multipath.conf > "${tmp_mnt}/etc/multipath.conf"
+    modify_multipath "$blockdev" > "${tmp_mnt}/etc/multipath.conf"
 fi
 
 #

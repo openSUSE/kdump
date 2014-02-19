@@ -277,26 +277,20 @@ if ! (( $use_kdump )) ; then
     return 0
 fi
 
-#
-# get the save directory and protocol
-#
-kdump_max=0
-eval "$( kdumptool print_target | \
-    sed -e "s/'/'\\\\''/g" \
-	-e 's/^$/max=$((kdump_max+1))'\''/' \
-	-e 's/^/kdump_/' \
-	-e "s/: */[\$kdump_max]='/" \
-	-e "s/\$/\'/" )"
-if [ ${#kdump_Protocol[@]} -eq 0 ] ; then
-    echo >&2 "kdumptool print_target failed."
+. /lib/kdump/setup-kdump.functions
+
+# Populate kdump_*[] arrays with dump target info
+if ! get_kdump_targets ; then
     return 1
 fi
 
+#
+# Get the list of filesystem modules
+#
+
 kdump_fsmod=
 
-#
 # Check for network file systems
-#
 for protocol in "${kdump_Protocol[@]}" ; do
     if [ "$protocol" = "nfs" ]; then
         interface=${interface:-default}
