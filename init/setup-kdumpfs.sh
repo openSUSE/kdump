@@ -303,7 +303,7 @@ function kdump_add_mount						   # {{{
 
     resolve_mount "$desc directory" "$mountpoint"
     blkdev=$(blkdev_by_uuid "$mntdev")
-    add_fstab "$blkdev" "/root${mp_kdump}" "$mntfstype" "$mntopts" 0 0
+    add_fstab "$blkdev" "/kdump${mp_kdump}" "$mntfstype" "$mntopts" 0 0
     blockdev="$blockdev "$(resolve_device "$desc" "$blkdev")
     echo "$blkdev"
 }									   # }}}
@@ -335,10 +335,9 @@ for protocol in "${kdump_Protocol[@]}" ; do
 done
 
 #
-# add mount points (below /root)
+# check mount points
 #
 
-touch ${tmp_mnt}/etc/fstab.kdump
 mnt_boot=
 mnt_kdump=( )
 while read device mountpoint filesystem opts dummy ; do
@@ -350,7 +349,7 @@ while read device mountpoint filesystem opts dummy ; do
     while [ $i -le $kdump_max ] ; do
         protocol="${kdump_Protocol[i]}"
         realpath="${kdump_Realpath[i]}"
-        if [ "$protocol" = "file" -a "$mountpoint" != "/" -a \
+        if [ "$protocol" = "file" -a \
              "${realpath#$mountpoint}" != "$realpath" -a \
              "${#mountpoint}" -gt "${#mnt_kdump[i]}" ] ; then
             mnt_kdump[i]="$mountpoint"
@@ -359,16 +358,50 @@ while read device mountpoint filesystem opts dummy ; do
     done
 done < <(read_mounts)
 
+# map running paths to target paths
+kdump_mnt=( )
+i=0
+while [ $i -le $kdump_max ] ; do
+    mountpoint="${mnt_kdump[i]}"
+    if [ -n "$mountpoint" -a "$mountpoint" != "/boot" ]
+    then
+        local fspath="${kdump_Realpath[i]}"
+        fspath="${fspath#$mountpoint}"
+        fspath="${fspath#/}"
+        if [ "$mountpoint" = "/" ] ; then
+            kdump_Realpath[i]="/root/$fspath"
+        else
+            j=0
+	    for mnt in "${kdump_mnt[@]}"
+	    do
+		[ "$mnt" = "$mountpoint" ] && break
+                j=$((j+1))
+            done
+            [ -z "$mnt" ] && kdump_mnt[${#kdump_mnt[@]}]="$mountpoint"
+            kdump_Realpath[i]="/mnt$j/$fspath"
+        fi
+    fi
+    i=$((i+1))
+done
+
+#
+# Add mount points (below /kdump)
+#
+
+touch "${tmp_mnt}/etc/fstab.kdump"
+
 # add the boot partition
 if [ -n "$mnt_boot" ]
 then
     bootdev=$(kdump_add_mount "$mnt_boot" "$mnt_boot" "Boot")
 fi
 
-# add the target file system
-for mountpoint in "${mnt_kdump[@]}"
+# additional mount points
+i=0
+for mnt in "${kdump_mnt[@]}"
 do
-    dumpdev=$(kdump_add_mount "$mountpoint" "$mountpoint" "Dump")
+    dumpdev=$(kdump_add_mount "$mnt" "/mnt$i" "Dump")
+    i=$((i+1))
 done
 
 # vim: set sw=4 ts=4 et:

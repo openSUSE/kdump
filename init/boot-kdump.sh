@@ -134,7 +134,7 @@ fi
 
 . /etc/sysconfig/kdump
 
-ROOTDIR=/root
+ROOTDIR=/kdump
 FADUMP_ENABLED=/sys/kernel/fadump_enabled
 FADUMP_RELEASE_MEM=/sys/kernel/fadump_release_mem
 
@@ -197,7 +197,7 @@ else
     #
     # save the dump (HOME=/ to find the public/private key)
     read hostname < /etc/hostname.kdump
-    HOME=/ TMPDIR=/root/tmp kdumptool save_dump --root=$ROOTDIR \
+    HOME=/ TMPDIR=$ROOTDIR/tmp kdumptool save_dump --root=$ROOTDIR \
         --hostname=$hostname $KDUMPTOOL_OPTIONS
     if ! continue_error $?; then
         return

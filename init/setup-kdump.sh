@@ -30,7 +30,7 @@ fi
 #
 # Copy or create all necessary files for the initrd
 #
-kdump_setup_files "$tmp_mnt" "$blockdev"
+kdump_setup_files "$tmp_mnt" "$blockdev" "${#kdump_mnt[@]}"
 
 #
 # check if extra modules are needed
