@@ -291,17 +291,19 @@ function add_fstab()                                                       # {{{
 
 #
 # Add a fstab entry by its mount point
-# Parameters: 1) mountpoint
-#             2) human-readable type of the mount
+# Parameters: 1) mountpoint in current environment
+#             2) mountpoint in kdump environment
+#             3) human-readable type of the mount
 function kdump_add_mount						   # {{{
 {
     local mountpoint="$1"
-    local desc="$2"
+    local mp_kdump="$2"
+    local desc="$3"
     local blkdev
 
     resolve_mount "$desc directory" "$mountpoint"
     blkdev=$(blkdev_by_uuid "$mntdev")
-    add_fstab "$blkdev" "/root$mountpoint" "$mntfstype" "$mntopts" 0 0
+    add_fstab "$blkdev" "/root${mp_kdump}" "$mntfstype" "$mntopts" 0 0
     blockdev="$blockdev "$(resolve_device "$desc" "$blkdev")
     echo "$blkdev"
 }									   # }}}
@@ -360,13 +362,13 @@ done < <(read_mounts)
 # add the boot partition
 if [ -n "$mnt_boot" ]
 then
-    bootdev=$(kdump_add_mount "$mnt_boot" "Boot")
+    bootdev=$(kdump_add_mount "$mnt_boot" "$mnt_boot" "Boot")
 fi
 
 # add the target file system
 for mountpoint in "${mnt_kdump[@]}"
 do
-    dumpdev=$(kdump_add_mount "$mountpoint" "Dump")
+    dumpdev=$(kdump_add_mount "$mountpoint" "$mountpoint" "Dump")
 done
 
 # vim: set sw=4 ts=4 et:
