@@ -32,59 +32,6 @@ fi
 . /lib/kdump/setup-kdump.functions
 
 #
-# Find a mount point in /etc/fstab or /proc/mounts, checking the mounted
-# device's major and minor numbers.
-#
-# Parameters: 1) mpoint:    mount point
-# Output:
-#                mntfstype: file system field from fstab
-#                mntopts:   mount options from fstab
-#                mntdev:    device name (preferably from fstab, with
-#                           a fallback to)
-function find_mount()
-{
-    local mpoint="$1"
-
-    # default is "not found"
-    mntdev=
-
-    # get mntdev via stat
-    local cpio major minor
-    cpio=`echo "$mpoint" | /bin/cpio --quiet -o -H newc`
-    major="$(echo $(( 0x${cpio:62:8} )) )"
-    minor="$(echo $(( 0x${cpio:70:8} )) )"
-
-    # get opts from fstab and device too if stat failed
-    local fstab_device fstab_mountpoint fstab_type fstab_options dummy
-    while read fstab_device fstab_mountpoint fstab_type fstab_options dummy
-    do
-        fstab_mountpoint="${fstab_mountpoint%/}"
-        if [ "$fstab_mountpoint" = "$mpoint" ]; then
-            # get major and minor
-            update_blockdev "$fstab_device"
-            # let's see if the stat device is the same as the fstab device
-            if [ "$major" -le 0 ] || \
-               [ "$blockmajor" -eq "$major" -a "$blockminor" -eq "$minor" ]
-            then
-                # if both match, use the fstab device so the user can decide
-                # how to access the mounted device
-                mntdev="$fstab_device"
-            fi
-            mntfstype="$fstab_type"
-            mntopts="$fstab_options"
-            break
-        fi
-    done < <(kdump_read_mounts)
-
-    if [ "$major" -gt 0 -a -z "$mntdev" ] ; then
-        # don't check for non-device mounts
-        mntdev="$(majorminor2blockdev $major $minor)"
-        update_blockdev $mntdev
-        mntdev="$(beautify_blockdev $mntdev)"
-    fi
-}
-
-#
 # Get the mount modules for a given file system type
 # Parameters: 1) fstype:  filesystem type
 # Output:
@@ -137,101 +84,6 @@ function add_fstype()							   # {{{
 }									   # }}}
 
 #
-# Resolve which devices are necessary for a mount point
-# Parameters: 1) desc:       human-readable description of the mount point
-#             2) mntdir:     mount directory
-#             3) mntdev:     device specification (optional)
-# Output:
-#                mntdev:     device specification
-#                mntfstype:  file system type
-#                mntopts:    mount options
-#                mntmod:     modules needed to mount the device
-#                mntjournal: journal device (if specified)
-# Global state:
-#                interface:  if empty on input, set to "default" for
-#                            network filesystems
-function resolve_mount()
-{
-    local desc="$1" mntdir="${2%/}"
-    mntdev="$3"
-
-    mntfstype=
-    mntopts=
-    if [ -z "$mntdev" ] ; then
-        # mntdev not specified explicitly,
-        # get it from the mount point
-        find_mount "$mntdir"
-    fi
-
-    #if we don't know where the device belongs to
-    if [ -z "$mntfstype" ] ; then
-        # get type from /etc/fstab or /proc/mounts (actually not needed)
-        local fstab_device fstab_mountpoint fstab_type fstab_options dummy
-        while read fstab_device fstab_mountpoint fstab_type fstab_options dummy
-        do
-            if [ "$fstab_device" = "$mntdev" ] ; then
-                mntfstype="$fstab_type"
-                mntopts="$fstab_options"
-                break
-            fi
-        done < <(kdump_read_mounts)
-    fi
-
-    # check for journal device
-    mntjournal=
-    if [ -n "$mntopts" ] ; then
-        local jdev=${mntopts#*,jdev=}
-        if [ "$jdev" != "$mntopts" ] ; then
-            mntjournal=${jdev%%,*}
-        fi
-        local logdev=${mntopts#*,logdev=}
-        if [ "$logdev" != "$mntopts" ] ; then
-            mntjournal=${logdev%%,*}
-        fi
-    fi
-
-    # check for nfs and set the mntfstype accordingly
-    case "$mntdev" in
-        /dev/nfs)
-            mntfstype=nfs
-            ;;
-        /dev/*)
-            if [ ! -e "$mntdev" ]; then
-                error 1 "$desc device ($mntdev) not found"
-            fi
-            ;;
-        *://*) # URL type
-            mntfstype=${mntdev%%://*}
-            interface=${interface:-default}
-            ;;
-        iscsi:*)
-            ;;
-        *:*)
-            mntfstype=nfs
-            interface=${interface:-default}
-            ;;
-    esac
-
-    if [ -z "$mntfstype" ]; then
-        eval $(udevadm info -q env -n $mntdev | sed -n '/ID_FS_TYPE/p' )
-        [ $? -eq 0 ] && mntfstype=$ID_FS_TYPE
-        [ "$mntfstype" = "unknown" ] && mntfstype=
-        ID_FS_TYPE=
-    fi
-
-    if [ ! "$mntfstype" ]; then
-        error 1 "Could not find the filesystem type for $desc device $mntdev
-
-Currently available -d parameters are:
-        Block devices   /dev/<device>
-        NFS             <server>:<path>
-        URL             <protocol>://<path>"
-    fi
-
-    add_fstype "$mntfstype"
-}
-
-#
 # Translate a block device path into its path by UUID
 # Parameters: 1) blkdev: block device
 # Returns:    blkdev by UUID (or blkdev if blkdev is not a local block device)
@@ -278,19 +130,22 @@ function add_fstab()                                                       # {{{
 #
 # Add a fstab entry by its mount point
 # Parameters: 1) human-readable type of the mount
-#             2) mountpoint in current environment
+#             2) block device to mount
 #             3) mountpoint in kdump environment
+#             4) file system type
+#             5) mount options
 function kdump_add_mount						   # {{{
 {
     local desc="$1"
-    local mountpoint="$2"
-    local mp_kdump="$3"
-    local blkdev
+    local blkdev="$2"
+    local mountpoint="$3"
+    local fstype="$4"
+    local opts="$5"
 
-    resolve_mount "$desc directory" "$mountpoint"
-    blkdev=$(blkdev_by_uuid "$mntdev")
-    add_fstab "$blkdev" "/kdump${mp_kdump}" "$mntfstype" "$mntopts" 0 0
-    blockdev="$blockdev "$(resolve_device "$desc" "$blkdev")
+    add_fstype "$fstype"
+    blkdev=$(blkdev_by_uuid $(resolve_device "$desc" "$blkdev"))
+    add_fstab "$blkdev" "/kdump${mountpoint}" "$fstype" "$opts" 0 0
+    blockdev="$blockdev $blkdev"
     echo "$blkdev"
 }									   # }}}
 
@@ -311,14 +166,16 @@ touch "${tmp_mnt}/etc/fstab.kdump"
 # add the boot partition
 if [ -n "${kdump_mnt[0]}" ]
 then
-    bootdev=$(kdump_add_mount "Boot" "${kdump_mnt[0]}" "/mnt0")
+    bootdev=$(kdump_add_mount "Boot" "${kdump_dev[0]}" "/mnt0" \
+	"${kdump_fstype[0]}" "${kdump_opts[0]}" )
 fi
 
 # additional mount points
 i=1
 while [ $i -lt ${#kdump_mnt[@]} ]
 do
-    dumpdev=$(kdump_add_mount "Dump" "${kdump_mnt[i]}" "/mnt$i")
+    dumpdev=$(kdump_add_mount "Dump" "${kdump_dev[i]}" "/mnt$i" \
+	"${kdump_fstype[i]}" "${kdump_opts[i]}" )
     i=$((i+1))
 done
 
