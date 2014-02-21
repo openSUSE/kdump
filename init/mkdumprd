@@ -52,6 +52,77 @@ function status_message()
     fi
 }                                                                          # }}}
 
+#
+# Create a new initrd using mkinitrd                                         {{{
+function run_mkinitrd()
+{
+    #
+    # network configuration
+    FEATURE_LIST="kdump"
+    NETARGS=
+    if [ "$KDUMP_NETCONFIG" = "auto" ] ; then
+	FEATURE_LIST="$FEATURE_LIST network"
+	status_message "Network: auto"
+    elif [ -z "$KDUMP_NETCONFIG" ] ; then
+	status_message "Network: none"
+    else
+	interface=$(echo "$KDUMP_NETCONFIG" | cut -d ':' -f 1)
+	mode=$(echo "$KDUMP_NETCONFIG" | cut -d ':' -f 2)
+
+	status_message "Network interface: $interface"
+	if [ "$mode" = "static" ] ; then
+            NETARGS="-I $interface"
+            status_message "Network mode: Static IP"
+	else
+            NETARGS="-D $interface"
+            status_message "Network mode: Automatic IP (DHCP)"
+	fi
+    fi
+
+    INITRD_TMP=`mktemp --tmpdir mkdumprd.XXXXXXXXXX` || exit $?
+    MKINITRD_ARGS="-k $KERNEL -i $INITRD_TMP -f '$FEATURE_LIST'"
+
+    #
+    # the -B parameter skips bootloader update, which is desirable if the
+    # kernel is loaded by kexec, but not if we're using FADUMP
+    if [ "$KDUMP_FADUMP" != "yes" ] ; then
+	MKINITRD_ARGS="$MKINITRD_ARGS -B"
+    fi
+
+    #
+    # the -s parameter is only available when the bootsplash package and its
+    # mkinitrd script is installed ... so check that first
+    if [ -f "/lib/mkinitrd/scripts/setup-splash.sh" ] ; then
+	MKINITRD_ARGS="$MKINITRD_ARGS  -s ''"
+    fi
+
+    MKINITRD_ARGS="$MKINITRD_ARGS $MKINITRD_EXTRA_PARAMS $NETARGS"
+
+    #
+    # if -q is specified, don't print mkinitrd output
+    if (( $QUIET )) ; then
+	MKINITRD_ARGS="$MKINITRD_ARGS &>/dev/null"
+    fi
+
+    status_message "Calling mkinitrd $MKINITRD_ARGS"
+    echo "Regenerating kdump initrd ..." >&2
+    eval "bash -$- /sbin/mkinitrd $MKINITRD_ARGS"
+    ret=$?
+    if [ $ret -eq 0 ]; then
+	mv "$INITRD_TMP" "$INITRD"
+	ret=$?
+    fi
+    return $ret
+}                                                                          # }}}
+
+#
+# Create a new initrd using dracut                                           {{{
+function run_dracut()
+{
+    echo "Dracut support not yet implemented." >&2
+    return 1
+}                                                                          # }}}
+
 
 # Option parsing                                                             {{{
 while getopts "i:hfqk:K:I:" name ; do
@@ -135,63 +206,18 @@ if (( ! $FORCE )) ; then
     fi
 fi
 
-#
-# network configuration
-FEATURE_LIST="kdump"
-NETARGS=
-if [ "$KDUMP_NETCONFIG" = "auto" ] ; then
-    FEATURE_LIST="$FEATURE_LIST network"
-    status_message "Network: auto"
-elif [ -z "$KDUMP_NETCONFIG" ] ; then
-    status_message "Network: none"
-else
-    interface=$(echo "$KDUMP_NETCONFIG" | cut -d ':' -f 1)
-    mode=$(echo "$KDUMP_NETCONFIG" | cut -d ':' -f 2)
-
-    status_message "Network interface: $interface"
-    if [ "$mode" = "static" ] ; then
-        NETARGS="-I $interface"
-        status_message "Network mode: Static IP"
-    else
-        NETARGS="-D $interface"
-        status_message "Network mode: Automatic IP (DHCP)"
-    fi
-fi
-
-INITRD_TMP=`mktemp --tmpdir mkdumprd.XXXXXXXXXX` || exit $?
-MKINITRD_ARGS="-k $KERNEL -i $INITRD_TMP -f '$FEATURE_LIST'"
-
-#
-# the -B parameter skips bootloader update, which is desirable if the
-# kernel is loaded by kexec, but not if we're using FADUMP
+# Update the bootloader if necessary
 if [ "$KDUMP_FADUMP" != "yes" ]; then
-    MKINITRD_ARGS="$MKINITRD_ARGS -B"
     fadump_bootloader off
 else
     fadump_bootloader on
 fi
 
-#
-# the -s parameter is only available when the bootsplash package and its
-# mkinitrd script is installed ... so check that first
-if [ -f "/lib/mkinitrd/scripts/setup-splash.sh" ] ; then
-    MKINITRD_ARGS="$MKINITRD_ARGS  -s ''"
-fi
-
-MKINITRD_ARGS="$MKINITRD_ARGS $MKINITRD_EXTRA_PARAMS $NETARGS"
-
-#
-# if -q is specified, don't print mkinitrd output
-if (( $QUIET )) ; then
-    MKINITRD_ARGS="$MKINITRD_ARGS &>/dev/null"
-fi
-
-status_message "Calling mkinitrd $MKINITRD_ARGS"
-echo "Regenerating kdump initrd ..." >&2
-eval "bash -$- /sbin/mkinitrd $MKINITRD_ARGS"
-ret=$?
-if [ $ret -eq 0 ]; then
-    mv "$INITRD_TMP" "$INITRD"
+if type dracut >/dev/null 2>&1 ; then
+    run_dracut
+    ret=$?
+else
+    run_mkinitrd
     ret=$?
 fi
 
