@@ -91,14 +91,17 @@ function kdump_read_mounts()						   # {{{
 }									   # }}}
 
 #
+# Get kdump mount points and map between running system and kdump system
+#
+# Mount point 0 always corresponds to the "/boot" mount point and may be
+# empty if "/boot" is not on a separate partition.
+#
 # Output variables:
 #   kdump_*         target specs (as returned by kdump_get_targets)
 #   kdump_mnt[i]    mountpoint i in the kdump environment
 #   kdump_dev[i]    mount device for mount i
 #   kdump_fstype[i] file system type for mount i
 #   kdump_opts[i]   mount options for mount i
-#   kdump_mnt_boot  set to "/boot" if /boot is on a separate partition,
-#                   empty otherwise
 function kdump_get_mountpoints()					   # {{{
 {
     local device mountpoint filesystem opts dummy
@@ -109,10 +112,17 @@ function kdump_get_mountpoints()					   # {{{
     # Populate kdump_*[] arrays with dump target info
     kdump_get_targets || return 1
 
-    kdump_mnt_boot=
+    kdump_mnt=( "" )
+    kdump_dev=( "" )
+    kdump_fstype=( "" )
+    kdump_opts=( "" )
+
     while read device mountpoint filesystem opts dummy ; do
 	if [ "$mountpoint" = "/boot" ] ; then
-            kdump_mnt_boot="$mountpoint"
+	    kdump_mnt[0]="$mountpoint"
+	    kdump_dev[0]="$device"
+	    kdump_fstype[0]="$filesystem"
+	    kdump_opts[0]="$opts"
 	fi
 
 	i=0
@@ -132,14 +142,10 @@ function kdump_get_mountpoints()					   # {{{
     done < <(kdump_read_mounts)
 
     # map running paths to target paths
-    kdump_mnt=( )
-    kdump_dev=( )
-    kdump_fstype=( )
-    kdump_opts=( )
     i=0
     while [ $i -le $kdump_max ] ; do
 	mountpoint="${curmp[i]}"
-	if [ -n "$mountpoint" -a "$mountpoint" != "/boot" ]; then
+	if [ -n "$mountpoint" ]; then
             fspath="${kdump_Realpath[i]}"
             fspath="${fspath#$mountpoint}"
             fspath="${fspath#/}"
@@ -152,7 +158,7 @@ function kdump_get_mountpoints()					   # {{{
 		    [ "$mnt" = "$mountpoint" ] && break
                     j=$((j+1))
 		done
-		if [ -z "$mnt" ] ; then
+		if [ "$j" -ge "${#kdump_mnt[@]}" ] ; then
 		    kdump_mnt[j]="$mountpoint"
 		    kdump_dev[j]="${mntdev[i]}"
 		    kdump_fstype[j]="${mntfstype[i]}"
@@ -306,7 +312,7 @@ function kdump_init_dirs()						   # {{{
     mkdir -p "${root}/kdump"
     mkdir -m 01777 "${root}/kdump/tmp"
     ln -snf ../root "${root}/kdump/root"
-    mkdir "${root}/kdump/boot"
+    ln -snf mnt0 "${root}/kdump/boot"
     i=0
     while [ $i -lt "$mntnum" ]
     do
