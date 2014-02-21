@@ -75,6 +75,85 @@ function kdump_get_targets()						   # {{{
 }									   # }}}
 
 #
+# Read and normalize /etc/fstab and /proc/mounts (if exists).
+# The following transformations are done:
+#   - initial TABs and SPACEs are removed
+#   - empty lines and comments are removed
+#   - fields are separated by a single TAB
+# Output:
+#   Cleaned up fstab and /proc/mounts
+function kdump_read_mounts()						   # {{{
+{
+    local proc_mounts=/proc/mounts
+    test -e "$proc_mounts" || proc_mounts=
+    sed -e 's/[ \t][ \t]*/\t/g;s/^\t//;/^$/d;/^#/d' \
+        /etc/fstab "$proc_mounts"
+}									   # }}}
+
+#
+# Output variables:
+#   kdump_*         target specs (as returned by kdump_get_targets)
+#   kdump_mnt[]     mountpoint in the kdump environment
+#   kdump_mnt_boot  set to "/boot" if /boot is on a separate partition,
+#                   empty otherwise
+function kdump_get_mountpoints()					   # {{{
+{
+    local device mountpoint filesystem opts dummy
+    local curmp protocol realpath fspath mnt
+    local i j
+
+    # Populate kdump_*[] arrays with dump target info
+    kdump_get_targets || return 1
+
+    kdump_mnt_boot=
+    curmp=( )
+    while read device mountpoint filesystem opts dummy ; do
+	if [ "$mountpoint" = "/boot" ] ; then
+            kdump_mnt_boot="$mountpoint"
+	fi
+
+	i=0
+	while [ $i -le $kdump_max ] ; do
+            protocol="${kdump_Protocol[i]}"
+            realpath="${kdump_Realpath[i]}"
+            if [ "$protocol" = "file" -a \
+		"${realpath#$mountpoint}" != "$realpath" -a \
+		"${#mountpoint}" -gt "${#curmp[i]}" ] ; then
+		curmp[i]="$mountpoint"
+            fi
+            i=$((i+1))
+	done
+    done < <(kdump_read_mounts)
+
+    # map running paths to target paths
+    kdump_mnt=( )
+    i=0
+    while [ $i -le $kdump_max ] ; do
+	mountpoint="${curmp[i]}"
+	if [ -n "$mountpoint" -a "$mountpoint" != "/boot" ]; then
+            fspath="${kdump_Realpath[i]}"
+            fspath="${fspath#$mountpoint}"
+            fspath="${fspath#/}"
+            if [ "$mountpoint" = "/" ] ; then
+		kdump_Realpath[i]="/root/$fspath"
+            else
+		j=0
+		for mnt in "${kdump_mnt[@]}"
+		do
+		    [ "$mnt" = "$mountpoint" ] && break
+                    j=$((j+1))
+		done
+		[ -z "$mnt" ] && kdump_mnt[${#kdump_mnt[@]}]="$mountpoint"
+		kdump_Realpath[i]="/mnt$j/$fspath"
+            fi
+	fi
+	i=$((i+1))
+    done
+
+    return 0
+}									   # }}}
+
+#
 # Get the kdump configuration
 # Output variables (consult kdumptool for a complete list):
 #   KDUMP_*

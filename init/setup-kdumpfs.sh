@@ -32,20 +32,6 @@ fi
 . /lib/kdump/setup-kdump.functions
 
 #
-# Read and normalize /etc/fstab and /proc/mounts (if exists).
-# The following transformations are done:
-#   - initial TABs and SPACEs are removed
-#   - empty lines and comments are removed
-#   - fields are separated by a single TAB
-function read_mounts()
-{
-    local proc_mounts=/proc/mounts
-    test -e $proc_mounts || proc_mounts=
-    sed -e 's/[ \t][ \t]*/\t/g;s/^\t//;/^$/d;/^#/d' \
-        "$root_dir"/etc/fstab $proc_mounts
-}
-
-#
 # Find a mount point in /etc/fstab or /proc/mounts, checking the mounted
 # device's major and minor numbers.
 #
@@ -88,7 +74,7 @@ function find_mount()
             mntopts="$fstab_options"
             break
         fi
-    done < <(read_mounts)
+    done < <(kdump_read_mounts)
 
     if [ "$major" -gt 0 -a -z "$mntdev" ] ; then
         # don't check for non-device mounts
@@ -188,7 +174,7 @@ function resolve_mount()
                 mntopts="$fstab_options"
                 break
             fi
-        done < <(read_mounts)
+        done < <(kdump_read_mounts)
     fi
 
     # check for journal device
@@ -310,18 +296,37 @@ function kdump_add_mount						   # {{{
 
 ################################################################################
 
-# Populate kdump_*[] arrays with dump target info
-if ! kdump_get_targets ; then
-    return 1
+#
+# check mount points
+#
+
+kdump_get_mountpoints || return 1
+
+#
+# Add mount points (below /kdump)
+#
+
+touch "${tmp_mnt}/etc/fstab.kdump"
+
+# add the boot partition
+if [ -n "$kdump_mnt_boot" ]
+then
+    bootdev=$(kdump_add_mount "$kdump_mnt_boot" "/boot" "Boot")
 fi
+
+# additional mount points
+i=0
+for mnt in "${kdump_mnt[@]}"
+do
+    dumpdev=$(kdump_add_mount "$mnt" "/mnt$i" "Dump")
+    i=$((i+1))
+done
 
 #
 # Get the list of filesystem modules
 #
 
 kdump_fsmod=
-
-# Check for network file systems
 for protocol in "${kdump_Protocol[@]}" ; do
     if [ "$protocol" = "nfs" ]; then
         interface=${interface:-default}
@@ -332,76 +337,6 @@ for protocol in "${kdump_Protocol[@]}" ; do
         interface=${interface:-default}
         add_fstype cifs
     fi
-done
-
-#
-# check mount points
-#
-
-mnt_boot=
-mnt_kdump=( )
-while read device mountpoint filesystem opts dummy ; do
-    if [ "$mountpoint" = "/boot" ] ; then
-        mnt_boot="$mountpoint"
-    fi
-
-    local i=0
-    while [ $i -le $kdump_max ] ; do
-        protocol="${kdump_Protocol[i]}"
-        realpath="${kdump_Realpath[i]}"
-        if [ "$protocol" = "file" -a \
-             "${realpath#$mountpoint}" != "$realpath" -a \
-             "${#mountpoint}" -gt "${#mnt_kdump[i]}" ] ; then
-            mnt_kdump[i]="$mountpoint"
-        fi
-        i=$((i+1))
-    done
-done < <(read_mounts)
-
-# map running paths to target paths
-kdump_mnt=( )
-i=0
-while [ $i -le $kdump_max ] ; do
-    mountpoint="${mnt_kdump[i]}"
-    if [ -n "$mountpoint" -a "$mountpoint" != "/boot" ]
-    then
-        local fspath="${kdump_Realpath[i]}"
-        fspath="${fspath#$mountpoint}"
-        fspath="${fspath#/}"
-        if [ "$mountpoint" = "/" ] ; then
-            kdump_Realpath[i]="/root/$fspath"
-        else
-            j=0
-	    for mnt in "${kdump_mnt[@]}"
-	    do
-		[ "$mnt" = "$mountpoint" ] && break
-                j=$((j+1))
-            done
-            [ -z "$mnt" ] && kdump_mnt[${#kdump_mnt[@]}]="$mountpoint"
-            kdump_Realpath[i]="/mnt$j/$fspath"
-        fi
-    fi
-    i=$((i+1))
-done
-
-#
-# Add mount points (below /kdump)
-#
-
-touch "${tmp_mnt}/etc/fstab.kdump"
-
-# add the boot partition
-if [ -n "$mnt_boot" ]
-then
-    bootdev=$(kdump_add_mount "$mnt_boot" "$mnt_boot" "Boot")
-fi
-
-# additional mount points
-i=0
-for mnt in "${kdump_mnt[@]}"
-do
-    dumpdev=$(kdump_add_mount "$mnt" "/mnt$i" "Dump")
-    i=$((i+1))
 done
 
 # vim: set sw=4 ts=4 et:
