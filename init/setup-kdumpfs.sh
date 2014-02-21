@@ -143,8 +143,11 @@ function kdump_add_mount						   # {{{
     local opts="$5"
 
     add_fstype "$fstype"
-    blkdev=$(blkdev_by_uuid $(resolve_device "$desc" "$blkdev"))
+
+    blkdev=$(resolve_device "$desc" "$blkdev") || return 1
+    blkdev=$(blkdev_by_uuid "$blkdev")
     add_fstab "$blkdev" "/kdump${mountpoint}" "$fstype" "$opts" 0 0
+
     blockdev="$blockdev $blkdev"
     echo "$blkdev"
 }									   # }}}
@@ -176,6 +179,7 @@ while [ $i -lt ${#kdump_mnt[@]} ]
 do
     dumpdev=$(kdump_add_mount "Dump" "${kdump_dev[i]}" "/mnt$i" \
 	"${kdump_fstype[i]}" "${kdump_opts[i]}" )
+    [ $? -eq 0 ] || return 1
     i=$((i+1))
 done
 
