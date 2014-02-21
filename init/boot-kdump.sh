@@ -159,16 +159,18 @@ if [ -n "$KDUMP_TRANSFER" ] ; then
     eval "$KDUMP_TRANSFER"
 else
     #
-    # wait for /boot device and dump device
+    # wait for /boot device and dump device(s)
     wait_for_dumpdev "$bootdev" boot
     if ! continue_error $?; then
         return
     fi
 
-    wait_for_dumpdev "$dumpdev" dump
-    if ! continue_error $?; then
-        return
-    fi
+    for dev in $dumpdev ; do
+	wait_for_dumpdev "$dev" dump
+	if ! continue_error $?; then
+            return
+	fi
+    done
 
     #
     # mount all partitions in fstab

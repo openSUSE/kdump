@@ -177,9 +177,10 @@ fi
 i=1
 while [ $i -lt ${#kdump_mnt[@]} ]
 do
-    dumpdev=$(kdump_add_mount "Dump" "${kdump_dev[i]}" "/mnt$i" \
+    dev=$(kdump_add_mount "Dump" "${kdump_dev[i]}" "/mnt$i" \
 	"${kdump_fstype[i]}" "${kdump_opts[i]}" )
     [ $? -eq 0 ] || return 1
+    dumpdev="$dumpdev $dev"
     i=$((i+1))
 done
 
