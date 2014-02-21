@@ -277,14 +277,14 @@ function add_fstab()                                                       # {{{
 
 #
 # Add a fstab entry by its mount point
-# Parameters: 1) mountpoint in current environment
-#             2) mountpoint in kdump environment
-#             3) human-readable type of the mount
+# Parameters: 1) human-readable type of the mount
+#             2) mountpoint in current environment
+#             3) mountpoint in kdump environment
 function kdump_add_mount						   # {{{
 {
-    local mountpoint="$1"
-    local mp_kdump="$2"
-    local desc="$3"
+    local desc="$1"
+    local mountpoint="$2"
+    local mp_kdump="$3"
     local blkdev
 
     resolve_mount "$desc directory" "$mountpoint"
@@ -311,14 +311,14 @@ touch "${tmp_mnt}/etc/fstab.kdump"
 # add the boot partition
 if [ -n "$kdump_mnt_boot" ]
 then
-    bootdev=$(kdump_add_mount "$kdump_mnt_boot" "/boot" "Boot")
+    bootdev=$(kdump_add_mount "Boot" "$kdump_mnt_boot" "/boot")
 fi
 
 # additional mount points
 i=0
 for mnt in "${kdump_mnt[@]}"
 do
-    dumpdev=$(kdump_add_mount "$mnt" "/mnt$i" "Dump")
+    dumpdev=$(kdump_add_mount "Dump" "$mnt" "/mnt$i")
     i=$((i+1))
 done
 
