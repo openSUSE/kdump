@@ -98,7 +98,7 @@ function kdump_read_mounts()						   # {{{
 #
 # Output variables:
 #   kdump_*         target specs (as returned by kdump_get_targets)
-#   kdump_mnt[i]    mountpoint i in the kdump environment
+#   kdump_mnt[i]    mountpoint i in the current environment
 #   kdump_dev[i]    mount device for mount i
 #   kdump_fstype[i] file system type for mount i
 #   kdump_opts[i]   mount options for mount i
