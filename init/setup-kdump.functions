@@ -75,6 +75,35 @@ function kdump_get_targets()						   # {{{
 }									   # }}}
 
 #
+# Export kdump_*[] arrays, returned by kdump_get_targets.
+#
+# Input variables:
+#   kdump_URL[], kdump_Protocol[], kdump_Host[], kdump_Realpath
+# Output variables (exported):
+#   KDUMP_x_URL, KDUMP_x_Protocol, KDUMP_x_Host, KDUMP_x_Realpath
+function kdump_export_targets()						   # {{{
+{
+    export KDUMP_x_URL=$( printf "%q " "${kdump_URL[@]}" )
+    export KDUMP_x_Protocol=$( printf "%q " "${kdump_Protocol[@]}" )
+    export KDUMP_x_Host=$( printf "%q " "${kdump_Host[@]}" )
+    export KDUMP_x_Realpath=$( printf "%q " "${kdump_Realpath[@]}" )
+    export kdump_max
+}									   # }}}
+
+#
+# Import kdump_*[] arrays from environment.
+#
+# Input/Output Variables:
+#   reverse of kdump_export_arrays
+function kdump_import_targets()						   # {{{
+{
+    eval "kdump_URL=( $KDUMP_x_URL )"
+    eval "kdump_Protocol=( $KDUMP_x_Protocol )"
+    eval "kdump_Host=( $KDUMP_x_Host )"
+    eval "kdump_Realpath=( $KDUMP_x_Realpath )"
+}									   # }}}
+
+#
 # Read and normalize /etc/fstab and /proc/mounts (if exists).
 # The following transformations are done:
 #   - initial TABs and SPACEs are removed
@@ -195,7 +224,10 @@ function kdump_get_config()						   # {{{
 #
 # Input variables:
 #   KDUMP_* variables (as sourced from $CONFIG)
-#   kdump_* variables (as returned by kdump_get_targets)
+#   kdump_URL[]
+#   kdump_Protocol[]
+#   kdump_Host[]
+#   kdump_Realpath[]
 # Output variables:
 #   KDUMP_SAVEDIR   re-created from kdump_* variables
 #   KDUMP_HOST_KEY  default from ssh-keygen if not set previously

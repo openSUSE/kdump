@@ -119,8 +119,38 @@ function run_mkinitrd()
 # Create a new initrd using dracut                                           {{{
 function run_dracut()
 {
-    echo "Dracut support not yet implemented." >&2
-    return 1
+    . /lib/kdump/setup-kdump.functions
+
+    DRACUT_ARGS="--force --hostonly --omit 'systemd plymouth resume usrmount'"
+
+    # add mount points
+    kdump_get_mountpoints || return 1
+    i=0
+    while [ $i -lt ${#kdump_mnt[@]} ]
+    do
+	if [ -n "${kdump_mnt[i]}" ] ; then
+	    DRACUT_ARGS="$DRACUT_ARGS --mount '${kdump_dev[i]} /kdump/mnt$i ${kdump_fstype[i]} ${kdump_opts[i]}'"
+	fi
+	i=$((i+1))
+    done
+
+    # Check for additional modules
+    modules="kdump"
+    for protocol in "${kdump_Protocol[@]}" ; do
+	if [ "$protocol" = "cifs" -o "$protocol" = "smb" ]; then
+            modules="$modules cifs"
+	fi
+    done
+    DRACUT_ARGS="$DRACUT_ARGS --add '$modules'"
+
+    # Make resolved variables visible to the dracut module
+    kdump_export_targets
+    export KDUMP_mntnum=${#kdump_mnt[@]}
+
+    DRACUT_ARGS="$DRACUT_ARGS $INITRD $KERNELVERSION"
+    status_message "Calling dracut $DRACUT_ARGS"
+    echo "Regenerating kdump initrd ..." >&2
+    eval "bash -$- dracut $DRACUT_ARGS"
 }                                                                          # }}}
 
 
