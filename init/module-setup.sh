@@ -8,7 +8,7 @@ check() {
 }
 
 install() {
-    inst_hook pre-pivot 1 /lib/mkinitrd/scripts/boot-kdump.sh
+    inst_hook pre-pivot 1 /lib/kdump/save_dump
     inst /etc/sysconfig/kdump
     inst_multiple makedumpfile makedumpfile-R.pl kdumptool
 
