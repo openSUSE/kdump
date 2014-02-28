@@ -67,4 +67,15 @@ INSTALL(
         WORLD_READ WORLD_EXECUTE
 )
 
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/module-setup.sh
+    DESTINATION
+        /usr/lib/dracut/modules.d/99kdump
+    PERMISSIONS
+        OWNER_READ OWNER_WRITE OWNER_EXECUTE
+        GROUP_READ GROUP_EXECUTE
+        WORLD_READ WORLD_EXECUTE
+)
+
 # vim: set sw=4 ts=4 et:
