@@ -1,6 +1,7 @@
 0.8.9
 -----
   * Fixed dracut hook install
+  * Fix /kdump/boot link if /boot is not on a separate partition
   * Fix debug mode in load_kdump()
 
 0.8.8

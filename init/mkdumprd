@@ -146,6 +146,7 @@ function run_dracut()
     # Make resolved variables visible to the dracut module
     kdump_export_targets
     export KDUMP_mntnum=${#kdump_mnt[@]}
+    export KDUMP_bootmnt=${kdump_mnt[0]}
 
     DRACUT_ARGS="$DRACUT_ARGS $INITRD $KERNELVERSION"
     status_message "Calling dracut $DRACUT_ARGS"

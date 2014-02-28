@@ -13,5 +13,6 @@ install() {
     inst_multiple makedumpfile makedumpfile-R.pl kdumptool
 
     kdump_import_targets
-    kdump_setup_files "$initdir" sysroot "${!host_fs_types[*]}" "$KDUMP_mntnum"
+    kdump_setup_files "$initdir" sysroot "${!host_fs_types[*]}" \
+        "$KDUMP_mntnum" "$KDUMP_bootmnt"
 }

@@ -336,18 +336,26 @@ function kdump_copy_ssh_keys()						   # {{{
 #   1) root:     initrd temporary root
 #   2) mnt_root: name of the real root fs mountpoint (in kdump env)
 #   3) mntnum:   number of /mnt%d mount points
+#   4) bootmnt:  boot mount point (or empty if /boot is on the root fs)
 function kdump_init_dirs()						   # {{{
 {
     local root="$1"
     local mnt_root="$2"
     local mntnum="$3"
+    local bootmnt="$4"
     local i
 
     mkdir -p "${root}/kdump"
     mkdir -m 01777 "${root}/kdump/tmp"
     ln -snf ../"$mnt_root" "${root}/kdump/root"
-    ln -snf mnt0 "${root}/kdump/boot"
-    i=0
+
+    if [ -n "$bootmnt" ] ; then
+	ln -snf mnt0 "${root}/kdump/boot"
+	i=0
+    else
+	ln -snf "../${mnt_root}/boot" "${root}/kdump/boot"
+	i=1
+    fi
     while [ $i -lt "$mntnum" ]
     do
 	mkdir "${root}/kdump/mnt${i}"
@@ -362,6 +370,7 @@ function kdump_init_dirs()						   # {{{
 #   2) mnt_root: name of the root mount point (e.g. "sysroot" for dracut)
 #   3) dumpdevs: space-separated list of all block devices required by kdump
 #   4) mntnum:   number of additional mountpoints
+#   5) bootmnt:  boot mount point (or empty if /boot is on the root fs)
 # Output variables:
 #   see kdump_get_config
 function kdump_setup_files()						   # {{{
@@ -370,6 +379,7 @@ function kdump_setup_files()						   # {{{
     local mnt_root="$2"
     local dumpdevs="$3"
     local mntnum="$4"
+    local bootmnt="$5"
     local kdump_over_ssh
 
     #
@@ -383,7 +393,7 @@ function kdump_setup_files()						   # {{{
     #
     # initialize the /kdump hierarchy
     #
-    kdump_init_dirs "$outdir" "$mnt_root" "$mntnum"
+    kdump_init_dirs "$outdir" "$mnt_root" "$mntnum" "$bootmnt"
 
     #
     # create target configuration
