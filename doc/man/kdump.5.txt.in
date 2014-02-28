@@ -489,6 +489,12 @@ This is a space-separated list of flags to tweak the run-time behaviour of
   Because SFTP and FTP are not mounted, that option has no meaning when saving
   the dump to SFTP and FTP.
 
+*NOSPLIT*::
+  Disable the _--split_ option of *makedumpfile*(8). This option is normally
+  added when KDUMP_CPUS>1, because otherwise the additional CPUs are idle.
+  You can specify this flag to force the use of only one dumping process,
+  regardless of the value of KDUMP_CPUS.
+
 Default: ""
 
 KDUMP_NETCONFIG

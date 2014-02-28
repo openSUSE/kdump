@@ -260,13 +260,14 @@ KDUMP_POSTSCRIPT=""
 #
 KDUMP_COPY_KERNEL="yes"
 
-## Type:        string(NOSPARSE)
+## Type:        string(NOSPARSE,NOSPLIT)
 ## Default:     ""
 ## ServiceRestart:	kdump
 #
-# Space-separated list of flags to tweak the run-time behaviour of kdumptool.
-# Currently, only one flag is supported: NOSPARSE to disable creation of sparse
-# files.
+# Space-separated list of flags to tweak the run-time behaviour of kdumptool:
+#
+#   NOSPARSE disable creation of sparse files.
+#   NOSPLIT  do not pass "--split" to makedumpfile even if KDUMP_CPUS > 1
 #
 # See also: kdump(5).
 #

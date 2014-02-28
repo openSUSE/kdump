@@ -267,7 +267,8 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
     if (noDump)
 	return;			// nothing to be done
 
-    if (config->KDUMP_CPUS.value() > 1) {
+    if (!config->kdumptoolContainsFlag("NOSPLIT") &&
+        config->KDUMP_CPUS.value() > 1) {
 	if (!useElf)
 	    m_useSplit = true;
 	else
