@@ -58,7 +58,7 @@ INSTALL(
     FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/rc.kdump.functions
         ${CMAKE_CURRENT_SOURCE_DIR}/setup-kdump.functions
-        ${CMAKE_CURRENT_SOURCE_DIR}/save_dump
+        ${CMAKE_CURRENT_SOURCE_DIR}/save_dump.sh
     DESTINATION
         /lib/kdump
     PERMISSIONS

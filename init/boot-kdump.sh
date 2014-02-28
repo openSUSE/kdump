@@ -22,6 +22,6 @@
 #%udevmodules: nls_utf8 $kdump_fsmod
 
 # Source into the current shell, don't execute
-. /lib/kdump/save_dump
+. /lib/kdump/save_dump.sh
 
 # vim: set sw=4 ts=4 et:

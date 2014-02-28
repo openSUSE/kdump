@@ -8,7 +8,7 @@ check() {
 }
 
 install() {
-    inst_hook pre-pivot 90 /lib/kdump/save_dump
+    inst_hook pre-pivot 90 /lib/kdump/save_dump.sh
     inst /etc/sysconfig/kdump
     inst_multiple makedumpfile makedumpfile-R.pl kdumptool
 

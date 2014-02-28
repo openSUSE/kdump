@@ -54,7 +54,7 @@ for program in $KDUMP_REQUIRED_PROGRAMS ; do
 done
 
 mkdir -p "${tmp_mnt}/lib/kdump"
-cp -pL /lib/kdump/save_dump "${tmp_mnt}/lib/kdump/"
+cp -pL /lib/kdump/save_dump.sh "${tmp_mnt}/lib/kdump/"
 
 save_var bootdev
 save_var dumpdev
