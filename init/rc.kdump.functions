@@ -286,7 +286,7 @@ function load_kdump()
         find_kernel_args="-D"
     fi
 
-    local output=$(kdumptool find_kernel $find_kernel_args)
+    local output=$(kdumptool $find_kernel_args find_kernel)
     if [ $? -ne 0 ] ; then
         rc_status -s
         rc_failed 6
