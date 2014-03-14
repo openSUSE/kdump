@@ -481,7 +481,7 @@ KDUMPTOOL_FLAGS
 ~~~~~~~~~~~~~~~
 
 This is a space-separated list of flags to tweak the run-time behaviour of
-*kdumptool*(8). Currently, only one flag is supported:
+*kdumptool*(8). These flags are recognized:
 
 *NOSPARSE*::
   Disable the creation of sparse-files. This flag is for debugging purposes,
@@ -494,6 +494,11 @@ This is a space-separated list of flags to tweak the run-time behaviour of
   added when KDUMP_CPUS>1, because otherwise the additional CPUs are idle.
   You can specify this flag to force the use of only one dumping process,
   regardless of the value of KDUMP_CPUS.
+
+*XENALLDOMAINS*::
+  When dumping a Xen virtualization host, *makedumpfile*(8) is normally
+  invoked with the _-X_ option to exclude DomU pages. This flag can be
+  used to include all pages in the dump.
 
 Default: ""
 

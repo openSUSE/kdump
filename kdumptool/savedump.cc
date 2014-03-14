@@ -275,7 +275,12 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
 	    cerr << "Splitting ELF dumps is not supported." << endl;
     }
 
-    if (useElf && dumplevel == 0) {
+    bool excludeDomU = false;
+    if (!config->kdumptoolContainsFlag("XENALLDOMAINS") &&
+	Util::isXenCoreDump(m_dump.c_str()))
+      excludeDomU = true;
+
+    if (useElf && dumplevel == 0 && !excludeDomU) {
         // use file source?
         provider = new FileDataProvider(m_dump.c_str());
         m_useMakedumpfile = false;
@@ -287,6 +292,8 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
 	    cmdline << "--split ";
         cmdline << config->MAKEDUMPFILE_OPTIONS.value() << " ";
         cmdline << "-d " << config->KDUMP_DUMPLEVEL.value() << " ";
+	if (excludeDomU)
+	    cmdline << "-X ";
         if (useElf)
             cmdline << "-E ";
         if (useCompressed)

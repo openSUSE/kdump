@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #include <sys/utsname.h>
 #include <sys/stat.h>
+#include <sys/mman.h>
 
 #include <libelf.h>
 #include <gelf.h>
@@ -159,6 +160,171 @@ bool Util::isElfFile(const string &file)
     bool ret;
     try {
          ret = isElfFile(fd);
+    } catch (...) {
+        close(fd);
+        throw;
+    }
+
+    return ret;
+}
+
+// -----------------------------------------------------------------------------
+static off_t FindElfNoteByName(int fd, off_t offset, size_t sz,
+                               const char *name)
+    throw (KError)
+{
+    char *buf, *p;
+    size_t to_read;
+    size_t nlen;
+    off_t ret = (off_t)-1;
+
+    Debug::debug()->trace("FindElfNoteByName(%d, %lu, %lu, %s)",
+                          fd, (unsigned long)offset, (unsigned long)sz, name);
+
+    if (lseek(fd, offset, SEEK_SET) == (off_t)-1)
+        throw KSystemError("Cannot seek to ELF notes", errno);
+
+    buf = new char[sz];
+    try {
+        to_read = sz;
+        p = buf;
+        while (to_read) {
+            ssize_t bytes_read = read(fd, p, to_read);
+            if (bytes_read < 0)
+                throw KSystemError("Cannot read ELF note", errno);
+            else if (!bytes_read)
+                throw KError("Unexpected EOF while reading ELF note");
+
+            to_read -= bytes_read;
+            p += bytes_read;
+        }
+
+        nlen = strlen(name);
+        to_read = sz;
+        p = buf;
+        while (to_read) {
+            Elf64_Nhdr *hdr = reinterpret_cast<Elf64_Nhdr*>(p);
+            if (to_read < sizeof(*hdr))
+                break;
+            to_read -= sizeof(*hdr);
+            p += sizeof(*hdr);
+
+            size_t notesz =
+                ((hdr->n_namesz + 3) & (-(Elf64_Word)4)) +
+                ((hdr->n_descsz + 3) & (-(Elf64_Word)4));
+            if (to_read < notesz)
+                break;
+
+            if ((hdr->n_namesz == nlen && !memcmp(p, name, nlen)) ||
+                (hdr->n_namesz == nlen+1 && !memcmp(p, name, nlen+1))) {
+                ret = offset + (p - buf) - sizeof(*hdr);
+                break;
+            }
+
+            to_read -= notesz;
+            p += notesz;
+        }
+    } catch (...) {
+        delete buf;
+        throw;
+    }
+
+    return ret;
+}
+
+// -----------------------------------------------------------------------------
+#define ELF_HEADER_MAPSIZE          (128*1024)
+
+bool Util::isXenCoreDump(int fd)
+    throw (KError)
+{
+    void *map = MAP_FAILED;
+    Elf *elf = (Elf*)0;
+    bool ret;
+
+    Debug::debug()->trace("isXenCoreDump(%d)", fd);
+
+    if (elf_version(EV_CURRENT) == EV_NONE)
+        throw KError("libelf is out of date.");
+
+    try {
+        map = mmap(NULL, ELF_HEADER_MAPSIZE, PROT_READ, MAP_PRIVATE, fd, 0);
+        if (map == MAP_FAILED) {
+            map = mmap(NULL, ELF_HEADER_MAPSIZE, PROT_READ,
+                       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+            if (map == MAP_FAILED)
+                throw KSystemError("Cannot allocate ELF headers", errno);
+
+            size_t to_read = ELF_HEADER_MAPSIZE;
+            char *p = reinterpret_cast<char *>(map);
+            while (to_read) {
+                ssize_t bytes_read = read(fd, p, to_read);
+                if (bytes_read < 0)
+                    throw KSystemError("ELF read error", errno);
+                else if (!bytes_read)
+                    break;
+
+                to_read -= bytes_read;
+                p += bytes_read;
+            }
+        }
+        elf = elf_memory(reinterpret_cast<char *>(map), ELF_HEADER_MAPSIZE);
+        if (!elf)
+            throw KELFError("elf_memory() failed", elf_errno());
+
+        if (elf_kind(elf) != ELF_K_ELF)
+            return false;
+
+        switch (gelf_getclass(elf)) {
+        case ELFCLASS32:
+        case ELFCLASS64:
+            break;
+        default:
+            throw KError("Unrecognized ELF class");
+        }
+
+        size_t phnum, i;
+        if (elf_getphdrnum(elf, &phnum))
+            throw KELFError("Cannot count ELF program headers", elf_errno());
+
+        for (i = 0; i < phnum; ++i) {
+            GElf_Phdr phdr;
+
+            if (gelf_getphdr(elf, i, &phdr) != &phdr)
+                throw KELFError("getphdr() failed.", elf_errno());
+
+            if (phdr.p_type == PT_NOTE &&
+                FindElfNoteByName(fd, phdr.p_offset, phdr.p_filesz, "Xen")
+                != (off_t)-1) {
+                ret = true;
+                break;
+            }
+        }
+    } catch (...) {
+        if (elf)
+            elf_end(elf);
+        if (map != MAP_FAILED)
+            munmap(map, ELF_HEADER_MAPSIZE);
+        throw;
+    }
+
+    munmap(map, ELF_HEADER_MAPSIZE);
+    elf_end(elf);
+    return ret;
+}
+
+// -----------------------------------------------------------------------------
+bool Util::isXenCoreDump(const string &file)
+    throw (KError)
+{
+    int fd = open(file.c_str(), O_RDONLY);
+    if (fd < 0) {
+        throw KSystemError("Opening of " + file + " failed.", errno);
+    }
+
+    bool ret;
+    try {
+         ret = isXenCoreDump(fd);
     } catch (...) {
         close(fd);
         throw;

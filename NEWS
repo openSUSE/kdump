@@ -1,3 +1,7 @@
+0.8.10
+------
+  * Filter out DomU pages, when dumping a Xen virtualization host
+
 0.8.9
 -----
   * Fixed dracut hook install

@@ -94,6 +94,26 @@ class Util {
         throw (KError);
 
         /**
+         * Checks if @p filename is a Xen core dump.
+         *
+         * @param[in] filename the file to check
+         * @return @c true if it's a Xen core dump, @c false otherwise
+         * @exception KError if opening the file failed
+         */
+        static bool isXenCoreDump(const std::string &filename)
+        throw (KError);
+
+        /**
+         * Checks if @p filename is a Xen core dump.
+         *
+         * @param[in] fd a file descriptor
+         * @return @c true if it's a Xen core dump, @c false otherwise
+         * @exception KError if opening the file failed
+         */
+        static bool isXenCoreDump(int fd)
+        throw (KError);
+
+        /**
          * Frees a vector.
          */
         template <typename T>
