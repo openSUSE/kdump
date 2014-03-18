@@ -240,7 +240,7 @@ bool Util::isXenCoreDump(int fd)
 {
     void *map = MAP_FAILED;
     Elf *elf = (Elf*)0;
-    bool ret;
+    bool ret = false;
 
     Debug::debug()->trace("isXenCoreDump(%d)", fd);
 
