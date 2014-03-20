@@ -171,12 +171,17 @@ void Calibrate::execute()
     unsigned long pagesize = sysconf(_SC_PAGESIZE);
 
     try {
+	Configuration *config = Configuration::config();
+	bool needsnet = config->needsNetwork();
+
 	// Get total RAM size
 	unsigned long memtotal = Util::getMemorySize();
         Debug::debug()->dbg("Expected total RAM: %lu KiB", memtotal);
 
 	// Calculate boot requirements
-	unsigned long ramfs = INIT_KB + INIT_NET_KB;
+	unsigned long ramfs = INIT_KB;
+	if (needsnet)
+	    ramfs += INIT_NET_KB;
 	unsigned long initrd = (ramfs * INITRD_COMPRESS) / 100;
 	unsigned long bootsize = KERNEL_KB + initrd + ramfs;
         Debug::debug()->dbg("Memory needed at boot: %lu KiB", bootsize);
@@ -185,7 +190,9 @@ void Calibrate::execute()
 	required = KERNEL_KB + ramfs + KERNEL_DYNAMIC_KB;
 
 	// User-space requirements
-	unsigned long user = USER_BASE_KB + USER_NET_KB;
+	unsigned long user = USER_BASE_KB;
+	if (needsnet)
+	    user += USER_NET_KB;
 
 	// Estimate bitmap size (1 bit for every RAM page)
 	unsigned long bitmapsz = shr_round_up(memtotal / pagesize, 3);
