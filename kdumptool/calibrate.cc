@@ -194,15 +194,17 @@ void Calibrate::execute()
 	if (needsnet)
 	    user += USER_NET_KB;
 
-	// Estimate bitmap size (1 bit for every RAM page)
-	unsigned long bitmapsz = shr_round_up(memtotal / pagesize, 3);
-	if (bitmapsz > MAX_BITMAP_KB)
-	    bitmapsz = MAX_BITMAP_KB;
-        Debug::debug()->dbg("Estimated bitmap size: %lu KiB", bitmapsz);
-	user += bitmapsz;
+	if (config->needsMakedumpfile()) {
+	    // Estimate bitmap size (1 bit for every RAM page)
+	    unsigned long bitmapsz = shr_round_up(memtotal / pagesize, 3);
+	    if (bitmapsz > MAX_BITMAP_KB)
+		bitmapsz = MAX_BITMAP_KB;
+	    Debug::debug()->dbg("Estimated bitmap size: %lu KiB", bitmapsz);
+	    user += bitmapsz;
 
-	// Makedumpfile needs additional 96 B for every 128 MiB of RAM
-	user += 96 * shr_round_up(memtotal, 20 + 7);
+	    // Makedumpfile needs additional 96 B for every 128 MiB of RAM
+	    user += 96 * shr_round_up(memtotal, 20 + 7);
+	}
         Debug::debug()->dbg("Total userspace: %lu KiB", user);
 	required += user;
 
