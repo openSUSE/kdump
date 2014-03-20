@@ -22,6 +22,7 @@
 #include "configuration.h"
 #include "configparser.h"
 #include "stringutil.h"
+#include "rootdirurl.h"
 
 using std::string;
 
@@ -165,6 +166,29 @@ bool Configuration::kdumptoolContainsFlag(const std::string &flag)
     string::size_type pos = KDUMPTOOL_FLAGS.value().find(flag);
     return pos != string::npos;
 }
+
+// -----------------------------------------------------------------------------
+bool Configuration::needsNetwork()
+{
+    const string &netconfig = KDUMP_NETCONFIG.value();
+
+    // easy cases first
+    if (netconfig.empty())
+	return false;
+
+    if (netconfig != "auto")
+	return true;
+
+    RootDirURLVector urlv(KDUMP_SAVEDIR.value(), "");
+    RootDirURLVector::iterator it;
+    for (it = urlv.begin(); it != urlv.end(); ++it)
+	if (it->getProtocol() != URLParser::PROT_FILE)
+	    return true;
+
+    return !KDUMP_SMTP_SERVER.value().empty() &&
+	!KDUMP_NOTIFICATION_TO.value().empty();
+}
+
 
 //}}}
 

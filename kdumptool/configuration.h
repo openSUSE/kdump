@@ -318,6 +318,15 @@ class Configuration {
 	bool kdumptoolContainsFlag(const std::string &flag)
 	throw (KError, std::out_of_range, std::bad_cast);
 
+	/*
+	 * Checks whether this configuration needs network.
+	 *
+	 * @return @c true if target is non-local, or mail is configured,
+	 *         @c false otherwise
+	 *
+	 */
+	bool needsNetwork();
+
 	ConfigOptionIterator optionsBegin() const
 	throw ()
 	{ return m_options.begin(); }
