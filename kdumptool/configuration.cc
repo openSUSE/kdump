@@ -18,6 +18,7 @@
  */
 #include <string>
 #include <sstream>
+#include <strings.h>
 
 #include "configuration.h"
 #include "configparser.h"
@@ -187,6 +188,16 @@ bool Configuration::needsNetwork()
 
     return !KDUMP_SMTP_SERVER.value().empty() &&
 	!KDUMP_NOTIFICATION_TO.value().empty();
+}
+
+// -----------------------------------------------------------------------------
+bool Configuration::needsMakedumpfile()
+{
+    if (KDUMP_DUMPLEVEL.value() != 0)
+	return true;
+
+    return strcasecmp(KDUMP_DUMPFORMAT.value().c_str(), "none") != 0 &&
+	strcasecmp(KDUMP_DUMPFORMAT.value().c_str(), "elf") != 0;
 }
 
 

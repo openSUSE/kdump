@@ -327,6 +327,14 @@ class Configuration {
 	 */
 	bool needsNetwork();
 
+	/*
+	 * Checks whether this configuration needs makedumpfile.
+	 *
+	 * @return @c false if vmcore can be simply copied, and @c false
+	 *         if makedumpfile is needed to do the filtering
+	 */
+	bool needsMakedumpfile();
+
 	ConfigOptionIterator optionsBegin() const
 	throw ()
 	{ return m_options.begin(); }
