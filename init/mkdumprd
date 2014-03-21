@@ -119,6 +119,8 @@ function run_mkinitrd()
 # Create a new initrd using dracut                                           {{{
 function run_dracut()
 {
+    local modules="kdump"
+
     . /lib/kdump/setup-kdump.functions
 
     DRACUT_ARGS="--force --hostonly --omit 'systemd plymouth resume usrmount'"
@@ -135,20 +137,52 @@ function run_dracut()
     done
 
     # Check for additional modules
-    modules="kdump"
+    neednet=
     for protocol in "${kdump_Protocol[@]}" ; do
+	if [ "$protocol" = "nfs" ]; then
+	    modules="$modules nfs"
+	fi
 	if [ "$protocol" = "cifs" -o "$protocol" = "smb" ]; then
             modules="$modules cifs"
 	fi
+	if [ "$protocol" != "file" ]; then
+	    neednet=y
+	fi
     done
-    DRACUT_ARGS="$DRACUT_ARGS --add '$modules'"
+
+    # network configuration
+    if [ -n "$KDUMP_SMTP_SERVER" -a -n "$KDUMP_NOTIFICATION_TO" ]; then
+	neednet=y
+    fi
+    if [ "$KDUMP_NETCONFIG" = "auto" ] ; then
+	status_message "Network: auto"
+	DRACUT_ARGS+=" --kernel-cmdline 'rd.neednet=1 ip=any'"
+	if [ -n "$neednet" ]; then
+	    modules="$modules network"
+	fi
+    elif [ -z "$KDUMP_NETCONFIG" ] ; then
+	status_message "Network: none"
+    else
+	interface=$(echo "$KDUMP_NETCONFIG" | cut -d ':' -f 1)
+	mode=$(echo "$KDUMP_NETCONFIG" | cut -d ':' -f 2)
+
+	status_message "Network interface: $interface"
+	if [ "$mode" = "static" ] ; then
+            status_message "Network mode: Static IP"
+            DRACUT_ARGS+=" --kernel-cmdline 'rd.neednet=1'"
+	else
+            status_message "Network mode: Automatic IP (DHCP)"
+            DRACUT_ARGS+=" --kernel-cmdline 'rd.neednet=1 ip=${interface}:dhcp'"
+	fi
+	modules="$modules network"
+    fi
 
     # Make resolved variables visible to the dracut module
     kdump_export_targets
     export KDUMP_mntnum=${#kdump_mnt[@]}
     export KDUMP_bootmnt=${kdump_mnt[0]}
 
-    DRACUT_ARGS="$DRACUT_ARGS $INITRD $KERNELVERSION"
+    DRACUT_ARGS="$DRACUT_ARGS --add '$modules' $INITRD $KERNELVERSION"
     status_message "Calling dracut $DRACUT_ARGS"
     echo "Regenerating kdump initrd ..." >&2
     eval "bash -$- dracut $DRACUT_ARGS"
