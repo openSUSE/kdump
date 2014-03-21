@@ -1,5 +1,6 @@
 0.8.10
 ------
+  * Support snappy compression algorithm
   * Improved algorithm for "calibrate"
   * Network support for dracut
   * Filter out DomU pages, when dumping a Xen virtualization host
