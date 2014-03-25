@@ -141,7 +141,8 @@
 
 // Maximum size of the page bitmap
 // 32 MiB is 32*1024*1024*8 = 268435456 bits
-// with 4-KiB pages this covers 1 TiB of RAM in one cycle
+// makedumpfile uses two bitmaps, so each has 134217728 bits
+// with 4-KiB pages this covers 0.5 TiB of RAM in one cycle
 #define MAX_BITMAP_KB	MB(32)
 
 using std::cout;
@@ -196,7 +197,7 @@ void Calibrate::execute()
 
 	if (config->needsMakedumpfile()) {
 	    // Estimate bitmap size (1 bit for every RAM page)
-	    unsigned long bitmapsz = shr_round_up(memtotal / pagesize, 3);
+	    unsigned long bitmapsz = shr_round_up(memtotal / pagesize, 2);
 	    if (bitmapsz > MAX_BITMAP_KB)
 		bitmapsz = MAX_BITMAP_KB;
 	    Debug::debug()->dbg("Estimated bitmap size: %lu KiB", bitmapsz);
