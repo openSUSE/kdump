@@ -38,7 +38,6 @@
 #include "stringutil.h"
 #include "vmcoreinfo.h"
 #include "identifykernel.h"
-#include "debuglink.h"
 #include "email.h"
 
 using std::string;
@@ -522,28 +521,6 @@ void SaveDump::copyKernel()
     else
         cout << "Copying kernel" << endl;
     m_transfer->perform(&kernelProvider, kernel.baseName().c_str());
-
-    // try to find debugging information
-    try {
-        Debuglink dbg(m_rootdir, kernel);
-        dbg.readDebuglink();
-        FilePath debuglink = dbg.findDebugfile();
-        Debug::debug()->dbg("Found debuginfo file: %s", debuglink.c_str());
-
-        TerminalProgress debugkernelProgress("Copying kernel.debug");
-        (fp = m_rootdir).appendPath(debuglink);
-        FileDataProvider debugkernelProvider(fp.c_str());
-        if (config->KDUMP_VERBOSE.value()
-	    & Configuration::VERB_PROGRESS)
-            debugkernelProvider.setProgress(&debugkernelProgress);
-        else
-            cout << "Generating kernel.debug" << endl;
-        m_transfer->perform(&debugkernelProvider,
-            debuglink.baseName().c_str());
-
-    } catch (const KError &err) {
-        Debug::debug()->info("Cannot find debug information: %s", err.what());
-    }
 }
 
 // -----------------------------------------------------------------------------
