@@ -19,29 +19,6 @@
 #
 
 #
-# Define kdump directories here						     {{{
-TESTKDUMP=(	"2014-03-27-10:37"
-		"2013-12-31-23:59"
-		"2014-03-05-12:15"
-)									   # }}}
-
-#
-# Define non-kdump directories here					     {{{
-TESTDIRS=(	"2014-03-26-18:15"
-		"unrelated"
-		"app-dump"
-)									   # }}}
-
-#
-# Define test files here						     {{{
-TESTFILES=(	"beta"
-		"99-last"
-		"gamma"
-		"UpperCase"
-		"123-digit"
-)									   # }}}
-
-#
 # Check if OUTPUT is equal to EXPECT
 #									     {{{
 function check_output()
@@ -68,20 +45,9 @@ if [ -z "$LISTDIR" ] || [ -z "$DIR" ] ; then
     exit 1
 fi
 
-rm -rf "$DIR/tmp"
-mkdir "$DIR/tmp"
+. "$DIR/testdirs.sh"
 
-for tdir in "${TESTKDUMP[@]}" "${TESTDIRS[@]}"; do
-    mkdir -p "$DIR/tmp/$tdir" || exit 1
-done
-
-for tdir in "${TESTKDUMP[@]}"; do
-    touch "$DIR/tmp/$tdir/vmcore" || exit 1
-done
-
-for f in "${TESTFILES[@]}"; do
-    touch "$DIR/tmp/$f" || exit 1
-done
+setup_testdir "$DIR/tmp" || exit 1
 
 errors=0
 
