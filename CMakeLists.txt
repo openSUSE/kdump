@@ -166,11 +166,7 @@ configure_file(
 ADD_SUBDIRECTORY(kdumptool)
 ADD_SUBDIRECTORY(doc)
 ADD_SUBDIRECTORY(init)
-
-# make that optional because the tarball does not contain it
-IF (EXISTS tests)
-    ADD_SUBDIRECTORY(tests)
-ENDIF (EXISTS tests)
+ADD_SUBDIRECTORY(tests)
 
 #
 # Configuration and Udev
