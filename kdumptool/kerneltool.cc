@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <fcntl.h>
+#include <endian.h>
 
 #include <zlib.h>
 #include <libelf.h>
@@ -350,7 +351,15 @@ bool KernelTool::elfIsRelocatable() const
             throw KSystemError("Couldn't read ELF header", errno);
         }
 
-        arch = archFromElfMachine((unsigned long long)hdr.e_machine);
+	unsigned short machine;
+	if (e_ident[EI_DATA] == ELFDATA2LSB)
+	    machine = le16toh(hdr.e_machine);
+	else if (e_ident[EI_DATA] == ELFDATA2MSB)
+	    machine = be16toh(hdr.e_machine);
+	else
+	    throw KError("elfIsRelocatable(): Invalid ELF data encoding");
+
+        arch = archFromElfMachine(machine);
 
         if (hdr.e_type == ET_DYN)
             reloc = true;
@@ -366,7 +375,15 @@ bool KernelTool::elfIsRelocatable() const
         if (hdr.e_type == ET_DYN)
             reloc = true;
 
-        arch = archFromElfMachine((unsigned long long)hdr.e_machine);
+	unsigned short machine;
+	if (e_ident[EI_DATA] == ELFDATA2LSB)
+	    machine = le16toh(hdr.e_machine);
+	else if (e_ident[EI_DATA] == ELFDATA2MSB)
+	    machine = be16toh(hdr.e_machine);
+	else
+	    throw KError("elfIsRelocatable(): Invalid ELF data encoding");
+
+        arch = archFromElfMachine(machine);
     } else {
         throw KError("elfIsRelocatable(): Invalid ELF class");
     }
