@@ -45,4 +45,4 @@ syntax: regexp
 
 # other
 build/
-tests/
+tests/data/tmp/
