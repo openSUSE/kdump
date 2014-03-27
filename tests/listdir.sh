@@ -19,16 +19,21 @@
 #
 
 #
-# Define test files here						     {{{
-#
-
-#
-# Define test directories here						     {{{
-TESTDIRS=(	"2014-03-27-10:37"
+# Define kdump directories here						     {{{
+TESTKDUMP=(	"2014-03-27-10:37"
 		"2013-12-31-23:59"
 		"2014-03-05-12:15"
 )									   # }}}
 
+#
+# Define non-kdump directories here					     {{{
+TESTDIRS=(	"2014-03-26-18:15"
+		"unrelated"
+		"app-dump"
+)									   # }}}
+
+#
+# Define test files here						     {{{
 TESTFILES=(	"beta"
 		"99-last"
 		"gamma"
@@ -66,8 +71,12 @@ fi
 rm -rf "$DIR/tmp"
 mkdir "$DIR/tmp"
 
-for tdir in "${TESTDIRS[@]}"; do
+for tdir in "${TESTKDUMP[@]}" "${TESTDIRS[@]}"; do
     mkdir -p "$DIR/tmp/$tdir" || exit 1
+done
+
+for tdir in "${TESTKDUMP[@]}"; do
+    touch "$DIR/tmp/$tdir/vmcore" || exit 1
 done
 
 for f in "${TESTFILES[@]}"; do
@@ -76,12 +85,28 @@ done
 
 errors=0
 
-EXPECT=$( LANG= sort <( IFS=$'\n' ; echo "${TESTDIRS[*]}" ; echo "${TESTFILES[*]}" ) )
+EXPECT=$( LANG= sort <(
+	IFS=$'\n'
+	echo "${TESTKDUMP[*]}"
+	echo "${TESTDIRS[*]}"
+	echo "${TESTFILES[*]}"
+    ) )
 OUTPUT=$( "$LISTDIR" "$DIR/tmp" all || echo "*** testlistdir FAILED!" )
 check_output
 
-EXPECT=$( LANG= sort <( IFS=$'\n' ; echo "${TESTDIRS[*]}") )
-OUTPUT=$( "$LISTDIR" "$DIR/tmp" onlydirs  || echo "*** testlistdir FAILED!" )
+EXPECT=$( LANG= sort <(
+	IFS=$'\n'
+	echo "${TESTKDUMP[*]}"
+	echo "${TESTDIRS[*]}"
+    ) )
+OUTPUT=$( "$LISTDIR" "$DIR/tmp" dirs  || echo "*** testlistdir FAILED!" )
+check_output
+
+EXPECT=$( LANG= sort <(
+	IFS=$'\n'
+	echo "${TESTKDUMP[*]}"
+    ) )
+OUTPUT=$( "$LISTDIR" "$DIR/tmp" kdumpdirs  || echo "*** testlistdir FAILED!" )
 check_output
 
 exit $errors

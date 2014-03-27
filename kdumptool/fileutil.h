@@ -280,6 +280,23 @@ class FilterDotsAndNondirs : public FilterDots {
 	bool test(const struct dirent *d) const;
 };
 //}}}
+//{{{ FilterKdumpDirs ----------------------------------------------------------
+class FilterKdumpDirs : public FilterDotsAndNondirs {
+
+    public:
+	FilterKdumpDirs(const std::string &path)
+	    : m_path(path)
+	{}
+
+	virtual ~FilterKdumpDirs()
+	{}
+
+	bool test(const struct dirent *d) const;
+
+    private:
+	const std::string m_path;
+};
+//}}}
 //{{{ Functions ----------------------------------------------------------------
 
 /**

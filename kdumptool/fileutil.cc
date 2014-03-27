@@ -451,4 +451,19 @@ bool FilterDotsAndNondirs::test(const struct dirent *d) const
 }
 //}}}
 
+//{{{ FilterKdumpDirs ----------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+bool FilterKdumpDirs::test(const struct dirent *d) const
+{
+    if (!FilterDotsAndNondirs::test(d))
+	return false;
+
+    FilePath vmcore(m_path);
+    vmcore.appendPath(d->d_name);
+    vmcore.appendPath("vmcore");
+    return vmcore.exists();
+}
+//}}}
+
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

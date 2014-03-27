@@ -43,20 +43,23 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+    FilePath dir(argv[1]);
+
     string mode(argv[2]);
     ListDirFilter *filt;
     if (mode == "all")
 	filt = new FilterDots();
-    else if (mode == "onlydirs")
+    else if (mode == "dirs")
 	filt = new FilterDotsAndNondirs();
+    else if (mode == "kdumpdirs")
+	filt = new FilterKdumpDirs(dir);
     else {
-	cerr << "Mode must be one of: 'all', 'onlydirs'" << endl;
+	cerr << "Mode must be one of: 'all', 'dirs', 'kdumpdirs'" << endl;
 	return EXIT_FAILURE;
     }
 
     Debug::debug()->setStderrLevel(Debug::DL_TRACE);
 
-    FilePath dir(argv[1]);
     try {
 	StringVector v = dir.listDir(*filt);
 	copy(v.begin(), v.end(), ostream_iterator<string>(cout, "\n"));
