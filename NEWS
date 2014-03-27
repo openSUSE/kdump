@@ -6,6 +6,7 @@
   * Filter out DomU pages, when dumping a Xen virtualization host
   * Do not try to copy separate debuginfo files
   * Unit test for FilePath::listDir()
+  * delete_dumps: ignore non-kdump directories
 
 0.8.9
 -----
