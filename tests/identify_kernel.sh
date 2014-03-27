@@ -57,6 +57,15 @@ if [ -z "$DIR" ] || [ -z "$KDUMPTOOL" ] ; then
     exit 1
 fi
 
+case `uname -m` in
+    i?86|x86_64)
+	x86=yes
+	;;
+    *)
+	x86=no
+	;;
+esac
+
 errornumber=0
 i=0
 for kernel in ${KERNEL_IMAGES[@]}; do
@@ -64,6 +73,11 @@ for kernel in ${KERNEL_IMAGES[@]}; do
     reloc=${RELOCATABLE[$i]}
     type=${TYPE[$i]}
     i=$[$i+1]
+
+    if [ "$type" = "x86" -a "$x86" != "yes" ]; then
+	echo "Skipping $kernel"
+	continue
+    fi
 
     echo -n "Testing $kernel "
 
