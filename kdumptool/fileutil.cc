@@ -25,6 +25,8 @@
 #include <libgen.h>
 #include <dirent.h>
 #include <sstream>
+#include <algorithm>
+
 #include <sys/vfs.h>
 #include <sys/param.h>
 
@@ -316,6 +318,8 @@ static int filter_dots_and_nondirs(const struct dirent *d)
 StringVector FilePath::listDir(bool onlyDirs)
     throw (KError)
 {
+    StringVector v;
+
     Debug::debug()->trace("FileUtil::listdir(%s)", c_str());
 
     int (*filterfunction)(const struct dirent *);
@@ -324,18 +328,28 @@ StringVector FilePath::listDir(bool onlyDirs)
     else
         filterfunction = filter_dots;
 
-    StringVector v;
-    struct dirent **namelist;
-    int count = scandir(c_str(), &namelist, filterfunction, alphasort);
-    if (count < 0)
-        throw KSystemError("Cannot scan directory " + *this + ".", errno);
+    DIR *dirp = opendir(c_str());
+    if (!dirp)
+	throw KSystemError("Cannot open directory " + *this + ".", errno);
 
-    for (int i = 0; i < count; i++) {
-        v.push_back(namelist[i]->d_name);
-        free(namelist[i]);
+    try {
+	struct dirent *d;
+
+	errno = 0;
+	while ( (d = readdir(dirp)) ) {
+	    if (filterfunction(d))
+		v.push_back(d->d_name);
+	    errno = 0;
+	}
+	if (errno)
+	    throw KSystemError("Cannot read directory " + *this + ".", errno);
+    } catch(...) {
+	closedir(dirp);
+	throw;
     }
-    free(namelist);
+    closedir(dirp);
 
+    sort(v.begin(), v.end());
     return v;
 }
 
