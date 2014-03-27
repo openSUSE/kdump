@@ -43,12 +43,21 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+    string mode(argv[2]);
+    bool onlyDirs;
+    if (mode == "all")
+	onlyDirs = false;
+    else if (mode == "onlydirs")
+	onlyDirs = true;
+    else {
+	cerr << "Mode must be one of: 'all', 'onlydirs'" << endl;
+	return EXIT_FAILURE;
+    }
+
     Debug::debug()->setStderrLevel(Debug::DL_TRACE);
 
     FilePath dir(argv[1]);
-    string mode(argv[2]);
     try {
-	bool onlyDirs = (mode == "onlydirs" ? true : false);
 	StringVector v = dir.listDir(onlyDirs);
 	copy(v.begin(), v.end(), ostream_iterator<string>(cout, "\n"));
     } catch (const std::exception &ex) {
