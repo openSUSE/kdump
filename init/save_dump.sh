@@ -143,8 +143,8 @@ FADUMP_ENABLED=/sys/kernel/fadump_enabled
 FADUMP_RELEASE_MEM=/sys/kernel/fadump_release_mem
 
 #
-# start LED blinking in background
-kdumptool ledblink --background
+# start LED blinking
+kdumptool ledblink &
 
 #
 # create core dumps by default here for kdumptool debugging
