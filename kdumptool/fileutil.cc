@@ -117,6 +117,7 @@ void FileUtil::umount(const std::string &mountpoint)
 }
 
 //}}}
+
 //{{{ FilePath -----------------------------------------------------------------
 
 const string FilePath::m_slash("/");
@@ -293,40 +294,12 @@ FilePath FilePath::getCanonicalPath(const string &root) const
 }
 
 // -----------------------------------------------------------------------------
-static int filter_dots(const struct dirent *d)
-{
-    if (strcmp(d->d_name, ".") == 0)
-        return 0;
-    if (strcmp(d->d_name, "..") == 0)
-        return 0;
-    else
-        return 1;
-}
-
-// -----------------------------------------------------------------------------
-static int filter_dots_and_nondirs(const struct dirent *d)
-{
-    if (strcmp(d->d_name, ".") == 0)
-        return 0;
-    if (strcmp(d->d_name, "..") == 0)
-        return 0;
-    else
-        return d->d_type == DT_DIR;
-}
-
-// -----------------------------------------------------------------------------
-StringVector FilePath::listDir(bool onlyDirs)
+StringVector FilePath::listDir(const ListDirFilter &filter)
     throw (KError)
 {
     StringVector v;
 
     Debug::debug()->trace("FileUtil::listdir(%s)", c_str());
-
-    int (*filterfunction)(const struct dirent *);
-    if (onlyDirs)
-        filterfunction = filter_dots_and_nondirs;
-    else
-        filterfunction = filter_dots;
 
     DIR *dirp = opendir(c_str());
     if (!dirp)
@@ -337,7 +310,7 @@ StringVector FilePath::listDir(bool onlyDirs)
 
 	errno = 0;
 	while ( (d = readdir(dirp)) ) {
-	    if (filterfunction(d))
+	    if (filter.test(d))
 		v.push_back(d->d_name);
 	    errno = 0;
 	}
@@ -453,6 +426,29 @@ void FilePath::rmdir(bool recursive)
         throw KSystemError("Cannot rmdir(" + *this + ").", errno);
 }
 
+//}}}
+
+//{{{ FilterDots ---------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+bool FilterDots::test(const struct dirent *d) const
+{
+    if (strcmp(d->d_name, ".") == 0)
+        return false;
+    if (strcmp(d->d_name, "..") == 0)
+        return false;
+    else
+        return true;
+}
+//}}}
+
+//{{{ FilterDotsAndNondirs -----------------------------------------------------
+
+// -----------------------------------------------------------------------------
+bool FilterDotsAndNondirs::test(const struct dirent *d) const
+{
+    return FilterDots::test(d) && d->d_type == DT_DIR;
+}
 //}}}
 
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

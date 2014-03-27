@@ -81,6 +81,19 @@ class FileUtil {
 };
 
 //}}}
+//{{{ ListDirFilter ------------------------------------------------------------
+
+struct dirent;
+
+class ListDirFilter {
+
+    public:
+	virtual ~ListDirFilter()
+	{}
+
+	virtual bool test(const struct dirent *d) const = 0;
+};
+//}}}
 //{{{ FilePath -----------------------------------------------------------------
 
 /**
@@ -211,7 +224,7 @@ class FilePath : public KString {
          *            list, @c false if all files should be included
          * @exception KError if something went wrong
          */
-        StringVector listDir(bool onlyDirs)
+        StringVector listDir(const ListDirFilter &filter)
         throw (KError);
 
         /**
@@ -246,6 +259,26 @@ class FilePath : public KString {
 
 };
 
+//}}}
+//{{{ FilterDots ---------------------------------------------------------------
+class FilterDots : public ListDirFilter {
+
+    public:
+	virtual ~FilterDots()
+	{}
+
+	bool test(const struct dirent *d) const;
+};
+//}}}
+//{{{ FilterDotsAndNondirs -----------------------------------------------------
+class FilterDotsAndNondirs : public FilterDots {
+
+    public:
+	virtual ~FilterDotsAndNondirs()
+	{}
+
+	bool test(const struct dirent *d) const;
+};
 //}}}
 //{{{ Functions ----------------------------------------------------------------
 

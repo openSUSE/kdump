@@ -44,11 +44,11 @@ int main(int argc, char *argv[])
     }
 
     string mode(argv[2]);
-    bool onlyDirs;
+    ListDirFilter *filt;
     if (mode == "all")
-	onlyDirs = false;
+	filt = new FilterDots();
     else if (mode == "onlydirs")
-	onlyDirs = true;
+	filt = new FilterDotsAndNondirs();
     else {
 	cerr << "Mode must be one of: 'all', 'onlydirs'" << endl;
 	return EXIT_FAILURE;
@@ -58,12 +58,13 @@ int main(int argc, char *argv[])
 
     FilePath dir(argv[1]);
     try {
-	StringVector v = dir.listDir(onlyDirs);
+	StringVector v = dir.listDir(*filt);
 	copy(v.begin(), v.end(), ostream_iterator<string>(cout, "\n"));
     } catch (const std::exception &ex) {
         cerr << "Fatal exception: " << ex.what() << endl;
 	return EXIT_FAILURE;
     }
 
+    delete filt;
     return EXIT_SUCCESS;
 }

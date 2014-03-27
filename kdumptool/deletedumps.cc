@@ -110,7 +110,7 @@ void DeleteDumps::delete_one(const RootDirURL &url, int oldDumps)
         return;
     }
 
-    StringVector contents = dir.listDir(true);
+    StringVector contents = dir.listDir(FilterDotsAndNondirs());
     int deleteItems;
     if (oldDumps == -1)
         deleteItems = contents.size();
