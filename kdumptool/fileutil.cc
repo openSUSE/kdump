@@ -26,6 +26,7 @@
 #include <dirent.h>
 #include <sstream>
 #include <algorithm>
+#include <typeinfo>
 
 #include <sys/vfs.h>
 #include <sys/param.h>
@@ -299,7 +300,8 @@ StringVector FilePath::listDir(const ListDirFilter &filter)
 {
     StringVector v;
 
-    Debug::debug()->trace("FileUtil::listdir(%s)", c_str());
+    Debug::debug()->trace("FileUtil::listdir(%s,%s)",
+			  c_str(), typeid(filter).name());
 
     DIR *dirp = opendir(c_str());
     if (!dirp)
