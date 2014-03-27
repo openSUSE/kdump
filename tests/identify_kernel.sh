@@ -63,6 +63,7 @@ for kernel in ${KERNEL_IMAGES[@]}; do
     path=$DIR/$kernel
     reloc=${RELOCATABLE[$i]}
     type=${TYPE[$i]}
+    i=$[$i+1]
 
     echo -n "Testing $kernel "
 
@@ -109,8 +110,6 @@ for kernel in ${KERNEL_IMAGES[@]}; do
         errornumber=$[$errornumber+1]
         continue
     fi
-
-    i=$[$i+1]
 done
 
 if [ "$errornumber" -eq 0 ] ; then
