@@ -132,3 +132,8 @@ add_executable(testcanonical
     testcanonical.cc
 )
 target_link_libraries(testcanonical common ${EXTRA_LIBS})
+
+add_executable(testlistdir
+    testlistdir.cc
+)
+target_link_libraries(testlistdir common ${EXTRA_LIBS})

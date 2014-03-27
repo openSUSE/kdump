@@ -29,6 +29,7 @@ syntax: regexp
 ^kdumptool/testmail
 ^kdumptool/testreadlink
 ^kdumptool/testurlparser
+^kdumptool/testlistdir
 
 # generated documentation
 syntax: glob

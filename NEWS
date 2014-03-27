@@ -5,6 +5,7 @@
   * Network support for dracut
   * Filter out DomU pages, when dumping a Xen virtualization host
   * Do not try to copy separate debuginfo files
+  * Unit test for FilePath::listDir()
 
 0.8.9
 -----
