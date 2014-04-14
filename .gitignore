@@ -1,0 +1,45 @@
+# editor-generatd files
+*.swp
+*~
+
+# the build system
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+config.h
+DartConfiguration.tcl
+
+CPackConfig.cmake
+CPackSourceConfig.cmake
+_CPack_Packages/
+
+CTestTestfile.cmake
+Testing/
+
+# convenience libraries
+*.a
+
+# resulting binaries
+kdumptool/kdumptool
+kdumptool/testcanonical
+kdumptool/testconfig
+kdumptool/testio
+kdumptool/testkconfig
+kdumptool/testmail
+kdumptool/testreadlink
+kdumptool/testurlparser
+kdumptool/testlistdir
+
+# generated documentation
+doc/man/*.txt
+doc/man/*.[1-8].gz
+*.html
+
+# release packages
+/kdump-*.tar.bz2
+
+# other
+/sysconfig.kdump
+build/
+tests/data/tmp/
