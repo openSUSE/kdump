@@ -23,7 +23,7 @@ TARBALL=kdump-${VERSION}.tar.bz2
 #
 # Generate tarball
 #
-hg archive -X create_release.sh -t tbz2 $TARBALL
+git archive --format=tar --prefix="kdump-${VERSION}/" HEAD | bzip2 -c >$TARBALL
 
 #
 # Test build
