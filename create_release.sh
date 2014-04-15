@@ -15,20 +15,52 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-VERSION=$(grep '^set (PACKAGE_VERSION' CMakeLists.txt | \
-          sed -e 's/.*PACKAGE_VERSION "\([0-9.]*\).*/\1/g')
+usage()
+{
+    echo "usage: create_release.sh [--notest] [comittish]" >&2
+}
+
+notest=
+commit=
+for opt in "$@"; do
+    case "$opt" in
+        --notest)
+            notest=y
+            ;;
+        -*)
+            echo "Invalid option: $opt" >&2
+            usage
+            exit 1
+            ;;
+        *)
+            if [ -n "$commit" ] ; then
+                usage
+                exit 1
+            fi
+            commit="$opt"
+            ;;
+    esac
+done
+test -z "$commit" && commit=HEAD
+
+VERSION=$(git describe "$commit")
+test $? -eq 0 || exit 1
+
+# remove leading "v" from the tag
+VERSION="${VERSION#v}"
 
 TARBALL=kdump-${VERSION}.tar.bz2
 
 #
 # Generate tarball
 #
-git archive --format=tar --prefix="kdump-${VERSION}/" HEAD | bzip2 -c >$TARBALL
+git archive --format=tar --prefix="kdump-${VERSION}/" "$commit" | \
+    bzip2 -c >$TARBALL
 
 #
 # Test build
 #
-if [ "$1" != "notest" ] ; then
+if [ -z "$notest" ] ; then
     dir=$PWD
     TEMPBUILD=$PWD/tempbuild-$$
     mkdir $TEMPBUILD
