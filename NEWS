@@ -1,5 +1,6 @@
 0.8.11
 ------
+  * Use fast xz compression with dracut
 
 0.8.10
 ------

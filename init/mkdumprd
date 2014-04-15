@@ -124,6 +124,7 @@ function run_dracut()
     . /lib/kdump/setup-kdump.functions
 
     DRACUT_ARGS="--force --hostonly --omit 'systemd plymouth resume usrmount'"
+    DRACUT_ARGS="$DRACUT_ARGS --compress='xz -0 --check=crc32'"
 
     # add mount points
     kdump_get_mountpoints || return 1
