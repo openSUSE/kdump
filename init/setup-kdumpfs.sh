@@ -166,15 +166,8 @@ kdump_get_mountpoints || return 1
 
 touch "${tmp_mnt}/etc/fstab.kdump"
 
-# add the boot partition
-if [ -n "${kdump_mnt[0]}" ]
-then
-    bootdev=$(kdump_add_mount "Boot" "${kdump_dev[0]}" "/mnt0" \
-	"${kdump_fstype[0]}" "${kdump_opts[0]}" )
-fi
-
-# additional mount points
-i=1
+# add mount points
+i=0
 while [ $i -lt ${#kdump_mnt[@]} ]
 do
     dev=$(kdump_add_mount "Dump" "${kdump_dev[i]}" "/mnt$i" \

@@ -21,7 +21,6 @@
 
 # Certain shell variables must be set:
 #
-#   bootdev  boot device (or empty)
 #   dumpdev  space-separated list of block devices used for dumping
 #
 
@@ -164,11 +163,6 @@ if [ -n "$KDUMP_TRANSFER" ] ; then
 else
     #
     # wait for /boot device and dump device(s)
-    wait_for_dumpdev "$bootdev" boot
-    if ! continue_error $?; then
-        return
-    fi
-
     for dev in $dumpdev ; do
 	wait_for_dumpdev "$dev" dump
 	if ! continue_error $?; then

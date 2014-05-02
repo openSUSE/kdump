@@ -145,10 +145,10 @@ function kdump_get_mountpoints()					   # {{{
     # Populate kdump_*[] arrays with dump target info
     kdump_get_targets || return 1
 
-    kdump_mnt=( "" )
-    kdump_dev=( "" )
-    kdump_fstype=( "" )
-    kdump_opts=( "" )
+    kdump_mnt=( )
+    kdump_dev=( )
+    kdump_fstype=( )
+    kdump_opts=( )
 
     while read device mountpoint filesystem opts dummy ; do
 	if [ "$mountpoint" = "/boot" -a -z "${kdump_mnt[0]}" ] ; then
@@ -345,26 +345,23 @@ function kdump_init_dirs()						   # {{{
 {
     local root="$1"
     local mnt_root="$2"
-    local mntnum="${#kdump_mnt[@]}"
-    local bootmnt="${kdump_mnt[0]}"
     local i
 
     mkdir -p "${root}/kdump"
     mkdir -m 01777 "${root}/kdump/tmp"
     ln -snf ../"$mnt_root" "${root}/kdump/root"
 
-    if [ -n "$bootmnt" ] ; then
-	ln -snf mnt0 "${root}/kdump/boot"
-	i=0
-    else
-	ln -snf "../${mnt_root}/boot" "${root}/kdump/boot"
-	i=1
-    fi
-    while [ $i -lt "$mntnum" ]
+    i=0
+    for d in "${kdump_mnt[@]}"
     do
 	mkdir "${root}/kdump/mnt${i}"
+	if [ "$d" = "/boot" ] ; then
+	    ln -snf mnt$i "${root}/kdump/boot"
+	fi
 	i=$((i+1))
     done
+
+    test -e "${root}/kdump/boot" || ln -snf "root/boot" "${root}/kdump/boot"
 }
 
 #
