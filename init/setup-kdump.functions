@@ -190,7 +190,7 @@ function kdump_get_mountpoints()					   # {{{
     kdump_opts=( )
 
     while read device mountpoint filesystem opts dummy ; do
-	if [ "$mountpoint" = "/boot" ] ; then
+	if [ "$mountpoint" = "/" -o "$mountpoint" = "/boot" ] ; then
 	    get_kdump_mountpoint "$device" "$mountpoint" "$filesystem" "$opts"
 	fi
 
@@ -218,13 +218,9 @@ function kdump_get_mountpoints()					   # {{{
             fspath="${kdump_Realpath[i]}"
             fspath="${fspath#$mountpoint}"
             fspath="${fspath#/}"
-            if [ "$mountpoint" = "/" ] ; then
-		kdump_Realpath[i]="/root/$fspath"
-            else
-		get_kdump_mountpoint "${mntdev[i]}" "$mountpoint" \
-		    "${mntfstype[i]}" "${mntopts[i]}"
-		kdump_Realpath[i]="${kdump_mountpoint}/$fspath"
-            fi
+	    get_kdump_mountpoint "${mntdev[i]}" "$mountpoint" \
+		"${mntfstype[i]}" "${mntopts[i]}"
+	    kdump_Realpath[i]="${kdump_mountpoint}/$fspath"
 	fi
 	i=$((i+1))
     done
@@ -364,26 +360,28 @@ function kdump_copy_ssh_keys()						   # {{{
 # Create the /kdump hierarchy with mountpoints
 # Parameters:
 #   1) root:     initrd temporary root
-#   2) mnt_root: name of the real root fs mountpoint (in kdump env)
 # Input variables:
 #   kdump_mnt[i] non-kdump mountpoint corresponding to /mnt$i
 function kdump_init_dirs()						   # {{{
 {
     local root="$1"
-    local mnt_root="$2"
     local i
 
     mkdir -p "${root}/kdump"
     mkdir -m 01777 "${root}/kdump/tmp"
-    ln -snf ../"$mnt_root" "${root}/kdump/root"
 
     i=0
     for d in "${kdump_mnt[@]}"
     do
 	mkdir "${root}/kdump/mnt${i}"
-	if [ "$d" = "/boot" ] ; then
-	    ln -snf mnt$i "${root}/kdump/boot"
-	fi
+	case "$d" in
+	    /)
+		ln -snf mnt$i "${root}/kdump/root"
+		;;
+	    /boot)
+		ln -snf mnt$i "${root}/kdump/boot"
+		;;
+	esac
 	i=$((i+1))
     done
 
@@ -394,8 +392,7 @@ function kdump_init_dirs()						   # {{{
 # Set up or create all necessary files
 # Parameters:
 #   1) outdir:   initrd temporary root
-#   2) mnt_root: name of the root mount point (e.g. "sysroot" for dracut)
-#   3) dumpdevs: space-separated list of all block devices required by kdump
+#   2) dumpdevs: space-separated list of all block devices required by kdump
 # Input variables:
 #   kdump_mnt[i] non-kdump mountpoint corresponding to /mnt$i
 # Output variables:
@@ -403,8 +400,7 @@ function kdump_init_dirs()						   # {{{
 function kdump_setup_files()						   # {{{
 {
     local outdir="${1%/}"
-    local mnt_root="$2"
-    local dumpdevs="$3"
+    local dumpdevs="$2"
     local kdump_over_ssh
 
     #
@@ -418,7 +414,7 @@ function kdump_setup_files()						   # {{{
     #
     # initialize the /kdump hierarchy
     #
-    kdump_init_dirs "$outdir" "$mnt_root"
+    kdump_init_dirs "$outdir"
 
     #
     # create target configuration
