@@ -1,6 +1,7 @@
 0.8.11
 ------
   * Use fast xz compression with dracut
+  * Mount boot/root partition only if needed
 
 0.8.10
 ------

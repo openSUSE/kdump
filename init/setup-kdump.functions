@@ -168,6 +168,8 @@ function get_kdump_mountpoint()						   # {{{
 # Mount point 0 always corresponds to the "/boot" mount point and may be
 # empty if "/boot" is not on a separate partition.
 #
+# Input variables:
+#   KDUMP_COPY_KERNEL  config option, see kdump(5)
 # Output variables:
 #   kdump_*         target specs (as returned by kdump_get_targets)
 #   kdump_mnt[i]    mountpoint i in the current environment
@@ -178,6 +180,8 @@ function kdump_get_mountpoints()					   # {{{
 {
     local device mountpoint filesystem opts dummy
     local protocol realpath fspath kdump_mountpoint
+    local rootdev rootmnt rootfstype rootopts
+    local bootdev bootmnt bootfstype bootopts
     local -a curmp mntdev mntfstype mntopts
     local i
 
@@ -190,8 +194,16 @@ function kdump_get_mountpoints()					   # {{{
     kdump_opts=( )
 
     while read device mountpoint filesystem opts dummy ; do
-	if [ "$mountpoint" = "/" -o "$mountpoint" = "/boot" ] ; then
-	    get_kdump_mountpoint "$device" "$mountpoint" "$filesystem" "$opts"
+	if [ "$mountpoint" = "/" ] ; then
+	    rootdev="$device"
+	    rootmnt="$mountpoint"
+	    rootfstype="$filesystem"
+	    rootopts="$opts"
+	elif [ "$mountpoint" = "/boot" ] ; then
+	    bootdev="$device"
+	    bootmnt="$mountpoint"
+	    bootfstype="$filesystem"
+	    bootopts="$opts"
 	fi
 
 	i=0
@@ -209,6 +221,15 @@ function kdump_get_mountpoints()					   # {{{
             i=$((i+1))
 	done
     done < <(kdump_read_mounts)
+
+    # add root/boot if needed
+    if [ "$KDUMP_COPY_KERNEL" = "yes" ] ; then
+	if [ -n "$bootdev" ] ; then
+	    get_kdump_mountpoint "$bootdev" "$bootmnt" "$bootfstype" "$bootopts"
+	else
+	    get_kdump_mountpoint "$rootdev" "$rootmnt" "$rootfstype" "$rootopts"
+	fi
+    fi
 
     # map running paths to target paths
     i=0
