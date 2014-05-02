@@ -131,7 +131,7 @@ function run_dracut()
     while [ $i -lt ${#kdump_mnt[@]} ]
     do
 	if [ -n "${kdump_mnt[i]}" ] ; then
-	    DRACUT_ARGS="$DRACUT_ARGS --mount '${kdump_dev[i]} /kdump/mnt$i ${kdump_fstype[i]} ${kdump_opts[i]}'"
+	    DRACUT_ARGS="$DRACUT_ARGS --mount '${kdump_dev[i]} ${kdump_mnt[i]} ${kdump_fstype[i]} ${kdump_opts[i]}'"
 	fi
 	i=$((i+1))
     done

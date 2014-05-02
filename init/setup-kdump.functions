@@ -124,8 +124,8 @@ function kdump_read_mounts()						   # {{{
 }									   # }}}
 
 #
-# Translate a non-kdump mountpoint into a kdump mountpoint.
-# If necessary, add a new entry into the kdump_* arrays
+# Update the kdump mountpoint corresponding to the non-kdump mountpoint.
+# If necessary, add a new entry into the kdump_* arrays.
 #
 # Parameters:
 #   1) device         mount device
@@ -133,16 +133,17 @@ function kdump_read_mounts()						   # {{{
 #   3) fstype         filesystem type
 #   4) opts           mount options
 # Output variable:
-#   kdump_mountpoint  mountpoint in kdump environment
+#   kdump_mountidx    mountpoint index in kdump environment
 # Input/output variables:
 #   kdump_mnt[]
+# Output variables:
 #   kdump_dev[]
 #   kdump_fstype[]
 #   kdump_opts[]
-function get_kdump_mountpoint()						   # {{{
+function kdump_update_mount()						   # {{{
 {
     local device="$1"
-    local mountpoint="$2"
+    local mountpoint="/kdump/mnt0/${2#/}"
     local fstype="$3"
     local opts="$4"
     local mnt i
@@ -150,16 +151,17 @@ function get_kdump_mountpoint()						   # {{{
     i=0
     for mnt in "${kdump_mnt[@]}"
     do
-	[ "$mnt" = "$mountpoint" ] && break
+	[ "$mnt" = "${mountpoint%/}" ] && break
         i=$((i+1))
+	mountpoint="/kdump/mnt$i/${mountpoint#/kdump/mnt*/}"
     done
-    if [ $i -ge "${#kdump_mnt[@]}" ] ; then
-	kdump_mnt[i]="$mountpoint"
-	kdump_dev[i]="$device"
-	kdump_fstype[i]="$fstype"
-	kdump_opts[i]="$opts"
-    fi
-    kdump_mountpoint="/mnt$i"
+
+    kdump_mnt[i]="${mountpoint%/}"
+    kdump_dev[i]="$device"
+    kdump_fstype[i]="$fstype"
+    kdump_opts[i]="$opts"
+
+    kdump_mountidx=$i
 }									   # }}}
 
 #
@@ -172,14 +174,14 @@ function get_kdump_mountpoint()						   # {{{
 #   KDUMP_COPY_KERNEL  config option, see kdump(5)
 # Output variables:
 #   kdump_*         target specs (as returned by kdump_get_targets)
-#   kdump_mnt[i]    mountpoint i in the current environment
+#   kdump_mnt[i]    mountpoint i in kdump environment
 #   kdump_dev[i]    mount device for mount i
 #   kdump_fstype[i] file system type for mount i
 #   kdump_opts[i]   mount options for mount i
 function kdump_get_mountpoints()					   # {{{
 {
     local device mountpoint filesystem opts dummy
-    local protocol realpath fspath kdump_mountpoint
+    local protocol realpath kdump_mountidx
     local rootdev rootmnt rootfstype rootopts
     local bootdev bootmnt bootfstype bootopts
     local -a curmp mntdev mntfstype mntopts
@@ -225,9 +227,9 @@ function kdump_get_mountpoints()					   # {{{
     # add root/boot if needed
     if [ "$KDUMP_COPY_KERNEL" = "yes" ] ; then
 	if [ -n "$bootdev" ] ; then
-	    get_kdump_mountpoint "$bootdev" "$bootmnt" "$bootfstype" "$bootopts"
+	    kdump_update_mount "$bootdev" "$bootmnt" "$bootfstype" "$bootopts"
 	else
-	    get_kdump_mountpoint "$rootdev" "$rootmnt" "$rootfstype" "$rootopts"
+	    kdump_update_mount "$rootdev" "$rootmnt" "$rootfstype" "$rootopts"
 	fi
     fi
 
@@ -236,12 +238,9 @@ function kdump_get_mountpoints()					   # {{{
     while [ $i -le $kdump_max ] ; do
 	mountpoint="${curmp[i]}"
 	if [ -n "$mountpoint" ]; then
-            fspath="${kdump_Realpath[i]}"
-            fspath="${fspath#$mountpoint}"
-            fspath="${fspath#/}"
-	    get_kdump_mountpoint "${mntdev[i]}" "$mountpoint" \
+	    kdump_update_mount "${mntdev[i]}" "$mountpoint" \
 		"${mntfstype[i]}" "${mntopts[i]}"
-	    kdump_Realpath[i]="${kdump_mountpoint}/$fspath"
+	    kdump_Realpath[i]="/mnt${kdump_mountidx}${kdump_Realpath[i]}"
 	fi
 	i=$((i+1))
     done
@@ -386,25 +385,27 @@ function kdump_copy_ssh_keys()						   # {{{
 # Parameters:
 #   1) root:     initrd temporary root
 # Input variables:
-#   kdump_mnt[i] non-kdump mountpoint corresponding to /mnt$i
+#   kdump_mnt[]  mountpoints in kdump environment
 function kdump_init_dirs()						   # {{{
 {
     local root="$1"
-    local i
+    local i d mnt
 
     mkdir -p "${root}/kdump"
     mkdir -m 01777 "${root}/kdump/tmp"
 
     i=0
-    for d in "${kdump_mnt[@]}"
+    for mnt in "${kdump_mnt[@]}"
     do
-	mkdir "${root}/kdump/mnt${i}"
-	case "$d" in
+	mkdir -p "${root}$mnt"
+	d="$mnt/"
+	d="${d#/kdump/mnt*/}"
+	case "/${d%/}" in
 	    /)
-		ln -snf mnt$i "${root}/kdump/root"
+		ln -snf "${mnt#/kdump/}" "${root}/kdump/root"
 		;;
 	    /boot)
-		ln -snf mnt$i "${root}/kdump/boot"
+		ln -snf "${mnt#/kdump/}" "${root}/kdump/boot"
 		;;
 	esac
 	i=$((i+1))
@@ -420,7 +421,7 @@ function kdump_init_dirs()						   # {{{
 #   2) dumpdevs: space-separated list of all block devices required by kdump
 # Input variables:
 #   KDUMP_*      see kdump_get_config
-#   kdump_mnt[i] non-kdump mountpoint corresponding to /mnt$i
+#   kdump_mnt[]  mountpoints in kdump environment
 function kdump_setup_files()						   # {{{
 {
     local outdir="${1%/}"
