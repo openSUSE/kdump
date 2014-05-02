@@ -111,6 +111,8 @@ function mount_all()
 {
     local ret=0
 
+    test -f /etc/fstab.kdump || return 0
+
     if [ -f /etc/fstab ] ; then
         mv /etc/fstab /etc/fstab.orig
     fi
