@@ -124,6 +124,45 @@ function kdump_read_mounts()						   # {{{
 }									   # }}}
 
 #
+# Translate a non-kdump mountpoint into a kdump mountpoint.
+# If necessary, add a new entry into the kdump_* arrays
+#
+# Parameters:
+#   1) device         mount device
+#   2) mountpoint     mountpoint in non-kdump environment
+#   3) fstype         filesystem type
+#   4) opts           mount options
+# Output variable:
+#   kdump_mountpoint  mountpoint in kdump environment
+# Input/output variables:
+#   kdump_mnt[]
+#   kdump_dev[]
+#   kdump_fstype[]
+#   kdump_opts[]
+function get_kdump_mountpoint()						   # {{{
+{
+    local device="$1"
+    local mountpoint="$2"
+    local fstype="$3"
+    local opts="$4"
+    local mnt i
+
+    i=0
+    for mnt in "${kdump_mnt[@]}"
+    do
+	[ "$mnt" = "$mountpoint" ] && break
+        i=$((i+1))
+    done
+    if [ $i -ge "${#kdump_mnt[@]}" ] ; then
+	kdump_mnt[i]="$mountpoint"
+	kdump_dev[i]="$device"
+	kdump_fstype[i]="$fstype"
+	kdump_opts[i]="$opts"
+    fi
+    kdump_mountpoint="/mnt$i"
+}									   # }}}
+
+#
 # Get kdump mount points and map between running system and kdump system
 #
 # Mount point 0 always corresponds to the "/boot" mount point and may be
@@ -138,9 +177,9 @@ function kdump_read_mounts()						   # {{{
 function kdump_get_mountpoints()					   # {{{
 {
     local device mountpoint filesystem opts dummy
-    local protocol realpath fspath mnt
+    local protocol realpath fspath kdump_mountpoint
     local -a curmp mntdev mntfstype mntopts
-    local i j
+    local i
 
     # Populate kdump_*[] arrays with dump target info
     kdump_get_targets || return 1
@@ -151,11 +190,8 @@ function kdump_get_mountpoints()					   # {{{
     kdump_opts=( )
 
     while read device mountpoint filesystem opts dummy ; do
-	if [ "$mountpoint" = "/boot" -a -z "${kdump_mnt[0]}" ] ; then
-	    kdump_mnt[0]="$mountpoint"
-	    kdump_dev[0]="$device"
-	    kdump_fstype[0]="$filesystem"
-	    kdump_opts[0]="$opts"
+	if [ "$mountpoint" = "/boot" ] ; then
+	    get_kdump_mountpoint "$device" "$mountpoint" "$filesystem" "$opts"
 	fi
 
 	i=0
@@ -185,19 +221,9 @@ function kdump_get_mountpoints()					   # {{{
             if [ "$mountpoint" = "/" ] ; then
 		kdump_Realpath[i]="/root/$fspath"
             else
-		j=0
-		for mnt in "${kdump_mnt[@]}"
-		do
-		    [ "$mnt" = "$mountpoint" ] && break
-                    j=$((j+1))
-		done
-		if [ "$j" -ge "${#kdump_mnt[@]}" ] ; then
-		    kdump_mnt[j]="$mountpoint"
-		    kdump_dev[j]="${mntdev[i]}"
-		    kdump_fstype[j]="${mntfstype[i]}"
-		    kdump_opts[j]="${mntopts[i]}"
-		fi
-		kdump_Realpath[i]="/mnt$j/$fspath"
+		get_kdump_mountpoint "${mntdev[i]}" "$mountpoint" \
+		    "${mntfstype[i]}" "${mntopts[i]}"
+		kdump_Realpath[i]="${kdump_mountpoint}/$fspath"
             fi
 	fi
 	i=$((i+1))
