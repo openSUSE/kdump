@@ -155,6 +155,12 @@ function kdump_add_mount						   # {{{
 ################################################################################
 
 #
+# get the configuration
+#
+
+kdump_get_config || return 1
+
+#
 # check mount points
 #
 

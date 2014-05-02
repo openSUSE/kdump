@@ -240,7 +240,11 @@ function kdump_get_mountpoints()					   # {{{
 function kdump_get_config()						   # {{{
 {
     local kdump_config=$( kdumptool dump_config --format=shell )
-    test $? -eq 0 || return 1
+    if [ $? -ne 0 ] ; then
+	echo >&2 "kdump configuration failed"
+	return 1
+    fi
+
     eval "$kdump_config"
     return 0
 }									   # }}}
@@ -394,22 +398,13 @@ function kdump_init_dirs()						   # {{{
 #   1) outdir:   initrd temporary root
 #   2) dumpdevs: space-separated list of all block devices required by kdump
 # Input variables:
+#   KDUMP_*      see kdump_get_config
 #   kdump_mnt[i] non-kdump mountpoint corresponding to /mnt$i
-# Output variables:
-#   see kdump_get_config
 function kdump_setup_files()						   # {{{
 {
     local outdir="${1%/}"
     local dumpdevs="$2"
     local kdump_over_ssh
-
-    #
-    # get the configuration
-    #
-    if ! kdump_get_config ; then
-	echo >&2 "kdump configuration failed"
-	return 1
-    fi
 
     #
     # initialize the /kdump hierarchy

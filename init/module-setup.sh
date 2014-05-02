@@ -8,10 +8,13 @@ check() {
 }
 
 install() {
+    # Get configuration
+    kdump_get_config || return 1
+    kdump_import_targets
+
     inst_hook pre-pivot 90 /lib/kdump/save_dump.sh
     inst /etc/sysconfig/kdump
     inst_multiple makedumpfile makedumpfile-R.pl kdumptool
 
-    kdump_import_targets
     kdump_setup_files "$initdir" "${!host_fs_types[*]}"
 }
