@@ -626,8 +626,7 @@ SFTPTransfer::SFTPTransfer(const RootDirURLVector &urlv,
     }
 
     FilePath fp = parser.getPath();
-    fp.appendPath(subdir);
-    fp.mkdir(true);
+    mkdir(fp.appendPath(subdir), true);
 }
 
 /* -------------------------------------------------------------------------- */
