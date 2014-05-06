@@ -66,17 +66,10 @@ void Process::setStderr(ostream *stream)
 }
 
 // -----------------------------------------------------------------------------
-uint8_t Process::execute(const string &name, const StringVector &args)
-    throw (KError)
+void Process::spawn(const string &name, const StringVector &args)
 {
-    pid_t child;
-    int status = 0;
-
-    Debug::debug()->trace("Process::execute(%s, %s)",
+    Debug::debug()->trace("Process::spawn(%s, %s)",
         name.c_str(), Stringutil::vector2string(args, ":").c_str());
-
-    struct pollfd fds[3];
-    int active_fds = 0;
 
     //
     // setup pipes for stdin, stderr, stdout
@@ -85,153 +78,173 @@ uint8_t Process::execute(const string &name, const StringVector &args)
     if (m_stdin) {
         if (pipe(stdin_pipe) < 0)
             throw KSystemError("Could not create stdin pipe.", errno);
-        fds[0].fd = stdin_pipe[1];
-        fds[0].events = POLLOUT;
-        ++active_fds;
+        m_pipefds[0] = stdin_pipe[1];
     } else
-        stdin_pipe[0] = stdin_pipe[1] = fds[0].fd = -1;
+	m_pipefds[0] = -1;
 
     int stdout_pipe[2];
     if (m_stdout) {
         if (pipe(stdout_pipe) < 0)
             throw KSystemError("Could not create stdout pipe.", errno);
-        fds[1].fd = stdout_pipe[0];
-        fds[1].events = POLLIN;
-        ++active_fds;
+        m_pipefds[1] = stdout_pipe[0];
     } else
-        stdin_pipe[0] = stdin_pipe[1] = fds[1].fd = -1;
+	m_pipefds[1] = -1;
 
     int stderr_pipe[2];
     if (m_stderr) {
         if (pipe(stderr_pipe) < 0)
             throw KSystemError("Could not create stderr pipe.", errno);
-        fds[2].fd = stderr_pipe[0];
-        fds[2].events = POLLIN;
-        ++active_fds;
+	m_pipefds[2] = stderr_pipe[0];
     } else
-        stderr_pipe[0] = stderr_pipe[1] = fds[2].fd = -1;
+	m_pipefds[2] = -1;
 
     //
     // execute the child
     //
 
-    child = fork();
-    if (child > 0) { // parent code, just wait until the child has exited
-        int ret;
+    pid_t child = fork();
+    if (child > 0) {		// parent code
+	m_pid = child;
 
         // close pipe ends intended for the child
-        if (stdin_pipe[0] >= 0)
+        if (m_stdin)
             close(stdin_pipe[0]);  // read end of stdin
-        if (stdout_pipe[1] >= 0)
+        if (m_stdout)
             close(stdout_pipe[1]); // write end of stdout
-        if (stderr_pipe[1] >= 0)
+        if (m_stderr)
             close(stderr_pipe[1]); // write end of stderr
 
-        char inbuf[BUFSIZ], *inbufptr = NULL, *inbufend = NULL;
-        char outbuf[BUFSIZ];
-        ssize_t cnt;
-
-        while (active_fds > 0) {
-            int retval = poll(fds, 3, -1);
-
-            if (retval < 0 && errno != EINTR)
-                    throw KSystemError("select() failed", errno);
-
-            // Handle stdin
-            if (fds[0].revents & POLLOUT) {
-                // Buffer underflow
-                if (inbufptr >= inbufend) {
-                    m_stdin->clear();
-                    m_stdin->read(inbufptr = inbuf, BUFSIZ);
-                    if (m_stdin->bad())
-                        throw KSystemError("Cannot get data for stdin pipe",
-                                           errno);
-                    inbufend = inbufptr + m_stdin->gcount();
-                }
-                cnt = write(fds[0].fd, inbufptr, inbufend - inbufptr);
-                if (cnt < 0)
-                    throw KSystemError("Cannot send data to stdin pipe",
-                                       errno);
-                inbufptr += cnt;
-
-                if (m_stdin->eof()) {
-                    close(fds[0].fd);
-                    fds[0].fd = -1;
-                    --active_fds;
-                }
-            }
-
-            // Handle stdout
-            if (fds[1].revents & (POLLIN | POLLHUP)) {
-                if (fds[1].revents & POLLIN) {
-                    cnt = read(fds[1].fd, outbuf, sizeof outbuf);
-                    if (cnt < 0)
-                        throw KSystemError("Cannot get data from stdout pipe",
-                                           errno);
-                } else
-                    cnt = 0;
-
-                if (!cnt) {
-                    close(fds[1].fd);
-                    fds[1].fd = -1;
-                    --active_fds;
-                }
-                m_stdout->write(outbuf, cnt);
-            }
-
-            // Handle stderr
-            if (fds[2].revents & (POLLIN | POLLHUP)) {
-                if (fds[2].revents & POLLIN) {
-                    cnt = read(fds[2].fd, outbuf, sizeof outbuf);
-                    if (cnt < 0)
-                        throw KSystemError("Cannot get data from stderr pipe",
-                                           errno);
-                } else
-                    cnt = 0;
-
-                if (!cnt) {
-                    close(fds[2].fd);
-                    fds[2].fd = -1;
-                    --active_fds;
-                }
-                m_stderr->write(outbuf, cnt);
-            }
+    } else {
+        if (child == 0) {	// child code
+            if (m_stdin)
+                dup2(stdin_pipe[0], STDIN_FILENO);   // read end of stdin
+            if (m_stdout)
+                dup2(stdout_pipe[1], STDOUT_FILENO); // write end of stdout
+            if (m_stderr)
+                dup2(stderr_pipe[1], STDERR_FILENO); // write end of stderr
         }
 
-        ret = waitpid(child, &status, 0);
-        if (ret != child) {
-            throw KSystemError("Process::execute() waits for "
-                + Stringutil::number2string(child) + " but "
-                + Stringutil::number2string(ret) + " exited.", errno);
-        }
-
-        // close pipe ends in the parent
-        for (int i = 0; i < 3; ++i)
-            if (fds[i].fd >= 0)
-                close(fds[i].fd);
-
-    } else { // child code or failure
-
-        // setup stdin, stdout, stderr if executing child
-        if (child == 0) {
-            dup2(stdin_pipe[0], STDIN_FILENO);   // read end of stdin
-            dup2(stdout_pipe[1], STDOUT_FILENO); // write end of stdout
-            dup2(stderr_pipe[1], STDERR_FILENO); // write end of stderr
-        }
-
-        // close no longer needed pipes
-        close(stdin_pipe[0]);
-        close(stdin_pipe[1]);
-        close(stdout_pipe[0]);
-        close(stdout_pipe[1]);
-        close(stderr_pipe[0]);
-        close(stderr_pipe[1]);
+	// close no longer needed pipes
+	if (m_stdin) {
+	    close(stdin_pipe[0]);
+	    close(stdin_pipe[1]);
+	}
+	if (m_stdout) {
+	    close(stdout_pipe[0]);
+	    close(stdout_pipe[1]);
+	}
+	if (m_stderr) {
+	    close(stderr_pipe[0]);
+	    close(stderr_pipe[1]);
+	}
 
         if (child == 0)         // child code, execute the process
             executeProcess(name, args);
         else                    // parent code failure
             throw KSystemError("fork() failed in Process::execute", errno);
     }
+}
+
+// -----------------------------------------------------------------------------
+uint8_t Process::execute(const string &name, const StringVector &args)
+    throw (KError)
+{
+    Debug::debug()->trace("Process::execute(%s, %s)",
+        name.c_str(), Stringutil::vector2string(args, ":").c_str());
+
+    spawn(name, args);
+
+    // initialize fds
+    struct pollfd fds[3];
+    int active_fds = 0;
+    for (int i = 0; i < 3; ++i) {
+	fds[i].fd = m_pipefds[i];
+	if (fds[i].fd >= 0)
+	    ++active_fds;
+    }
+    fds[0].events = POLLOUT;
+    fds[1].events = fds[2].events = POLLIN;
+
+    char inbuf[BUFSIZ], *inbufptr = NULL, *inbufend = NULL;
+    char outbuf[BUFSIZ];
+    ssize_t cnt;
+
+    while (active_fds > 0) {
+	int retval = poll(fds, 3, -1);
+
+	if (retval < 0 && errno != EINTR)
+	    throw KSystemError("select() failed", errno);
+
+	// Handle stdin
+	if (fds[0].revents & POLLOUT) {
+	    // Buffer underflow
+	    if (inbufptr >= inbufend) {
+		m_stdin->clear();
+		m_stdin->read(inbufptr = inbuf, BUFSIZ);
+		if (m_stdin->bad())
+		    throw KSystemError("Cannot get data for stdin pipe",
+				       errno);
+		inbufend = inbufptr + m_stdin->gcount();
+	    }
+	    cnt = write(fds[0].fd, inbufptr, inbufend - inbufptr);
+	    if (cnt < 0)
+		throw KSystemError("Cannot send data to stdin pipe",
+				   errno);
+	    inbufptr += cnt;
+
+	    if (m_stdin->eof()) {
+		close(fds[0].fd);
+		fds[0].fd = -1;
+		--active_fds;
+	    }
+	}
+
+	// Handle stdout
+	if (fds[1].revents & (POLLIN | POLLHUP)) {
+	    if (fds[1].revents & POLLIN) {
+		cnt = read(fds[1].fd, outbuf, sizeof outbuf);
+		if (cnt < 0)
+		    throw KSystemError("Cannot get data from stdout pipe",
+				       errno);
+	    } else
+		cnt = 0;
+
+	    if (!cnt) {
+		close(fds[1].fd);
+		fds[1].fd = -1;
+		--active_fds;
+	    }
+	    m_stdout->write(outbuf, cnt);
+	}
+
+	// Handle stderr
+	if (fds[2].revents & (POLLIN | POLLHUP)) {
+	    if (fds[2].revents & POLLIN) {
+		cnt = read(fds[2].fd, outbuf, sizeof outbuf);
+		if (cnt < 0)
+		    throw KSystemError("Cannot get data from stderr pipe",
+				       errno);
+	    } else
+		cnt = 0;
+
+	    if (!cnt) {
+		close(fds[2].fd);
+		fds[2].fd = -1;
+		--active_fds;
+	    }
+	    m_stderr->write(outbuf, cnt);
+	}
+    }
+
+    int status;
+    pid_t ret = waitpid(m_pid, &status, 0);
+    if (ret != m_pid) {
+	throw KSystemError("Process::execute() waits for "
+			   + Stringutil::number2string(m_pid) + " but "
+			   + Stringutil::number2string(ret) + " exited.",
+			   errno);
+    }
+    m_pid = -1;
 
     return WEXITSTATUS(status);
 }
