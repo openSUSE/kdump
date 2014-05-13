@@ -7,6 +7,10 @@ check() {
     return 255
 }
 
+depends() {
+    echo drm
+}
+
 install() {
     # Get configuration
     kdump_get_config || return 1
