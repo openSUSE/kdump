@@ -26,10 +26,11 @@ kdumptool/testcanonical
 kdumptool/testconfig
 kdumptool/testio
 kdumptool/testkconfig
+kdumptool/testlistdir
 kdumptool/testmail
+kdumptool/testprocess
 kdumptool/testreadlink
 kdumptool/testurlparser
-kdumptool/testlistdir
 
 # generated documentation
 doc/man/*.txt

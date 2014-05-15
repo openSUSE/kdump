@@ -137,3 +137,8 @@ add_executable(testlistdir
     testlistdir.cc
 )
 target_link_libraries(testlistdir common ${EXTRA_LIBS})
+
+add_executable(testprocess
+    testprocess.cc
+)
+target_link_libraries(testprocess common ${EXTRA_LIBS})

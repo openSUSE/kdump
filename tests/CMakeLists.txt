@@ -56,3 +56,7 @@ ADD_TEST(delete_dumps
          ${CMAKE_CURRENT_SOURCE_DIR}/delete_dumps.sh
          ${CMAKE_BINARY_DIR}/kdumptool/kdumptool
          ${CMAKE_CURRENT_SOURCE_DIR}/data)
+
+ADD_TEST(process
+         ${CMAKE_CURRENT_SOURCE_DIR}/process.sh
+         ${CMAKE_BINARY_DIR}/kdumptool/testprocess)
