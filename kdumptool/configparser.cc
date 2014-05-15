@@ -102,7 +102,7 @@ void ShellConfigParser::parse()
 
     stringstream shelloutput;
 
-    Process p;
+    ProcessFilter p;
     p.setStdin(&shell);
     p.setStdout(&shelloutput);
     p.execute("/bin/sh", StringVector());

@@ -85,7 +85,7 @@ void FileUtil::mount(const std::string &device, const std::string &mountpoint,
     args.push_back(device);
     args.push_back(mountpoint);
 
-    Process p;
+    ProcessFilter p;
     ostringstream stderrStream;
     p.setStderr(&stderrStream);
 
@@ -106,7 +106,7 @@ void FileUtil::umount(const std::string &mountpoint)
 
     Debug::debug()->trace("FileUtil::umount(%s)", mountpoint.c_str());
 
-    Process p;
+    ProcessFilter p;
     ostringstream stderrStream;
     p.setStderr(&stderrStream);
 

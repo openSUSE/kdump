@@ -25,25 +25,25 @@
 #include "optionparser.h"
 #include "subcommand.h"
 
-//{{{ Process ------------------------------------------------------------------
+//{{{ ProcessFilter ------------------------------------------------------------
 
 /**
- * Simple to use process API.
+ * Simple to use API to process-based filters.
  */
-class Process {
+class ProcessFilter {
 
     public:
 
         /**
-         * Creates a new process.
+         * Creates a new process filter.
          */
-        Process()
+        ProcessFilter()
         throw ();
 
         /**
          * Desctructor.
          */
-        virtual ~Process () {}
+        virtual ~ProcessFilter () {}
 
 	/**
 	 * Spawns a subprocess.
@@ -72,7 +72,7 @@ class Process {
 
         /**
          * Sets the stream which will be used as stdin for the process
-         * executed in Process::execute().
+         * executed in ProcessFilter::execute().
          *
          * @param[in] stream the stream to be used as input
          */
@@ -81,7 +81,7 @@ class Process {
 
         /**
          * Sets the stream which will be used as stdout for the process
-         * executed in Process::executable().
+         * executed in ProcessFilter::executable().
          *
          * @param[in] stream the stream to be used as output
          */
@@ -90,7 +90,7 @@ class Process {
 
         /**
          * Sets the stream which will be used as stderr for the process
-         * executed in Process::executable().
+         * executed in ProcessFilter::executable().
          *
          * @param[in] stream the stream to be used as error output
          */

@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 
         Debug::debug()->info("1st test: %s -> %s",
             testdata.c_str(), output1.c_str());
-        Process p;
+        ProcessFilter p;
 
         stringstream stdoutStream;
         fin.open(testdata.c_str());
@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
         Debug::debug()->info("2nd test: %s -> %s",
             testdata.c_str(), output2.c_str());
 
-        Process p2;
+        ProcessFilter p2;
         fin.open(testdata.c_str());
         string s;
         if (!fin)

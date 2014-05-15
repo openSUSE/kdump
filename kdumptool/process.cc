@@ -39,36 +39,36 @@ using std::min;
 using std::max;
 
 // -----------------------------------------------------------------------------
-Process::Process()
+ProcessFilter::ProcessFilter()
     throw ()
     : m_stdin(NULL), m_stdout(NULL), m_stderr(NULL)
 {}
 
 // -----------------------------------------------------------------------------
-void Process::setStdin(istream *stream)
+void ProcessFilter::setStdin(istream *stream)
     throw ()
 {
     m_stdin = stream;
 }
 
 // -----------------------------------------------------------------------------
-void Process::setStdout(ostream *stream)
+void ProcessFilter::setStdout(ostream *stream)
     throw ()
 {
     m_stdout = stream;
 }
 
 // -----------------------------------------------------------------------------
-void Process::setStderr(ostream *stream)
+void ProcessFilter::setStderr(ostream *stream)
     throw ()
 {
     m_stderr = stream;
 }
 
 // -----------------------------------------------------------------------------
-void Process::spawn(const string &name, const StringVector &args)
+void ProcessFilter::spawn(const string &name, const StringVector &args)
 {
-    Debug::debug()->trace("Process::spawn(%s, %s)",
+    Debug::debug()->trace("ProcessFilter::spawn(%s, %s)",
         name.c_str(), Stringutil::vector2string(args, ":").c_str());
 
     //
@@ -141,15 +141,15 @@ void Process::spawn(const string &name, const StringVector &args)
         if (child == 0)         // child code, execute the process
             executeProcess(name, args);
         else                    // parent code failure
-            throw KSystemError("fork() failed in Process::execute", errno);
+            throw KSystemError("fork() failed in ProcessFilter::execute", errno);
     }
 }
 
 // -----------------------------------------------------------------------------
-uint8_t Process::execute(const string &name, const StringVector &args)
+uint8_t ProcessFilter::execute(const string &name, const StringVector &args)
     throw (KError)
 {
-    Debug::debug()->trace("Process::execute(%s, %s)",
+    Debug::debug()->trace("ProcessFilter::execute(%s, %s)",
         name.c_str(), Stringutil::vector2string(args, ":").c_str());
 
     spawn(name, args);
@@ -239,7 +239,7 @@ uint8_t Process::execute(const string &name, const StringVector &args)
     int status;
     pid_t ret = waitpid(m_pid, &status, 0);
     if (ret != m_pid) {
-	throw KSystemError("Process::execute() waits for "
+	throw KSystemError("ProcessFilter::execute() waits for "
 			   + Stringutil::number2string(m_pid) + " but "
 			   + Stringutil::number2string(ret) + " exited.",
 			   errno);
@@ -250,7 +250,7 @@ uint8_t Process::execute(const string &name, const StringVector &args)
 }
 
 // -----------------------------------------------------------------------------
-void Process::executeProcess(const string &name, const StringVector &args)
+void ProcessFilter::executeProcess(const string &name, const StringVector &args)
     throw (KError)
 {
     StringVector fullV = args;
