@@ -38,6 +38,208 @@ using std::ostream;
 using std::min;
 using std::max;
 
+//{{{ SubProcess ---------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+SubProcess::SubProcess()
+    : m_pid(-1), m_killSignal(SIGKILL)
+{}
+
+// -----------------------------------------------------------------------------
+SubProcess::~SubProcess()
+{
+    _closeParentFDs();
+    if (m_pid != -1) {
+	kill();
+	wait();
+    }
+}
+
+// -----------------------------------------------------------------------------
+void SubProcess::checkSpawned(void)
+    throw (KError)
+{
+    if (m_pid == -1)
+	throw KError("SubProcess::checkSpawned(): no subprocess spawned");
+}
+
+// -----------------------------------------------------------------------------
+void SubProcess::setPipeDirection(int fd, enum PipeDirection dir)
+{
+    if (dir == None)
+	m_pipes.erase(fd);
+    else {
+	std::pair<int, struct PipeInfo> val;
+	std::pair<std::map<int, struct PipeInfo>::iterator, bool> ret;
+	val.first = fd;
+	val.second.dir = dir;
+	val.second.parentfd = -1;
+	val.second.childfd = -1;
+	ret = m_pipes.insert(val);
+	if (ret.second == false)
+	    ret.first->second.dir = dir;
+    }
+}
+
+// -----------------------------------------------------------------------------
+enum SubProcess::PipeDirection SubProcess::getPipeDirection(int fd)
+{
+    std::map<int, struct PipeInfo>::iterator ret;
+    ret = m_pipes.find(fd);
+    return (ret == m_pipes.end())
+	? None
+	: ret->second.dir;
+}
+
+// -----------------------------------------------------------------------------
+int SubProcess::getPipeFD(int fd)
+    throw (std::out_of_range)
+{
+    std::map<int, struct PipeInfo>::iterator ret;
+    ret = m_pipes.find(fd);
+    if (ret == m_pipes.end())
+	throw std::out_of_range("SubProcess::getPipeFD(): Unknown fd "
+				+ Stringutil::number2string(fd));
+    return ret->second.parentfd;
+}
+
+// -----------------------------------------------------------------------------
+void SubProcess::_closeParentFDs(void)
+{
+    std::map<int, struct PipeInfo>::iterator it;
+    for (it = m_pipes.begin(); it != m_pipes.end(); ++it) {
+	if (it->second.parentfd >= 0) {
+	    close(it->second.parentfd);
+	    it->second.parentfd = -1;
+	}
+    }
+}
+
+// -----------------------------------------------------------------------------
+void SubProcess::_closeChildFDs(void)
+{
+    std::map<int, struct PipeInfo>::iterator it;
+    for (it = m_pipes.begin(); it != m_pipes.end(); ++it) {
+	if (it->second.childfd >= 0) {
+	    close(it->second.childfd);
+	    it->second.childfd = -1;
+	}
+    }
+}
+
+// -----------------------------------------------------------------------------
+void SubProcess::spawn(const string &name, const StringVector &args)
+{
+    Debug::debug()->trace("SubProcess::spawn(%s, %s)",
+        name.c_str(), Stringutil::vector2string(args, ":").c_str());
+
+    //
+    // setup pipes
+    //
+    try {
+	std::map<int, struct PipeInfo>::iterator it;
+	for (it = m_pipes.begin(); it != m_pipes.end(); ++it) {
+	    int pipefd[2];
+
+	    if (it->second.dir != ParentToChild &&
+		it->second.dir != ChildToParent)
+		throw KError("SubProcess::spawn(): "
+			     "invalid pipe direction for fd "
+			     + Stringutil::number2string(it->first) + ": "
+			     + Stringutil::number2string(it->second.dir));
+
+	    if (pipe(pipefd) < 0)
+		throw KSystemError("SubProcess::spawn(): "
+				   "cannot create pipe for fd "
+				   + Stringutil::number2string(it->first),
+				   errno);
+
+	    if(it->second.dir == ParentToChild) {
+		it->second.parentfd = pipefd[1];
+		it->second.childfd = pipefd[0];
+	    } else {		// ChildToParent
+		it->second.parentfd = pipefd[0];
+		it->second.childfd = pipefd[1];
+	    }
+	}
+    } catch(...) {
+	_closeParentFDs();
+	_closeChildFDs();
+	throw;
+    }
+
+    //
+    // execute the child
+    //
+
+    pid_t child = fork();
+    if (child > 0) {		// parent code
+	m_pid = child;
+
+	_closeChildFDs();
+
+    } else {
+	_closeParentFDs();
+
+        if (child == 0) {	// child code
+	    std::map<int, struct PipeInfo>::iterator it;
+	    for (it = m_pipes.begin(); it != m_pipes.end(); ++it)
+		dup2(it->second.childfd, it->first);
+        }
+
+	_closeChildFDs();
+
+        if (child != 0)         // parent code failure
+            throw KSystemError("fork() failed in ProcessFilter::execute", errno);
+	// child code, execute the process
+	StringVector fullV = args;
+	fullV.insert(fullV.begin(), name);
+	char **vector = Stringutil::stringv2charv(fullV);
+
+	int ret = execvp(name.c_str(), vector);
+	Util::freev(vector);
+
+	if (ret < 0)
+	    throw KSystemError("Execution of '" + name + "' failed.", errno);
+    }
+}
+
+// -----------------------------------------------------------------------------
+void SubProcess::kill(int sig)
+    throw (KError)
+{
+    checkSpawned();
+
+    if (::kill(m_pid, sig))
+	throw KSystemError("SubProcess::kill(): cannot send signal"
+			   + Stringutil::number2string(sig), errno);
+}
+
+// -----------------------------------------------------------------------------
+int SubProcess::wait(void)
+    throw (KError)
+{
+    checkSpawned();
+
+    int status;
+    pid_t ret = ::waitpid(m_pid, &status, 0);
+
+    if (ret == -1)
+	throw KSystemError("SubProcess::wait(): cannot get state of PID "
+			   + Stringutil::number2string(m_pid), errno);
+
+    if (ret != m_pid)
+	throw KError("SubProcess::wait(): spawned PID "
+		     + Stringutil::number2string(m_pid) + " but PID "
+		     + Stringutil::number2string(ret) + " exited.");
+
+    m_pid = -1;
+    return status;
+}
+
+//}}}
+//{{{ ProcessFilter ------------------------------------------------------------
+
 // -----------------------------------------------------------------------------
 ProcessFilter::ProcessFilter()
     throw ()
@@ -141,7 +343,7 @@ void ProcessFilter::spawn(const string &name, const StringVector &args)
         if (child == 0)         // child code, execute the process
             executeProcess(name, args);
         else                    // parent code failure
-            throw KSystemError("fork() failed in ProcessFilter::execute", errno);
+            throw KSystemError("SubProcess::spawn(): fork failed", errno);
     }
 }
 
@@ -263,5 +465,7 @@ void ProcessFilter::executeProcess(const string &name, const StringVector &args)
     if (ret < 0)
         throw KSystemError("Execution of '" + name + "' failed.", errno);
 }
+
+//}}}
 
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

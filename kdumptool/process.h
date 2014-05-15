@@ -20,11 +20,149 @@
 #define PROCESS_H
 
 #include <stdint.h>
+#include <map>
 
 #include "global.h"
 #include "optionparser.h"
 #include "subcommand.h"
 
+//{{{ SubProcess ---------------------------------------------------------------
+
+/**
+ * Representation of a subprocess in the parent.
+ */
+class SubProcess {
+
+    public:
+
+	enum PipeDirection {
+		None = -1,
+		ParentToChild,
+		ChildToParent
+	};
+
+	/**
+	 * Prepare a new subprocess.
+	 */
+	SubProcess();
+
+	/**
+	 * Destructor. Kills the subprocess if still running.
+	 */
+	virtual ~SubProcess();
+
+	/**
+	 * Specify how a file descriptor should be redirected.
+	 *
+	 * @param[in] File descriptor in child.
+	 * @param[in] Pipe direction.
+	 */
+	void setPipeDirection(int fd, enum PipeDirection dir);
+
+	/**
+	 * Check how a file descriptor should be redirected.
+	 *
+	 * @param[in] File descriptor in child.
+	 */
+	enum PipeDirection getPipeDirection(int fd);
+
+	/**
+	 * Get the file descriptor of the other end of a pipe redirected
+	 * in the child.
+	 *
+	 * @param[in] File descriptor in child.
+	 * @exception out_of_range if the file descriptor is not piped.
+	 */
+	int getPipeFD(int fd)
+	throw (std::out_of_range);
+
+	/**
+	 * Spawns a subprocess.
+	 *
+         * @param[in] name the executable (PATH is searched) of the process
+         *            to execute
+         * @param[in] args the arguments for the process (argv[0] is used from
+         *            @c name, so it cannot be overwritten here). Pass an empty
+         *            list if you don't want to provide arguments.
+	 */
+	void spawn(const std::string &name, const StringVector &args);
+
+	/**
+	 * Get the child process ID.
+	 *
+	 * @returns system PID, or -1 if none.
+	 */
+	int getChildPID(void)
+	throw ()
+	{ return m_pid; }
+
+	/**
+	 * Set the default kill signal.
+	 *
+	 * @param[in] The signal to kill the child.
+	 */
+	void setKillSignal(int sig)
+	throw ()
+	{ m_killSignal = sig; }
+
+	/**
+	 * Get the default kill signal.
+	 */
+	int getKillSignal(void)
+	throw ()
+	{ return m_killSignal; }
+
+	/**
+	 * Send a signal to the child process.
+	 *
+	 * @param[in] The signal to be sent, see kill(2).
+	 * @exception KError if kill(2) fails.
+	 */
+	void kill(int sig)
+	throw (KError);
+
+	/**
+	 * Send the default kill signal to the child process.
+	 */
+	void kill(void)
+	throw(KError)
+	{ kill(m_killSignal); }
+
+	/**
+	 * Wait for the child to terminate.
+	 *
+	 * @return Child exit status, see wait(2).
+	 */
+	int wait(void)
+	throw(KError);
+
+    protected:
+
+	/**
+	 * Make sure that a child process has been spawned.
+	 *
+	 * @exception KError if there is no child process.
+	 */
+	void checkSpawned(void)
+	throw(KError);
+
+	pid_t m_pid;
+	int m_killSignal;
+
+    private:
+
+	struct PipeInfo {
+	    enum PipeDirection dir;
+	    int parentfd;	/* fd in parent */
+	    int childfd;	/* fd for child (during init) */
+	};
+	std::map<int, struct PipeInfo> m_pipes;
+
+	void _closeParentFDs(void);
+	void _closeChildFDs(void);
+};
+
+//}}}
 //{{{ ProcessFilter ------------------------------------------------------------
 
 /**
