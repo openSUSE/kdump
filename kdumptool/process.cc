@@ -190,7 +190,7 @@ void SubProcess::spawn(const string &name, const StringVector &args)
 	_closeChildFDs();
 
         if (child != 0)         // parent code failure
-            throw KSystemError("fork() failed in ProcessFilter::execute", errno);
+            throw KSystemError("SubProcess::spawn(): fork failed", errno);
 	// child code, execute the process
 	StringVector fullV = args;
 	fullV.insert(fullV.begin(), name);
