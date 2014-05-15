@@ -202,12 +202,16 @@ void SubProcess::spawn(const string &name, const StringVector &args)
 	if (ret < 0)
 	    throw KSystemError("Execution of '" + name + "' failed.", errno);
     }
+
+    Debug::debug()->dbg("Forked child PID %d", m_pid);
 }
 
 // -----------------------------------------------------------------------------
 void SubProcess::kill(int sig)
     throw (KError)
 {
+    Debug::debug()->trace("SubProcess::kill(%d)", sig);
+
     checkSpawned();
 
     if (::kill(m_pid, sig))
@@ -219,6 +223,8 @@ void SubProcess::kill(int sig)
 int SubProcess::wait(void)
     throw (KError)
 {
+    Debug::debug()->trace("SubProcess::wait() on %d", m_pid);
+
     checkSpawned();
 
     int status;
@@ -232,6 +238,8 @@ int SubProcess::wait(void)
 	throw KError("SubProcess::wait(): spawned PID "
 		     + Stringutil::number2string(m_pid) + " but PID "
 		     + Stringutil::number2string(ret) + " exited.");
+
+    Debug::debug()->dbg("PID %d exited with status 0x%04x", m_pid, status);
 
     m_pid = -1;
     return status;
