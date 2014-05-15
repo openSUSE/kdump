@@ -41,6 +41,34 @@ using std::max;
 //{{{ SubProcess ---------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
+void SubProcess::PipeInfo::close(void)
+    throw()
+{
+    closeParent();
+    closeChild();
+}
+
+// -----------------------------------------------------------------------------
+void SubProcess::PipeInfo::closeParent(void)
+    throw()
+{
+    if (parentfd >= 0) {
+	::close(parentfd);
+	parentfd = -1;
+    }
+}
+
+// -----------------------------------------------------------------------------
+void SubProcess::PipeInfo::closeChild(void)
+    throw()
+{
+    if (childfd >= 0) {
+	::close(childfd);
+	childfd = -1;
+    }
+}
+
+// -----------------------------------------------------------------------------
 SubProcess::SubProcess()
     : m_pid(-1), m_killSignal(SIGKILL)
 {}
@@ -69,15 +97,13 @@ void SubProcess::setPipeDirection(int fd, enum PipeDirection dir)
     if (dir == None)
 	m_pipes.erase(fd);
     else {
-	std::pair<int, struct PipeInfo> val;
+	std::pair<int, struct PipeInfo> val(fd, PipeInfo(dir));
 	std::pair<std::map<int, struct PipeInfo>::iterator, bool> ret;
-	val.first = fd;
-	val.second.dir = dir;
-	val.second.parentfd = -1;
-	val.second.childfd = -1;
 	ret = m_pipes.insert(val);
-	if (ret.second == false)
+	if (ret.second == false) {
+	    ret.first->second.close();
 	    ret.first->second.dir = dir;
+	}
     }
 }
 
@@ -107,24 +133,16 @@ int SubProcess::getPipeFD(int fd)
 void SubProcess::_closeParentFDs(void)
 {
     std::map<int, struct PipeInfo>::iterator it;
-    for (it = m_pipes.begin(); it != m_pipes.end(); ++it) {
-	if (it->second.parentfd >= 0) {
-	    close(it->second.parentfd);
-	    it->second.parentfd = -1;
-	}
-    }
+    for (it = m_pipes.begin(); it != m_pipes.end(); ++it)
+	it->second.closeParent();
 }
 
 // -----------------------------------------------------------------------------
 void SubProcess::_closeChildFDs(void)
 {
     std::map<int, struct PipeInfo>::iterator it;
-    for (it = m_pipes.begin(); it != m_pipes.end(); ++it) {
-	if (it->second.childfd >= 0) {
-	    close(it->second.childfd);
-	    it->second.childfd = -1;
-	}
-    }
+    for (it = m_pipes.begin(); it != m_pipes.end(); ++it)
+	it->second.closeChild();
 }
 
 // -----------------------------------------------------------------------------
@@ -332,7 +350,7 @@ uint8_t ProcessFilter::execute(const string &name, const StringVector &args)
 	    inbufptr += cnt;
 
 	    if (m_stdin->eof()) {
-		close(fds[0].fd);
+		p.setPipeDirection(STDIN_FILENO, SubProcess::None);
 		fds[0].fd = -1;
 		--active_fds;
 	    }
@@ -349,7 +367,7 @@ uint8_t ProcessFilter::execute(const string &name, const StringVector &args)
 		cnt = 0;
 
 	    if (!cnt) {
-		close(fds[1].fd);
+		p.setPipeDirection(STDOUT_FILENO, SubProcess::None);
 		fds[1].fd = -1;
 		--active_fds;
 	    }
@@ -367,7 +385,7 @@ uint8_t ProcessFilter::execute(const string &name, const StringVector &args)
 		cnt = 0;
 
 	    if (!cnt) {
-		close(fds[2].fd);
+		p.setPipeDirection(STDERR_FILENO, SubProcess::None);
 		fds[2].fd = -1;
 		--active_fds;
 	    }

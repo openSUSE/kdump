@@ -155,6 +155,39 @@ class SubProcess {
 	    enum PipeDirection dir;
 	    int parentfd;	/* fd in parent */
 	    int childfd;	/* fd for child (during init) */
+
+	    /**
+	     * Initialize the info
+	     */
+	    PipeInfo(enum PipeDirection adir)
+	    throw ()
+	    : dir(adir), parentfd(-1), childfd(-1)
+	    { }
+
+	    /**
+	     * Destructor.
+	     */
+	    ~PipeInfo()
+	    throw ()
+	    { close(); }
+
+	    /**
+	     * Close all open file descriptors
+	     */
+	    void close(void)
+	    throw ();
+
+	    /**
+	     * Close parent file descriptor, if open
+	     */
+	    void closeParent(void)
+	    throw ();
+
+	    /**
+	     * Close child file descriptor, if open
+	     */
+	    void closeChild(void)
+	    throw ();
 	};
 	std::map<int, struct PipeInfo> m_pipes;
 
