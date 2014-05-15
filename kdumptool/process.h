@@ -179,22 +179,6 @@ class ProcessFilter {
         throw ();
 
         /**
-         * Desctructor.
-         */
-        virtual ~ProcessFilter () {}
-
-	/**
-	 * Spawns a subprocess.
-	 *
-         * @param[in] name the executable (PATH is searched) of the process
-         *            to execute
-         * @param[in] args the arguments for the process (argv[0] is used from
-         *            @c name, so it cannot be overwritten here). Pass an empty
-         *            list if you don't want to provide arguments.
-	 */
-	void spawn(const std::string &name, const StringVector &args);
-
-        /**
          * Runs the process, redirecting input/output.
          *
          * @param[in] name the executable (PATH is searched) of the process
@@ -235,17 +219,10 @@ class ProcessFilter {
         void setStderr(std::ostream *stream)
         throw ();
 
-    protected:
-        void executeProcess(const std::string &name, const StringVector &args)
-        throw (KError);
-
     private:
         std::istream *m_stdin;
         std::ostream *m_stdout;
         std::ostream *m_stderr;
-
-	pid_t m_pid;
-	int m_pipefds[3];
 };
 
 //}}}

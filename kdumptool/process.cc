@@ -276,101 +276,30 @@ void ProcessFilter::setStderr(ostream *stream)
 }
 
 // -----------------------------------------------------------------------------
-void ProcessFilter::spawn(const string &name, const StringVector &args)
-{
-    Debug::debug()->trace("ProcessFilter::spawn(%s, %s)",
-        name.c_str(), Stringutil::vector2string(args, ":").c_str());
-
-    //
-    // setup pipes for stdin, stderr, stdout
-    //
-    int stdin_pipe[2];
-    if (m_stdin) {
-        if (pipe(stdin_pipe) < 0)
-            throw KSystemError("Could not create stdin pipe.", errno);
-        m_pipefds[0] = stdin_pipe[1];
-    } else
-	m_pipefds[0] = -1;
-
-    int stdout_pipe[2];
-    if (m_stdout) {
-        if (pipe(stdout_pipe) < 0)
-            throw KSystemError("Could not create stdout pipe.", errno);
-        m_pipefds[1] = stdout_pipe[0];
-    } else
-	m_pipefds[1] = -1;
-
-    int stderr_pipe[2];
-    if (m_stderr) {
-        if (pipe(stderr_pipe) < 0)
-            throw KSystemError("Could not create stderr pipe.", errno);
-	m_pipefds[2] = stderr_pipe[0];
-    } else
-	m_pipefds[2] = -1;
-
-    //
-    // execute the child
-    //
-
-    pid_t child = fork();
-    if (child > 0) {		// parent code
-	m_pid = child;
-
-        // close pipe ends intended for the child
-        if (m_stdin)
-            close(stdin_pipe[0]);  // read end of stdin
-        if (m_stdout)
-            close(stdout_pipe[1]); // write end of stdout
-        if (m_stderr)
-            close(stderr_pipe[1]); // write end of stderr
-
-    } else {
-        if (child == 0) {	// child code
-            if (m_stdin)
-                dup2(stdin_pipe[0], STDIN_FILENO);   // read end of stdin
-            if (m_stdout)
-                dup2(stdout_pipe[1], STDOUT_FILENO); // write end of stdout
-            if (m_stderr)
-                dup2(stderr_pipe[1], STDERR_FILENO); // write end of stderr
-        }
-
-	// close no longer needed pipes
-	if (m_stdin) {
-	    close(stdin_pipe[0]);
-	    close(stdin_pipe[1]);
-	}
-	if (m_stdout) {
-	    close(stdout_pipe[0]);
-	    close(stdout_pipe[1]);
-	}
-	if (m_stderr) {
-	    close(stderr_pipe[0]);
-	    close(stderr_pipe[1]);
-	}
-
-        if (child == 0)         // child code, execute the process
-            executeProcess(name, args);
-        else                    // parent code failure
-            throw KSystemError("SubProcess::spawn(): fork failed", errno);
-    }
-}
-
-// -----------------------------------------------------------------------------
 uint8_t ProcessFilter::execute(const string &name, const StringVector &args)
     throw (KError)
 {
     Debug::debug()->trace("ProcessFilter::execute(%s, %s)",
         name.c_str(), Stringutil::vector2string(args, ":").c_str());
 
-    spawn(name, args);
+    SubProcess p;
+    if (m_stdin)
+	p.setPipeDirection(STDIN_FILENO, SubProcess::ParentToChild);
+    if (m_stdout)
+	p.setPipeDirection(STDOUT_FILENO, SubProcess::ChildToParent);
+    if (m_stderr)
+	p.setPipeDirection(STDERR_FILENO, SubProcess::ChildToParent);
+    p.spawn(name, args);
 
     // initialize fds
     struct pollfd fds[3];
     int active_fds = 0;
     for (int i = 0; i < 3; ++i) {
-	fds[i].fd = m_pipefds[i];
-	if (fds[i].fd >= 0)
+	if (p.getPipeDirection(i) != SubProcess::None) {
+	    fds[i].fd = p.getPipeFD(i);
 	    ++active_fds;
+	} else
+	    fds[i].fd = -1;
     }
     fds[0].events = POLLOUT;
     fds[1].events = fds[2].events = POLLIN;
@@ -446,32 +375,8 @@ uint8_t ProcessFilter::execute(const string &name, const StringVector &args)
 	}
     }
 
-    int status;
-    pid_t ret = waitpid(m_pid, &status, 0);
-    if (ret != m_pid) {
-	throw KSystemError("ProcessFilter::execute() waits for "
-			   + Stringutil::number2string(m_pid) + " but "
-			   + Stringutil::number2string(ret) + " exited.",
-			   errno);
-    }
-    m_pid = -1;
-
+    int status = p.wait();
     return WEXITSTATUS(status);
-}
-
-// -----------------------------------------------------------------------------
-void ProcessFilter::executeProcess(const string &name, const StringVector &args)
-    throw (KError)
-{
-    StringVector fullV = args;
-    fullV.insert(fullV.begin(), name);
-    char **vector = Stringutil::stringv2charv(fullV);
-
-    int ret = execvp(name.c_str(), vector);
-    Util::freev(vector);
-
-    if (ret < 0)
-        throw KSystemError("Execution of '" + name + "' failed.", errno);
 }
 
 //}}}
