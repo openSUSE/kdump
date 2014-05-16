@@ -591,7 +591,11 @@ to get it automatically using *ssh-keygen -F $target_host*.
 
 If you want to disable host key checking, set this variable to "*".
 
-Example: "AAAAB3NzaC1yc2EAAAABIwAAAIEAxIJIeuVX0F0u53wMgH22fdl62ifLXRwaPAXPsCrvyerMEb5DXHnIv1sYdzlJ1g/2Iw+ppjGDh1En/P12Dpl2uLBZh0MOrM71spTjvTwV2MKZtXrYjZUIPIZdd9vrI+/LEI0nw7LSdnKKgkAIXMhaRrq9N6uoZWe41ilU4NpnL/k="
+Example (broken into lines for readability):
+
+  AAAAB3NzaC1yc2EAAAABIwAAAIEAxIJIeuVX0F0u53wMgH22fdl62ifLXRwaPAXPsCr
+  vyerMEb5DXHnIv1sYdzlJ1g/2Iw+ppjGDh1En/P12Dpl2uLBZh0MOrM71spTjvTwV2M
+  KZtXrYjZUIPIZdd9vrI+/LEI0nw7LSdnKKgkAIXMhaRrq9N6uoZWe41ilU4NpnL/k=
 
 Default: ""
 
@@ -620,7 +624,7 @@ Local files (_file_)
 
 That type describes a local path.
 
-_Format:_ `file://]_path_`
+_Format:_ [*file*://]/_path_
 
 As shown, the _file_ prefix is optional, i.e. a simple path is still valid.
 The _path_ must start with a leading slash (/), i.e. only absolute paths are
@@ -637,7 +641,7 @@ File Transfer Protocol (_ftp_)
 
 This URL type is used to specify paths on a remote FTP server.
 
-_Format:_ `ftp:// [ _user_ [:_password_]@ ] _hostname_ [:_port_] ] _path_`
+_Format:_ *ftp*://[_user_[:__password__]@]_hostname_[:__port__]]/_path_
 
 The remote _user_ is optional, if no user is specified, anonymous FTP is
 assumed. Even if a username is specified, the _password_ is optional, if no
@@ -667,7 +671,7 @@ SFTP. It's important that an SFTP server must be running (which is the default
 on SUSE), the *kdumptool* does not use FISH (FIles transferred over SHell
 protocol).
 
-_Format:_ `sftp:// [ _user_ [:_password_]@ ] _hostname_ [:_port_] ] _path_`
+_Format:_ *sftp*://[_user_[:__password__]@]_hostname_[:__port__]]/_path_
 
 It's valid to use "scp" as alias for "sftp" (for backward
 compatibility), but the "sftp" prefix is recommended.
@@ -703,7 +707,7 @@ Secure Shell Protocol (_ssh_)
 Unlike the _sftp_ URL type, this protocol does not use SFTP, but rather
 transfers the data to a remote *dd* command.
 
-_Format:_ *ssh*://[_user_[__password__]@]_hostname_[:__port__]]_path_
+_Format:_ *ssh*://[_user_[__password__]@]_hostname_[:__port__]]/_path_
 
 Most of the notes for SFTP also apply to SSH, except:
 
@@ -722,7 +726,7 @@ NFS is used to specify remote hosts that export their file system via NFS.
 NFS doesn't use username and password. Also, the URL format cannot be used
 to specify options. As default, the _nolock_ option is used.
 
-_Format:_ +nfs://_host_ [:_port:] _path_
+_Format:_ *nfs*://_host_[:__port__]/_path_
 
 _host_ is the hostname, _port_ is optional (should not be used, it is only
 implemented for completeness with the other URL formats). _path_ specifies
@@ -743,7 +747,7 @@ also known as SMB (although they are technically different, CIFS is the
 successor of SMB). This could be a Microsoft Windows server, or a Samba
 Server running on Unix or MacOS.
 
-_Format:_ +cifs:// [_user_ [:_password_] @] _host_ _path_
+_Format:_ *cifs*://[_user_[:__password__]@]_host_/_path_
 
 Although it's technically not 100 % correct, _smb_ is used as an alias for
 _cifs_, so the program will always return _cifs_ even if you specify _smb_.
