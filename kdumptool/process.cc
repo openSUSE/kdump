@@ -166,7 +166,7 @@ void SubProcess::spawn(const string &name, const StringVector &args)
 			     + Stringutil::number2string(it->first) + ": "
 			     + Stringutil::number2string(it->second.dir));
 
-	    if (pipe(pipefd) < 0)
+	    if (pipe2(pipefd, O_CLOEXEC) < 0)
 		throw KSystemError("SubProcess::spawn(): "
 				   "cannot create pipe for fd "
 				   + Stringutil::number2string(it->first),
@@ -205,10 +205,12 @@ void SubProcess::spawn(const string &name, const StringVector &args)
 		dup2(it->second.childfd, it->first);
         }
 
-	_closeChildFDs();
 
-        if (child != 0)         // parent code failure
+        if (child != 0) {	// parent code failure
+	    _closeChildFDs();
             throw KSystemError("SubProcess::spawn(): fork failed", errno);
+	}
+
 	// child code, execute the process
 	StringVector fullV = args;
 	fullV.insert(fullV.begin(), name);
