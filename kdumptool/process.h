@@ -372,6 +372,13 @@ class ProcessFilter::IO {
 	{ }
 
 	/**
+	 * Get the associated file descriptor.
+	 */
+	int getFD(void) const
+	throw ()
+	{ return m_fd; }
+
+	/**
 	 * Prepare a SubProcess instance (before spawning a child).
 	 */
 	virtual void setupSubProcess(SubProcess &p)
