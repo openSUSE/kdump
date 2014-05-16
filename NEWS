@@ -2,6 +2,8 @@
 ------
   * Add "ssh" target protocol to transfer the file over the standard input
     to a remote host using the standard ssh client
+  * Prevent double mount of the root file system
+  * Allow taking remote dumps without mounting any file systems
 
 0.8.11
 ------
