@@ -318,21 +318,6 @@ int MultiplexIO::monitor(int timeout)
 }
 
 //}}}
-//{{{ ProcessFilter::IO --------------------------------------------------------
-
-class ProcessFilter::IO {
-    public:
-	virtual ~IO()
-	throw ()
-	{ }
-
-	virtual SubProcess::PipeDirection pipeDirection() const
-	throw () = 0;
-	virtual void setupIO(MultiplexIO &io, int fd) = 0;
-	virtual bool handleEvents(MultiplexIO &io) = 0;
-};
-
-//}}}
 //{{{ Input --------------------------------------------------------------------
 class Input : public ProcessFilter::IO {
     public:

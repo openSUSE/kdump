@@ -327,6 +327,40 @@ class ProcessFilter {
 };
 
 //}}}
+//{{{ ProcessFilter::IO --------------------------------------------------------
+
+class ProcessFilter::IO {
+    public:
+	/**
+	 * Virtual destructor is needed to destroy virtual classes.
+	 */
+	virtual ~IO()
+	throw ()
+	{ }
+
+	/**
+	 * Get the pipe direction in the child.
+	 */
+	virtual SubProcess::PipeDirection pipeDirection() const
+	throw () = 0;
+
+	/**
+	 * Set up I/O multiplexing.
+	 *
+	 * @param[in,out] io IO multiplexer instance
+	 * @param[in]     fd file descriptor of the parent end of the pipe
+	 */
+	virtual void setupIO(MultiplexIO &io, int fd) = 0;
+
+	/**
+	 * Handle I/O events.
+	 *
+	 * @param[in,out] io IO multiplexer instance
+	 */
+	virtual bool handleEvents(MultiplexIO &io) = 0;
+};
+
+//}}}
 
 #endif /* PROCESS_H */
 
