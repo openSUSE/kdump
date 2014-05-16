@@ -51,7 +51,7 @@ URLParser::Protocol URLParser::string2protocol(const string &protocol)
     else if (strcasecmp(protocol.c_str(), "scp") == 0)
         return PROT_SFTP;
     else if (strcasecmp(protocol.c_str(), "ssh") == 0)
-        return PROT_SFTP;
+        return PROT_SSH;
     else if (strcasecmp(protocol.c_str(), "nfs") == 0)
         return PROT_NFS;
     else if (strcasecmp(protocol.c_str(), "cifs") == 0)
@@ -73,6 +73,8 @@ string URLParser::protocol2string(URLParser::Protocol protocol)
             return "ftp";
         case PROT_SFTP:
             return "sftp";
+        case PROT_SSH:
+            return "ssh";
         case PROT_NFS:
             return "nfs";
         case PROT_CIFS:
@@ -125,8 +127,8 @@ URLParser::URLParser(const std::string &url)
         m_path = url.substr(first_colon+3);
     } else if (m_protocol == PROT_NFS) {
         parseNFSUrl(url.substr(first_colon+3));
-    } else if (m_protocol == PROT_SFTP || m_protocol == PROT_FTP ||
-            m_protocol == PROT_CIFS) {
+    } else if (m_protocol == PROT_SFTP || m_protocol == PROT_SSH ||
+	       m_protocol == PROT_FTP || m_protocol == PROT_CIFS) {
         parseFTPUrl(url.substr(first_colon+3));
     } else
         throw KError("Invalid protocol: " +
@@ -157,6 +159,7 @@ void URLParser::parseUserPassHostPort(const string &userpasshostport)
                 break;
 
             case PROT_SFTP:
+	    case PROT_SSH:
                 m_username = SFTP_DEFAULT_USER;
                 break;
 

@@ -42,6 +42,7 @@ class URLParser {
             PROT_FILE,          /**< normal file transfers */
             PROT_FTP,           /**< File Transfer Protocol */
             PROT_SFTP,          /**< Secure File Transfer Protocol */
+            PROT_SSH,           /**< Secure Shell */
             PROT_NFS,           /**< Network File System */
             PROT_CIFS           /**< Common Internet File System (SMB) */
         };

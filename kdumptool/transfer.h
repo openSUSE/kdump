@@ -308,6 +308,46 @@ class SFTPTransfer : public URLTransfer {
 #endif // HAVE_LIBSSH2
 
 //}}}
+//{{{ SSHTransfer --------------------------------------------------------------
+
+/**
+ * Transfers a file to SSH (upload).
+ */
+class SSHTransfer : public URLTransfer {
+
+    public:
+
+        /**
+         * Creates a SSHTransfer object.
+         *
+         * @exception KError when initialising the underlying library fails
+         */
+        SSHTransfer(const RootDirURLVector &urlv, const std::string &subdir)
+        throw (KError);
+
+        /**
+         * Destroys a SSHTransfer object.
+         */
+        ~SSHTransfer()
+        throw ();
+
+        /**
+         * Transfers the file.
+         *
+         * @see Transfer::perform()
+         */
+        void perform(DataProvider *dataprovider,
+                     const StringVector &target_files,
+                     bool *directSave)
+        throw (KError);
+
+    private:
+        char m_buffer[BUFSIZ];
+
+	StringVector makeArgs(std::string const &remote);
+};
+
+//}}}
 //{{{ NFSTransfer -------------------------------------------------------------
 
 /**

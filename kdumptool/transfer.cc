@@ -41,6 +41,7 @@
 #include "stringutil.h"
 #include "socket.h"
 #include "configuration.h"
+#include "process.h"
 
 using std::fopen;
 using std::fread;
@@ -99,6 +100,10 @@ Transfer *URLTransfer::getTransfer(const RootDirURLVector &urlv,
             Debug::debug()->dbg("Returning SFTPTransfer");
             return new SFTPTransfer(urlv, subdir);
 #endif // HAVE_LIBSSH2
+
+        case URLParser::PROT_SSH:
+	    Debug::debug()->dbg("Returning SSHTransfer");
+	    return new SSHTransfer(urlv, subdir);
 
         case URLParser::PROT_NFS:
             Debug::debug()->dbg("Returning NFSTransfer");
@@ -771,6 +776,134 @@ void SFTPTransfer::close()
 }
 
 #endif // HAVE_LIBSSH2
+
+//}}}
+//{{{ SSHTransfer -------------------------------------------------------------
+
+/* -------------------------------------------------------------------------- */
+SSHTransfer::SSHTransfer(const RootDirURLVector &urlv,
+			 const std::string &subdir)
+    throw (KError)
+    : URLTransfer(urlv, subdir)
+{
+    if (urlv.size() > 1)
+	cerr << "WARNING: First dump target used; rest ignored." << endl;
+    const RootDirURL &target = urlv.front();
+
+    Debug::debug()->trace("SSHTransfer::SSHTransfer(%s)",
+			  target.getURL().c_str());
+
+    string remote;
+    FilePath fp = target.getPath();
+    fp.appendPath(getSubDir());
+    remote.assign("mkdir -p ").append(fp);
+
+    SubProcess p;
+    p.spawn("ssh", makeArgs(remote));
+    int status = p.wait();
+    if (status != 0)
+	throw KError("SSHTransfer::SSHTransfer: ssh command failed"
+		     " with status " + Stringutil::number2string(status));
+}
+
+/* -------------------------------------------------------------------------- */
+SSHTransfer::~SSHTransfer()
+    throw ()
+{
+    Debug::debug()->trace("SSHTransfer::~SSHTransfer()");
+}
+
+/* -------------------------------------------------------------------------- */
+void SSHTransfer::perform(DataProvider *dataprovider,
+			  const StringVector &target_files,
+			  bool *directSave)
+    throw (KError)
+{
+    Debug::debug()->trace("SSHTransfer::perform(%p, [ \"%s\"%s ])",
+	dataprovider, target_files.front().c_str(),
+	target_files.size() > 1 ? ", ..." : "");
+
+    bool prepared = false;
+    if (directSave)
+        *directSave = false;
+
+    RootDirURLVector &urlv = getURLVector();
+    const RootDirURL &target = urlv.front();
+
+    FilePath fp = target.getPath();
+    fp.appendPath(getSubDir()).appendPath(target_files.front());
+
+    string remote;
+    remote.assign("dd of=").append(fp).append("-incomplete");
+    remote.append(" && mv ").append(fp).append("-incomplete ").append(fp);
+    Debug::debug()->dbg("Remote command: %s", remote.c_str());
+
+    SubProcess p;
+    p.setPipeDirection(STDIN_FILENO, SubProcess::ParentToChild);
+    p.spawn("ssh", makeArgs(remote));
+
+    int fd = p.getPipeFD(STDIN_FILENO);
+    try {
+        dataprovider->prepare();
+        prepared = true;
+
+        while (true) {
+            size_t read_data = dataprovider->getData(m_buffer, BUFSIZ);
+
+            // finished?
+            if (read_data == 0)
+                break;
+
+	    char *p = m_buffer;
+	    while (read_data) {
+		ssize_t ret = write(fd, p, read_data);
+
+		if (ret < 0)
+		    throw KSystemError("SSHTransfer::perform: write failed",
+				       errno);
+		read_data -= ret;
+		p += ret;
+	    }
+        }
+    } catch (...) {
+	close(fd);
+        if (prepared)
+            dataprovider->finish();
+        throw;
+    }
+    close(fd);
+
+    dataprovider->finish();
+    int status = p.wait();
+    if (status != 0)
+	throw KError("SSHTransfer::perform: ssh command failed"
+		     " with status " + Stringutil::number2string(status));
+}
+
+StringVector SSHTransfer::makeArgs(std::string const &remote)
+{
+    const RootDirURL &target = getURLVector().front();
+    StringVector ret;
+
+    ret.push_back("-o");
+    ret.push_back("BatchMode=yes");
+    ret.push_back("-o");
+    ret.push_back("StrictHostKeyChecking=yes");
+
+    ret.push_back("-l");
+    ret.push_back(target.getUsername());
+
+    int port = target.getPort();
+    if (port != -1) {
+	ret.push_back("-p");
+	ret.push_back(Stringutil::number2string(port));
+    }
+
+    ret.push_back(target.getHostname());
+    ret.push_back(remote);
+
+    return ret;
+}
 
 //}}}
 //{{{ NFSTransfer --------------------------------------------------------------
