@@ -281,6 +281,7 @@ function kdump_get_config()						   # {{{
 # Output variables:
 #   KDUMP_SAVEDIR   re-created from kdump_* variables
 #   KDUMP_HOST_KEY  default from ssh-keygen if not set previously
+#   KDUMP_REQUIRED_PROGRAMS updated as necessary
 #   kdump_over_ssh  non-empty if SSH is involved in dump saving
 # Output:
 #   "kdumptool dump_config" with some variables modified
@@ -290,6 +291,7 @@ function kdump_modify_config()						   # {{{
     # Special handling for some protocols
     KDUMP_SAVEDIR=
     kdump_over_ssh=
+    local copy_ssh=
     local i=0
     while [ $i -le $kdump_max ] ; do
 	protocol="${kdump_Protocol[i]}"
@@ -304,8 +306,10 @@ function kdump_modify_config()						   # {{{
 
 	#
 	# get the host key, if needed
-	if [ "$protocol" = "sftp" ] ; then
+	if [ "$protocol" = "sftp" -o \
+	     "$protocol" = "ssh" ] ; then
             kdump_over_ssh=yes
+	    test "$protocol" = "ssh" && copy_ssh=ssh
             if [ -z "$KDUMP_HOST_KEY" ] ; then
 		KDUMP_HOST_KEY=$(
 		    ssh-keygen -F "$kdump_Host" 2>/dev/null | \
@@ -316,6 +320,11 @@ function kdump_modify_config()						   # {{{
 
 	i=$((i+1))
     done
+
+    # copy ssh if needed
+    if [ -n "$copy_ssh" ] ; then
+	KDUMP_REQUIRED_PROGRAMS="$KDUMP_REQUIRED_PROGRAMS ssh"
+    fi
 
     #
     # dump the configuration file, modifying:
@@ -422,6 +431,8 @@ function kdump_init_dirs()						   # {{{
 # Input variables:
 #   KDUMP_*      see kdump_get_config
 #   kdump_mnt[]  mountpoints in kdump environment
+# Output variables:
+#   KDUMP_REQUIRED_PROGRAMS updated as necessary
 function kdump_setup_files()						   # {{{
 {
     local outdir="${1%/}"
