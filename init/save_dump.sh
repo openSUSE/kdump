@@ -197,9 +197,9 @@ else
     fi
 
     #
-    # save the dump (HOME=/ to find the public/private key)
+    # save the dump (set HOME to find the public/private key)
     read hostname < /etc/hostname.kdump
-    HOME=/ TMPDIR=$ROOTDIR/tmp kdumptool save_dump --root=$ROOTDIR \
+    HOME=$ROOTDIR TMPDIR=$ROOTDIR/tmp kdumptool save_dump --root=$ROOTDIR \
         --hostname=$hostname $KDUMPTOOL_OPTIONS
     if ! continue_error $?; then
         return

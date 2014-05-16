@@ -378,14 +378,10 @@ function kdump_copy_ssh_keys()						   # {{{
              "Man-in-the-middle attack is possible." >&2
     fi
     if [ -f /root/.ssh/id_dsa ] && [ -f /root/.ssh/id_dsa.pub ] ; then
-        mkdir -p "${dest}/.ssh"
-        cp /root/.ssh/id_dsa "${dest}/.ssh"
-        cp /root/.ssh/id_dsa.pub "${dest}/.ssh"
+        cp /root/.ssh/id_dsa{,.pub} "${dest}/kdump/.ssh/"
     fi
     if [ -f /root/.ssh/id_rsa ] && [ -f /root/.ssh/id_rsa.pub ] ; then
-        mkdir -p "${dest}/.ssh"
-        cp /root/.ssh/id_rsa "${dest}/.ssh"
-        cp /root/.ssh/id_rsa.pub "${dest}/.ssh"
+        cp /root/.ssh/id_rsa{,.pub} "${dest}/kdump/.ssh/"
     fi
 }									   # }}}
 
@@ -402,6 +398,7 @@ function kdump_init_dirs()						   # {{{
 
     mkdir -p "${root}/kdump"
     mkdir -m 01777 "${root}/kdump/tmp"
+    mkdir -m 0700 "${root}/kdump/.ssh"
 
     i=0
     for mnt in "${kdump_mnt[@]}"
