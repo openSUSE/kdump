@@ -264,6 +264,60 @@ int SubProcess::wait(void)
 }
 
 //}}}
+//{{{ MultiplexIO --------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+MultiplexIO::MultiplexIO(void)
+    throw ()
+    : m_active(0)
+{}
+
+// -----------------------------------------------------------------------------
+int MultiplexIO::add(int fd, short events)
+{
+    if (fd >= 0)
+	++m_active;
+
+    struct pollfd poll;
+    poll.fd = fd;
+    poll.events = events;
+    m_fds.push_back(poll);
+
+    return m_fds.size() - 1;
+}
+
+// -----------------------------------------------------------------------------
+struct pollfd &MultiplexIO::operator[](int idx)
+    throw(std::out_of_range)
+{
+    return m_fds.at(idx);
+}
+
+// -----------------------------------------------------------------------------
+void MultiplexIO::deactivate(int idx)
+{
+    if (m_fds[idx].fd >= 0)
+	--m_active;
+    m_fds[idx].fd = -1;
+}
+
+// -----------------------------------------------------------------------------
+int MultiplexIO::monitor(int timeout)
+    throw (KSystemError)
+{
+    int ret;
+
+    do {
+	ret = poll(m_fds.data(), m_fds.size(), timeout);
+    } while (ret < 0 && errno == EINTR);
+
+    if (ret < 0)
+	throw KSystemError("poll() failed", errno);
+
+    return ret;
+}
+
+//}}}
 //{{{ ProcessFilter ------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
@@ -309,43 +363,27 @@ uint8_t ProcessFilter::execute(const string &name, const StringVector &args)
 	p.setPipeDirection(STDERR_FILENO, SubProcess::ChildToParent);
     p.spawn(name, args);
 
-    // initialize fds
-    struct pollfd fds[3];
-    int active_fds = 0;
+    // initialize multiplex IO
+    MultiplexIO io;
+    int idx_stdin, idx_stdout, idx_stderr;
 
-    fds[0].events = POLLOUT;
-    if (m_stdin) {
-	fds[0].fd = p.getPipeFD(STDIN_FILENO);
-	++active_fds;
-    } else
-	fds[0].fd = -1;
-
-    fds[1].events = POLLIN;
-    if (m_stdout) {
-	fds[1].fd = p.getPipeFD(STDOUT_FILENO);
-	++active_fds;
-    } else
-	fds[1].fd = -1;
-
-    fds[2].events = POLLIN;
-    if (m_stderr) {
-	fds[2].fd = p.getPipeFD(STDERR_FILENO);
-	++active_fds;
-    } else
-	fds[2].fd = -1;
+    if (m_stdin)
+	idx_stdin = io.add(p.getPipeFD(STDIN_FILENO), POLLOUT);
+    if (m_stdout)
+	idx_stdout = io.add(p.getPipeFD(STDOUT_FILENO), POLLIN);
+    if (m_stderr)
+	idx_stderr = io.add(p.getPipeFD(STDERR_FILENO), POLLIN);
 
     char inbuf[BUFSIZ], *inbufptr = NULL, *inbufend = NULL;
     char outbuf[BUFSIZ];
     ssize_t cnt;
 
-    while (active_fds > 0) {
-	int retval = poll(fds, 3, -1);
-
-	if (retval < 0 && errno != EINTR)
-	    throw KSystemError("select() failed", errno);
+    while (io.active() > 0) {
+	io.monitor();
 
 	// Handle stdin
-	if (fds[0].revents & POLLOUT) {
+	if (m_stdin && io[idx_stdin].revents & POLLOUT) {
+	    struct pollfd *poll = &io[idx_stdin];
 	    // Buffer underflow
 	    if (inbufptr >= inbufend) {
 		m_stdin->clear();
@@ -355,7 +393,7 @@ uint8_t ProcessFilter::execute(const string &name, const StringVector &args)
 				       errno);
 		inbufend = inbufptr + m_stdin->gcount();
 	    }
-	    cnt = write(fds[0].fd, inbufptr, inbufend - inbufptr);
+	    cnt = write(poll->fd, inbufptr, inbufend - inbufptr);
 	    if (cnt < 0)
 		throw KSystemError("Cannot send data to stdin pipe",
 				   errno);
@@ -363,15 +401,15 @@ uint8_t ProcessFilter::execute(const string &name, const StringVector &args)
 
 	    if (m_stdin->eof()) {
 		p.setPipeDirection(STDIN_FILENO, SubProcess::None);
-		fds[0].fd = -1;
-		--active_fds;
+		io.deactivate(idx_stdin);
 	    }
 	}
 
 	// Handle stdout
-	if (fds[1].revents & (POLLIN | POLLHUP)) {
-	    if (fds[1].revents & POLLIN) {
-		cnt = read(fds[1].fd, outbuf, sizeof outbuf);
+	if (m_stdout && io[idx_stdout].revents & (POLLIN | POLLHUP)) {
+	    struct pollfd *poll = &io[idx_stdout];
+	    if (poll->revents & POLLIN) {
+		cnt = read(poll->fd, outbuf, sizeof outbuf);
 		if (cnt < 0)
 		    throw KSystemError("Cannot get data from stdout pipe",
 				       errno);
@@ -380,16 +418,16 @@ uint8_t ProcessFilter::execute(const string &name, const StringVector &args)
 
 	    if (!cnt) {
 		p.setPipeDirection(STDOUT_FILENO, SubProcess::None);
-		fds[1].fd = -1;
-		--active_fds;
+		io.deactivate(idx_stdout);
 	    }
 	    m_stdout->write(outbuf, cnt);
 	}
 
 	// Handle stderr
-	if (fds[2].revents & (POLLIN | POLLHUP)) {
-	    if (fds[2].revents & POLLIN) {
-		cnt = read(fds[2].fd, outbuf, sizeof outbuf);
+	if (m_stderr && io[idx_stderr].revents & (POLLIN | POLLHUP)) {
+	    struct pollfd *poll = &io[idx_stderr];
+	    if (poll->revents & POLLIN) {
+		cnt = read(poll->fd, outbuf, sizeof outbuf);
 		if (cnt < 0)
 		    throw KSystemError("Cannot get data from stderr pipe",
 				       errno);
@@ -398,8 +436,7 @@ uint8_t ProcessFilter::execute(const string &name, const StringVector &args)
 
 	    if (!cnt) {
 		p.setPipeDirection(STDERR_FILENO, SubProcess::None);
-		fds[2].fd = -1;
-		--active_fds;
+		io.deactivate(idx_stderr);
 	    }
 	    m_stderr->write(outbuf, cnt);
 	}
