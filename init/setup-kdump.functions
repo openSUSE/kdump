@@ -270,8 +270,10 @@ function kdump_get_config()						   # {{{
 }									   # }}}
 
 #
-# Get adjusted kdump configuration.
+# Create adjusted kdump configuration.
 #
+# Parameters:
+#   1) dest: root of the temporary area
 # Input variables:
 #   KDUMP_* variables (as sourced from $CONFIG)
 #   kdump_URL[]
@@ -287,6 +289,7 @@ function kdump_get_config()						   # {{{
 #   "kdumptool dump_config" with some variables modified
 function kdump_modify_config()						   # {{{
 {
+    local dest="${1%/}"
     #
     # Special handling for some protocols
     KDUMP_SAVEDIR=
@@ -316,6 +319,8 @@ function kdump_modify_config()						   # {{{
 		    awk '/^[^#]/ { if (NF==3) { print $3; exit } }'
 		)
             fi
+	    ssh-keygen -F "$kdump_Host" 2> /dev/null \
+		>>"${dest}/kdump/.ssh/known_hosts"
 	fi
 
 	i=$((i+1))
@@ -339,7 +344,7 @@ function kdump_modify_config()						   # {{{
         print $1"=\""ENVIRON[id]"\""
     else
         print
-}'
+}' > "${dest}${CONFIG}"
 }									   # }}}
 
 #
@@ -448,7 +453,7 @@ function kdump_setup_files()						   # {{{
     # create target configuration
     #
     mkdir -p "${outdir}${CONFIG%/*}"
-    kdump_modify_config > "${outdir}${CONFIG}"
+    kdump_modify_config "$outdir"
 
     #
     # remember the host name
