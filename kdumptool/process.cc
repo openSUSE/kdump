@@ -339,6 +339,12 @@ int MultiplexIO::monitor(int timeout)
 //{{{ Input --------------------------------------------------------------------
 class Input : public ProcessFilter::IO {
     public:
+
+	Input(int fd)
+	throw ()
+	: ProcessFilter::IO(fd)
+	{ }
+
 	virtual SubProcess::PipeDirection pipeDirection() const
 	throw ()
 	{ return SubProcess::ParentToChild; }
@@ -348,9 +354,9 @@ class Input : public ProcessFilter::IO {
 //{{{ IStream ------------------------------------------------------------------
 class IStream : public Input {
     public:
-	IStream(std::istream *input)
+	IStream(int fd, std::istream *input)
 	throw ()
-	: m_input(input), bufptr(NULL), bufend(NULL)
+	: Input(fd), m_input(input), bufptr(NULL), bufend(NULL)
 	{ }
 
 	virtual void setupIO(MultiplexIO &io, int fd);
@@ -401,6 +407,11 @@ bool IStream::handleEvents(MultiplexIO &io)
 
 class Output : public ProcessFilter::IO {
     public:
+	Output(int fd)
+	throw ()
+	: ProcessFilter::IO(fd)
+	{ }
+
 	virtual SubProcess::PipeDirection pipeDirection() const
 	throw ()
 	{ return SubProcess::ChildToParent; }
@@ -411,9 +422,9 @@ class Output : public ProcessFilter::IO {
 
 class OStream : public Output {
     public:
-	OStream(std::ostream *output)
+	OStream(int fd, std::ostream *output)
 	throw ()
-	: m_output(output)
+	: Output(fd), m_output(output)
 	{ }
 
 	virtual void setupIO(MultiplexIO &io, int fd);
@@ -469,13 +480,13 @@ ProcessFilter::~ProcessFilter()
 // -----------------------------------------------------------------------------
 void ProcessFilter::setInput(int fd, istream *stream)
 {
-    setIO(fd, new IStream(stream));
+    setIO(fd, new IStream(fd, stream));
 }
 
 // -----------------------------------------------------------------------------
 void ProcessFilter::setOutput(int fd, ostream *stream)
 {
-    setIO(fd, new OStream(stream));
+    setIO(fd, new OStream(fd, stream));
 }
 
 // -----------------------------------------------------------------------------

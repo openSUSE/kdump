@@ -355,6 +355,16 @@ class ProcessFilter {
 class ProcessFilter::IO {
     public:
 	/**
+	 * Prepare a new IO object.
+	 *
+	 * @param[in] fd desired file descriptor in the child.
+	 */
+	IO(int fd)
+	throw ()
+	: m_fd(fd)
+	{ }
+
+	/**
 	 * Virtual destructor is needed to destroy virtual classes.
 	 */
 	virtual ~IO()
@@ -381,6 +391,12 @@ class ProcessFilter::IO {
 	 * @param[in,out] io IO multiplexer instance
 	 */
 	virtual bool handleEvents(MultiplexIO &io) = 0;
+
+    protected:
+	/**
+	 * Desired file descriptor in the child.
+	 */
+	int m_fd;
 };
 
 //}}}
