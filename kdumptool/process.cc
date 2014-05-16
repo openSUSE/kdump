@@ -312,15 +312,27 @@ uint8_t ProcessFilter::execute(const string &name, const StringVector &args)
     // initialize fds
     struct pollfd fds[3];
     int active_fds = 0;
-    for (int i = 0; i < 3; ++i) {
-	if (p.getPipeDirection(i) != SubProcess::None) {
-	    fds[i].fd = p.getPipeFD(i);
-	    ++active_fds;
-	} else
-	    fds[i].fd = -1;
-    }
+
     fds[0].events = POLLOUT;
-    fds[1].events = fds[2].events = POLLIN;
+    if (m_stdin) {
+	fds[0].fd = p.getPipeFD(STDIN_FILENO);
+	++active_fds;
+    } else
+	fds[0].fd = -1;
+
+    fds[1].events = POLLIN;
+    if (m_stdout) {
+	fds[1].fd = p.getPipeFD(STDOUT_FILENO);
+	++active_fds;
+    } else
+	fds[1].fd = -1;
+
+    fds[2].events = POLLIN;
+    if (m_stderr) {
+	fds[2].fd = p.getPipeFD(STDERR_FILENO);
+	++active_fds;
+    } else
+	fds[2].fd = -1;
 
     char inbuf[BUFSIZ], *inbufptr = NULL, *inbufend = NULL;
     char outbuf[BUFSIZ];
