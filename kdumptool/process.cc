@@ -318,33 +318,179 @@ int MultiplexIO::monitor(int timeout)
 }
 
 //}}}
+//{{{ ProcessFilter::IO --------------------------------------------------------
+
+class ProcessFilter::IO {
+    public:
+	virtual ~IO()
+	throw ()
+	{ }
+
+	virtual SubProcess::PipeDirection pipeDirection() const
+	throw () = 0;
+	virtual void setupIO(MultiplexIO &io, int fd) = 0;
+	virtual bool handleEvents(MultiplexIO &io) = 0;
+};
+
+//}}}
+//{{{ Input --------------------------------------------------------------------
+class Input : public ProcessFilter::IO {
+    public:
+	virtual SubProcess::PipeDirection pipeDirection() const
+	throw ()
+	{ return SubProcess::ParentToChild; }
+};
+
+//}}}
+//{{{ IStream ------------------------------------------------------------------
+class IStream : public Input {
+    public:
+	IStream(std::istream *input)
+	throw ()
+	: m_input(input), bufptr(NULL), bufend(NULL)
+	{ }
+
+	virtual void setupIO(MultiplexIO &io, int fd);
+	virtual bool handleEvents(MultiplexIO &io);
+
+    private:
+	std::istream *m_input;
+	int pollidx;
+	char buf[BUFSIZ], *bufptr, *bufend;
+};
+
+// -----------------------------------------------------------------------------
+void IStream::setupIO(MultiplexIO &io, int fd)
+{
+    pollidx = io.add(fd, POLLOUT);
+}
+
+// -----------------------------------------------------------------------------
+bool IStream::handleEvents(MultiplexIO &io)
+{
+    ssize_t cnt;
+    struct pollfd *poll = &io[pollidx];
+
+    if (poll->revents & POLLOUT) {
+	// Buffer underflow
+	if (bufptr >= bufend) {
+	    m_input->clear();
+	    m_input->read(bufptr = buf, sizeof buf);
+	    if (m_input->bad())
+		throw KSystemError("Cannot get data for input pipe", errno);
+	    bufend = bufptr + m_input->gcount();
+	}
+	cnt = write(poll->fd, bufptr, bufend - bufptr);
+	if (cnt < 0)
+	    throw KSystemError("Cannot send data to input pipe", errno);
+	bufptr += cnt;
+
+	if (m_input->eof()) {
+	    io.deactivate(pollidx);
+	    return false;
+	}
+    }
+    return true;
+}
+
+//}}}
+//{{{ Output -------------------------------------------------------------------
+
+class Output : public ProcessFilter::IO {
+    public:
+	virtual SubProcess::PipeDirection pipeDirection() const
+	throw ()
+	{ return SubProcess::ChildToParent; }
+};
+
+//}}}
+//{{{ OStream ------------------------------------------------------------------
+
+class OStream : public Output {
+    public:
+	OStream(std::ostream *output)
+	throw ()
+	: m_output(output)
+	{ }
+
+	virtual void setupIO(MultiplexIO &io, int fd);
+	virtual bool handleEvents(MultiplexIO &io);
+
+    private:
+	std::ostream *m_output;
+	int pollidx;
+	char buf[BUFSIZ];
+};
+
+// -----------------------------------------------------------------------------
+void OStream::setupIO(MultiplexIO &io, int fd)
+{
+    pollidx = io.add(fd, POLLIN);
+}
+
+// -----------------------------------------------------------------------------
+bool OStream::handleEvents(MultiplexIO &io)
+{
+    ssize_t cnt;
+    struct pollfd *poll = &io[pollidx];
+
+    if (poll->revents & (POLLIN | POLLHUP)) {
+	if (poll->revents & POLLIN) {
+	    cnt = read(poll->fd, buf, sizeof buf);
+	    if (cnt < 0)
+		throw KSystemError("Cannot get data from output pipe", errno);
+	} else
+	    cnt = 0;
+
+	if (!cnt) {
+	    io.deactivate(pollidx);
+	    return false;
+	}
+	m_output->write(buf, cnt);
+    }
+    return true;
+}
+
+//}}}
 //{{{ ProcessFilter ------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-ProcessFilter::ProcessFilter()
-    throw ()
-    : m_stdin(NULL), m_stdout(NULL), m_stderr(NULL)
-{}
-
-// -----------------------------------------------------------------------------
-void ProcessFilter::setStdin(istream *stream)
+ProcessFilter::~ProcessFilter()
     throw ()
 {
-    m_stdin = stream;
+    std::map<int, IO*>::const_iterator it;
+    for (it = m_iomap.begin(); it != m_iomap.end(); ++it)
+	delete it->second;
 }
 
 // -----------------------------------------------------------------------------
-void ProcessFilter::setStdout(ostream *stream)
-    throw ()
+void ProcessFilter::setInput(int fd, istream *stream)
 {
-    m_stdout = stream;
+    setIO(fd, new IStream(stream));
 }
 
 // -----------------------------------------------------------------------------
-void ProcessFilter::setStderr(ostream *stream)
-    throw ()
+void ProcessFilter::setOutput(int fd, ostream *stream)
 {
-    m_stderr = stream;
+    setIO(fd, new OStream(stream));
+}
+
+// -----------------------------------------------------------------------------
+void ProcessFilter::setStdin(std::istream *stream)
+{
+    setInput(STDIN_FILENO, stream);
+}
+
+// -----------------------------------------------------------------------------
+void ProcessFilter::setStdout(std::ostream *stream)
+{
+    setOutput(STDOUT_FILENO, stream);
+}
+
+// -----------------------------------------------------------------------------
+void ProcessFilter::setStderr(std::ostream *stream)
+{
+    setOutput(STDERR_FILENO, stream);
 }
 
 // -----------------------------------------------------------------------------
@@ -354,91 +500,23 @@ uint8_t ProcessFilter::execute(const string &name, const StringVector &args)
     Debug::debug()->trace("ProcessFilter::execute(%s, %s)",
         name.c_str(), Stringutil::vector2string(args, ":").c_str());
 
+    std::map<int, IO*>::const_iterator it;
+
     SubProcess p;
-    if (m_stdin)
-	p.setPipeDirection(STDIN_FILENO, SubProcess::ParentToChild);
-    if (m_stdout)
-	p.setPipeDirection(STDOUT_FILENO, SubProcess::ChildToParent);
-    if (m_stderr)
-	p.setPipeDirection(STDERR_FILENO, SubProcess::ChildToParent);
+    for (it = m_iomap.begin(); it != m_iomap.end(); ++it)
+	p.setPipeDirection(it->first, it->second->pipeDirection());
     p.spawn(name, args);
 
     // initialize multiplex IO
     MultiplexIO io;
-    int idx_stdin, idx_stdout, idx_stderr;
-
-    if (m_stdin)
-	idx_stdin = io.add(p.getPipeFD(STDIN_FILENO), POLLOUT);
-    if (m_stdout)
-	idx_stdout = io.add(p.getPipeFD(STDOUT_FILENO), POLLIN);
-    if (m_stderr)
-	idx_stderr = io.add(p.getPipeFD(STDERR_FILENO), POLLIN);
-
-    char inbuf[BUFSIZ], *inbufptr = NULL, *inbufend = NULL;
-    char outbuf[BUFSIZ];
-    ssize_t cnt;
+    for (it = m_iomap.begin(); it != m_iomap.end(); ++it)
+	it->second->setupIO(io, p.getPipeFD(it->first));
 
     while (io.active() > 0) {
 	io.monitor();
-
-	// Handle stdin
-	if (m_stdin && io[idx_stdin].revents & POLLOUT) {
-	    struct pollfd *poll = &io[idx_stdin];
-	    // Buffer underflow
-	    if (inbufptr >= inbufend) {
-		m_stdin->clear();
-		m_stdin->read(inbufptr = inbuf, BUFSIZ);
-		if (m_stdin->bad())
-		    throw KSystemError("Cannot get data for stdin pipe",
-				       errno);
-		inbufend = inbufptr + m_stdin->gcount();
-	    }
-	    cnt = write(poll->fd, inbufptr, inbufend - inbufptr);
-	    if (cnt < 0)
-		throw KSystemError("Cannot send data to stdin pipe",
-				   errno);
-	    inbufptr += cnt;
-
-	    if (m_stdin->eof()) {
-		p.setPipeDirection(STDIN_FILENO, SubProcess::None);
-		io.deactivate(idx_stdin);
-	    }
-	}
-
-	// Handle stdout
-	if (m_stdout && io[idx_stdout].revents & (POLLIN | POLLHUP)) {
-	    struct pollfd *poll = &io[idx_stdout];
-	    if (poll->revents & POLLIN) {
-		cnt = read(poll->fd, outbuf, sizeof outbuf);
-		if (cnt < 0)
-		    throw KSystemError("Cannot get data from stdout pipe",
-				       errno);
-	    } else
-		cnt = 0;
-
-	    if (!cnt) {
-		p.setPipeDirection(STDOUT_FILENO, SubProcess::None);
-		io.deactivate(idx_stdout);
-	    }
-	    m_stdout->write(outbuf, cnt);
-	}
-
-	// Handle stderr
-	if (m_stderr && io[idx_stderr].revents & (POLLIN | POLLHUP)) {
-	    struct pollfd *poll = &io[idx_stderr];
-	    if (poll->revents & POLLIN) {
-		cnt = read(poll->fd, outbuf, sizeof outbuf);
-		if (cnt < 0)
-		    throw KSystemError("Cannot get data from stderr pipe",
-				       errno);
-	    } else
-		cnt = 0;
-
-	    if (!cnt) {
-		p.setPipeDirection(STDERR_FILENO, SubProcess::None);
-		io.deactivate(idx_stderr);
-	    }
-	    m_stderr->write(outbuf, cnt);
+	for (it = m_iomap.begin(); it != m_iomap.end(); ++it) {
+	    if (!it->second->handleEvents(io))
+		p.setPipeDirection(it->first, SubProcess::None);
 	}
     }
 

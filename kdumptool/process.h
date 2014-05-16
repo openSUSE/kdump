@@ -261,11 +261,16 @@ class ProcessFilter {
 
     public:
 
-        /**
-         * Creates a new process filter.
-         */
-        ProcessFilter()
-        throw ();
+	/**
+	 * Abstract base class for handling input/output.
+	 */
+	class IO;
+
+	/**
+	 * Destructor.
+	 */
+	~ProcessFilter()
+	throw ();
 
         /**
          * Runs the process, redirecting input/output.
@@ -281,37 +286,44 @@ class ProcessFilter {
         uint8_t execute(const std::string &name, const StringVector &args)
         throw (KError);
 
+	/**
+	 * Set Input/Output handling for the given fd in the subprocess.
+	 *
+	 * @param[in] fd file descriptor in child
+	 * @param[in] io pointer to a class ProcessFilter::IO instance;
+	 *               the instance is deallocated by class ProcessFilter
+	 */
+	void setIO(int fd, IO *io)
+	{ m_iomap[fd] = io; }
+
         /**
-         * Sets the stream which will be used as stdin for the process
-         * executed in ProcessFilter::execute().
+         * Redirect input in the subprocess from a std::istream.
          *
+	 * @param[in] fd file descriptor in child
          * @param[in] stream the stream to be used as input
          */
-        void setStdin(std::istream *stream)
-        throw ();
+        void setInput(int fd, std::istream *stream);
 
         /**
-         * Sets the stream which will be used as stdout for the process
-         * executed in ProcessFilter::executable().
+	 * Redirect output from the subprocess to a std::ostream.
          *
+	 * @param[in] fd file descriptor in child
          * @param[in] stream the stream to be used as output
          */
-        void setStdout(std::ostream *stream)
-        throw ();
+        void setOutput(int fd, std::ostream *stream);
 
-        /**
-         * Sets the stream which will be used as stderr for the process
-         * executed in ProcessFilter::executable().
-         *
-         * @param[in] stream the stream to be used as error output
-         */
-        void setStderr(std::ostream *stream)
-        throw ();
+	/**
+	 * setInput/setOutput shortcuts for stdin, stdout and stderr.
+	 *
+	 * @param[in] stream the stream to be used as input/output
+	 */
+	void setStdin(std::istream *stream);
+	void setStdout(std::ostream *stream);
+	void setStderr(std::ostream *stream);
 
     private:
-        std::istream *m_stdin;
-        std::ostream *m_stdout;
-        std::ostream *m_stderr;
+
+	std::map<int, IO*> m_iomap;
 };
 
 //}}}
