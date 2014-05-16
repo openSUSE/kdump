@@ -345,10 +345,16 @@ class Input : public ProcessFilter::IO {
 	: ProcessFilter::IO(fd)
 	{ }
 
-	virtual SubProcess::PipeDirection pipeDirection() const
-	throw ()
-	{ return SubProcess::ParentToChild; }
+	virtual void setupSubProcess(SubProcess &p)
+	throw ();
 };
+
+// -----------------------------------------------------------------------------
+void Input::setupSubProcess(SubProcess &p)
+    throw ()
+{
+    p.setPipeDirection(m_fd, SubProcess::ParentToChild);
+}
 
 //}}}
 //{{{ IStream ------------------------------------------------------------------
@@ -359,8 +365,8 @@ class IStream : public Input {
 	: Input(fd), m_input(input), bufptr(NULL), bufend(NULL)
 	{ }
 
-	virtual void setupIO(MultiplexIO &io, int fd);
-	virtual bool handleEvents(MultiplexIO &io);
+	virtual void setupIO(MultiplexIO &io, SubProcess &p);
+	virtual void handleEvents(MultiplexIO &io, SubProcess &p);
 
     private:
 	std::istream *m_input;
@@ -369,13 +375,13 @@ class IStream : public Input {
 };
 
 // -----------------------------------------------------------------------------
-void IStream::setupIO(MultiplexIO &io, int fd)
+void IStream::setupIO(MultiplexIO &io, SubProcess &p)
 {
-    pollidx = io.add(fd, POLLOUT);
+    pollidx = io.add(p.getPipeFD(m_fd), POLLOUT);
 }
 
 // -----------------------------------------------------------------------------
-bool IStream::handleEvents(MultiplexIO &io)
+void IStream::handleEvents(MultiplexIO &io, SubProcess &p)
 {
     ssize_t cnt;
     struct pollfd *poll = &io[pollidx];
@@ -395,11 +401,10 @@ bool IStream::handleEvents(MultiplexIO &io)
 	bufptr += cnt;
 
 	if (m_input->eof()) {
+	    p.setPipeDirection(m_fd, SubProcess::None);
 	    io.deactivate(pollidx);
-	    return false;
 	}
     }
-    return true;
 }
 
 //}}}
@@ -412,10 +417,16 @@ class Output : public ProcessFilter::IO {
 	: ProcessFilter::IO(fd)
 	{ }
 
-	virtual SubProcess::PipeDirection pipeDirection() const
-	throw ()
-	{ return SubProcess::ChildToParent; }
+	virtual void setupSubProcess(SubProcess &p)
+	throw ();
 };
+
+// -----------------------------------------------------------------------------
+void Output::setupSubProcess(SubProcess &p)
+    throw ()
+{
+    p.setPipeDirection(m_fd, SubProcess::ChildToParent);
+}
 
 //}}}
 //{{{ OStream ------------------------------------------------------------------
@@ -427,8 +438,8 @@ class OStream : public Output {
 	: Output(fd), m_output(output)
 	{ }
 
-	virtual void setupIO(MultiplexIO &io, int fd);
-	virtual bool handleEvents(MultiplexIO &io);
+	virtual void setupIO(MultiplexIO &io, SubProcess &p);
+	virtual void handleEvents(MultiplexIO &io, SubProcess &p);
 
     private:
 	std::ostream *m_output;
@@ -437,13 +448,13 @@ class OStream : public Output {
 };
 
 // -----------------------------------------------------------------------------
-void OStream::setupIO(MultiplexIO &io, int fd)
+void OStream::setupIO(MultiplexIO &io, SubProcess &p)
 {
-    pollidx = io.add(fd, POLLIN);
+    pollidx = io.add(p.getPipeFD(m_fd), POLLIN);
 }
 
 // -----------------------------------------------------------------------------
-bool OStream::handleEvents(MultiplexIO &io)
+void OStream::handleEvents(MultiplexIO &io, SubProcess &p)
 {
     ssize_t cnt;
     struct pollfd *poll = &io[pollidx];
@@ -457,12 +468,11 @@ bool OStream::handleEvents(MultiplexIO &io)
 	    cnt = 0;
 
 	if (!cnt) {
+	    p.setPipeDirection(m_fd, SubProcess::None);
 	    io.deactivate(pollidx);
-	    return false;
 	}
 	m_output->write(buf, cnt);
     }
-    return true;
 }
 
 //}}}
@@ -518,20 +528,18 @@ uint8_t ProcessFilter::execute(const string &name, const StringVector &args)
 
     SubProcess p;
     for (it = m_iomap.begin(); it != m_iomap.end(); ++it)
-	p.setPipeDirection(it->first, it->second->pipeDirection());
+	it->second->setupSubProcess(p);
     p.spawn(name, args);
 
     // initialize multiplex IO
     MultiplexIO io;
     for (it = m_iomap.begin(); it != m_iomap.end(); ++it)
-	it->second->setupIO(io, p.getPipeFD(it->first));
+	it->second->setupIO(io, p);
 
     while (io.active() > 0) {
 	io.monitor();
-	for (it = m_iomap.begin(); it != m_iomap.end(); ++it) {
-	    if (!it->second->handleEvents(io))
-		p.setPipeDirection(it->first, SubProcess::None);
-	}
+	for (it = m_iomap.begin(); it != m_iomap.end(); ++it)
+	    it->second->handleEvents(io, p);
     }
 
     int status = p.wait();

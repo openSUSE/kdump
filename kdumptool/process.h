@@ -372,25 +372,29 @@ class ProcessFilter::IO {
 	{ }
 
 	/**
-	 * Get the pipe direction in the child.
+	 * Prepare a SubProcess instance (before spawning a child).
 	 */
-	virtual SubProcess::PipeDirection pipeDirection() const
+	virtual void setupSubProcess(SubProcess &p)
 	throw () = 0;
 
 	/**
 	 * Set up I/O multiplexing.
 	 *
 	 * @param[in,out] io IO multiplexer instance
-	 * @param[in]     fd file descriptor of the parent end of the pipe
+	 * @param[in,out] p SubProcess instance
+	 *
+	 * This method is called after the subprocess has already started,
+	 * so you can get pipe file descriptors, etc.
 	 */
-	virtual void setupIO(MultiplexIO &io, int fd) = 0;
+	virtual void setupIO(MultiplexIO &io, SubProcess &p) = 0;
 
 	/**
 	 * Handle I/O events.
 	 *
 	 * @param[in,out] io IO multiplexer instance
+	 * @param[in,out] p SubProcess instance
 	 */
-	virtual bool handleEvents(MultiplexIO &io) = 0;
+	virtual void handleEvents(MultiplexIO &io, SubProcess &p) = 0;
 
     protected:
 	/**
