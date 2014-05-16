@@ -885,10 +885,8 @@ StringVector SSHTransfer::makeArgs(std::string const &remote)
     const RootDirURL &target = getURLVector().front();
     StringVector ret;
 
-    ret.push_back("-o");
-    ret.push_back("BatchMode=yes");
-    ret.push_back("-o");
-    ret.push_back("StrictHostKeyChecking=yes");
+    ret.push_back("-F");
+    ret.push_back("/kdump/.ssh/config");
 
     ret.push_back("-l");
     ret.push_back(target.getUsername());

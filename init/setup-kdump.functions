@@ -371,10 +371,10 @@ function kdump_modify_multipath()					   # {{{
 }									   # }}}
 
 #
-# Copy SSH keys to the target
+# Copy SSH keys and create a config file in the target
 # Parameters:
 #   1) dest: root of the temporary area
-function kdump_copy_ssh_keys()						   # {{{
+function kdump_init_ssh()						   # {{{
 {
     local dest="${1%/}"
 
@@ -382,6 +382,10 @@ function kdump_copy_ssh_keys()						   # {{{
         echo "WARNING: target SSH host key not found. " \
              "Man-in-the-middle attack is possible." >&2
     fi
+
+    local ssh_conf="$dest/kdump/.ssh/config"
+    echo "BatchMode yes" >> "$ssh_conf"
+    echo "StrictHostKeyChecking yes" >> "$ssh_conf"
 
     local type
     for type in rsa dsa ecdsa ed25519
@@ -466,7 +470,7 @@ function kdump_setup_files()						   # {{{
     # copy public and private key if needed
     #
     if [ -n "$kdump_over_ssh" ] ; then
-	kdump_copy_ssh_keys "$outdir"
+	kdump_init_ssh "$outdir"
     fi
 
     #
