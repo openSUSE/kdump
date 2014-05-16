@@ -388,6 +388,9 @@ function kdump_copy_ssh_keys()						   # {{{
     do
 	if [ -f /root/.ssh/id_${type} -a -f /root/.ssh/id_${type}.pub ] ; then
             cp /root/.ssh/id_${type}{,.pub} "${dest}/kdump/.ssh/"
+	    if [ -f /root/.ssh/id_${type}-cert.pub ] ; then
+		cp /root/.ssh/id_${type}-cert.pub "${dest}/kdump/.ssh/"
+	    fi
 	fi
     done
 }									   # }}}
