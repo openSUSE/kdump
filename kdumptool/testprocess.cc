@@ -33,6 +33,7 @@ using std::endl;
 int main(int argc, char *argv[])
 {
     static const char hello_world[] = "Hello, world!\n";
+    static const char another_line[] = "This line is not shown.\n";
 
     SubProcess p;
     int fd;
@@ -101,6 +102,38 @@ int main(int argc, char *argv[])
 	close(fd);
 	status = p.wait();
 	Debug::debug()->info("Child exited with status %d", status);
+
+	// Redirect the output from one command to another
+	SubProcess p2;
+	p.setPipeDirection(1, SubProcess::ChildToParent);
+	p.spawn("cat", v);
+	Debug::debug()->info("Spawned process 'cat' with PID %d",
+			     p.getChildPID());
+	fd = p.getPipeFD(1);
+	p2.setRedirection(0, fd);
+	v.push_back("^Hello");
+	p2.spawn("grep", v);
+	Debug::debug()->info("Spawned process 'grep' with PID %d",
+			     p2.getChildPID());
+	close(fd);
+
+	fd = p.getPipeFD(0);
+	res = write(fd, another_line, sizeof(another_line) - 1);
+	if (res != sizeof(another_line) - 1) {
+	    cerr << "Partial write to 'cat': " << res << " bytes" << endl;
+	    ++errors;
+	}
+	res = write(fd, hello_world, sizeof(hello_world) - 1);
+	if (res != sizeof(hello_world) - 1) {
+	    cerr << "Partial write to 'cat': " << res << " bytes" << endl;
+	    ++errors;
+	}
+	close(fd);
+
+	status = p.wait();
+	Debug::debug()->info("'cat' exited with status %d", status);
+	status = p2.wait();
+	Debug::debug()->info("'grep' exited with status %d", status);
 
     } catch(const std::exception &ex) {
 	cerr << "Fatal exception: " << ex.what() << endl;

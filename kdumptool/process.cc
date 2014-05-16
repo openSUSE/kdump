@@ -94,6 +94,8 @@ void SubProcess::checkSpawned(void)
 // -----------------------------------------------------------------------------
 void SubProcess::setPipeDirection(int fd, enum PipeDirection dir)
 {
+    m_redirs.erase(fd);
+
     if (dir == None)
 	m_pipes.erase(fd);
     else {
@@ -127,6 +129,17 @@ int SubProcess::getPipeFD(int fd)
 	throw std::out_of_range("SubProcess::getPipeFD(): Unknown fd "
 				+ Stringutil::number2string(fd));
     return ret->second.parentfd;
+}
+
+// -----------------------------------------------------------------------------
+void SubProcess::setRedirection(int fd, int srcfd)
+{
+    m_pipes.erase(fd);
+
+    if (srcfd < 0)
+	m_redirs.erase(fd);
+    else
+	m_redirs[fd] = srcfd;
 }
 
 // -----------------------------------------------------------------------------
@@ -203,8 +216,11 @@ void SubProcess::spawn(const string &name, const StringVector &args)
 	    std::map<int, struct PipeInfo>::iterator it;
 	    for (it = m_pipes.begin(); it != m_pipes.end(); ++it)
 		dup2(it->second.childfd, it->first);
-        }
 
+	    std::map<int, int>::iterator redir;
+	    for (redir = m_redirs.begin(); redir != m_redirs.end(); ++redir)
+		dup2(redir->second, redir->first);
+        }
 
         if (child != 0) {	// parent code failure
 	    _closeChildFDs();

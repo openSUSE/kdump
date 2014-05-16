@@ -56,6 +56,10 @@ class SubProcess {
 	 *
 	 * @param[in] File descriptor in child.
 	 * @param[in] Pipe direction.
+	 *
+	 * Note that pipes and redirections are mutually exclusive, so
+	 * if you set up a pipe, any respective redirection for the same
+	 * file descriptor will be removed.
 	 */
 	void setPipeDirection(int fd, enum PipeDirection dir);
 
@@ -75,6 +79,23 @@ class SubProcess {
 	 */
 	int getPipeFD(int fd)
 	throw (std::out_of_range);
+
+	/**
+	 * Set up redirection from an open file descriptor.
+	 *
+	 * @param[in] fd File descriptor in child.
+	 * @param[in] srcfd File descriptor in parent.
+	 *            Use -1 to remove a redirection.
+	 *
+	 * The source file descriptor is not closed in child. You can
+	 * use the O_CLOEXEC flag to control which file descriptors are
+	 * preserved across exec.
+	 *
+	 * Note that pipes and redirections are mutually exclusive, so
+	 * if you set a redirection, any respective pipe setup for the
+	 * same file descriptor will be removed.
+	 */
+	void setRedirection(int fd, int srcfd);
 
 	/**
 	 * Spawns a subprocess.
@@ -190,6 +211,8 @@ class SubProcess {
 	    throw ();
 	};
 	std::map<int, struct PipeInfo> m_pipes;
+
+	std::map<int, int> m_redirs;
 
 	void _closeParentFDs(void);
 	void _closeChildFDs(void);
