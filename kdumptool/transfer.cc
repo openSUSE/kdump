@@ -672,7 +672,7 @@ void SFTPTransfer::mkdir(const FilePath &dir, bool recursive)
         dir.c_str(), int(recursive));
 
     if (!recursive) {
-        if (!dir.exists()) {
+        if (!exists(dir)) {
             int ret = libssh2_sftp_mkdir(m_sftp, dir.c_str(), 0755);
             if (ret != 0)
                 throw KSFTPError("mkdir of " + dir + " failed.",
