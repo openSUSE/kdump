@@ -1,5 +1,7 @@
 0.8.12
 ------
+  * Add "ssh" target protocol to transfer the file over the standard input
+    to a remote host using the standard ssh client
 
 0.8.11
 ------

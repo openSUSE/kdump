@@ -608,7 +608,8 @@ where _protocol_ is one of:
 
 * *file*,
 * *ftp*,
-* *sftp* (aliases are *ssh* or *scp*),
+* *sftp* (alias is *scp*),
+* *ssh*
 * *nfs*
 * *cifs* (alias is *smb*).
 
@@ -668,7 +669,7 @@ protocol).
 
 _Format:_ `sftp:// [ _user_ [:_password_]@ ] _hostname_ [:_port_] ] _path_`
 
-It's valid to use the alias "ssh" or "scp" as alias for "sftp" (for backward
+It's valid to use "scp" as alias for "sftp" (for backward
 compatibility), but the "sftp" prefix is recommended.
 
 For the elements, see the description of FTP above. Please note that the use of
@@ -694,6 +695,24 @@ _Examples:_
 * +sftp://kdump@collector:22/var/log/dump+
 * +sftp://neptunium/var/log/dump+
 * +scp://neptunium/var/log/dump+
+
+
+Secure Shell Protocol (_ssh_)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Unlike the _sftp_ URL type, this protocol does not use SFTP, but rather
+transfers the data to a remote *dd* command.
+
+_Format:_ *ssh*://[_user_[__password__]@]_hostname_[:__port__]]_path_
+
+Most of the notes for SFTP also apply to SSH, except:
+
+* SFTP need not be configured on the target host.
+* Shell access must be granted to the dump user.
+
+_Examples:_
+
+* +ssh://kdump@crashdump/srv/www/dump/incoming+
 
 
 Network File System (_nfs_)
