@@ -310,14 +310,15 @@ class ProcessFilter {
         throw (KError);
 
 	/**
-	 * Set Input/Output handling for the given fd in the subprocess.
+	 * Set Input/Output handling.
 	 *
-	 * @param[in] fd file descriptor in child
 	 * @param[in] io pointer to a class ProcessFilter::IO instance;
 	 *               the instance is deallocated by class ProcessFilter
+	 *
+	 * Note: The implementation uses io->getFD() to know which file
+	 * descriptor is modified.
 	 */
-	void setIO(int fd, IO *io)
-	{ m_iomap[fd] = io; }
+	void setIO(IO *io);
 
         /**
          * Redirect input in the subprocess from a std::istream.

@@ -487,16 +487,26 @@ ProcessFilter::~ProcessFilter()
 	delete it->second;
 }
 
+void ProcessFilter::setIO(IO *io)
+{
+    std::pair<std::map<int, IO*>::iterator, bool> ret;
+    ret = m_iomap.insert(std::make_pair(io->getFD(), io));
+    if (ret.second == false) {
+	delete ret.first->second;
+	ret.first->second = io;
+    }
+}
+
 // -----------------------------------------------------------------------------
 void ProcessFilter::setInput(int fd, istream *stream)
 {
-    setIO(fd, new IStream(fd, stream));
+    setIO(new IStream(fd, stream));
 }
 
 // -----------------------------------------------------------------------------
 void ProcessFilter::setOutput(int fd, ostream *stream)
 {
-    setIO(fd, new OStream(fd, stream));
+    setIO(new OStream(fd, stream));
 }
 
 // -----------------------------------------------------------------------------
