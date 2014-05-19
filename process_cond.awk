@@ -5,7 +5,12 @@
 	    ENVIRON[var[1]] \
 	    substr($0, RSTART + RLENGTH)
     stack[sp++] = remove
-    remove = remove || ($2 != $3)
+    condition = 0
+    for (i = 3; i <= NF; i++) {
+	if ($2 == $i)
+	    condition = 1
+    }
+    remove = remove || !condition
     skip = 1
 }
 /^@else\>/ {
