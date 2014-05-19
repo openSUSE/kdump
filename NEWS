@@ -1,5 +1,6 @@
 0.8.13
 ------
+  * Modify kdump udev rules to work with systemd (and clean them up)
 
 0.8.12
 ------
