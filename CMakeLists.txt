@@ -195,8 +195,26 @@ INSTALL(FILES
         /var/adm/fillup-templates/
 )
 
+ADD_CUSTOM_COMMAND(
+    OUTPUT
+        70-kdump.rules
+    COMMAND
+        ARCH=${CMAKE_SYSTEM_PROCESSOR}
+        awk -f ${CMAKE_CURRENT_SOURCE_DIR}/process_cond.awk
+        ${CMAKE_CURRENT_SOURCE_DIR}/70-kdump.rules.in
+        > ${CMAKE_CURRENT_BINARY_DIR}/70-kdump.rules
+    DEPENDS
+        70-kdump.rules.in
+)
+ADD_CUSTOM_TARGET(
+    kdump.rules
+    ALL
+    DEPENDS
+        70-kdump.rules
+)
+
 INSTALL(FILES
-    ${CMAKE_CURRENT_SOURCE_DIR}/70-kdump.rules
+    ${CMAKE_CURRENT_BINARY_DIR}/70-kdump.rules
     DESTINATION
         /etc/udev/rules.d
 )
