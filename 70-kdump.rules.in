@@ -1,3 +1,9 @@
+@if @ARCH@ s390 s390x
+#
+# For s390x the ELF header is created in the kdump kernel and therefore
+# no kdump udev rules are required.
+#
+@else
 #
 # Kdump core headers needs to be regnerated if the CPUs or memory changes.
 # For this, reload kdump.
@@ -11,11 +17,8 @@ TEST=="/usr/bin/systemctl", GOTO="kdump_systemd"
 SUBSYSTEM=="cpu", ACTION=="online", PROGRAM="/etc/init.d/boot.kdump try-restart"
 SUBSYSTEM=="cpu", ACTION=="offline", PROGRAM="/etc/init.d/boot.kdump try-restart"
 @endif
-@if @ARCH@ s390 s390x
-@else
 SUBSYSTEM=="memory", ACTION=="add", PROGRAM="/etc/init.d/boot.kdump try-restart"
 SUBSYSTEM=="memory", ACTION=="remove", PROGRAM="/etc/init.d/boot.kdump try-restart"
-@endif
 
 GOTO="kdump_end"
 
@@ -27,10 +30,8 @@ LABEL="kdump_systemd"
 SUBSYSTEM=="cpu", ACTION=="online", RUN+="/usr/bin/systemctl reset-failed kdump", RUN+="/usr/bin/systemctl try-restart kdump"
 SUBSYSTEM=="cpu", ACTION=="offline", RUN+="/usr/bin/systemctl reset-failed kdump", RUN+="/usr/bin/systemctl try-restart kdump"
 @endif
-@if @ARCH@ s390 s390x
-@else
 SUBSYSTEM=="memory", ACTION=="add", RUN+="/usr/bin/systemctl reset-failed kdump", RUN+="/usr/bin/systemctl try-restart kdump"
 SUBSYSTEM=="memory", ACTION=="remove", RUN+="/usr/bin/systemctl reset-failed kdump", RUN+="/usr/bin/systemctl try-restart kdump"
-@endif
 
 LABEL="kdump_end"
+@endif
