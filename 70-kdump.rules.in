@@ -5,6 +5,8 @@
 # Novell Bug #389658
 #
 
+TEST=="/usr/bin/systemctl", GOTO="kdump_systemd"
+
 @if @ARCH@ ppc ppc64 ppc64le
 SUBSYSTEM=="cpu", ACTION=="online", PROGRAM="/etc/init.d/boot.kdump try-restart"
 SUBSYSTEM=="cpu", ACTION=="offline", PROGRAM="/etc/init.d/boot.kdump try-restart"
@@ -14,3 +16,21 @@ SUBSYSTEM=="cpu", ACTION=="offline", PROGRAM="/etc/init.d/boot.kdump try-restart
 SUBSYSTEM=="memory", ACTION=="add", PROGRAM="/etc/init.d/boot.kdump try-restart"
 SUBSYSTEM=="memory", ACTION=="remove", PROGRAM="/etc/init.d/boot.kdump try-restart"
 @endif
+
+GOTO="kdump_end"
+
+# Systemd limits service start rate, so if udev events are emitted too
+# often, kdump will enter failed state, unless the counter is reset here.
+LABEL="kdump_systemd"
+
+@if @ARCH@ ppc ppc64 ppc64le
+SUBSYSTEM=="cpu", ACTION=="online", RUN+="/usr/bin/systemctl reset-failed kdump", RUN+="/usr/bin/systemctl try-restart kdump"
+SUBSYSTEM=="cpu", ACTION=="offline", RUN+="/usr/bin/systemctl reset-failed kdump", RUN+="/usr/bin/systemctl try-restart kdump"
+@endif
+@if @ARCH@ s390 s390x
+@else
+SUBSYSTEM=="memory", ACTION=="add", RUN+="/usr/bin/systemctl reset-failed kdump", RUN+="/usr/bin/systemctl try-restart kdump"
+SUBSYSTEM=="memory", ACTION=="remove", RUN+="/usr/bin/systemctl reset-failed kdump", RUN+="/usr/bin/systemctl try-restart kdump"
+@endif
+
+LABEL="kdump_end"
