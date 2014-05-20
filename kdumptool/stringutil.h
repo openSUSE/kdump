@@ -292,6 +292,14 @@ class KString : public std::string {
         bool endsWith(const std::string &part) const
         throw ();
 
+	/**
+	 * Perform URL decoding on the string.
+	 *
+	 * @param[in] formenc if @c true, translate '+' into spaces
+	 * @return reference to this object (after decoding)
+	 */
+	KString &decodeURL(bool formenc = false)
+	throw();
 };
 
 //}}}

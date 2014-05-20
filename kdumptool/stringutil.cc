@@ -346,6 +346,27 @@ bool KString::endsWith(const string &part) const
     return strcmp(c_str() + size() - part.size(), part.c_str()) == 0;
 }
 
+// -----------------------------------------------------------------------------
+KString &KString::decodeURL(bool formenc)
+    throw()
+{
+    iterator src, dst;
+    for (src = dst = begin(); src != end(); ++src) {
+	char c1, c2;
+	if (*src == '%' && end() - src >= 2 &&
+	    isxdigit(c1 = src[1]) && isxdigit(c2 = src[2])) {
+	    *dst++ = (Stringutil::hex2int(c1) << 4) |
+		Stringutil::hex2int(c2);
+	    src += 2;
+	} else if (formenc && *src == '+')
+	    *dst++ = ' ';
+	else
+	    *dst++ = *src;
+    }
+    resize(dst - begin());
+    return *this;
+}
+
 //}}}
 
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

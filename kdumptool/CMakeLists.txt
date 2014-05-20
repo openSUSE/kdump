@@ -142,3 +142,8 @@ add_executable(testprocess
     testprocess.cc
 )
 target_link_libraries(testprocess common ${EXTRA_LIBS})
+
+add_executable(testurldecode
+    testurldecode.cc
+)
+target_link_libraries(testurldecode common ${EXTRA_LIBS})

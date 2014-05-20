@@ -60,3 +60,7 @@ ADD_TEST(delete_dumps
 ADD_TEST(process
          ${CMAKE_CURRENT_SOURCE_DIR}/process.sh
          ${CMAKE_BINARY_DIR}/kdumptool/testprocess)
+
+ADD_TEST(urldecode
+         ${CMAKE_CURRENT_SOURCE_DIR}/testurldecode.sh
+         ${CMAKE_BINARY_DIR}/kdumptool/testurldecode)
