@@ -158,20 +158,6 @@ class URLParser {
         static std::string protocol2string(Protocol protocol)
         throw (KError);
 
-    protected:
-
-        void parseCifsUrl(const std::string &partUrl)
-        throw (KError);
-
-        void parseNFSUrl(const std::string &partUrl)
-        throw (KError);
-
-        void parseUserPassHostPort(const std::string &userpasshostport)
-        throw (KError);
-
-        void parseFTPUrl(const std::string &partUrl)
-        throw (KError);
-
     private:
         std::string m_url;
         Protocol m_protocol;
@@ -181,6 +167,24 @@ class URLParser {
         int m_port;
         std::string m_path;
         std::string m_share;
+
+	/**
+	 * Extract scheme from a string
+	 *
+	 * @param[in,out] it starting position (updated if scheme is found)
+	 * @param[in] end end of input string
+	 */
+	std::string extractScheme(std::string::iterator &it,
+				  const std::string::const_iterator &end);
+
+	/**
+	 * Extract authority from a string
+	 *
+	 * @param[in,out] it starting position (updated if authority is found)
+	 * @param[in] end end of input string
+	 */
+	std::string extractAuthority(std::string::iterator &it,
+				     const std::string::const_iterator &end);
 };
 
 //}}}

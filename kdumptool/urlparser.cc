@@ -86,53 +86,132 @@ string URLParser::protocol2string(URLParser::Protocol protocol)
 }
 
 // -----------------------------------------------------------------------------
+string URLParser::extractScheme(string::iterator &it,
+				const string::const_iterator &end)
+{
+    string::iterator const start = it;
+
+    if (it == m_url.end() || !isalpha(*it))
+	return string();
+
+    do {
+	++it;
+	if (it == m_url.end()) {
+	    it = start;
+	    return string();
+	}
+    } while (*it != ':' && *it != '/' && *it != '?' && *it != '#');
+
+    if (*it != ':') {
+	it = start;
+	return string();
+    }
+
+    return string(start, it++);
+}
+
+// -----------------------------------------------------------------------------
+string URLParser::extractAuthority(string::iterator &it,
+				   const string::const_iterator &end)
+{
+    if (end - it < 2 || it[0] != '/' || it[1] != '/')
+	return string();
+
+    it += 2;
+    string::iterator const start = it;
+    while (*it != '/' && *it != '?' && *it != '#')
+	++it;
+
+    return string(start, it);
+}
+
+// -----------------------------------------------------------------------------
 URLParser::URLParser(const std::string &url)
     throw (KError)
     : m_url(url), m_port(-1)
 {
     Debug::debug()->trace("URLParser::URLParser(%s)", url.c_str());
 
-    if (url.size() == 0)
-        throw KError("URL must be longer than 0 characters.");
+    string::iterator it = m_url.begin();
 
-    // local files that don't have URL syntax
-    // we support that for backward-compatibility
-    if (url[0] == '/') {
-        m_protocol = PROT_FILE;
-        m_path = url;
-        return;
+    //
+    // extract the three main URL componenets
+    //
+    string scheme = extractScheme(it, m_url.end());
+    string authority = extractAuthority(it, m_url.end());
+    m_path.assign(it, m_url.end());
+    // TODO: query and fragment are not handled
+
+    if (m_path.empty() || m_path[0] != '/')
+        throw KError("URLParser: Only absolute paths are supported.");
+
+    //
+    // parse the authority part
+    //
+
+    // Look for (optional) port
+    it = authority.end();
+    while (it != authority.begin() && isdigit(it[-1]))
+	--it;
+    if (it != authority.begin() && it[-1] == ':') {
+	string port(it, authority.end());
+	authority.resize(it - authority.begin() - 1);
+
+        if (port.size() > 0)
+            m_port = Stringutil::string2number(port);
+    }
+
+    // look for userinfo
+    string::size_type last_at = authority.rfind('@');
+    if (last_at != string::npos) {
+        m_hostname = authority.substr(last_at+1);
+	authority.resize(last_at);
+
+        // now separate user and password
+        string::size_type first_colon = authority.find(':');
+        if (first_colon != string::npos) {
+            m_username = authority.substr(0, first_colon);
+            m_password = authority.substr(first_colon+1);
+        } else
+            m_username = authority;
+    } else
+        m_hostname = authority;
+
+    //
+    // guess the scheme, if omitted
+    //
+    if (scheme.empty()) {
+	if (m_hostname.empty() || m_hostname == "localhost") {
+	    m_protocol = PROT_FILE;
+	    Debug::debug()->trace("URL looks like a local file");
+	} else {
+	    m_protocol = PROT_NFS;
+	    Debug::debug()->trace("URL looks like a remote file");
+	}
+    } else {
+	Debug::debug()->trace("Scheme explicitly set to %s", scheme.c_str());
+	m_protocol = string2protocol(scheme);
     }
 
     //
-    // get the protocol
+    // protocol-specific defaults
     //
 
-    string::size_type first_colon = url.find(':');
-    if (first_colon == string::npos)
-        throw KError("The URL does not contain any protocol.");
-    string proto_part = url.substr(0, first_colon);
-    Debug::debug()->trace("Setting protocol to %s", proto_part.c_str());
-    m_protocol = string2protocol(proto_part);
+    if (m_protocol == PROT_FILE && m_hostname == "localhost")
+	m_hostname.clear();
 
-    if (url.size() < (first_colon + 3) ||
-            url[first_colon+1] != '/' ||
-            url[first_colon+2] != '/')
-        throw KError("protocol: must be followed by '//'.");
+    if (m_username.empty()) {
+	if (m_protocol == PROT_FTP)
+	    m_username = FTP_DEFAULT_USER;
+	else if (m_protocol == PROT_SFTP || m_protocol == PROT_SSH)
+	    m_username = SFTP_DEFAULT_USER;
+    }
 
     //
-    // call the parse methods matching for the protocol
+    // sanity checks
     //
-
-    if (m_protocol == PROT_FILE) {
-        m_path = url.substr(first_colon+3);
-    } else if (m_protocol == PROT_NFS) {
-        parseNFSUrl(url.substr(first_colon+3));
-    } else if (m_protocol == PROT_SFTP || m_protocol == PROT_SSH ||
-	       m_protocol == PROT_FTP || m_protocol == PROT_CIFS) {
-        parseFTPUrl(url.substr(first_colon+3));
-    } else
-        throw KError("Invalid protocol: " +
-            Stringutil::number2string(m_protocol) + ".");
+    if (m_protocol == PROT_FILE && !m_hostname.empty())
+	throw KError("File protocol cannot specify a remote host");
 
     Debug::debug()->dbg("URL parsed as: protocol=%s, host=%s, port=%d, "
         "username=%s, password=%s, path=%s",
@@ -140,112 +219,6 @@ URLParser::URLParser(const std::string &url)
         getHostname().c_str(), getPort(), getUsername().c_str(),
         getPassword().c_str(), getPath().c_str());
 
-}
-
-// -----------------------------------------------------------------------------
-void URLParser::parseUserPassHostPort(const string &userpasshostport)
-    throw (KError)
-{
-    // now scan for an '@' to separate userhost from hostport
-    string::size_type last_at = userpasshostport.rfind('@');
-    string userhost;
-    string hostport;
-    if (last_at == string::npos) {
-        hostport = userpasshostport;
-
-        switch (m_protocol) {
-            case PROT_FTP:
-                m_username = FTP_DEFAULT_USER;
-                break;
-
-            case PROT_SFTP:
-	    case PROT_SSH:
-                m_username = SFTP_DEFAULT_USER;
-                break;
-
-            default:
-                // do nothing but make the compiler happy
-                break;
-        }
-
-    } else {
-        string userpass = userpasshostport.substr(0, last_at);
-        hostport = userpasshostport.substr(last_at+1);
-
-        // now separate user and passwort
-        string::size_type firstcolon = userpass.find(':');
-        if (firstcolon != string::npos) {
-            m_username = userpass.substr(0, firstcolon);
-            m_password = userpass.substr(firstcolon+1);
-        } else
-            m_username = userpass;
-    }
-
-    // look for a literal IPv6 addresses
-    string::size_type last_colon = hostport.rfind(':');
-    if (hostport[0] == '[') {
-        string::size_type bracket = hostport.find(']');
-        if (bracket != string::npos && bracket > last_colon)
-            last_colon = string::npos;
-    }
-
-    // and separate host and port
-    if (last_colon != string::npos) {
-        m_hostname = hostport.substr(0, last_colon);
-        string portstr = hostport.substr(last_colon+1);
-        if (portstr.size() > 0)
-            m_port = Stringutil::string2number(portstr);
-    } else
-        m_hostname = hostport;
-}
-
-// -----------------------------------------------------------------------------
-void URLParser::parseNFSUrl(const string &partUrl)
-    throw (KError)
-{
-    Debug::debug()->trace("URLParser::parseNFSUrl(%s)", partUrl.c_str());
-
-    // look for the first '/'
-    string::size_type first_slash = partUrl.find('/');
-    if (first_slash == string::npos)
-        throw KError("NFS URL must contain at least one '/'.");
-
-    m_hostname = partUrl.substr(0, first_slash);
-
-    string::size_type last_colon = m_hostname.rfind(':');
-    if (m_hostname[0] == '[') {
-        string::size_type bracket = m_hostname.find(']');
-        if (bracket != string::npos && bracket > last_colon)
-            last_colon = string::npos;
-    }
-    if (last_colon != string::npos) {
-        string hostport = m_hostname;
-        m_hostname = hostport.substr(0, last_colon);
-        string portstring = hostport.substr(last_colon+1);
-        if (portstring.size() > 0)
-            m_port = Stringutil::string2number(hostport.substr(last_colon+1));
-    }
-
-    m_path = partUrl.substr(first_slash);
-}
-
-// -----------------------------------------------------------------------------
-void URLParser::parseFTPUrl(const string &partUrl)
-    throw (KError)
-{
-    Debug::debug()->trace("URLParser::parseFTPUrl(%s)", partUrl.c_str());
-
-    // look for the first '/' to separate the host name part from the
-    // path name
-    string::size_type first_slash = partUrl.find('/');
-    if (first_slash == string::npos)
-        throw KError(getProtocolAsString() +
-            " URL must contain at least one '/'.");
-
-    parseUserPassHostPort(partUrl.substr(0, first_slash));
-
-    // and the rest is the path
-    m_path = partUrl.substr(first_slash);
 }
 
 // -----------------------------------------------------------------------------
