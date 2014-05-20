@@ -32,6 +32,7 @@ URLS=(  "/var/log/dump"
         "cifs://bwalle:dontsay@neptunium:/var/log/dump"
         "smb://bwalle@192.168.0.70:/var/log"
         "cifs://bwalle:dontsay@neptunium:/var/log/dump"
+	"ftp://pt%65sarik:don%27t%20say@fu%6eny+host/var/log/dum%70"
         )
 
 # protocol:host:port:user:pass:path
@@ -45,6 +46,7 @@ VALUES=( "file::-1:::/var/log/dump"
          "cifs:neptunium:-1:bwalle:dontsay:/var/log/dump"
          "cifs:192.168.0.70:-1:bwalle::/var/log"
          "cifs:neptunium:-1:bwalle:dontsay:/var/log/dump"
+	 "ftp:funny+host:-1:ptesarik:don't say:/var/log/dump"
         )
                                                                            # }}}
 

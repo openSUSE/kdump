@@ -26,6 +26,7 @@
 #include "global.h"
 #include "optionparser.h"
 #include "subcommand.h"
+#include "stringutil.h"
 
 //{{{ URLParser ----------------------------------------------------------------
 
@@ -159,14 +160,13 @@ class URLParser {
         throw (KError);
 
     private:
-        std::string m_url;
+	std::string m_url;
         Protocol m_protocol;
-        std::string m_hostname;
-        std::string m_password;
-        std::string m_username;
+        KString m_hostname;
+        KString m_password;
+        KString m_username;
         int m_port;
-        std::string m_path;
-        std::string m_share;
+        KString m_path;
 
 	/**
 	 * Extract scheme from a string

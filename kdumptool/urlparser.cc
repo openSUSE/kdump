@@ -178,6 +178,14 @@ URLParser::URLParser(const std::string &url)
         m_hostname = authority;
 
     //
+    // undo percent encoding
+    //
+    m_hostname.decodeURL();
+    m_password.decodeURL();
+    m_username.decodeURL();
+    m_path.decodeURL();
+
+    //
     // guess the scheme, if omitted
     //
     if (scheme.empty()) {
