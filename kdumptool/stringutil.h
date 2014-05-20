@@ -200,6 +200,9 @@ class Stringutil {
 	throw (KError);
 
 #endif	// HAVE_LIBSSL
+
+	static int hex2int(char c)
+	throw (KError);
 };
 
 //}}}

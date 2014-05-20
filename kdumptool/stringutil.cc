@@ -270,6 +270,19 @@ void Stringutil::digest_base64(const void *buf, size_t len,
 
 #endif	// HAVE_LIBSSL
 
+// -----------------------------------------------------------------------------
+int Stringutil::hex2int(char c)
+    throw (KError)
+{
+    if (c >= '0' && c <= '9')
+	return c - '0';
+    if (c >= 'a' && c <= 'f')
+	return c - 'a' + 10;
+    if (c >= 'A' && c <= 'F')
+	return c - 'A' + 10;
+    throw KError(string("Stringutil::hex2int: '") + c + "' is not a hex digit");
+}
+
 //}}}
 //{{{ KString ------------------------------------------------------------------
 
