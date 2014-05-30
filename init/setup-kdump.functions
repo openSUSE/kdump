@@ -47,6 +47,66 @@ function kdump_module_has_device()					   # {{{
 }									   # }}}
 
 #
+# Convert a CIDR prefix to IPv4 netmask
+#
+# Parameters:
+#   1) prefix the CIDR prefix (default: 32)
+# Output:
+#   Corresponding netmask
+kdump_prefix2netmask() {						   # {{{
+    local prefix="${1:-32}"
+    local netmask=
+    local i
+    for i in a b c d
+    do
+	netmask="$netmask.$(( 255 - (255 >> prefix) ))"
+	if [ "$prefix" -gt 8 ] ; then
+	    prefix=$(( prefix - 8 ))
+	else
+	    prefix=0
+	fi
+    done
+    echo "${netmask:1}"
+}									   # }}}
+
+#
+# Get the ip= parameter for a given device
+#
+# Parameters:
+#   1) device  device name
+# Output:
+#   ip configuration string that can be used for the ip= initrd parameter
+function kdump_ip_config()						   # {{{
+{
+    local iface="$1"
+    local ipaddr peeraddr gwaddr netmask hostname iface
+    local family cidr rest
+    local prefix
+    while read family cidr rest
+    do
+	[ "$family" = "inet" ] || continue
+
+	ipaddr="${cidr%/*}"
+	prefix="${cidr:${#ipaddr}}"
+	set -- $rest
+
+        if [ "$1" == "peer" ] ; then
+	    cidr="$2"
+            peeraddr=${cidr%/*}
+	    prefix="${cidr:${#peeraddr}}"
+	    shift 2
+        fi
+	netmask=$( kdump_prefix2netmask "${prefix:1}" )
+
+    done < <(ip -4 address show dev "$iface")
+
+    gwaddr=$(ip route show 0/0 | sed -n 's/.* via \([^ ]*\).*/\1/p')
+    hostname=$(hostname)
+
+    echo "$ipaddr:$peeraddr:$gwaddr:$netmask:$hostname:$iface:none"
+}									   # }}}
+
+#
 # Get the save directory and protocol.
 #
 # Output variables:
