@@ -81,7 +81,7 @@ function kdump_default_netdev()						   # {{{
 	eval $( sed -ne '
 		s/^NetConfig: \(.*\)/BOOTPROTO=\1/p;
 		s/^Netdevice: \(.*\)/ifname=\1/p;
-		s/HWAddr: \(.*\)/hwaddr=\1/p'
+		s/HWAddr: \(.*\)/hwaddr=\1/p' \
 	    "$inffile" )
         if [ -n "$hwaddr" ] ; then
             for dev in /sys/class/net/* ; do
