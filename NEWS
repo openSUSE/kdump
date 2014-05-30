@@ -1,5 +1,6 @@
 0.8.13
 ------
+  * Store current configuration if KDUMP_NETCONFIG is static
   * Modify kdump udev rules to work with systemd (and clean them up)
   * Support percent-encoded URLs for KDUMP_SAVEDIR
 

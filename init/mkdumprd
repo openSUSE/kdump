@@ -156,8 +156,8 @@ function run_dracut()
     fi
     if [ "$KDUMP_NETCONFIG" = "auto" ] ; then
 	status_message "Network: auto"
-	DRACUT_ARGS+=" --kernel-cmdline 'rd.neednet=1 ip=any'"
 	if [ -n "$neednet" ]; then
+	    DRACUT_ARGS+=" --kernel-cmdline 'rd.neednet=1 ip=any'"
 	    modules="$modules network"
 	fi
     elif [ -z "$KDUMP_NETCONFIG" ] ; then
@@ -166,10 +166,19 @@ function run_dracut()
 	interface=$(echo "$KDUMP_NETCONFIG" | cut -d ':' -f 1)
 	mode=$(echo "$KDUMP_NETCONFIG" | cut -d ':' -f 2)
 
-	status_message "Network interface: $interface"
+	if [ "$interface" = "default" ] ; then
+	    interface=$( kdump_default_netdev )
+	    interface="${interface% *}"
+	    status_message "Network interface: $interface (default)"
+	else
+	    status_message "Network interface: $interface"
+	fi
+
 	if [ "$mode" = "static" ] ; then
+	    ipcfg="$(kdump_ip_config "$interface")"
+	    hwaddr=$(cat "/sys/class/net/$interface/address")
             status_message "Network mode: Static IP"
-            DRACUT_ARGS+=" --kernel-cmdline 'rd.neednet=1'"
+            DRACUT_ARGS+=" --kernel-cmdline 'rd.neednet=1 ip=$ipcfg::$hwaddr'"
 	else
             status_message "Network mode: Automatic IP (DHCP)"
             DRACUT_ARGS+=" --kernel-cmdline 'rd.neednet=1 ip=${interface}:dhcp'"
