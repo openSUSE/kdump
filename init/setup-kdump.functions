@@ -46,6 +46,103 @@ function kdump_module_has_device()					   # {{{
     )
 }									   # }}}
 
+# Extract the device name from a route
+#
+# Input:
+#   output of "route show"
+# Output:
+#   device name (for each line of input)
+function kdump_route2dev()						   # {{{
+{
+    sed -n 's/.* dev \([^ ]*\) *.*/\1/p'
+}									   # }}}
+
+#
+# Determine the default network device.
+#
+# Output:
+#   "$ifname $mode"
+#     ifname  default network interface name (or empty if none)
+#     mode    initialization mode ("static" or "dhcp")
+function kdump_default_netdev()						   # {{{
+{
+    local ifname BOOTPROTO
+    local inffile="/etc/install.inf"
+
+    # check current default routes
+    ifname=$(ip route show 0/0 | kdump_route2dev)
+    if [ -z "$ifname" ] ; then
+	ifname=$(ip -6 route show ::/0 | kdump_route2dev)
+    fi
+
+    # if not found, get info from install.inf
+    if [ -z "$ifname" -a -f "$inffile" ] ; then
+	local dev hwaddr hwaddr2
+	eval $( sed -ne '
+		s/^NetConfig: \(.*\)/BOOTPROTO=\1/p;
+		s/^Netdevice: \(.*\)/ifname=\1/p;
+		s/HWAddr: \(.*\)/hwaddr=\1/p'
+	    "$inffile" )
+        if [ -n "$hwaddr" ] ; then
+            for dev in /sys/class/net/* ; do
+                read hwaddr2 < "$dev"/address
+                if [ "$hwaddr" = "$hwaddr2" ] ; then
+                    ifname="${dev##*/}"
+                fi
+            done
+        fi
+    fi
+
+    # if still not found, there is no network
+    if [ -z "$ifname" ] ; then
+	return 0
+    fi
+
+    # get mode from config files
+    if [ -z "$BOOTPROTO" ] ; then
+	local cfg=/etc/sysconfig/network/ifcfg-"$ifname"
+	if [ -f "$cfg" ] ; then
+	    eval $(grep '^[[:space:]]*BOOTPROTO=' "$cfg")
+	fi
+    fi
+
+    # if not found, look if there is a dhcp daemon for the interface
+    if [ -z "$BOOTPROTO" ] ; then
+        if [ -n "$(ps -C dhclient,dhclient6,dhcpcd -o cmd= |
+		    sed -n '/.* \('"$ifname"'\)\( .*\|$\)/p' )" ] ; then
+            BOOTPROTO=dhcp
+        else
+            BOOTPROTO=static
+        fi
+    fi
+
+    # if the interface is a bridge, then try to use the underlying interface
+    # if it is the only non-virtual interface (not tap or vif)
+    if [ -d "/sys/class/net/$ifname/bridge" -a \
+            -d "/sys/class/net/$ifname/brif" ] ; then
+
+        local ifname2 res count=0
+        for ifname2 in "/sys/class/net/$ifname/brif"/*; do
+            case "$(readlink -f "$ifname2")" in
+            /sys/devices/virtual/*)
+                continue
+            esac
+            res="${ifname2##*/}"
+            count=$(( count+1 ))
+        done
+
+        if [ "$count" -ne 1 ] ; then
+            echo >&2 ">>> WARNING: $ifname is a bridge with more than one"
+            echo >&2 ">>> underlying interface. Please specify the device"
+            echo >&2 ">>> in KDUMP_NETCONFIG manually."
+        else
+            ifname="$res"
+        fi
+    fi
+
+    echo "$ifname $BOOTPROTO"
+}									   # }}}
+
 #
 # Convert a CIDR prefix to IPv4 netmask
 #
@@ -73,12 +170,18 @@ kdump_prefix2netmask() {						   # {{{
 # Get the ip= parameter for a given device
 #
 # Parameters:
-#   1) device  device name
+#   1) device  device name (use default if empty)
 # Output:
 #   ip configuration string that can be used for the ip= initrd parameter
 function kdump_ip_config()						   # {{{
 {
     local iface="$1"
+    if [ -z "$iface" ] ; then
+	iface=$( kdump_default_netdev )
+	iface="${iface% *}"
+    fi
+    [ -z "$iface" ] && return 1
+
     local ipaddr peeraddr gwaddr netmask hostname iface
     local family cidr rest
     local prefix
