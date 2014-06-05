@@ -1,5 +1,6 @@
 0.8.14
 ------
+  * Disable ACPI memory hotplug in kdump kernel
 
 0.8.13
 ------
