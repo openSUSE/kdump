@@ -1,6 +1,7 @@
 0.8.14
 ------
   * Disable ACPI memory hotplug in kdump kernel
+  * Update kernel and initrd estimates
 
 0.8.13
 ------

@@ -46,7 +46,7 @@
 #if defined(__x86_64__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(16)
-# define INIT_KB		MB(26)
+# define INIT_KB		MB(28)
 # define INIT_NET_KB		MB(3)
 # define SIZE_STRUCT_PAGE	56
 #elif defined(__i386__)
@@ -57,20 +57,20 @@
 # define SIZE_STRUCT_PAGE	32
 #elif defined(__powerpc64__)
 # define DEF_RESERVE_KB		MB(256)
-# define KERNEL_KB		MB(24)
-# define INIT_KB		MB(28)
-# define INIT_NET_KB		MB(3)
-# define SIZE_STRUCT_PAGE	56
+# define KERNEL_KB		MB(16)
+# define INIT_KB		MB(48)
+# define INIT_NET_KB		MB(4)
+# define SIZE_STRUCT_PAGE	64
 #elif defined(__powerpc__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(12)
-# define INIT_KB		MB(24)
+# define INIT_KB		MB(28)
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	32
 #elif defined(__s390x__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(13)
-# define INIT_KB		MB(24)
+# define INIT_KB		MB(28)
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	56
 #elif defined(__s390__)
