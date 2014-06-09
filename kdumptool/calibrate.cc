@@ -101,6 +101,12 @@
 # error "No default crashkernel reservation for your architecture!"
 #endif
 
+// Assume that the kdump kernel gets loaded at 128M (physical)
+// The location is hard to figure out beforehand, so let's just
+// make a reasonable guess here. Getting it wrong shouldn't make
+// the estimate wrong by more than a few hundred KiB...
+#define KDUMP_PHYS_LOAD		MB(128)
+
 // (Pessimistic) estimate of the initrd compression ratio (percents)
 #define INITRD_COMPRESS	50
 
@@ -232,6 +238,7 @@ void Calibrate::execute()
 	// Add space for memmap
 	prev = required;
 	required = required * pagesize / (pagesize - SIZE_STRUCT_PAGE);
+	required += KDUMP_PHYS_LOAD * SIZE_STRUCT_PAGE / pagesize / 1024;
         Debug::debug()->dbg("Maximum memmap size: %lu KiB", required - prev);
 
 	// Make sure there is enough space at boot
