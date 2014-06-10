@@ -70,6 +70,7 @@ INSTALL(
 INSTALL(
     FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/module-setup.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/mount-kdump.sh
     DESTINATION
         /usr/lib/dracut/modules.d/99kdump
     PERMISSIONS
