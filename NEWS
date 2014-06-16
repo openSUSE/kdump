@@ -1,5 +1,6 @@
 0.8.15
 ------
+  * Disable memory cgroup in kdump kernel
 
 0.8.14
 ------
