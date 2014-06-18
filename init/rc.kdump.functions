@@ -97,25 +97,23 @@ function build_kdump_commandline()
     local commandline="$KDUMP_COMMANDLINE"
 
     if [ -z "$commandline" ]; then
+        local nr_cpus=$(cpus_param "$kdump_kernel")
         commandline=$(
             remove_from_commandline \
                 'crashkernel|splash|mem|BOOT_IMAGE|showopts|zfcp\.allow_lun_scan|hugepages|acpi_no_memhotplug|cgroup_disable' \
                 < /proc/cmdline)
         # Use deadline for saving the memory footprint
         commandline="$commandline elevator=deadline sysrq=yes reset_devices acpi_no_memhotplug cgroup_disable=memory"
+        commandline="$commandline irqpoll ${nr_cpus}=${KDUMP_CPUS:-1}"
         local arch=$(uname -i)
         case "$arch" in
-        i?86|x86_64|ia64)
-            local nr_cpus=$(cpus_param "$kdump_kernel")
-            commandline="$commandline irqpoll ${nr_cpus}=${KDUMP_CPUS:-1}"
-            if [ "$arch" = "x86_64" -o -z "${arch#i?86}" ]; then
-                local boot_apicid=$(
-                    awk -F':[ \t]' '/^initial apicid[ \t]*:/ {print $2; exit}' \
+        i?86|x86_64)
+            local boot_apicid=$(
+                awk -F':[ \t]' '/^initial apicid[ \t]*:/ {print $2; exit}' \
                     /proc/cpuinfo)
-                test -n "$boot_apicid" &&
-                    commandline="$commandline disable_cpu_apicid=$boot_apicid"
-            fi
-            ;;
+            test -n "$boot_apicid" &&
+            commandline="$commandline disable_cpu_apicid=$boot_apicid"
+	    ;;
 	s390*)
 	    commandline="$commandline zfcp.allow_lun_scan=0"
 	    ;;
