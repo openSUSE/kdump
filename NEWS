@@ -2,6 +2,7 @@
 ------
   * Disable memory cgroup in kdump kernel
   * Limit the number of CPUs on all architectures
+  * Increase udevd memory requirements
 
 0.8.14
 ------

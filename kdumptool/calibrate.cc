@@ -134,12 +134,12 @@
 
 // Userspace base requirements:
 //   bash (PID 1)	 3 M
-//   udevd		 2 M
+//   10 * udevd		12 M
 //   kdumptool		 4 M
 //   makedumpfile	 1 M
 // -------------------------
-// TOTAL:		17 M
-#define USER_BASE_KB	MB(17)
+// TOTAL:		20 M
+#define USER_BASE_KB	MB(20)
 
 // Additional requirements when network is configured
 //   dhclient		 7 M
