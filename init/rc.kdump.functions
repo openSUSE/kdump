@@ -79,6 +79,13 @@ function remove_from_commandline()
 # Linux 2.6.34+ has nr_cpus, older versions must use maxcpus
 function cpus_param()
 {
+    # nr_cpus does not work properly on ppc/ppc64/ppc64le
+    case "$(uname -m)" in
+        ppc*)
+	    echo maxcpus
+	    ;;
+    esac
+
     local version=$(get_kernel_version "$1")
     version="${version%%-*}"
     local verhex=$(IFS=. ; set -- $version ; printf "0x%02x%02x%02x" $1 $2 $3)
