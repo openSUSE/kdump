@@ -255,7 +255,8 @@ void Calibrate::execute()
 	if (required < bootsize)
 	    required = bootsize;
 
-    } catch(KError) {
+    } catch(KError e) {
+	Debug::debug()->info(e.what());
 	required = DEF_RESERVE_KB;
     }
 
