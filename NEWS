@@ -3,6 +3,7 @@
   * Disable memory cgroup in kdump kernel
   * Limit the number of CPUs on all architectures
   * Increase udevd memory requirements
+  * If possible, use wicked to determine network mode
 
 0.8.14
 ------

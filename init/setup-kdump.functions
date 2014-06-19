@@ -58,6 +58,22 @@ function kdump_route2dev()						   # {{{
 }									   # }}}
 
 #
+# Get a wicked configuration value for a device
+#
+# Parameters:
+#   1) ifname  network interface name
+#   2) conf    configuration XPath under /interface
+# Output:
+#   configuration value
+function kdump_wicked_conf()						   # {{{
+{
+    local ifname="$1"
+    local conf="$2"
+
+    wicked show-config | wicked xpath "%{/interface[name='$ifname']/$conf}"
+}									   # }}}
+
+#
 # Determine the default network device.
 #
 # Output:
@@ -96,6 +112,19 @@ function kdump_default_netdev()						   # {{{
     # if still not found, there is no network
     if [ -z "$ifname" ] ; then
 	return 0
+    fi
+
+    # get mode using wicked if possible
+    if [ -n "$(type -P wicked)" -a \
+	"$(kdump_wicked_conf "$ifname" name)" = "$ifname" ]
+    then
+	local dhcpv4=$(kdump_wicked_conf "$ifname" ipv4:dhcp/enabled)
+	local dhcpv6=$(kdump_wicked_conf "$ifname" ipv6:dhcp/enabled)
+	if [ "$dhcpv4" = true -o "$dhcpv6" = true ] ; then
+	    BOOTPROTO=dhcp
+	else
+	    BOOTPROTO=static
+	fi
     fi
 
     # get mode from config files
