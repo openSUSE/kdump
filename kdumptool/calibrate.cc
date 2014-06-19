@@ -251,6 +251,7 @@ void Calibrate::execute()
         Debug::debug()->dbg("Maximum memmap size: %lu KiB", required - prev);
 
 	// Make sure there is enough space at boot
+	Debug::debug()->dbg("Total run-time size: %lu KiB", required);
 	if (required < bootsize)
 	    required = bootsize;
 
