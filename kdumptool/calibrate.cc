@@ -42,6 +42,9 @@
 //    INIT_KB		basic initramfs size (unpacked)
 //    INIT_NET_KB	initramfs size increment when network is included
 //    SIZE_STRUCT_PAGE	sizeof(struct page)
+//    KDUMP_PHYS_LOAD   assumed physical load address of the kdump kernel;
+//                      if pages between 0 and the load address are not
+//                      counted into total memory, set this to ZERO
 //
 #if defined(__x86_64__)
 # define DEF_RESERVE_KB		MB(128)
@@ -49,63 +52,66 @@
 # define INIT_KB		MB(28)
 # define INIT_NET_KB		MB(3)
 # define SIZE_STRUCT_PAGE	56
+# define KDUMP_PHYS_LOAD	0
 #elif defined(__i386__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(14)
 # define INIT_KB		MB(24)
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	32
+# define KDUMP_PHYS_LOAD	0
 #elif defined(__powerpc64__)
 # define DEF_RESERVE_KB		MB(256)
 # define KERNEL_KB		MB(16)
 # define INIT_KB		MB(48)
 # define INIT_NET_KB		MB(4)
 # define SIZE_STRUCT_PAGE	64
+# define KDUMP_PHYS_LOAD	MB(128)
 #elif defined(__powerpc__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(12)
 # define INIT_KB		MB(28)
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	32
+# define KDUMP_PHYS_LOAD	MB(128)
 #elif defined(__s390x__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(13)
 # define INIT_KB		MB(28)
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	56
+# define KDUMP_PHYS_LOAD	0
 #elif defined(__s390__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(12)
 # define INIT_KB		MB(24)
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	32
+# define KDUMP_PHYS_LOAD	0
 #elif defined(__ia64__)
 # define DEF_RESERVE_KB		MB(512)
 # define KERNEL_KB		MB(32)
 # define INIT_KB		MB(36)
 # define INIT_NET_KB		MB(4)
 # define SIZE_STRUCT_PAGE	56
+# define KDUMP_PHYS_LOAD	0
 #elif defined(__aarch64__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(10)
 # define INIT_KB		MB(24)
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	56
+# define KDUMP_PHYS_LOAD	0
 #elif defined(__arm__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(12)
 # define INIT_KB		MB(24)
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	32
+# define KDUMP_PHYS_LOAD	0
 #else
 # error "No default crashkernel reservation for your architecture!"
 #endif
-
-// Assume that the kdump kernel gets loaded at 128M (physical)
-// The location is hard to figure out beforehand, so let's just
-// make a reasonable guess here. Getting it wrong shouldn't make
-// the estimate wrong by more than a few hundred KiB...
-#define KDUMP_PHYS_LOAD		MB(128)
 
 // (Pessimistic) estimate of the initrd compression ratio (percents)
 #define INITRD_COMPRESS	50
@@ -230,6 +236,10 @@ void Calibrate::execute()
         Debug::debug()->dbg("Dirty pagecache: %lu KiB", dirty);
         Debug::debug()->dbg("In-flight I/O: %lu KiB", required - prev - dirty);
 
+	// Account for memory between 0 and KDUMP_PHYS_LOAD
+	required += KDUMP_PHYS_LOAD;
+	Debug::debug()->dbg("Assumed load offset: %lu KiB", KDUMP_PHYS_LOAD);
+
 	// Account for "large hashes"
 	prev = required;
 	required = required * MB(1024) / (MB(1024) - KERNEL_HASH_PER_MB);
@@ -238,7 +248,6 @@ void Calibrate::execute()
 	// Add space for memmap
 	prev = required;
 	required = required * pagesize / (pagesize - SIZE_STRUCT_PAGE);
-	required += KDUMP_PHYS_LOAD * SIZE_STRUCT_PAGE / pagesize / 1024;
         Debug::debug()->dbg("Maximum memmap size: %lu KiB", required - prev);
 
 	// Make sure there is enough space at boot
