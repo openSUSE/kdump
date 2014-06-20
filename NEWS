@@ -4,6 +4,7 @@
   * Limit the number of CPUs on all architectures
   * Increase udevd memory requirements
   * If possible, use wicked to determine network mode
+  * Take number of possible CPUs into account for calibrate
 
 0.8.14
 ------

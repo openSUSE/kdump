@@ -17,6 +17,8 @@
  * 02110-1301, USA.
  */
 #include <iostream>
+#include <fstream>
+#include <cerrno>
 #include <unistd.h>
 
 #include "subcommand.h"
@@ -24,6 +26,7 @@
 #include "calibrate.h"
 #include "configuration.h"
 #include "util.h"
+#include "fileutil.h"
 
 // All calculations are in KiB
 
@@ -45,6 +48,9 @@
 //    KDUMP_PHYS_LOAD   assumed physical load address of the kdump kernel;
 //                      if pages between 0 and the load address are not
 //                      counted into total memory, set this to ZERO
+//    PERCPU_KB         additional kernel memory for each online CPU
+//    CAN_REDUCE_CPUS   non-zero if the architecture can reduce kernel
+//                      memory requirements with nr_cpus=
 //
 #if defined(__x86_64__)
 # define DEF_RESERVE_KB		MB(128)
@@ -53,6 +59,8 @@
 # define INIT_NET_KB		MB(3)
 # define SIZE_STRUCT_PAGE	56
 # define KDUMP_PHYS_LOAD	0
+# define CAN_REDUCE_CPUS	1
+# define PERCPU_KB		108
 #elif defined(__i386__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(14)
@@ -60,6 +68,8 @@
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	32
 # define KDUMP_PHYS_LOAD	0
+# define CAN_REDUCE_CPUS	1
+# define PERCPU_KB		56
 #elif defined(__powerpc64__)
 # define DEF_RESERVE_KB		MB(256)
 # define KERNEL_KB		MB(16)
@@ -67,6 +77,8 @@
 # define INIT_NET_KB		MB(4)
 # define SIZE_STRUCT_PAGE	64
 # define KDUMP_PHYS_LOAD	MB(128)
+# define CAN_REDUCE_CPUS	0
+# define PERCPU_KB		172	// FIXME: is it non-linear?
 #elif defined(__powerpc__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(12)
@@ -74,6 +86,8 @@
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	32
 # define KDUMP_PHYS_LOAD	MB(128)
+# define CAN_REDUCE_CPUS	0
+# define PERCPU_KB		0	// TODO !!!
 #elif defined(__s390x__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(13)
@@ -81,6 +95,8 @@
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	56
 # define KDUMP_PHYS_LOAD	0
+# define CAN_REDUCE_CPUS	1
+# define PERCPU_KB		0	// TODO !!!
 #elif defined(__s390__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(12)
@@ -88,6 +104,8 @@
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	32
 # define KDUMP_PHYS_LOAD	0
+# define CAN_REDUCE_CPUS	1
+# define PERCPU_KB		0	// TODO !!!
 #elif defined(__ia64__)
 # define DEF_RESERVE_KB		MB(512)
 # define KERNEL_KB		MB(32)
@@ -95,6 +113,8 @@
 # define INIT_NET_KB		MB(4)
 # define SIZE_STRUCT_PAGE	56
 # define KDUMP_PHYS_LOAD	0
+# define CAN_REDUCE_CPUS	1
+# define PERCPU_KB		0	// TODO !!!
 #elif defined(__aarch64__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(10)
@@ -102,6 +122,8 @@
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	56
 # define KDUMP_PHYS_LOAD	0
+# define CAN_REDUCE_CPUS	1
+# define PERCPU_KB		0	// TODO !!!
 #elif defined(__arm__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(12)
@@ -109,6 +131,8 @@
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	32
 # define KDUMP_PHYS_LOAD	0
+# define CAN_REDUCE_CPUS	1
+# define PERCPU_KB		0	// TODO !!!
 #else
 # error "No default crashkernel reservation for your architecture!"
 #endif
@@ -159,7 +183,96 @@
 
 using std::cout;
 using std::endl;
+using std::ifstream;
 
+//{{{ SystemCPU ----------------------------------------------------------------
+
+class SystemCPU {
+
+    public:
+        /**
+	 * Initialize a new SystemCPU object.
+	 *
+	 * @param[in] sysdir Mount point for sysfs
+	 */
+	SystemCPU(const char *sysdir = "/sys")
+	throw ()
+	: m_cpudir(FilePath(sysdir).appendPath("devices/system/cpu"))
+	{}
+
+    protected:
+        /**
+	 * Path to the cpu system devices base directory
+	 */
+	const FilePath m_cpudir;
+
+        /**
+	 * Count the number of CPUs in a cpuset
+	 *
+	 * @param[in] name Name of the cpuset ("possible", "present", "online")
+	 *
+	 * @exception KError if the file cannot be opened or parsed
+	 */
+	unsigned long count(const char *name);
+
+    public:
+        /**
+	 * Count the number of online CPUs
+	 *
+	 * @exception KError see @c count()
+	 */
+	unsigned long numOnline(void)
+	{ return count("online"); }
+
+        /**
+	 * Count the number of offline CPUs
+	 *
+	 * @exception KError see @c count()
+	 */
+	unsigned long numOffline(void)
+	{ return count("offline"); }
+
+};
+
+// -----------------------------------------------------------------------------
+unsigned long SystemCPU::count(const char *name)
+{
+    FilePath path(m_cpudir);
+    path.appendPath(name);
+    unsigned long ret = 0UL;
+
+    ifstream fin(path.c_str());
+    if (!fin)
+	throw KSystemError("Cannot open " + path, errno);
+
+    try {
+	unsigned long n1, n2;
+	char delim;
+
+	fin.exceptions(ifstream::badbit);
+	while (fin >> n1) {
+	    fin >> delim;
+	    if (fin && delim == '-') {
+		if (! (fin >> n2) )
+		    throw KError(path + ": wrong number format");
+		ret += n2 - n1;
+		fin >> delim;
+	    }
+	    if (!fin.eof() && delim != ',')
+		throw KError(path + ": wrong delimiter: " + delim);
+	    ++ret;
+	}
+	if (!fin.eof())
+	    throw KError(path + ": wrong number format");
+	fin.close();
+    } catch (ifstream::failure e) {
+	throw KSystemError("Cannot read " + path, errno);
+    }
+
+    return ret;
+}
+
+//}}}
 //{{{ Calibrate ----------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
@@ -201,6 +314,20 @@ void Calibrate::execute()
 
 	// Run-time kernel requirements
 	required = KERNEL_KB + ramfs + KERNEL_DYNAMIC_KB;
+
+	// Add memory based on CPU count
+	unsigned long cpus;
+	if (CAN_REDUCE_CPUS) {
+	    cpus = config->KDUMP_CPUS.value();
+	} else {
+	    SystemCPU syscpu;
+	    unsigned long online = syscpu.numOnline();
+	    unsigned long offline = syscpu.numOffline();
+	    Debug::debug()->dbg("CPUs online: %lu, offline: %lu",
+				online, offline);
+	    cpus = online + offline;
+	}
+	Debug::debug()->dbg("Total assumed CPUs: %lu", cpus);
 
 	// User-space requirements
 	unsigned long user = USER_BASE_KB;
