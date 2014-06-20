@@ -83,6 +83,7 @@ function cpus_param()
     case "$(uname -m)" in
         ppc*)
 	    echo maxcpus
+	    return 0
 	    ;;
     esac
 
