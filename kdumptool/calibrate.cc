@@ -52,6 +52,7 @@
 //    CAN_REDUCE_CPUS   non-zero if the architecture can reduce kernel
 //                      memory requirements with nr_cpus=
 //
+
 #if defined(__x86_64__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(16)
@@ -61,6 +62,7 @@
 # define KDUMP_PHYS_LOAD	0
 # define CAN_REDUCE_CPUS	1
 # define PERCPU_KB		108
+
 #elif defined(__i386__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(14)
@@ -70,6 +72,7 @@
 # define KDUMP_PHYS_LOAD	0
 # define CAN_REDUCE_CPUS	1
 # define PERCPU_KB		56
+
 #elif defined(__powerpc64__)
 # define DEF_RESERVE_KB		MB(256)
 # define KERNEL_KB		MB(16)
@@ -79,6 +82,7 @@
 # define KDUMP_PHYS_LOAD	MB(128)
 # define CAN_REDUCE_CPUS	0
 # define PERCPU_KB		172	// FIXME: is it non-linear?
+
 #elif defined(__powerpc__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(12)
@@ -88,6 +92,7 @@
 # define KDUMP_PHYS_LOAD	MB(128)
 # define CAN_REDUCE_CPUS	0
 # define PERCPU_KB		0	// TODO !!!
+
 #elif defined(__s390x__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(13)
@@ -97,6 +102,9 @@
 # define KDUMP_PHYS_LOAD	0
 # define CAN_REDUCE_CPUS	1
 # define PERCPU_KB		0	// TODO !!!
+
+# define align_memmap		s390x_align_memmap
+
 #elif defined(__s390__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(12)
@@ -106,6 +114,9 @@
 # define KDUMP_PHYS_LOAD	0
 # define CAN_REDUCE_CPUS	1
 # define PERCPU_KB		0	// TODO !!!
+
+# define align_memmap		s390_align_memmap
+
 #elif defined(__ia64__)
 # define DEF_RESERVE_KB		MB(512)
 # define KERNEL_KB		MB(32)
@@ -115,6 +126,7 @@
 # define KDUMP_PHYS_LOAD	0
 # define CAN_REDUCE_CPUS	1
 # define PERCPU_KB		0	// TODO !!!
+
 #elif defined(__aarch64__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(10)
@@ -124,6 +136,7 @@
 # define KDUMP_PHYS_LOAD	0
 # define CAN_REDUCE_CPUS	1
 # define PERCPU_KB		0	// TODO !!!
+
 #elif defined(__arm__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(12)
@@ -133,9 +146,26 @@
 # define KDUMP_PHYS_LOAD	0
 # define CAN_REDUCE_CPUS	1
 # define PERCPU_KB		0	// TODO !!!
+
 #else
 # error "No default crashkernel reservation for your architecture!"
 #endif
+
+#ifndef align_memmap
+# define align_memmap(maxpfn)	((unsigned long) (maxpfn))
+#endif
+
+static inline unsigned long s390_align_memmap(unsigned long maxpfn)
+{
+    // SECTION_SIZE_BITS: 25, PAGE_SHIFT: 12, KiB: 10
+    return ((maxpfn - 1) | ((1UL << (25 - 12 - 10)) - 1)) + 1;
+}
+
+static inline unsigned long s390x_align_memmap(unsigned long maxpfn)
+{
+    // SECTION_SIZE_BITS: 28, PAGE_SHIFT: 12, KiB: 10
+    return ((maxpfn - 1) | ((1UL << (28 - 12 - 10)) - 1)) + 1;
+}
 
 // (Pessimistic) estimate of the initrd compression ratio (percents)
 #define INITRD_COMPRESS	50
@@ -375,6 +405,8 @@ void Calibrate::execute()
 	// Add space for memmap
 	prev = required;
 	required = required * pagesize / (pagesize - SIZE_STRUCT_PAGE);
+	unsigned long maxpfn = (required - prev) / SIZE_STRUCT_PAGE;
+	required = prev + align_memmap(maxpfn) * SIZE_STRUCT_PAGE;
         Debug::debug()->dbg("Maximum memmap size: %lu KiB", required - prev);
 
 	// Make sure there is enough space at boot
