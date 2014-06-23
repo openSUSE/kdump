@@ -101,7 +101,7 @@
 # define SIZE_STRUCT_PAGE	56
 # define KDUMP_PHYS_LOAD	0
 # define CAN_REDUCE_CPUS	1
-# define PERCPU_KB		0	// TODO !!!
+# define PERCPU_KB		48
 
 # define align_memmap		s390x_align_memmap
 
