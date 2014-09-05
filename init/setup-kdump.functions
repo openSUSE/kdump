@@ -388,12 +388,14 @@ function kdump_get_mountpoints()					   # {{{
     kdump_opts=( )
 
     while read device mountpoint filesystem opts dummy ; do
-	if [ "$mountpoint" = "/" ] ; then
+	if [ "$mountpoint" = "/" -a \
+	     -z "$rootmnt" ] ; then
 	    rootdev="$device"
 	    rootmnt="$mountpoint"
 	    rootfstype="$filesystem"
 	    rootopts="$opts"
-	elif [ "$mountpoint" = "/boot" ] ; then
+	elif [ "$mountpoint" = "/boot" -a \
+	       -z "$bootmnt" ] ; then
 	    bootdev="$device"
 	    bootmnt="$mountpoint"
 	    bootfstype="$filesystem"

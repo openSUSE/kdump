@@ -1,3 +1,7 @@
+0.8.16
+------
+  * Bugfix: use device from /etc/fstab to mount / and /boot
+
 0.8.15
 ------
   * Disable memory cgroup in kdump kernel
