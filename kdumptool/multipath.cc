@@ -206,7 +206,7 @@ void AddBlacklistHandler::outputLine(const string &raw)
 // -----------------------------------------------------------------------------
 void AddBlacklistHandler::doBlacklist(lineHandler handler)
 {
-    (this->*handler)("\twwid \"*\"\n");
+    (this->*handler)("\twwid \".*\"\n");
     m_blacklist_done = true;
 }
 
