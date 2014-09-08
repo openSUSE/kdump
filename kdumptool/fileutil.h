@@ -224,7 +224,7 @@ class FilePath : public KString {
          *            list, @c false if all files should be included
          * @exception KError if something went wrong
          */
-        StringVector listDir(const ListDirFilter &filter)
+        StringVector listDir(const ListDirFilter &filter) const
         throw (KError);
 
         /**

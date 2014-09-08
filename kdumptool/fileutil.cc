@@ -295,7 +295,7 @@ FilePath FilePath::getCanonicalPath(const string &root) const
 }
 
 // -----------------------------------------------------------------------------
-StringVector FilePath::listDir(const ListDirFilter &filter)
+StringVector FilePath::listDir(const ListDirFilter &filter) const
     throw (KError)
 {
     StringVector v;
