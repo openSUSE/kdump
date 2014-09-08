@@ -448,6 +448,201 @@ unsigned long Framebuffers::size(void) const
 }
 
 //}}}
+//{{{ SlabInfo -----------------------------------------------------------------
+
+class SlabInfo {
+
+    public:
+        /**
+	 * Initialize a new SlabInfo object.
+	 *
+	 * @param[in] line Line from /proc/slabinfo
+	 */
+	SlabInfo(const KString &line);
+
+    protected:
+	bool m_comment;
+	KString m_name;
+	unsigned long m_active_objs;
+	unsigned long m_num_objs;
+	unsigned long m_obj_size;
+	unsigned long m_obj_per_slab;
+	unsigned long m_pages_per_slab;
+	unsigned long m_active_slabs;
+	unsigned long m_num_slabs;
+
+    public:
+	bool isComment(void) const
+	throw ()
+	{ return m_comment; }
+
+	const KString &name(void) const
+	throw ()
+	{ return m_name; }
+
+	unsigned long activeObjs(void) const
+	throw ()
+	{ return m_active_objs; }
+
+	unsigned long numObjs(void) const
+	throw ()
+	{ return m_num_objs; }
+
+	unsigned long objSize(void) const
+	throw ()
+	{ return m_obj_size; }
+
+	unsigned long objPerSlab(void) const
+	throw ()
+	{ return m_obj_per_slab; }
+
+	unsigned long pagesPerSlab(void) const
+	throw ()
+	{ return m_pages_per_slab; }
+
+	unsigned long activeSlabs(void) const
+	throw ()
+	{ return m_active_slabs; }
+
+	unsigned long numSlabs(void) const
+	throw ()
+	{ return m_num_slabs; }
+};
+
+// -----------------------------------------------------------------------------
+SlabInfo::SlabInfo(const KString &line)
+{
+    static const char slabdata_mark[] = " : slabdata ";
+
+    std::istringstream ss(line);
+    ss >> m_name;
+    if (!ss)
+	throw KError("Invalid slabinfo line: " + line);
+
+    if (m_name[0] == '#') {
+	m_comment = true;
+	return;
+    }
+    m_comment = false;
+
+    ss >> m_active_objs >> m_num_objs >> m_obj_size
+       >> m_obj_per_slab >> m_pages_per_slab;
+    if (!ss)
+	throw KError("Invalid slabinfo line: " + line);
+
+    size_t sdpos = line.find(slabdata_mark, ss.tellg());
+    if (sdpos == KString::npos)
+	throw KError("Invalid slabinfo line: " + line);
+
+    ss.seekg(sdpos + sizeof(slabdata_mark) - 1, ss.beg);
+    ss >> m_active_slabs >> m_num_slabs;
+    if (!ss)
+	throw KError("Invalid slabinfo line: " + line);
+}
+
+//}}}
+//{{{ SlabInfos ----------------------------------------------------------------
+
+// Taken from procps:
+#define SLABINFO_LINE_LEN	2048
+#define SLABINFO_VER_LEN	100
+
+class SlabInfos {
+
+    public:
+	typedef std::map<KString, const SlabInfo*> Map;
+
+        /**
+	 * Initialize a new SlabInfos object.
+	 *
+	 * @param[in] procdir Mount point for procfs
+	 */
+	SlabInfos(const char *procdir = "/proc")
+	throw ()
+	: m_path(FilePath(procdir).appendPath("slabinfo"))
+	{}
+
+	~SlabInfos()
+	{ destroyInfo(); }
+
+    protected:
+        /**
+	 * Path to the slabinfo file
+	 */
+	const FilePath m_path;
+
+        /**
+	 * SlabInfo for each slab
+	 */
+	Map m_info;
+
+    private:
+	/**
+	 * Destroy SlabInfo objects in m_info.
+	 */
+	void destroyInfo(void)
+	throw();
+
+    public:
+        /**
+	 * Read the information about each slab.
+	 */
+	const Map& getInfo(void);
+};
+
+// -----------------------------------------------------------------------------
+void SlabInfos::destroyInfo(void)
+    throw()
+{
+    Map::iterator it;
+    for (it = m_info.begin(); it != m_info.end(); ++it)
+	delete it->second;
+    m_info.clear();
+}
+
+// -----------------------------------------------------------------------------
+const SlabInfos::Map& SlabInfos::getInfo(void)
+{
+    static const char verhdr[] = "slabinfo - version: ";
+    char buf[SLABINFO_VER_LEN], *p, *end;
+    unsigned long major, minor;
+
+    std::ifstream f(m_path.c_str());
+    if (!f)
+	throw KError(m_path + ": Open failed");
+    f.getline(buf, sizeof buf);
+    if (f.bad())
+	throw KError(m_path + ": Read failed");
+    else if (!f || strncmp(buf, verhdr, sizeof(verhdr)-1))
+	throw KError(m_path + ": Invalid version");
+    p = buf + sizeof(verhdr) - 1;
+
+    major = strtoul(p, &end, 10);
+    if (end == p || *end != '.')
+	throw KError(m_path + ": Invalid version");
+    p = end + 1;
+    minor = strtoul(p, &end, 10);
+    if (end == p || *end != '\0')
+	throw KError(m_path + ": Invalid version");
+    Debug::debug()->dbg("Found slabinfo version %lu.%lu", major, minor);
+
+    if (major != 2)
+	throw KError(m_path + ": Unsupported slabinfo version");
+
+    char line[SLABINFO_LINE_LEN];
+    while(f.getline(line, SLABINFO_LINE_LEN)) {
+	SlabInfo *si = new SlabInfo(line);
+	if (si->isComment()) {
+	    delete si;
+	    continue;
+	}
+	m_info[si->name()] = si;
+    }
+
+    return m_info;
+}
+
+//}}}
 //{{{ Calibrate ----------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
@@ -496,6 +691,24 @@ void Calibrate::execute()
 	} catch(KError e) {
 	    Debug::debug()->dbg("Cannot get framebuffer size: %s", e.what());
 	    required += DEF_FRAMEBUFFER_KB;
+	}
+
+	// Add space for constant slabs
+	try {
+	    SlabInfos slab;
+	    SlabInfos::Map info = slab.getInfo();
+	    SlabInfos::Map::iterator it;
+	    for (it = info.begin(); it != info.end(); ++it) {
+		if (it->first.startsWith("Acpi-") ||
+		    it->first.startsWith("ftrace_") ) {
+		    unsigned long slabsize = it->second->numSlabs() *
+			it->second->pagesPerSlab() * pagesize / 1024;
+		    Debug::debug()->dbg("Adding %ld KiB for %s slab cache",
+					slabsize, it->second->name().c_str());
+		}
+	    }
+	} catch (KError e) {
+	    Debug::debug()->dbg("Cannot get slab sizes: %s", e.what());
 	}
 
 	// Add memory based on CPU count

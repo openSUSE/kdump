@@ -1,6 +1,7 @@
 0.8.16
 ------
   * Take framebuffer size into account for calibrate
+  * Take constant-size slabs (ACPI and ftrace) into account for calibrate
   * Bugfix: use device from /etc/fstab to mount / and /boot
   * Bugfix: use proper regexp in multipath.conf
 
