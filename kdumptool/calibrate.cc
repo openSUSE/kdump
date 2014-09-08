@@ -19,7 +19,10 @@
 #include <iostream>
 #include <fstream>
 #include <cerrno>
+#include <cstring>
+#include <cstdlib>
 #include <unistd.h>
+#include <dirent.h>
 
 #include "subcommand.h"
 #include "debug.h"
@@ -173,6 +176,13 @@ static inline unsigned long s390x_align_memmap(unsigned long maxpfn)
 // Estimated non-changing dynamic data (sysfs, procfs, etc.)
 #define KERNEL_DYNAMIC_KB	MB(4)
 
+// Default framebuffer size: 1024x768 @ 32bpp, except on mainframe
+#if defined(__s390__) || defined(__s390x__)
+# define DEF_FRAMEBUFFER_KB	0
+#else
+# define DEF_FRAMEBUFFER_KB	(768UL*4)
+#endif
+
 // large hashes, default settings:			     -> per MiB
 //   PID: sizeof(void*) for each 256 KiB			  4
 //   Dentry cache: sizeof(void*) for each  8 KiB		128
@@ -303,6 +313,141 @@ unsigned long SystemCPU::count(const char *name)
 }
 
 //}}}
+//{{{ Framebuffer --------------------------------------------------------------
+
+class Framebuffer {
+
+    public:
+        /**
+	 * Initialize a new Framebuffer object.
+	 *
+	 * @param[in] fbpath Framebuffer sysfs directory path
+	 */
+	Framebuffer(const char *fbpath)
+	throw ()
+	: m_dir(fbpath)
+	{}
+
+    protected:
+        /**
+	 * Path to the framebuffer device base directory
+	 */
+	const FilePath m_dir;
+
+    public:
+	/**
+	 * Get length of the framebuffer [in bytes].
+	 */
+	unsigned long size(void) const;
+};
+
+// -----------------------------------------------------------------------------
+unsigned long Framebuffer::size(void) const
+{
+    FilePath fp;
+    std::ifstream f;
+    unsigned long width, height, stride;
+    char sep;
+
+    fp.assign(m_dir);
+    fp.appendPath("virtual_size");
+    f.open(fp.c_str());
+    if (!f)
+	throw KError(fp + ": Open failed");
+    f >> width >> sep >> height;
+    f.close();
+    if (f.bad())
+	throw KError(fp + ": Read failed");
+    else if (!f || sep != ',')
+	throw KError(fp + ": Invalid content!");
+    Debug::debug()->dbg("Framebuffer virtual size: %lux%lu", width, height);
+
+    fp.assign(m_dir);
+    fp.appendPath("stride");
+    f.open(fp.c_str());
+    if (!f)
+	throw KError(fp + ": Open failed");
+    f >> stride;
+    f.close();
+    if (f.bad())
+	throw KError(fp + ": Read failed");
+    else if (!f || sep != ',')
+	throw KError(fp + ": Invalid content!");
+    Debug::debug()->dbg("Framebuffer stride: %lu bytes", stride);
+
+    return stride * height;
+}
+
+//}}}
+//{{{ Framebuffers -------------------------------------------------------------
+
+class Framebuffers {
+
+    public:
+        /**
+	 * Initialize a new Framebuffer object.
+	 *
+	 * @param[in] sysdir Mount point for sysfs
+	 */
+	Framebuffers(const char *sysdir = "/sys")
+	throw ()
+	: m_fbdir(FilePath(sysdir).appendPath("class/graphics"))
+	{}
+
+    protected:
+        /**
+	 * Path to the base directory with links to framebuffer devices
+	 */
+	const FilePath m_fbdir;
+
+        /**
+	 * Filter only valid framebuffer device name
+	 */
+	class DirFilter : public ListDirFilter {
+
+	    public:
+		virtual ~DirFilter()
+		{}
+
+		bool test(const struct dirent *d) const
+		{
+		    char *end;
+		    if (strncmp(d->d_name, "fb", 2))
+			return false;
+		    strtoul(d->d_name + 2, &end, 10);
+		    return (*end == '\0' && end != d->d_name + 2);
+		}
+	};
+
+    public:
+	/**
+	 * Get size of all framebuffers [in bytes].
+	 */
+	unsigned long size(void) const;
+};
+
+// -----------------------------------------------------------------------------
+unsigned long Framebuffers::size(void) const
+{
+    Debug::debug()->trace("Framebuffers::size()");
+
+    unsigned long ret = 0UL;
+
+    StringVector v = m_fbdir.listDir(DirFilter());
+    for (StringVector::const_iterator it = v.begin(); it != v.end(); ++it) {
+        Debug::debug()->dbg("Found framebuffer: %s", it->c_str());
+
+	FilePath fp(m_fbdir);
+	fp.appendPath(*it);
+	Framebuffer fb(fp.c_str());
+	ret += fb.size();
+    }
+
+    Debug::debug()->dbg("Total size of all framebuffers: %lu bytes", ret);
+    return ret;
+}
+
+//}}}
 //{{{ Calibrate ----------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
@@ -344,6 +489,14 @@ void Calibrate::execute()
 
 	// Run-time kernel requirements
 	required = KERNEL_KB + ramfs + KERNEL_DYNAMIC_KB;
+
+	try {
+	    Framebuffers fb;
+	    required += fb.size() / 1024UL;
+	} catch(KError e) {
+	    Debug::debug()->dbg("Cannot get framebuffer size: %s", e.what());
+	    required += DEF_FRAMEBUFFER_KB;
+	}
 
 	// Add memory based on CPU count
 	unsigned long cpus;
