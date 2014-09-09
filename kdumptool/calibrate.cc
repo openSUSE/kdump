@@ -703,6 +703,8 @@ void Calibrate::execute()
 		    it->first.startsWith("ftrace_") ) {
 		    unsigned long slabsize = it->second->numSlabs() *
 			it->second->pagesPerSlab() * pagesize / 1024;
+		    required += slabsize;
+
 		    Debug::debug()->dbg("Adding %ld KiB for %s slab cache",
 					slabsize, it->second->name().c_str());
 		}
