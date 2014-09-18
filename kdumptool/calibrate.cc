@@ -59,7 +59,7 @@
 #if defined(__x86_64__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(16)
-# define INIT_KB		MB(28)
+# define INIT_KB		MB(34)
 # define INIT_NET_KB		MB(3)
 # define SIZE_STRUCT_PAGE	56
 # define KDUMP_PHYS_LOAD	0
@@ -69,7 +69,7 @@
 #elif defined(__i386__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(14)
-# define INIT_KB		MB(24)
+# define INIT_KB		MB(29)
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	32
 # define KDUMP_PHYS_LOAD	0
@@ -79,7 +79,7 @@
 #elif defined(__powerpc64__)
 # define DEF_RESERVE_KB		MB(256)
 # define KERNEL_KB		MB(16)
-# define INIT_KB		MB(48)
+# define INIT_KB		MB(58)
 # define INIT_NET_KB		MB(4)
 # define SIZE_STRUCT_PAGE	64
 # define KDUMP_PHYS_LOAD	MB(128)
@@ -89,7 +89,7 @@
 #elif defined(__powerpc__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(12)
-# define INIT_KB		MB(28)
+# define INIT_KB		MB(34)
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	32
 # define KDUMP_PHYS_LOAD	MB(128)
@@ -99,7 +99,7 @@
 #elif defined(__s390x__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(13)
-# define INIT_KB		MB(28)
+# define INIT_KB		MB(34)
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	56
 # define KDUMP_PHYS_LOAD	0
@@ -111,7 +111,7 @@
 #elif defined(__s390__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(12)
-# define INIT_KB		MB(24)
+# define INIT_KB		MB(29)
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	32
 # define KDUMP_PHYS_LOAD	0
@@ -123,7 +123,7 @@
 #elif defined(__ia64__)
 # define DEF_RESERVE_KB		MB(512)
 # define KERNEL_KB		MB(32)
-# define INIT_KB		MB(36)
+# define INIT_KB		MB(44)
 # define INIT_NET_KB		MB(4)
 # define SIZE_STRUCT_PAGE	56
 # define KDUMP_PHYS_LOAD	0
@@ -133,7 +133,7 @@
 #elif defined(__aarch64__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(10)
-# define INIT_KB		MB(24)
+# define INIT_KB		MB(29)
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	56
 # define KDUMP_PHYS_LOAD	0
@@ -143,7 +143,7 @@
 #elif defined(__arm__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(12)
-# define INIT_KB		MB(24)
+# define INIT_KB		MB(29)
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	32
 # define KDUMP_PHYS_LOAD	0
