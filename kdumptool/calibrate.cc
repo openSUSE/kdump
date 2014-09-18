@@ -203,13 +203,15 @@ static inline unsigned long s390x_align_memmap(unsigned long maxpfn)
 #define DIRTY_RATIO		20
 
 // Userspace base requirements:
-//   bash (PID 1)	 3 M
+//   systemd (PID 1)	 3 M
+//   journald		 2 M
+//   the journal itself	 4 M
 //   10 * udevd		12 M
 //   kdumptool		 4 M
 //   makedumpfile	 1 M
 // -------------------------
-// TOTAL:		20 M
-#define USER_BASE_KB	MB(20)
+// TOTAL:		26 M
+#define USER_BASE_KB	MB(26)
 
 // Additional requirements when network is configured
 //   dhclient		 7 M
