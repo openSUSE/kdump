@@ -79,4 +79,15 @@ INSTALL(
         WORLD_READ WORLD_EXECUTE
 )
 
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/kdump-save.service
+    DESTINATION
+        /usr/lib/dracut/modules.d/99kdump
+    PERMISSIONS
+        OWNER_READ OWNER_WRITE
+        GROUP_READ
+        WORLD_READ
+)
+
 # vim: set sw=4 ts=4 et:

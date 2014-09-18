@@ -1,0 +1,31 @@
+#  This file is part of systemd.
+#
+#  systemd is free software; you can redistribute it and/or modify it
+#  under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation; either version 2.1 of the License, or
+#  (at your option) any later version.
+
+# See systemd.special(7) for details
+
+[Unit]
+Description=save kernel crash dump
+Documentation=man:kdump(7)
+Wants=dracut-mount.service dracut-pre-pivot.service
+After=dracut-mount.service dracut-pre-pivot.service
+After=initrd.target
+Before=initrd-cleanup.service
+ConditionPathExists=/etc/initrd-release
+ConditionPathExists=/proc/vmcore
+
+[Service]
+Type=oneshot
+ExecStart=/lib/kdump/save_dump.sh
+StandardInput=tty
+StandardOutput=tty
+StandardError=tty
+KillMode=process
+RemainAfterExit=yes
+
+# Bash ignores SIGTERM, so we send SIGHUP instead, to ensure that bash
+# terminates cleanly.
+KillSignal=SIGHUP
