@@ -28,9 +28,23 @@ fi
 # /lib/kdump/setup-kdump.functions was sourced from setup-kdumpfs.sh already
 
 #
+# Get a list of required multipath devices
+#
+mpath_wwids=
+kdump_map_mpath_wwid
+for bd in $blockdev ; do
+    update_blockdev $bd
+    [ $blockmajor -ge 0 -a $blockminor -ge 0 ] || continue
+    eval _wwid=\$kdump_mpath_wwid_${blockmajor}_${blockminor}
+    if [ -n "$_wwid" ] ; then
+	mpath_wwids="$mpath_wwids"$(printf "%q " "wwid $_wwid")
+    fi
+done
+
+#
 # Copy or create all necessary files for the initrd
 #
-kdump_setup_files "$tmp_mnt" "$blockdev"
+kdump_setup_files "$tmp_mnt" "$mpath_wwids"
 
 #
 # check if extra modules are needed
