@@ -3,12 +3,51 @@
 
 . /lib/kdump/setup-kdump.functions
 
+kdump_check_net() {
+    kdump_neednet=
+    for protocol in "${kdump_Protocol[@]}" ; do
+	if [ "$protocol" != "file" ]; then
+	    kdump_neednet=y
+	fi
+    done
+
+    # network configuration
+    if [ -n "$KDUMP_SMTP_SERVER" -a -n "$KDUMP_NOTIFICATION_TO" ]; then
+	kdump_neednet=y
+    fi
+
+    # network explicitly disabled in configuration?
+    [ -z "$KDUMP_NETCONFIG" ] && kdump_neednet=
+}
+
 check() {
+    # Get configuration
+    kdump_import_targets || return 1
+    kdump_get_config || return 1
+    kdump_check_net
+
     return 255
 }
 
 depends() {
-    echo drm
+    local -A _modules
+
+    # drm is needed to get console output, but it is not included
+    # automatically, because kdump does not use plymouth
+    _modules[drm]=
+
+    [ "$kdump_neednet" = y ] && _modules[network]=
+
+    for protocol in "${kdump_Protocol[@]}" ; do
+	if [ "$protocol" = "nfs" ]; then
+	    _modules[nfs]=
+	fi
+	if [ "$protocol" = "cifs" -o "$protocol" = "smb" ]; then
+            _modules[cifs]=
+	fi
+    done
+
+    echo ${!_modules[@]}
 }
 
 kdump_add_mpath_dev() {
@@ -22,10 +61,39 @@ kdump_add_mpath_dev() {
     fi
 }
 
+kdump_cmdline_ip() {
+    [ "$kdump_neednet" = y ] || return 0
+
+    echo -n "rd.neednet=1"
+    if [ "$KDUMP_NETCONFIG" = "auto" ] ; then
+	echo -n " ip=any"
+    else
+	set -- ${KDUMP_NETCONFIG//:/ }
+	local _if=$1
+	local _mode=$2
+
+	if [ "$_if" = "default" ] ; then
+	    _if=$(kdump_default_netdev)
+	fi
+	printf " %s" $(kdump_ifname_config "$_if")
+
+	if [ "$_mode" = "static" ] ; then
+	    printf " %s" $(kdump_ip_config "$_if")
+	else
+	    echo -n " ip=${_if}:dhcp"
+	fi
+    fi
+}
+
+cmdline() {
+    kdump_cmdline_ip
+}
+
 install() {
-    # Get configuration
-    kdump_get_config || return 1
-    kdump_import_targets
+    if [[ $hostonly_cmdline == "yes" ]] ; then
+        local _cmdline=$(cmdline)
+        [ -n "$_cmdline" ] && printf "%s\n" "$_cmdline" >> "${initdir}/etc/cmdline.d/99kdump.conf"
+    fi
 
     # Get a list of required multipath devices
     local kdump_mpath_wwids

@@ -193,6 +193,20 @@ function kdump_netdev_mode()						   # {{{
 }									   # }}}
 
 #
+# Get the ifname parameter for a given device
+#
+# Parameters:
+#   1) device  device name
+# Output:
+#   ifname corresponding ifname= initrd parameter (or empty)
+function kdump_ifname_config()						   # {{{
+{
+    local iface="$1"
+    local hwaddr=$(<"/sys/class/net/$iface/address")
+    [ -n "$hwaddr" ] && echo "ifname=$iface:$hwaddr"
+}									   # }}}
+
+#
 # Convert a CIDR prefix to IPv4 netmask
 #
 # Parameters:
@@ -219,7 +233,7 @@ kdump_prefix2netmask() {						   # {{{
 # Get the ip= parameter for a given device
 #
 # Parameters:
-#   1) device  device name (use default if empty)
+#   1) device  device name
 # Output:
 #   ip configuration string that can be used for the ip= initrd parameter
 function kdump_ip_config()						   # {{{
@@ -249,7 +263,7 @@ function kdump_ip_config()						   # {{{
     gwaddr=$(ip route show 0/0 | sed -n 's/.* via \([^ ]*\).*/\1/p')
     hostname=$(hostname)
 
-    echo "$ipaddr:$peeraddr:$gwaddr:$netmask:$hostname:$iface:none"
+    echo "ip=$ipaddr:$peeraddr:$gwaddr:$netmask:$hostname:$iface:none"
 }									   # }}}
 
 #
@@ -311,6 +325,7 @@ function kdump_import_targets()						   # {{{
     eval "kdump_Host=( $KDUMP_x_Host )"
     eval "kdump_Realpath=( $KDUMP_x_Realpath )"
     eval "kdump_mnt=( $KDUMP_x_mnt )"
+    test ${#kdump_URL[@]} -gt 0
 }									   # }}}
 
 #
