@@ -513,13 +513,38 @@ KDUMP_NETCONFIG
 
 Network configuration for kdump. Because the dump process runs in initrd, the
 network configuration is different from the normal network configuration. Use
-_auto_ to auto-detect the network configuration, this is also the default.
+_auto_ to auto-detect the network configuration (see *auto* mode below). The
+interface with the default route will be used. This is the default.
+
+Auto-detection cannot be used to set up dual-stack (IPv4 and IPv6) hosts
+because of limitations in the implementation of the _ip=_ initrd command line
+option.
 
 Use a _netdevice:mode_ string to force a specific network device to be used. A
-_netdevice_ is for example "eth0". The _mode_ can be either "dhcp" or "static".
-If you use "static", you have to set the IP address with _ip=ipspec_. _ipspec_
-is <client>:<server>:<gateway>:<netmask>:<hostname>:<device>:<proto>. See
-*mkinitrd*(8) for details.
+_netdevice_ is for example "eth0". The _mode_ can be:
+
+*static*::
+  Always re-use the current configuration of _netdevice_ (both IPv4 and IPv6).
+  Note that only permanent global IPv6 addresses are stored, because temporary
+  addresses are likely to expire before the system crashes, and link-local
+  addresses are set up automatically.
+
+*auto6*::
+  Use IPv6 autoconfiguration to get an address on the interface.
+
+*dhcp*::
+*dhcp4*::
+  Use DHCP to configure an IPv4 address on the interface.
+
+*dhcp6*::
+  Use DHCP6 to configure an IPv6 address on the interface.
+
+*auto*::
+  Select the mode depending on the current state of the interface:
+
+  * use DHCP4 if it has an IPv4 address (IPv6 not set up),
+  * use DHCP6 if it has a permanent IPv6 address (IPv4 not set up),
+  * use IPv6 auto-configuration if it has neither (IPv4 not set up).
 
 You can set KDUMP_NETCONFIG to "" if you want no network in initrd, i.e. you use
 disk dumping.

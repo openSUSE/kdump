@@ -65,24 +65,50 @@ kdump_cmdline_ip() {
     [ "$kdump_neednet" = y ] || return 0
 
     echo -n "rd.neednet=1"
+
+    local _if _mode
     if [ "$KDUMP_NETCONFIG" = "auto" ] ; then
-	echo -n " ip=any"
+	_if=default
+	_mode=auto
     else
 	set -- ${KDUMP_NETCONFIG//:/ }
 	local _if=$1
 	local _mode=$2
+    fi
 
-	if [ "$_if" = "default" ] ; then
-	    _if=$(kdump_default_netdev)
-	fi
-	printf " %s" $(kdump_ifname_config "$_if")
+    [ "$_if" = "default" ] && _if=$(kdump_default_netdev)
 
-	if [ "$_mode" = "static" ] ; then
-	    printf " %s" $(kdump_ip_config "$_if")
+    printf " %s" $(kdump_ifname_config "$_if")
+
+    if [ "$_mode" = "auto" ] ; then
+	if [ -n $(kdump_ip_config "$_if") ] ; then
+	    _mode=dhcp4
+	elif [ -n $(kdump_ip6_config "$_if") ] ; then
+	    _mode=dhcp6
 	else
-	    echo -n " ip=${_if}:dhcp"
+	    _mode=auto6
 	fi
     fi
+
+    case "$_mode" in
+	static)
+	    printf " %s" \
+		$(kdump_ip_config "$_if") \
+		$(kdump_ip6_config "$_if")
+	    ;;
+	dhcp|dhcp4)
+	    echo " ip=${_if}:dhcp"
+	    ;;
+	dhcp6)
+	    echo " ip=${_if}:dhcp6"
+	    ;;
+	auto6)
+	    echo " ip=${_if}:auto6"
+	    ;;
+	*)
+	    derror "Wrong KDUMP_NETCONFIG mode: $_mode"
+	    ;;
+    esac
 }
 
 cmdline() {
