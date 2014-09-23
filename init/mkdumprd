@@ -168,7 +168,6 @@ function run_dracut()
 
 	if [ "$interface" = "default" ] ; then
 	    interface=$( kdump_default_netdev )
-	    interface="${interface% *}"
 	    status_message "Network interface: $interface (default)"
 	else
 	    status_message "Network interface: $interface"

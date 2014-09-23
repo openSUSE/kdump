@@ -77,12 +77,10 @@ function kdump_wicked_conf()						   # {{{
 # Determine the default network device.
 #
 # Output:
-#   "$ifname $mode"
-#     ifname  default network interface name (or empty if none)
-#     mode    initialization mode ("static" or "dhcp")
+#   ifname  default network interface name (or empty if none)
 function kdump_default_netdev()						   # {{{
 {
-    local ifname BOOTPROTO
+    local ifname
     local inffile="/etc/install.inf"
 
     # check current default routes
@@ -95,7 +93,6 @@ function kdump_default_netdev()						   # {{{
     if [ -z "$ifname" -a -f "$inffile" ] ; then
 	local dev hwaddr hwaddr2
 	eval $( sed -ne '
-		s/^NetConfig: \(.*\)/BOOTPROTO=\1/p;
 		s/^Netdevice: \(.*\)/ifname=\1/p;
 		s/HWAddr: \(.*\)/hwaddr=\1/p' \
 	    "$inffile" )
@@ -108,11 +105,52 @@ function kdump_default_netdev()						   # {{{
             done
         fi
     fi
+    echo "$ifname"
+}									   # }}}
 
-    # if still not found, there is no network
-    if [ -z "$ifname" ] ; then
-	return 0
+# Get the underlying physical devices of a bridge.
+#
+# Virtual devices (tap or vif) are ignored.
+#
+# Parameters:
+#   1) ifname  bridge interface name
+# Output:
+#   ifnames  list of underlying physical interfaces;
+function kdump_bridge_phys_dev()					   # {{{
+{
+    local ifname="$1"
+
+    if [ -d "/sys/class/net/$ifname/bridge" -a \
+            -d "/sys/class/net/$ifname/brif" ] ; then
+
+        local ifname2 count=0
+        local -a res
+        for ifname2 in "/sys/class/net/$ifname/brif"/*; do
+            case "$(readlink -f "$ifname2")" in
+            /sys/devices/virtual/*)
+                continue
+            esac
+            res[count]="${ifname2##*/}"
+            count=$(( count+1 ))
+        done
+        ifname=${res[@]}
     fi
+
+    echo "$ifname"
+}									   # }}}
+
+#
+# Determine the default network mode of a given device.
+#
+# Parameters:
+#   1) ifname  network interface name
+# Output:
+#   mode    initialization mode ("static" or "dhcp")
+function kdump_netdev_mode()						   # {{{
+{
+    local ifname="$1"
+    local inffile="/etc/install.inf"
+    local BOOTPROTO
 
     # get mode using wicked if possible
     if [ -n "$(type -P wicked)" -a \
@@ -135,6 +173,12 @@ function kdump_default_netdev()						   # {{{
 	fi
     fi
 
+    # try install.conf
+    if [ -z "$BOOTPROTO" ] ; then
+	eval $( sed -ne 's/^NetConfig: \(.*\)/BOOTPROTO=\1/p;' \
+	    "$inffile" )
+    fi
+
     # if not found, look if there is a dhcp daemon for the interface
     if [ -z "$BOOTPROTO" ] ; then
         if [ -n "$(ps -C dhclient,dhclient6,dhcpcd -o cmd= |
@@ -145,31 +189,7 @@ function kdump_default_netdev()						   # {{{
         fi
     fi
 
-    # if the interface is a bridge, then try to use the underlying interface
-    # if it is the only non-virtual interface (not tap or vif)
-    if [ -d "/sys/class/net/$ifname/bridge" -a \
-            -d "/sys/class/net/$ifname/brif" ] ; then
-
-        local ifname2 res count=0
-        for ifname2 in "/sys/class/net/$ifname/brif"/*; do
-            case "$(readlink -f "$ifname2")" in
-            /sys/devices/virtual/*)
-                continue
-            esac
-            res="${ifname2##*/}"
-            count=$(( count+1 ))
-        done
-
-        if [ "$count" -ne 1 ] ; then
-            echo >&2 ">>> WARNING: $ifname is a bridge with more than one"
-            echo >&2 ">>> underlying interface. Please specify the device"
-            echo >&2 ">>> in KDUMP_NETCONFIG manually."
-        else
-            ifname="$res"
-        fi
-    fi
-
-    echo "$ifname $BOOTPROTO"
+    echo "$BOOTPROTO"
 }									   # }}}
 
 #
@@ -205,13 +225,7 @@ kdump_prefix2netmask() {						   # {{{
 function kdump_ip_config()						   # {{{
 {
     local iface="$1"
-    if [ -z "$iface" ] ; then
-	iface=$( kdump_default_netdev )
-	iface="${iface% *}"
-    fi
-    [ -z "$iface" ] && return 1
-
-    local ipaddr peeraddr gwaddr netmask hostname iface
+    local ipaddr peeraddr gwaddr netmask hostname
     local family cidr rest
     local prefix
     while read family cidr rest
