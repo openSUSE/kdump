@@ -259,14 +259,14 @@ function fadump_bootloader()
 # Update fadump configuration
 function load_kdump_fadump()
 {
+    fadump_bootloader on
+
     if ! fadump_enabled; then
         echo ": fadump is not enabled in the kernel."
         rc_status -s
         rc_failed 6
         rc_exit
     fi
-
-    fadump_bootloader on
 
     # The kernel fails with EINVAL if registered already
     # (see bnc#814780)
