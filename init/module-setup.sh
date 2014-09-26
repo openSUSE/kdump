@@ -6,7 +6,7 @@
 kdump_check_net() {
     kdump_neednet=
     for protocol in "${kdump_Protocol[@]}" ; do
-	if [ "$protocol" != "file" ]; then
+	if [ "$protocol" != "file" -a "$protocol" != "srcfile" ]; then
 	    kdump_neednet=y
 	fi
     done

@@ -318,6 +318,15 @@ function kdump_ip6_config()						   # {{{
 function kdump_get_targets()						   # {{{
 {
     kdump_max=0
+
+    # add /boot and /usr/lib/debug/boot if needed
+    if [ "$KDUMP_COPY_KERNEL" = "yes" ] ; then
+	kdump_Protocol[kdump_max]=srcfile
+	kdump_Realpath[kdump_max]=/boot/
+	kdump_URL[kdump_max]=boot
+	kdump_max=$((kdump_max + 1))
+    fi
+
     eval "$( kdumptool print_target | \
         sed -e "s/'/'\\\\''/g" \
 	    -e 's/^$/max=$((kdump_max+1))'\''/' \
@@ -459,8 +468,6 @@ function kdump_get_mountpoints()					   # {{{
 {
     local device mountpoint filesystem opts dummy
     local protocol realpath kdump_mountidx
-    local rootdev rootmnt rootfstype rootopts
-    local bootdev bootmnt bootfstype bootopts
     local -a curmp mntdev mntfstype mntopts
     local i
 
@@ -473,25 +480,11 @@ function kdump_get_mountpoints()					   # {{{
     kdump_opts=( )
 
     while read device mountpoint filesystem opts dummy ; do
-	if [ "$mountpoint" = "/" -a \
-	     -z "$rootmnt" ] ; then
-	    rootdev="$device"
-	    rootmnt="$mountpoint"
-	    rootfstype="$filesystem"
-	    rootopts="$opts"
-	elif [ "$mountpoint" = "/boot" -a \
-	       -z "$bootmnt" ] ; then
-	    bootdev="$device"
-	    bootmnt="$mountpoint"
-	    bootfstype="$filesystem"
-	    bootopts="$opts"
-	fi
-
 	i=0
 	while [ $i -le $kdump_max ] ; do
             protocol="${kdump_Protocol[i]}"
             realpath="${kdump_Realpath[i]}"
-            if [ "$protocol" = "file" -a \
+            if [ \( "$protocol" = "file" -o "$protocol" = "srcfile" \) -a \
 		"${realpath#$mountpoint}" != "$realpath" -a \
 		"${#mountpoint}" -gt "${#curmp[i]}" ] ; then
 		curmp[i]="$mountpoint"
@@ -502,15 +495,6 @@ function kdump_get_mountpoints()					   # {{{
             i=$((i+1))
 	done
     done < <(kdump_read_mounts)
-
-    # add root/boot if needed
-    if [ "$KDUMP_COPY_KERNEL" = "yes" ] ; then
-	if [ -n "$bootdev" ] ; then
-	    kdump_update_mount "$bootdev" "$bootmnt" "$bootfstype" "$bootopts"
-	else
-	    kdump_update_mount "$rootdev" "$rootmnt" "$rootfstype" "$rootopts"
-	fi
-    fi
 
     # map running paths to target paths
     i=0
@@ -582,7 +566,7 @@ function kdump_modify_config()						   # {{{
 	test -z "$KDUMP_SAVEDIR" || KDUMP_SAVEDIR="$KDUMP_SAVEDIR "
 	if [ "$protocol" = "file" ] ; then
             KDUMP_SAVEDIR="${KDUMP_SAVEDIR}file://${kdump_Realpath[i]}"
-	else
+	elif [ "$protocol" != "srcfile" ] ; then
             KDUMP_SAVEDIR="${KDUMP_SAVEDIR}${kdump_URL[i]}"
 	fi
 
@@ -707,24 +691,18 @@ function kdump_init_dirs()						   # {{{
     mkdir -m 01777 "${root}/kdump/tmp"
     mkdir -m 0700 "${root}/kdump/.ssh"
 
-    i=0
     for mnt in "${kdump_mnt[@]}"
     do
 	mkdir -p "${root}$mnt"
-	d="$mnt/"
-	d="${d#/kdump/mnt*/}"
-	case "/${d%/}" in
-	    /)
-		ln -snf "${mnt#/kdump/}" "${root}/kdump/root"
-		;;
-	    /boot)
-		ln -snf "${mnt#/kdump/}" "${root}/kdump/boot"
-		;;
-	esac
-	i=$((i+1))
     done
 
-    test -e "${root}/kdump/boot" || ln -snf "root/boot" "${root}/kdump/boot"
+    for i in "${!kdump_Protocol[@]}"
+    do
+	[ "${kdump_Protocol[i]}" = "srcfile" ] || continue
+
+	d="${kdump_Realpath[i]}"
+	ln -snf "${d#/}" "${root}/kdump/${kdump_URL[i]}"
+    done
 }
 
 #
