@@ -126,17 +126,33 @@ install() {
     kdump_map_mpath_wwid
     for_each_host_dev_and_slaves_all kdump_add_mpath_dev
 
+    # Convert system root mounts to bind mounts
+    if [ "$KDUMP_FADUMP" = "yes" ] ; then
+	local i line
+	for i in "${!fstab_lines[@]}"
+	do
+	    line=( ${fstab_lines[i]} )
+	    if [ "${line[1]%/*}" = "/kdump" ] ; then
+		fstab_lines[i]="/sysroot ${line[1]} none bind"
+	    fi
+	done
+    fi
+
     kdump_setup_files "$initdir" "$kdump_mpath_wwids"
 
     if dracut_module_included "systemd" ; then
-	rm -f "${initdir}/$systemdutildir"/system-generators/dracut-rootfs-generator
+	[ "$KDUMP_FADUMP" != yes ] && \
+	    rm -f "${initdir}/$systemdutildir"/system-generators/dracut-rootfs-generator
+
 	inst_simple /lib/kdump/save_dump.sh
 	inst_simple "$moddir/kdump-save.service" \
 	    "$systemdsystemunitdir"/kdump-save.service
 	ln_r "$systemdsystemunitdir"/kdump-save.service \
 	    "$systemdsystemunitdir"/initrd.target.wants/kdump-save.service
     else
-	inst_hook mount 30 "$moddir/mount-kdump.sh"
+	[ "$KDUMP_FADUMP" != yes ] && \
+	    inst_hook mount 30 "$moddir/mount-kdump.sh"
+
 	inst_hook pre-pivot 90 /lib/kdump/save_dump.sh
     fi
 
