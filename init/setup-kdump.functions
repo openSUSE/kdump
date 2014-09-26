@@ -621,7 +621,7 @@ function kdump_map_mpath_wwid()						   # {{{
 {
     local f _dir _uuid _wwid _dev
     for f in /sys/block/*/dm/uuid ; do
-	eval "_uuid=$(<$f)" 2>/dev/null
+	eval "_uuid=\$(<$f)" 2>/dev/null
 	[[ "$_uuid" = mpath-* ]] || continue
 	_dir="${f%/dm/uuid}"
 	_wwid=$(<"$_dir"/dm/name)
