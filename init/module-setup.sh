@@ -140,6 +140,7 @@ install() {
 
     kdump_setup_files "$initdir" "$kdump_mpath_wwids"
 
+    inst_hook cmdline 50 "$moddir/kdump-root.sh"
     if dracut_module_included "systemd" ; then
 	[ "$KDUMP_FADUMP" != yes ] && \
 	    rm -f "${initdir}/$systemdutildir"/system-generators/dracut-rootfs-generator
