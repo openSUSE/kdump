@@ -108,7 +108,7 @@ function build_kdump_commandline()
         local nr_cpus=$(cpus_param "$kdump_kernel")
         commandline=$(
             remove_from_commandline \
-                'root|resume|crashkernel|splash|mem|BOOT_IMAGE|showopts|zfcp\.allow_lun_scan|hugepages|acpi_no_memhotplug|cgroup_disable' \
+                'root|resume|crashkernel|splash|mem|BOOT_IMAGE|showopts|zfcp\.allow_lun_scan|hugepages|acpi_no_memhotplug|cgroup_disable|unknown_nmi_panic' \
                 < /proc/cmdline)
         # Use deadline for saving the memory footprint
         commandline="$commandline elevator=deadline sysrq=yes reset_devices acpi_no_memhotplug cgroup_disable=memory"
