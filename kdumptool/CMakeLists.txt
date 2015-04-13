@@ -147,3 +147,8 @@ add_executable(testurldecode
     testurldecode.cc
 )
 target_link_libraries(testurldecode common ${EXTRA_LIBS})
+
+add_executable(testsftppacket
+    testsftppacket.cc
+)
+target_link_libraries(testsftppacket common ${EXTRA_LIBS})

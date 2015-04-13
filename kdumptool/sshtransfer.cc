@@ -20,6 +20,7 @@
 #include <string>
 #include <cstdlib>
 #include <cerrno>
+#include <stdint.h>
 
 #if HAVE_LIBSSH2
 #   include <libssh2.h>
@@ -162,6 +163,15 @@ StringVector SSHTransfer::makeArgs(std::string const &remote)
     ret.push_back(remote);
 
     return ret;
+}
+
+//}}}
+//{{{ SFTPPacket ---------------------------------------------------------------
+
+/* -------------------------------------------------------------------------- */
+SFTPPacket::SFTPPacket(void)
+    : m_vector(sizeof(uint32_t))
+{
 }
 
 //}}}

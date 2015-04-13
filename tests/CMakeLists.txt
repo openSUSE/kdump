@@ -64,3 +64,7 @@ ADD_TEST(process
 ADD_TEST(urldecode
          ${CMAKE_CURRENT_SOURCE_DIR}/testurldecode.sh
          ${CMAKE_BINARY_DIR}/kdumptool/testurldecode)
+
+ADD_TEST(sftppacket
+         ${CMAKE_CURRENT_SOURCE_DIR}/testsftppacket.sh
+         ${CMAKE_BINARY_DIR}/kdumptool/testsftppacket)

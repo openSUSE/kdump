@@ -30,6 +30,7 @@ kdumptool/testlistdir
 kdumptool/testmail
 kdumptool/testprocess
 kdumptool/testreadlink
+kdumptool/testsftppacket
 kdumptool/testurldecode
 kdumptool/testurlparser
 

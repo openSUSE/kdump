@@ -72,6 +72,26 @@ class SSHTransfer : public URLTransfer {
 };
 
 //}}}
+//{{{ SFTPPacket ---------------------------------------------------------------
+
+/**
+ * Encode/decode an SFTP packet.
+ */
+class SFTPPacket {
+
+    public:
+
+	SFTPPacket(void);
+
+	ByteVector const &data(void) const
+	throw ()
+	{ return m_vector; }
+
+    private:
+	ByteVector m_vector;
+};
+
+//}}}
 //{{{ SFTPTransfer -------------------------------------------------------------
 
 #if HAVE_LIBSSH2
