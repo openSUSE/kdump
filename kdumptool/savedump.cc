@@ -32,6 +32,7 @@
 #include "fileutil.h"
 #include "rootdirurl.h"
 #include "transfer.h"
+#include "sshtransfer.h"
 #include "configuration.h"
 #include "dataprovider.h"
 #include "progress.h"
@@ -111,7 +112,7 @@ void SaveDump::execute()
     string subdir = Stringutil::formatCurrentTime(ISO_DATETIME);
     RootDirURLVector urlv(config->KDUMP_SAVEDIR.value(), m_rootdir);
 
-    m_transfer = URLTransfer::getTransfer(urlv, subdir);
+    m_transfer = getTransfer(urlv, subdir);
 
     // save the dump
     try {
@@ -727,6 +728,49 @@ string SaveDump::getKernelReleaseCommandline()
 
     fin.close();
     return version;
+}
+
+// -----------------------------------------------------------------------------
+Transfer *SaveDump::getTransfer(const RootDirURLVector &urlv,
+				const string &subdir)
+    throw (KError)
+{
+    Debug::debug()->trace("SaveDump::getTransfer(%p, \"%s\")",
+			  &urlv, subdir.c_str());
+
+    if (urlv.size() == 0)
+	throw KError("No target specified!");
+
+    switch (urlv.begin()->getProtocol()) {
+        case URLParser::PROT_FILE:
+            Debug::debug()->dbg("Returning FileTransfer");
+            return new FileTransfer(urlv, subdir);
+
+        case URLParser::PROT_FTP:
+            Debug::debug()->dbg("Returning FTPTransfer");
+            return new FTPTransfer(urlv, subdir);
+
+#if HAVE_LIBSSH2
+        case URLParser::PROT_SFTP:
+            Debug::debug()->dbg("Returning SFTPTransfer");
+            return new SFTPTransfer(urlv, subdir);
+#endif // HAVE_LIBSSH2
+
+        case URLParser::PROT_SSH:
+	    Debug::debug()->dbg("Returning SSHTransfer");
+	    return new SSHTransfer(urlv, subdir);
+
+        case URLParser::PROT_NFS:
+            Debug::debug()->dbg("Returning NFSTransfer");
+            return new NFSTransfer(urlv, subdir);
+
+        case URLParser::PROT_CIFS:
+            Debug::debug()->dbg("Returning CIFSTransfer");
+            return new CIFSTransfer(urlv, subdir);
+
+        default:
+            throw KError("Unknown protocol.");
+    }
 }
 
 //}}}

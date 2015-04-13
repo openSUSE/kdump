@@ -97,6 +97,19 @@ class SaveDump : public Subcommand {
         std::string getKernelReleaseCommandline()
         throw (KError);
 
+        /**
+         * Returns a Transfer object suitable for the provided URL.
+         *
+         * @param[in] url the URL
+         * @return the Transfer object
+         *
+         * @exception KError if parsing the URL failed or there's no
+         *            implementation for that class.
+         */
+	Transfer *getTransfer(const RootDirURLVector &urlv,
+			      const std::string &subdir)
+	throw (KError);
+
     private:
         FilePath m_dump;
         Transfer *m_transfer;

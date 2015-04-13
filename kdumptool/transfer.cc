@@ -36,7 +36,6 @@
 #include "fileutil.h"
 #include "stringutil.h"
 #include "configuration.h"
-#include "sshtransfer.h"
 
 using std::fopen;
 using std::fread;
@@ -68,49 +67,6 @@ URLTransfer::URLTransfer(const RootDirURLVector &urlv, const string &subdir)
     throw (KError)
     : m_urlVector(urlv), m_subDir(subdir)
 {
-}
-
-// -----------------------------------------------------------------------------
-Transfer *URLTransfer::getTransfer(const RootDirURLVector &urlv,
-				   const string &subdir)
-    throw (KError)
-{
-    Debug::debug()->trace("URLTransfer::getTransfer(%p, \"%s\")",
-			  &urlv, subdir.c_str());
-
-    if (urlv.size() == 0)
-	throw KError("No target specified!");
-
-    switch (urlv.begin()->getProtocol()) {
-        case URLParser::PROT_FILE:
-            Debug::debug()->dbg("Returning FileTransfer");
-            return new FileTransfer(urlv, subdir);
-
-        case URLParser::PROT_FTP:
-            Debug::debug()->dbg("Returning FTPTransfer");
-            return new FTPTransfer(urlv, subdir);
-
-#if HAVE_LIBSSH2
-        case URLParser::PROT_SFTP:
-            Debug::debug()->dbg("Returning SFTPTransfer");
-            return new SFTPTransfer(urlv, subdir);
-#endif // HAVE_LIBSSH2
-
-        case URLParser::PROT_SSH:
-	    Debug::debug()->dbg("Returning SSHTransfer");
-	    return new SSHTransfer(urlv, subdir);
-
-        case URLParser::PROT_NFS:
-            Debug::debug()->dbg("Returning NFSTransfer");
-            return new NFSTransfer(urlv, subdir);
-
-        case URLParser::PROT_CIFS:
-            Debug::debug()->dbg("Returning CIFSTransfer");
-            return new CIFSTransfer(urlv, subdir);
-
-        default:
-            throw KError("Unknown protocol.");
-    }
 }
 
 //}}}

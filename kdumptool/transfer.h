@@ -126,19 +126,6 @@ class URLTransfer : public Transfer {
 	throw ()
 	{ return m_subDir; }
 
-        /**
-         * Returns a Transfer object suitable to the provided URL.
-         *
-         * @param[in] url the URL
-         * @return the Transfer object
-         *
-         * @exception KError if parsing the URL failed or there's no
-         *            implementation for that class.
-         */
-        static Transfer *getTransfer(const RootDirURLVector &urlv,
-				     const std::string &subdir)
-        throw (KError);
-
     private:
         RootDirURLVector m_urlVector;
 	std::string m_subDir;
