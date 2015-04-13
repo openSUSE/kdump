@@ -52,6 +52,8 @@ SET(COMMON_SRC
     fileutil.h
     transfer.cc
     transfer.h
+    sshtransfer.cc
+    sshtransfer.h
     socket.cc
     socket.h
     ledblink.cc
