@@ -92,6 +92,14 @@ getbyte(SFTPPacket &pkt)
 }
 
 // -----------------------------------------------------------------------------
+static void
+getint32(SFTPPacket &pkt)
+{
+    cout << std::hex << std::setfill('0') << setw(8)
+	 << pkt.getInt32() << endl;
+}
+
+// -----------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
     Debug::debug()->setStderrLevel(Debug::DL_TRACE);
@@ -122,6 +130,8 @@ int main(int argc, char *argv[])
 	    case 'w':
 		if (arg[1])
 		    pkt.addInt32(parseval(arg + 1, 8));
+		else
+		    getint32(pkt);
 		break;
 
 	    case 'l':

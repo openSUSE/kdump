@@ -103,6 +103,8 @@ class SFTPPacket {
 	unsigned char getByte(void)
 	{ return m_vector.at(m_gpos++); }
 
+	unsigned long getInt32(void);
+
     private:
 	ByteVector m_vector;
 	size_t m_gpos;

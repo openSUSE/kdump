@@ -190,6 +190,18 @@ void SFTPPacket::addInt32(unsigned long val)
 }
 
 /* -------------------------------------------------------------------------- */
+unsigned long SFTPPacket::getInt32(void)
+{
+    size_t i;
+    unsigned long ret = 0UL;
+    for (i = 0; i < sizeof(uint32_t); ++i) {
+	ret <<= 8;
+	ret |= m_vector.at(m_gpos++);
+    }
+    return ret;
+}
+
+/* -------------------------------------------------------------------------- */
 void SFTPPacket::addInt64(unsigned long long val)
 {
     int i;

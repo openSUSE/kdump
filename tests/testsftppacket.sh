@@ -144,6 +144,12 @@ EXPECT=$(echo -e "00\n00\n00\n00\n01\n23\n45\n67\n89\nab\ncd\nef")
 RESULT=$( "$TESTPACKET" $ARG )
 check "$ARG" "$EXPECT" "$RESULT"
 
+# TEST #9: Get 32-bit integers - note that packet length field is zero!
+ARG="v0123456789abcdef w w w"
+EXPECT=$(echo -e "00000000\n01234567\n89abcdef")
+RESULT=$( "$TESTPACKET" $ARG )
+check "$ARG" "$EXPECT" "$RESULT"
+
 exit $errornumber
 
 # }}}
