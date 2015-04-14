@@ -117,6 +117,14 @@ typedef KCodeError<KSFTPErrorCode> KSFTPError;
 //{{{ SFTPPacket ---------------------------------------------------------------
 
 /**
+ * Packet types defined by protocol (incomplete list)
+ */
+enum {
+    SSH_FXP_INIT	=   1,
+    SSH_FXP_VERSION	=   2,
+};
+
+/**
  * Encode/decode an SFTP packet.
  */
 class SFTPPacket {
@@ -196,11 +204,19 @@ class SFTPTransfer : public URLTransfer {
                      bool *directSave)
         throw (KError);
 
+    protected:
+	static const int MY_PROTO_VER = 3; // our advertised version
+
     private:
 	SubProcess m_process;
 	int m_fdreq, m_fdresp;
+	unsigned long m_proto_ver; // remote SFTP protocol version
 
 	StringVector makeArgs(void);
+
+	void sendPacket(SFTPPacket &pkt);
+	void recvPacket(SFTPPacket &pkt);
+	void recvBuffer(unsigned char *bufp, size_t buflen);
 };
 
 //}}}

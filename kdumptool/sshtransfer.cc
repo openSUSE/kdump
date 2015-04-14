@@ -368,6 +368,18 @@ SFTPTransfer::SFTPTransfer(const RootDirURLVector &urlv,
 
     m_fdreq = m_process.getPipeFD(STDIN_FILENO);
     m_fdresp = m_process.getPipeFD(STDOUT_FILENO);
+
+    SFTPPacket initpkt;
+    initpkt.addByte(SSH_FXP_INIT);
+    initpkt.addInt32(MY_PROTO_VER);
+    sendPacket(initpkt);
+    recvPacket(initpkt);
+    unsigned char type = initpkt.getByte();
+    if (type != SSH_FXP_VERSION)
+	throw KError(KString("Invalid response to SSH_FXP_INIT: type ") +
+		     Stringutil::number2string(unsigned(type)));
+    m_proto_ver = initpkt.getInt32();
+    Debug::debug()->dbg("Remote SFTP version %lu", m_proto_ver);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -422,6 +434,61 @@ StringVector SFTPTransfer::makeArgs(void)
     ret.push_back("sftp");
 
     return ret;
+}
+
+/* -------------------------------------------------------------------------- */
+void SFTPTransfer::sendPacket(SFTPPacket &pkt)
+{
+    const ByteVector bv = pkt.update();
+    const unsigned char *bufp = bv.data();
+    size_t buflen = bv.size();
+
+    while (buflen) {
+	ssize_t len = write(m_fdreq, bufp, buflen);
+	if (len < 0)
+	    throw KSystemError("SFTPTransfer::sendPacket: write failed",
+			       errno);
+	bufp += len;
+	buflen -= len;
+    }
+}
+
+/* -------------------------------------------------------------------------- */
+void SFTPTransfer::recvBuffer(unsigned char *bufp, size_t buflen)
+{
+    while (buflen) {
+	ssize_t len = read(m_fdresp, bufp, buflen);
+	if (len < 0)
+	    throw KSystemError("SFTPTransfer::recvPacket: read failed",
+			       errno);
+	else if (!len)
+	    throw KError("SFTPTransfer::recvPacket: unexpected EOF");
+
+	bufp += len;
+	buflen -= len;
+    }
+}
+
+/* -------------------------------------------------------------------------- */
+void SFTPTransfer::recvPacket(SFTPPacket &pkt)
+{
+    ByteVector buffer;
+
+    buffer.resize(sizeof(uint32_t));
+    recvBuffer(buffer.data(), sizeof(uint32_t));
+    pkt.setData(buffer);
+    size_t length = pkt.getInt32();
+
+    buffer.resize(BUFSIZ);
+    while (length > 0) {
+	if (buffer.size() > length)
+	    buffer.resize(length);
+
+	recvBuffer(buffer.data(), buffer.size());
+	pkt.addByteVector(buffer);
+
+	length -= buffer.size();
+    }
 }
 
 //}}}
