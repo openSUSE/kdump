@@ -750,11 +750,9 @@ Transfer *SaveDump::getTransfer(const RootDirURLVector &urlv,
             Debug::debug()->dbg("Returning FTPTransfer");
             return new FTPTransfer(urlv, subdir);
 
-#if HAVE_LIBSSH2
         case URLParser::PROT_SFTP:
             Debug::debug()->dbg("Returning SFTPTransfer");
             return new SFTPTransfer(urlv, subdir);
-#endif // HAVE_LIBSSH2
 
         case URLParser::PROT_SSH:
 	    Debug::debug()->dbg("Returning SSHTransfer");

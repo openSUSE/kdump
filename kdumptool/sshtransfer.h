@@ -27,11 +27,6 @@
 #include "socket.h"
 #include "transfer.h"
 
-#if HAVE_LIBSSH2
-#   include <libssh2.h>
-#   include <libssh2_sftp.h>
-#endif
-
 //{{{ SSHTransfer --------------------------------------------------------------
 
 /**
@@ -123,8 +118,6 @@ class SFTPPacket {
 //}}}
 //{{{ SFTPTransfer -------------------------------------------------------------
 
-#if HAVE_LIBSSH2
-
 /**
  * Transfers a file to SFTP (upload).
  */
@@ -156,25 +149,12 @@ class SFTPTransfer : public URLTransfer {
                      bool *directSave)
         throw (KError);
 
-    protected:
-        void close()
-        throw ();
-
-        void mkdir(const FilePath &dir, bool recursive)
-        throw (KError);
-
-        bool exists(const std::string &file)
-        throw (KError);
-
     private:
-        LIBSSH2_SESSION *m_sshSession;
-        LIBSSH2_SFTP *m_sftp;
-        Socket *m_socket;
-        char m_buffer[BUFSIZ];
+	SubProcess m_process;
+	int m_fdreq, m_fdresp;
 
+	StringVector makeArgs(void);
 };
-
-#endif // HAVE_LIBSSH2
 
 //}}}
 
