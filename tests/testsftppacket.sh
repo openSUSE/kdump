@@ -138,6 +138,12 @@ EXPECT="00 00 00 08 01 23 45 67 89 ab cd ef"
 RESULT=$( "$TESTPACKET" $ARG )
 check "$ARG" "$EXPECT" "$RESULT"
 
+# TEST #8: Get byte - note that packet length field is still zero!
+ARG="v0123456789abcdef b b b b b b b b b b b b"
+EXPECT=$(echo -e "00\n00\n00\n00\n01\n23\n45\n67\n89\nab\ncd\nef")
+RESULT=$( "$TESTPACKET" $ARG )
+check "$ARG" "$EXPECT" "$RESULT"
+
 exit $errornumber
 
 # }}}

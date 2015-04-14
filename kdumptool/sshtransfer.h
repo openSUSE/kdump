@@ -100,8 +100,12 @@ class SFTPPacket {
 
 	void addString(KString const &val);
 
+	unsigned char getByte(void)
+	{ return m_vector.at(m_gpos++); }
+
     private:
 	ByteVector m_vector;
+	size_t m_gpos;
 };
 
 //}}}

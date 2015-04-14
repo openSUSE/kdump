@@ -84,6 +84,14 @@ parsevec(const char *str)
 }
 
 // -----------------------------------------------------------------------------
+static void
+getbyte(SFTPPacket &pkt)
+{
+    cout << std::hex << std::setfill('0') << setw(2)
+	 << unsigned(pkt.getByte()) << endl;
+}
+
+// -----------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
     Debug::debug()->setStderrLevel(Debug::DL_TRACE);
@@ -107,6 +115,8 @@ int main(int argc, char *argv[])
 	    case 'b':
 		if (arg[1])
 		    pkt.addByte(parseval(arg + 1, 2));
+		else
+		    getbyte(pkt);
 		break;
 
 	    case 'w':

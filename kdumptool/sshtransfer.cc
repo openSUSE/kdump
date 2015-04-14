@@ -170,7 +170,8 @@ StringVector SSHTransfer::makeArgs(std::string const &remote)
 
 /* -------------------------------------------------------------------------- */
 SFTPPacket::SFTPPacket(void)
-    : m_vector(sizeof(uint32_t))
+    : m_vector(sizeof(uint32_t)),
+      m_gpos(0)
 {
 }
 
