@@ -175,6 +175,12 @@ SFTPPacket::SFTPPacket(void)
 }
 
 /* -------------------------------------------------------------------------- */
+void SFTPPacket::addByteVector(ByteVector const &val)
+{
+    m_vector.insert(m_vector.end(), val.begin(), val.end());
+}
+
+/* -------------------------------------------------------------------------- */
 void SFTPPacket::addInt32(unsigned long val)
 {
     int i;

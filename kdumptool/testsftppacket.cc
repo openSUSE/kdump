@@ -66,6 +66,24 @@ parseval(const char *str, unsigned maxdigits)
 }
 
 // -----------------------------------------------------------------------------
+static ByteVector
+parsevec(const char *str)
+{
+    ByteVector ret;
+
+    while(*str) {
+	unsigned char byte;
+	byte = Stringutil::hex2int(*str++);
+	if (*str) {
+	    byte <<= 4;
+	    byte |= Stringutil::hex2int(*str++);
+	}
+	ret.push_back(byte);
+    }
+    return ret;
+}
+
+// -----------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
     Debug::debug()->setStderrLevel(Debug::DL_TRACE);
@@ -104,6 +122,11 @@ int main(int argc, char *argv[])
 	    case 's':
 		pkt.addString(arg + 1);
 		break;
+
+	    case 'v':
+	      if (arg[1])
+		  pkt.addByteVector(parsevec(arg + 1));
+	      break;
 
 	    case '\0':
 		// Ignore empty arguments
