@@ -57,6 +57,13 @@ EXPECT="00 00 00 00"
 RESULT=$( "$TESTPACKET" $ARG )
 check "$ARG" "$EXPECT" "$RESULT"
 
+# TEST #2: Updated empty packet
+
+ARG="u"
+EXPECT="00 00 00 00"
+RESULT=$( "$TESTPACKET" $ARG )
+check "$ARG" "$EXPECT" "$RESULT"
+
 exit $errornumber
 
 # }}}

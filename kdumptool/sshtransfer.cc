@@ -174,6 +174,17 @@ SFTPPacket::SFTPPacket(void)
 {
 }
 
+/* -------------------------------------------------------------------------- */
+ByteVector const &SFTPPacket::update(void)
+{
+    uint_fast32_t len = m_vector.size() - sizeof(uint32_t);
+    m_vector[0] = (len >> 24) & 0xff;
+    m_vector[1] = (len >> 16) & 0xff;
+    m_vector[2] = (len >>  8) & 0xff;
+    m_vector[3] = (len      ) & 0xff;
+    return m_vector;
+}
+
 //}}}
 //{{{ SFTPTransfer -------------------------------------------------------------
 

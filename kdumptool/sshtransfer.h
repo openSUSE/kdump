@@ -87,6 +87,8 @@ class SFTPPacket {
 	throw ()
 	{ return m_vector; }
 
+	ByteVector const &update(void);
+
     private:
 	ByteVector m_vector;
 };

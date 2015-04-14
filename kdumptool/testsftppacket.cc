@@ -63,6 +63,10 @@ int main(int argc, char *argv[])
 		dumpvec(pkt.data());
 		break;
 
+	    case 'u':
+		dumpvec(pkt.update());
+		break;
+
 	    case '\0':
 		// Ignore empty arguments
 		break;
