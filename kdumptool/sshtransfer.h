@@ -122,6 +122,10 @@ typedef KCodeError<KSFTPErrorCode> KSFTPError;
 enum {
     SSH_FXP_INIT	=   1,
     SSH_FXP_VERSION	=   2,
+    SSH_FXP_MKDIR	=  14,
+    SSH_FXP_STAT	=  17,
+    SSH_FXP_STATUS	= 101,
+    SSH_FXP_ATTRS	= 105,
 };
 
 /**
@@ -207,12 +211,20 @@ class SFTPTransfer : public URLTransfer {
     protected:
 	static const int MY_PROTO_VER = 3; // our advertised version
 
+        bool exists(const std::string &file);
+        void mkpath(const std::string &path);
+
     private:
 	SubProcess m_process;
 	int m_fdreq, m_fdresp;
 	unsigned long m_proto_ver; // remote SFTP protocol version
+	unsigned long m_lastid;
 
 	StringVector makeArgs(void);
+
+	unsigned long nextId(void)
+	throw ()
+	{ return m_lastid = (m_lastid + 1) & ((1UL << 32) - 1); }
 
 	void sendPacket(SFTPPacket &pkt);
 	void recvPacket(SFTPPacket &pkt);

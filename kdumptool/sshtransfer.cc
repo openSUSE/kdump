@@ -380,6 +380,10 @@ SFTPTransfer::SFTPTransfer(const RootDirURLVector &urlv,
 		     Stringutil::number2string(unsigned(type)));
     m_proto_ver = initpkt.getInt32();
     Debug::debug()->dbg("Remote SFTP version %lu", m_proto_ver);
+
+    FilePath fp = parser.getPath();
+    fp.appendPath(getSubDir());
+    mkpath(fp);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -408,6 +412,74 @@ void SFTPTransfer::perform(DataProvider *dataprovider,
     Debug::debug()->trace("SFTPTransfer::perform(%p, [ \"%s\"%s ])",
 	dataprovider, target_files.front().c_str(),
 	target_files.size() > 1 ? ", ..." : "");
+}
+
+/* -------------------------------------------------------------------------- */
+bool SFTPTransfer::exists(const string &file)
+{
+    Debug::debug()->trace("SFTPTransfer::exists(%s)", file.c_str());
+
+    SFTPPacket pkt;
+    pkt.addByte(SSH_FXP_STAT);
+    pkt.addInt32(nextId());
+    pkt.addString(file);
+    sendPacket(pkt);
+
+    recvPacket(pkt);
+    unsigned char type = pkt.getByte();
+    unsigned long id = pkt.getInt32();
+    if (id != m_lastid)
+	throw KError("SFTP request/reply id mismatch");
+
+    if (type == SSH_FXP_ATTRS)
+	return true;
+
+    if (type != SSH_FXP_STATUS)
+	throw KError("Invalid response to SSH_FXP_LSTAT: type " +
+		     Stringutil::number2string(unsigned(type)));
+
+    unsigned long errcode = pkt.getInt32();
+    if (errcode != SSH_FX_NO_SUCH_FILE)
+	throw KSFTPError("stat failed on " + file, errcode);
+
+    return false;
+}
+
+/* -------------------------------------------------------------------------- */
+void SFTPTransfer::mkpath(const std::string &path)
+{
+    Debug::debug()->trace("SFTPTransfer::mkpath(%s)", path.c_str());
+
+    if (!exists(path)) {
+	KString dir = path;
+	dir.rtrim(PATH_SEPARATOR);
+	KString::size_type pos = dir.rfind(PATH_SEPARATOR);
+	if (pos > 0 && pos != KString::npos) {
+	    dir.erase(pos);
+	    mkpath(dir);
+	}
+
+	SFTPPacket pkt;
+	pkt.addByte(SSH_FXP_MKDIR);
+	pkt.addInt32(nextId());
+	pkt.addString(path);
+	pkt.addInt32(0UL);
+	sendPacket(pkt);
+
+	recvPacket(pkt);
+	unsigned char type = pkt.getByte();
+	unsigned long id = pkt.getInt32();
+	if (id != m_lastid)
+	    throw KError("SFTP request/reply id mismatch");
+
+	if (type != SSH_FXP_STATUS)
+	    throw KError("Invalid response to SSH_FXP_MKDIR: type " +
+			 Stringutil::number2string(unsigned(type)));
+
+	unsigned long errcode = pkt.getInt32();
+	if (errcode != SSH_FX_OK)
+	    throw KSFTPError("mkdir failed on " + path, errcode);
+    }
 }
 
 /* -------------------------------------------------------------------------- */
