@@ -96,6 +96,8 @@ class SFTPPacket {
 
 	void addInt64(unsigned long long val);
 
+	void addString(KString const &val);
+
     private:
 	ByteVector m_vector;
 };

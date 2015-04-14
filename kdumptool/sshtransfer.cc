@@ -191,6 +191,13 @@ void SFTPPacket::addInt64(unsigned long long val)
 }
 
 /* -------------------------------------------------------------------------- */
+void SFTPPacket::addString(KString const &val)
+{
+    addInt32(val.length());
+    m_vector.insert(m_vector.end(), val.begin(), val.end());
+}
+
+/* -------------------------------------------------------------------------- */
 ByteVector const &SFTPPacket::update(void)
 {
     uint_fast32_t len = m_vector.size() - sizeof(uint32_t);

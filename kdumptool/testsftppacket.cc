@@ -101,6 +101,10 @@ int main(int argc, char *argv[])
 		    pkt.addInt64(parseval(arg + 1, 16));
 		break;
 
+	    case 's':
+		pkt.addString(arg + 1);
+		break;
+
 	    case '\0':
 		// Ignore empty arguments
 		break;
