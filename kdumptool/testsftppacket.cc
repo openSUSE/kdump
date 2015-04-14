@@ -47,6 +47,25 @@ dumpvec(ByteVector const &bv)
 }
 
 // -----------------------------------------------------------------------------
+static unsigned long long
+parseval(const char *str, unsigned maxdigits)
+{
+    unsigned long long ret = 0;
+    unsigned i;
+
+    for (i = 0; i < maxdigits; ++i) {
+	if (!str[i])
+	    break;
+	ret <<= 4;
+	ret |= Stringutil::hex2int(str[i]);
+    }
+    if (str[i])
+	throw KError(KString("Number too big: '") + str + "'");
+
+    return ret;
+}
+
+// -----------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
     Debug::debug()->setStderrLevel(Debug::DL_TRACE);
@@ -65,6 +84,11 @@ int main(int argc, char *argv[])
 
 	    case 'u':
 		dumpvec(pkt.update());
+		break;
+
+	    case 'b':
+		if (arg[1])
+		    pkt.addByte(parseval(arg + 1, 2));
 		break;
 
 	    case '\0':

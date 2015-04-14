@@ -64,6 +64,19 @@ EXPECT="00 00 00 00"
 RESULT=$( "$TESTPACKET" $ARG )
 check "$ARG" "$EXPECT" "$RESULT"
 
+# TEST #3: Any 8-bit value
+ARG=""
+EXPECT="00 00 01 00"
+i=0
+while [ $i -le 255 ]
+do
+    ARG="$ARG "$(printf "b%02x" $i)
+    EXPECT="$EXPECT "$(printf "%02x" $i)
+    i=$(( $i + 1 ))
+done
+RESULT=$( "$TESTPACKET" $ARG u )
+check "$ARG" "$EXPECT" "$RESULT"
+
 exit $errornumber
 
 # }}}
