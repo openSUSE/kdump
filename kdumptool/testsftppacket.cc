@@ -128,7 +128,10 @@ int main(int argc, char *argv[])
 
 	    switch (arg[0]) {
 	    case 'd':
-		dumpvec(pkt.data());
+		if (arg[1])
+		    pkt.setData(parsevec(arg + 1));
+		else
+		    dumpvec(pkt.data());
 		break;
 
 	    case 'u':

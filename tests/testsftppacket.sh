@@ -162,6 +162,18 @@ EXPECT=$(echo -e "00000000\nHello!")
 RESULT=$( "$TESTPACKET" $ARG )
 check "$ARG" "$EXPECT" "$RESULT"
 
+# TEST #12: Set data - note the bogus packet length
+ARG="dbadf1e1d0123456789abcdef d"
+EXPECT="ba df 1e 1d 01 23 45 67 89 ab cd ef"
+RESULT=$( "$TESTPACKET" $ARG )
+check "$ARG" "$EXPECT" "$RESULT"
+
+# TEST #13: Set data - note the updated packet length
+ARG="dbadf1e1d0123456789abcdef u"
+EXPECT="00 00 00 08 01 23 45 67 89 ab cd ef"
+RESULT=$( "$TESTPACKET" $ARG )
+check "$ARG" "$EXPECT" "$RESULT"
+
 exit $errornumber
 
 # }}}

@@ -89,6 +89,12 @@ class SFTPPacket {
 
 	ByteVector const &update(void);
 
+	void setData(ByteVector const &val)
+	{
+	    m_vector = val;
+	    m_gpos = 0;
+	}
+
 	void addByte(unsigned char val)
 	{ m_vector.push_back(val); }
 
