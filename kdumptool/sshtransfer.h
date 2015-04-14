@@ -92,6 +92,8 @@ class SFTPPacket {
 	void addByte(unsigned char val)
 	{ m_vector.push_back(val); }
 
+	void addInt32(unsigned long val);
+
     private:
 	ByteVector m_vector;
 };

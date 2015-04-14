@@ -36,6 +36,17 @@ function check()
 }
 # }}}
 
+# Add random byte to ARG and EXPECT
+#                                                                            {{{
+function add_random_byte()
+{
+    local ch=$(( $RANDOM % 256 ))
+    local hex=$( printf "%02x" $ch )
+    ARG="$ARG$hex"
+    EXPECT="$EXPECT $hex"
+}
+# }}}
+
 #
 # Program                                                                    {{{
 #
@@ -72,6 +83,23 @@ while [ $i -le 255 ]
 do
     ARG="$ARG "$(printf "b%02x" $i)
     EXPECT="$EXPECT "$(printf "%02x" $i)
+    i=$(( $i + 1 ))
+done
+RESULT=$( "$TESTPACKET" $ARG u )
+check "$ARG" "$EXPECT" "$RESULT"
+
+# TEST #4: 100 random 32-bit values
+ARG=""
+EXPECT="00 00 01 90"		# 4*100 in hex
+i=0
+while [ $i -lt 100 ]
+do
+    ARG="$ARG w"
+    add_random_byte		# bits 0-7
+    add_random_byte		# bits 8-15
+    add_random_byte		# bits 16-23
+    add_random_byte		# bits 24-31
+
     i=$(( $i + 1 ))
 done
 RESULT=$( "$TESTPACKET" $ARG u )

@@ -91,6 +91,11 @@ int main(int argc, char *argv[])
 		    pkt.addByte(parseval(arg + 1, 2));
 		break;
 
+	    case 'w':
+		if (arg[1])
+		    pkt.addInt32(parseval(arg + 1, 8));
+		break;
+
 	    case '\0':
 		// Ignore empty arguments
 		break;
