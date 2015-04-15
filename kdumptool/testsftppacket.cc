@@ -108,6 +108,13 @@ getint64(SFTPPacket &pkt)
 }
 
 // -----------------------------------------------------------------------------
+static void
+getstring(SFTPPacket &pkt)
+{
+    cout << pkt.getString() << endl;
+}
+
+// -----------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
     Debug::debug()->setStderrLevel(Debug::DL_TRACE);
@@ -150,7 +157,10 @@ int main(int argc, char *argv[])
 		break;
 
 	    case 's':
-		pkt.addString(arg + 1);
+		if (arg[1])
+		    pkt.addString(arg + 1);
+		else
+		    getstring(pkt);
 		break;
 
 	    case 'v':

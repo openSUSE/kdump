@@ -229,6 +229,14 @@ void SFTPPacket::addString(KString const &val)
 }
 
 /* -------------------------------------------------------------------------- */
+std::string SFTPPacket::getString(void)
+{
+    unsigned long len = getInt32();
+    ByteVector::iterator it = m_vector.begin() + m_gpos;
+    return string(it, it + len);
+}
+
+/* -------------------------------------------------------------------------- */
 ByteVector const &SFTPPacket::update(void)
 {
     uint_fast32_t len = m_vector.size() - sizeof(uint32_t);

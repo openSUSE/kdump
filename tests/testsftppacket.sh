@@ -156,6 +156,12 @@ EXPECT=$(echo -e "00000000\n0123456789abcdef")
 RESULT=$( "$TESTPACKET" $ARG )
 check "$ARG" "$EXPECT" "$RESULT"
 
+# TEST #11: Get string value
+ARG="sHello! w s"
+EXPECT=$(echo -e "00000000\nHello!")
+RESULT=$( "$TESTPACKET" $ARG )
+check "$ARG" "$EXPECT" "$RESULT"
+
 exit $errornumber
 
 # }}}

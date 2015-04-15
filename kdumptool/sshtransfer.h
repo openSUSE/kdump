@@ -107,6 +107,8 @@ class SFTPPacket {
 
 	unsigned long long getInt64(void);
 
+	std::string getString(void);
+
     private:
 	ByteVector m_vector;
 	size_t m_gpos;
