@@ -162,6 +162,109 @@ StringVector SSHTransfer::makeArgs(std::string const &remote)
 }
 
 //}}}
+//{{{ KSFTPErrorCode -----------------------------------------------------------
+
+/* -------------------------------------------------------------------------- */
+string KSFTPErrorCode::message(void) const
+    throw ()
+{
+    const char *msg;
+
+    switch (getCode()) {
+        case SSH_FX_OK:
+            msg = "OK";
+            break;
+
+        case SSH_FX_EOF:
+            msg = "End of file";
+            break;
+
+        case SSH_FX_NO_SUCH_FILE:
+            msg = "No such file";
+            break;
+
+        case SSH_FX_PERMISSION_DENIED:
+            msg = "Permission denied";
+            break;
+
+        case SSH_FX_FAILURE:
+            msg = "Failure";
+            break;
+
+        case SSH_FX_BAD_MESSAGE:
+            msg = "Bad message";
+            break;
+
+        case SSH_FX_NO_CONNECTION:
+            msg = "No connection";
+            break;
+
+        case SSH_FX_CONNECTION_LOST:
+            msg = "Connection lost";
+            break;
+
+        case SSH_FX_OP_UNSUPPORTED:
+            msg = "Operation unsupported";
+            break;
+
+        case SSH_FX_INVALID_HANDLE:
+            msg = "Invalid handle";
+            break;
+
+        case SSH_FX_NO_SUCH_PATH:
+            msg = "No such path";
+            break;
+
+        case SSH_FX_FILE_ALREADY_EXISTS:
+            msg = "File already exists";
+            break;
+
+        case SSH_FX_WRITE_PROTECT:
+            msg = "Write protect";
+            break;
+
+        case SSH_FX_NO_MEDIA:
+            msg = "No media";
+            break;
+
+        case SSH_FX_NO_SPACE_ON_FILESYSTEM:
+            msg = "No space on file system";
+            break;
+
+        case SSH_FX_QUOTA_EXCEEDED:
+            msg = "Quote exceeded";
+            break;
+
+        case SSH_FX_UNKNOWN_PRINCIPAL:
+            msg = "Unknown principal";
+            break;
+
+        case SSH_FX_LOCK_CONFLICT:
+            msg = "Lock conflict";
+            break;
+
+        case SSH_FX_DIR_NOT_EMPTY:
+            msg = "Directory not empty";
+            break;
+
+        case SSH_FX_NOT_A_DIRECTORY:
+            msg = "Not a directory";
+            break;
+
+        case SSH_FX_INVALID_FILENAME:
+            msg = "Invalid file name";
+            break;
+
+        case SSH_FX_LINK_LOOP:
+            msg = "Link loop";
+            break;
+
+        default:
+            msg = "Unknown error";
+    }
+    return string(msg);
+}
+//}}}
 //{{{ SFTPPacket ---------------------------------------------------------------
 
 /* -------------------------------------------------------------------------- */

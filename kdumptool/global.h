@@ -166,22 +166,6 @@ class KGaiErrorCode : public KErrorCode {
 };
 
 //}}}
-//{{{ KSFTPErrorCode -----------------------------------------------------------
-
-/**
- * Class for libssh2 errors.
- */
-class KSFTPErrorCode : public KErrorCode {
-    public:
-        KSFTPErrorCode(int code)
-            : KErrorCode(code)
-        {}
-
-        virtual std::string message(void) const
-        throw ();
-};
-
-//}}}
 //{{{ KELFErrorCode ------------------------------------------------------------
 
 /**
@@ -219,7 +203,6 @@ class KSmtpErrorCode : public KErrorCode {
 typedef KCodeError<KSystemErrorCode> KSystemError;
 typedef KCodeError<KNetErrorCode> KNetError;
 typedef KCodeError<KGaiErrorCode> KGaiError;
-typedef KCodeError<KSFTPErrorCode> KSFTPError;
 typedef KCodeError<KELFErrorCode> KELFError;
 typedef KCodeError<KSmtpErrorCode> KSmtpError;
 
