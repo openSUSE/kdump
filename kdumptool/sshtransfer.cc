@@ -210,6 +210,18 @@ void SFTPPacket::addInt64(unsigned long long val)
 }
 
 /* -------------------------------------------------------------------------- */
+unsigned long long SFTPPacket::getInt64(void)
+{
+    size_t i;
+    unsigned long long ret = 0ULL;
+    for (i = 0; i < sizeof(uint64_t); ++i) {
+	ret <<= 8;
+	ret |= m_vector.at(m_gpos++);
+    }
+    return ret;
+}
+
+/* -------------------------------------------------------------------------- */
 void SFTPPacket::addString(KString const &val)
 {
     addInt32(val.length());

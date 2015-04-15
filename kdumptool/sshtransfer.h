@@ -105,6 +105,8 @@ class SFTPPacket {
 
 	unsigned long getInt32(void);
 
+	unsigned long long getInt64(void);
+
     private:
 	ByteVector m_vector;
 	size_t m_gpos;

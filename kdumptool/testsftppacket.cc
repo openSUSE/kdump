@@ -100,6 +100,14 @@ getint32(SFTPPacket &pkt)
 }
 
 // -----------------------------------------------------------------------------
+static void
+getint64(SFTPPacket &pkt)
+{
+    cout << std::hex << std::setfill('0') << setw(16)
+	 << pkt.getInt64() << endl;
+}
+
+// -----------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
     Debug::debug()->setStderrLevel(Debug::DL_TRACE);
@@ -137,6 +145,8 @@ int main(int argc, char *argv[])
 	    case 'l':
 		if (arg[1])
 		    pkt.addInt64(parseval(arg + 1, 16));
+		else
+		    getint64(pkt);
 		break;
 
 	    case 's':
