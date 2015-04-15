@@ -557,7 +557,6 @@ function kdump_modify_config()						   # {{{
     # Special handling for some protocols
     KDUMP_SAVEDIR=
     kdump_over_ssh=
-    local copy_ssh=
     local i=0
     while [ $i -le $kdump_max ] ; do
 	protocol="${kdump_Protocol[i]}"
@@ -575,7 +574,6 @@ function kdump_modify_config()						   # {{{
 	if [ "$protocol" = "sftp" -o \
 	     "$protocol" = "ssh" ] ; then
             kdump_over_ssh=yes
-	    test "$protocol" = "ssh" && copy_ssh=ssh
             if [ -z "$KDUMP_HOST_KEY" ] ; then
 		KDUMP_HOST_KEY=$(
 		    ssh-keygen -F "$kdump_Host" 2>/dev/null | \
@@ -590,7 +588,7 @@ function kdump_modify_config()						   # {{{
     done
 
     # copy ssh if needed
-    if [ -n "$copy_ssh" ] ; then
+    if [ -n "$kdump_over_ssh" ] ; then
 	KDUMP_REQUIRED_PROGRAMS="$KDUMP_REQUIRED_PROGRAMS ssh"
     fi
 
