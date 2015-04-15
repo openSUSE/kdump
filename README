@@ -21,7 +21,6 @@ It's designed to take the whole dump in a special initramfs.
 Requirements:
 
   - libelf (http://directory.fsf.org/project/libelf/),
-  - libssh2 (http://www.libssh2.org/),
   - libcurl (http://curl.haxx.se/),
   - asciidoc (http://www.methods.co.nz/asciidoc/),
   - cmake (http://www.cmake.org/).

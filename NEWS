@@ -1,5 +1,6 @@
 0.8.16
 ------
+  * Drop dependency on libssh2 (use system ssh binary for SFTP)
   * IPv6 modes for KDUMP_NETCONFIG
   * Support for dracut's systemd module
   * Take framebuffer size into account for calibrate

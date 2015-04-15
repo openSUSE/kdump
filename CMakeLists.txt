@@ -97,19 +97,6 @@ IF(NOT CURL_FOUND)
     MESSAGE(FATAL_ERROR "CURL not found. Install curl-devel or something like that")
 ENDIF(NOT CURL_FOUND)
 
-# libssh2
-INCLUDE(Findlibssh2)
-IF (LIBSSH2_FOUND)
-    SET(EXTRA_LIBS ${EXTRA_LIBS} ${LIBSSH2_LIBRARIES})
-    INCLUDE_DIRECTORIES(${LIBSSH2_INCLUDE_DIRS})
-ENDIF (LIBSSH2_FOUND)
-
-IF(NOT LIBSSH2_FOUND)
-    MESSAGE("libssh2 not found. Install libssh2-devel or something like that")
-    MESSAGE("Building without SSH support")
-    SET(LIBSSH2_FOUND FALSE)
-ENDIF(NOT LIBSSH2_FOUND)
-
 # libesmtp
 INCLUDE(Findesmtp)
 

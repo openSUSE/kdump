@@ -5,7 +5,6 @@
 #define TRUE                true
 #define FALSE               false
 
-#define HAVE_LIBSSH2        @LIBSSH2_FOUND@
 #define HAVE_LIBESMTP       @ESMTP_FOUND@
 #define HAVE_LIBSSL         @LIBSSL_FOUND@
 #define HAVE_FADUMP         @HAVE_FADUMP@

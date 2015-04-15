@@ -177,12 +177,7 @@ void KdumpTool::printVersion()
     cerr << "Features: ";
 
     // SFTP
-    cerr << "SFTP: ";
-#if HAVE_LIBSSH2
-    cerr << "enabled";
-#else // HAVE_LIBSSH2
-    cerr << "disabled";
-#endif
+    cerr << "SFTP: " << "enabled";
 
     cerr << " - ";
 
