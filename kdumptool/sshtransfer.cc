@@ -424,6 +424,28 @@ void SFTPTransfer::perform(DataProvider *dataprovider,
 
     string handle = createfile(fp);
     try {
+	dataprovider->prepare();
+	ByteVector buffer(BUFSIZ);
+	off_t off = 0;
+	try {
+	    while (true) {
+		char *bufp = (char*) buffer.data();
+		size_t len = dataprovider->getData(bufp, buffer.size());
+
+		// finished?
+		if (len == 0)
+		    break;
+
+		buffer.resize(len);
+		writefile(handle, off, buffer);
+		off += buffer.size();
+		buffer.resize(buffer.capacity());
+	    }
+	} catch (...) {
+	    dataprovider->finish();
+	    throw;
+	}
+	dataprovider->finish();
     } catch (...) {
 	closefile(handle);
 	throw;
@@ -549,6 +571,34 @@ void SFTPTransfer::closefile(const std::string &handle)
 
     if (type != SSH_FXP_STATUS)
 	throw KError("Invalid response to SSH_FXP_OPEN: type " +
+		     Stringutil::number2string(unsigned(type)));
+
+    unsigned long errcode = pkt.getInt32();
+    if (errcode != SSH_FX_OK)
+	throw KSFTPError("close failed on " + handle, errcode);
+}
+
+/* -------------------------------------------------------------------------- */
+void SFTPTransfer::writefile(const std::string &handle, off_t off,
+			     const ByteVector &data)
+{
+    SFTPPacket pkt;
+    pkt.addByte(SSH_FXP_WRITE);
+    pkt.addInt32(nextId());
+    pkt.addString(handle);
+    pkt.addInt64(off);
+    pkt.addInt32(data.size());
+    pkt.addByteVector(data);
+    sendPacket(pkt);
+
+    recvPacket(pkt);
+    unsigned char type = pkt.getByte();
+    unsigned long id = pkt.getInt32();
+    if (id != m_lastid)
+	throw KError("SFTP request/reply id mismatch");
+
+    if (type != SSH_FXP_STATUS)
+	throw KError("Invalid response to SSH_FXP_WRITE: type " +
 		     Stringutil::number2string(unsigned(type)));
 
     unsigned long errcode = pkt.getInt32();

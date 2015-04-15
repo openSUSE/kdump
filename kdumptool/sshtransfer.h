@@ -124,6 +124,7 @@ enum {
     SSH_FXP_VERSION	=   2,
     SSH_FXP_OPEN	=   3,
     SSH_FXP_CLOSE	=   4,
+    SSH_FXP_WRITE	=   6,
     SSH_FXP_MKDIR	=  14,
     SSH_FXP_STAT	=  17,
     SSH_FXP_STATUS	= 101,
@@ -230,6 +231,8 @@ class SFTPTransfer : public URLTransfer {
         void mkpath(const std::string &path);
 	std::string createfile(const std::string &file);
 	void closefile(const std::string &handle);
+	void writefile(const std::string &handle, off_t off,
+		       const ByteVector &data);
 
     private:
 	SubProcess m_process;
