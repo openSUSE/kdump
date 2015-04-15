@@ -105,6 +105,27 @@ done
 RESULT=$( "$TESTPACKET" $ARG u )
 check "$ARG" "$EXPECT" "$RESULT"
 
+# TEST #5: 100 random 64-bit values
+ARG=""
+EXPECT="00 00 03 20"		# 8*100 in hex
+i=0
+while [ $i -lt 100 ]
+do
+    ARG="$ARG l"
+    add_random_byte		# bits 0-7
+    add_random_byte		# bits 8-15
+    add_random_byte		# bits 16-23
+    add_random_byte		# bits 24-31
+    add_random_byte		# bits 32-39
+    add_random_byte		# bits 40-47
+    add_random_byte		# bits 48-55
+    add_random_byte		# bits 56-63
+
+    i=$(( $i + 1 ))
+done
+RESULT=$( "$TESTPACKET" $ARG u )
+check "$ARG" "$EXPECT" "$RESULT"
+
 exit $errornumber
 
 # }}}

@@ -183,6 +183,14 @@ void SFTPPacket::addInt32(unsigned long val)
 }
 
 /* -------------------------------------------------------------------------- */
+void SFTPPacket::addInt64(unsigned long long val)
+{
+    int i;
+    for (i = sizeof(uint64_t) - 1; i >= 0; --i)
+	m_vector.push_back((val >> (i*8)) & 0xff);
+}
+
+/* -------------------------------------------------------------------------- */
 ByteVector const &SFTPPacket::update(void)
 {
     uint_fast32_t len = m_vector.size() - sizeof(uint32_t);

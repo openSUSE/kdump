@@ -94,6 +94,8 @@ class SFTPPacket {
 
 	void addInt32(unsigned long val);
 
+	void addInt64(unsigned long long val);
+
     private:
 	ByteVector m_vector;
 };
