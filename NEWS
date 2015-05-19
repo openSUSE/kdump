@@ -2,6 +2,8 @@
 ------
   * Drop dependency on libssh2 (use system ssh binary for SFTP)
   * IPv6 modes for KDUMP_NETCONFIG
+  * Honour KDUMP_IMMEDIATE_REBOOT with fadump
+  * KDUMP_FADUMP_SHELL option to allow debugging of fadump
   * Support for dracut's systemd module
   * Take framebuffer size into account for calibrate
   * Take constant-size slabs (ACPI and ftrace) into account for calibrate

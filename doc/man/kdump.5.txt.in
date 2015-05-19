@@ -201,6 +201,17 @@ boot, saves the dump, and continues with normal startup.
 
 Default is "no".
 
+KDUMP_FADUMP_SHELL
+~~~~~~~~~~~~~~~~~~
+
+When this option is "yes", kdump launches a shell after saving the dump.
+If FADUMP is disabled, this option has no effect, because launching a shell
+is the default action when KDUMP_IMMEDIATE_REBOOT is set to "no".
+
+This option can be useful for debugging.
+
+Default is "no".
+
 endif::[]
 
 KEXEC_OPTIONS
@@ -226,6 +237,13 @@ KDUMP_IMMEDIATE_REBOOT
 ~~~~~~~~~~~~~~~~~~~~~~
 
 Immediately reboot after saving the core in the kdump kernel? Use "yes" or "no".
+
+ifeval::['@HAVE_FADUMP@'=='TRUE']
+If this option is set to "no" and FADUMP is enabled, normal boot process
+continues after saving the dump. This can save one reboot, but on NUMA
+systems all node-level memory is allocated on the dumping node, degrading
+the performance of all other nodes until reboot.
+endif::[]
 
 Default is "yes".
 

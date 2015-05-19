@@ -71,6 +71,18 @@ KDUMP_COMMANDLINE_APPEND=""
 #
 KDUMP_FADUMP="no"
 
+## Type:        yesno
+## Default:     "no"
+## ServiceRestart:	kdump
+#
+# If this option is set to yes, a shell is started after saving the dump
+# with fadump (see above).
+# This option can be useful for debugging.
+#
+# See also: kdump(5).
+#
+KDUMP_FADUMP_SHELL="no"
+
 @endif
 ## Type:	string
 ## Default:	""

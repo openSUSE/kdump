@@ -50,6 +50,20 @@ function handle_exit()
     if fadump_enabled; then
         # release memory if possible
         test -f $FADUMP_RELEASE_MEM && echo 1 > $FADUMP_RELEASE_MEM
+        if [ "$KDUMP_FADUMP_SHELL" = "yes" \
+                -o "$KDUMP_FADUMP_SHELL" = "YES" ] ; then
+            echo
+            echo "Dump saving completed."
+            echo "Type 'reboot -f' to reboot the system or 'exit' to"
+            echo "boot in a normal system."
+            bash
+        fi
+        if [ $KDUMP_IMMEDIATE_REBOOT = "yes" \
+                -o "$KDUMP_IMMEDIATE_REBOOT" = "YES" ] ; then
+            umount -a
+            reboot -f
+        fi
+
         # unmount kdump directories
         dirs=
         while read dev mp rest
