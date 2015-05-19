@@ -50,6 +50,14 @@ function handle_exit()
     if fadump_enabled; then
         # release memory if possible
         test -f $FADUMP_RELEASE_MEM && echo 1 > $FADUMP_RELEASE_MEM
+        # unmount kdump directories
+        dirs=
+        while read dev mp rest
+        do
+            test "${mp#$ROOTDIR}" = "${mp}" && continue
+            dirs="$mp $dirs"
+        done < /proc/mounts
+        umount $dirs
     elif [ $KDUMP_IMMEDIATE_REBOOT = "yes" \
             -o "$KDUMP_IMMEDIATE_REBOOT" = "YES" ] ; then
         umount -a
