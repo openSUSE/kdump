@@ -5,6 +5,7 @@
   * Honour KDUMP_IMMEDIATE_REBOOT with fadump
   * KDUMP_FADUMP_SHELL option to allow debugging of fadump
   * Support for dracut's systemd module
+  * Override kdump device systemd job timeout (using rd.timeout)
   * Take framebuffer size into account for calibrate
   * Take constant-size slabs (ACPI and ftrace) into account for calibrate
   * Bugfix: use device from /etc/fstab to mount / and /boot

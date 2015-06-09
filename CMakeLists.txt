@@ -16,8 +16,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 #
-PROJECT(kdump CXX)
+PROJECT(kdump CXX C)
 INCLUDE(CTest)
+INCLUDE(FindPkgConfig)
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 
 #
@@ -126,6 +127,8 @@ IF(NOT LIBSSL_FOUND)
     SET(LIBSSL_FOUND FALSE)
 ENDIF(NOT LIBSSL_FOUND)
 
+# libblkid
+pkg_check_modules(BLKID REQUIRED blkid)
 
 #
 # Check for FADUMP

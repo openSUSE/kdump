@@ -144,6 +144,8 @@ install() {
     if dracut_module_included "systemd" ; then
 	[ "$KDUMP_FADUMP" != yes ] && \
 	    rm -f "${initdir}/$systemdutildir"/system-generators/dracut-rootfs-generator
+	inst_binary "$moddir/device-timeout-generator" \
+	    "$systemdutildir"/system-generators/kdump-device-timeout-generator
 
 	inst_simple /lib/kdump/save_dump.sh
 	inst_simple "$moddir/kdump-save.service" \
