@@ -97,7 +97,7 @@ INSTALL(
 
 INSTALL(
     FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/kdump-save.service
+        ${CMAKE_CURRENT_SOURCE_DIR}/kdump-save.service.in
     DESTINATION
         /usr/lib/dracut/modules.d/99kdump
     PERMISSIONS

@@ -146,8 +146,11 @@ install() {
 	    "$systemdutildir"/system-generators/kdump-device-timeout-generator
 
 	inst_simple /lib/kdump/save_dump.sh
-	inst_simple "$moddir/kdump-save.service" \
-	    "$systemdsystemunitdir"/kdump-save.service
+	awk -v mountpoints="${kdump_mnt[*]}" '{
+		gsub(/@KDUMP_MOUNTPOINTS@/, mountpoints)
+		print
+	    }' "$moddir/kdump-save.service.in" > \
+	    "$initdir/$systemdsystemunitdir"/kdump-save.service
 	ln_r "$systemdsystemunitdir"/kdump-save.service \
 	    "$systemdsystemunitdir"/initrd.target.wants/kdump-save.service
     else
