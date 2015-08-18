@@ -17,14 +17,6 @@
 # 02110-1301, USA.
 #
 
-ADD_EXECUTABLE(device-timeout-generator
-    device-timeout-generator.c
-)
-TARGET_INCLUDE_DIRECTORIES(device-timeout-generator
-    PUBLIC ${BLKID_INCLUDE_DIRS})
-TARGET_LINK_LIBRARIES(device-timeout-generator
-    ${BLKID_LIBRARIES})
-
 INSTALL(
     FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/boot.kdump
@@ -73,13 +65,6 @@ INSTALL(
         OWNER_READ OWNER_WRITE OWNER_EXECUTE
         GROUP_READ GROUP_EXECUTE
         WORLD_READ WORLD_EXECUTE
-)
-
-INSTALL(
-    TARGETS
-        device-timeout-generator
-    DESTINATION
-        /usr/lib/dracut/modules.d/99kdump
 )
 
 INSTALL(

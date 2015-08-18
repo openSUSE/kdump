@@ -21,7 +21,6 @@ Testing/
 *.a
 
 # resulting binaries
-init/device-timeout-generator
 kdumptool/kdumptool
 kdumptool/testcanonical
 kdumptool/testconfig
