@@ -11,8 +11,6 @@
 Description=save kernel crash dump
 Documentation=man:kdump(7)
 RequiresMountsFor=@KDUMP_MOUNTPOINTS@
-Wants=dracut-mount.service dracut-pre-pivot.service
-After=dracut-mount.service dracut-pre-pivot.service
 Before=initrd-cleanup.service
 ConditionPathExists=/etc/initrd-release
 ConditionPathExists=/proc/vmcore
