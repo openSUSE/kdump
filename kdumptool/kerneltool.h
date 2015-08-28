@@ -163,6 +163,26 @@ class KernelTool {
         throw ();
 
         /**
+         * Checks if the architecture has CONFIG_RELOCATABLE.
+         *
+         * @param[in] machine the machine, e.g. "ppc64"
+         * @return @c true if it has CONFIG_RELOCATABLE option.
+         *         @c false otherwise
+         */
+        bool hasConfigRelocatable(const std::string &machine) const
+        throw ();
+
+        /**
+         * Checks if the kernel was compiled with CONFIG_RELOCATABLE.
+         *
+         * @param[in] machine the machine, e.g. "ppc64"
+         * @return @c true if configured with CONFIG_RELOCATABLE=y.
+         *         @c false otherwise
+         */
+        bool isConfigRelocatable() const
+        throw (KError);
+
+        /**
          * Checks if a ELF kernel image is relocatable.
          *
          * @return @c true if the ELF kernel is relocatable, @c false otherwise

@@ -340,8 +340,8 @@ bool KernelTool::elfIsRelocatable() const
         throw KSystemError("Seek failed", errno);
     }
 
+    unsigned short machine;
     string arch;
-    bool reloc = false;
     if (e_ident[EI_CLASS] == ELFCLASS32) {
         Elf32_Ehdr hdr;
 
@@ -351,7 +351,6 @@ bool KernelTool::elfIsRelocatable() const
             throw KSystemError("Couldn't read ELF header", errno);
         }
 
-	unsigned short machine;
 	if (e_ident[EI_DATA] == ELFDATA2LSB)
 	    machine = le16toh(hdr.e_machine);
 	else if (e_ident[EI_DATA] == ELFDATA2MSB)
@@ -359,10 +358,6 @@ bool KernelTool::elfIsRelocatable() const
 	else
 	    throw KError("elfIsRelocatable(): Invalid ELF data encoding");
 
-        arch = archFromElfMachine(machine);
-
-        if (hdr.e_type == ET_DYN)
-            reloc = true;
     } else if (e_ident[EI_CLASS] == ELFCLASS64) {
         Elf64_Ehdr hdr;
 
@@ -372,27 +367,23 @@ bool KernelTool::elfIsRelocatable() const
             throw KSystemError("Couldn't read ELF header", errno);
         }
 
-        if (hdr.e_type == ET_DYN)
-            reloc = true;
-
-	unsigned short machine;
 	if (e_ident[EI_DATA] == ELFDATA2LSB)
 	    machine = le16toh(hdr.e_machine);
 	else if (e_ident[EI_DATA] == ELFDATA2MSB)
 	    machine = be16toh(hdr.e_machine);
 	else
 	    throw KError("elfIsRelocatable(): Invalid ELF data encoding");
-
-        arch = archFromElfMachine(machine);
     } else {
         throw KError("elfIsRelocatable(): Invalid ELF class");
     }
+    arch = archFromElfMachine(machine);
 
     gzclose(fp);
 
     Debug::debug()->dbg("Detected arch %s", arch.c_str());
 
-    return isArchAlwaysRelocatable(arch) || reloc;
+    return isArchAlwaysRelocatable(arch) ||
+      (hasConfigRelocatable(arch) && isConfigRelocatable());
 }
 
 // -----------------------------------------------------------------------------
@@ -400,6 +391,28 @@ bool KernelTool::isArchAlwaysRelocatable(const string &machine) const
     throw ()
 {
     return machine == "ia64";
+}
+
+// -----------------------------------------------------------------------------
+bool KernelTool::hasConfigRelocatable(const string &machine) const
+    throw ()
+{
+    return Util::isX86(machine) || machine == "ppc64" || machine == "ppc";
+}
+
+// -----------------------------------------------------------------------------
+bool KernelTool::isConfigRelocatable() const
+    throw (KError)
+{
+    try {
+    Kconfig *kconfig = retrieveKernelConfig();
+    KconfigValue kv = kconfig->get("CONFIG_RELOCATABLE");
+    return (kv.getType() == KconfigValue::T_TRISTATE &&
+	    kv.getTristateValue() == KconfigValue::ON);
+    } catch (KError &e) {
+	Debug::debug()->dbg("%s (assume non-relocatable)", e.what());
+	return false;
+    }
 }
 
 // -----------------------------------------------------------------------------
