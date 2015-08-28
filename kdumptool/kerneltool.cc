@@ -517,14 +517,14 @@ string KernelTool::extractKernelConfigELF() const
     // search for the begin and end offests first
     off_t fileoffset = 0;
     ssize_t chars_read;
-    off_t begin_offset = 0, end_offset = 0;
+    off_t begin_offset = -1, end_offset = -1;
     while ((chars_read = gzread(fp, buffer+MAGIC_LEN, BUFSIZ-MAGIC_LEN)) > 0) {
-        if (begin_offset == 0) {
+        if (begin_offset < 0) {
             ssize_t pos = Util::findBytes(buffer, BUFSIZ, magic_start, MAGIC_LEN);
             if (pos > 0) {
                 begin_offset = fileoffset + pos - MAGIC_LEN;
             }
-        } else if (end_offset == 0) {
+        } else if (end_offset < 0) {
             ssize_t pos = Util::findBytes(buffer, BUFSIZ, magic_end, MAGIC_LEN);
             if (pos > 0) {
                 end_offset = fileoffset + pos - MAGIC_LEN;
