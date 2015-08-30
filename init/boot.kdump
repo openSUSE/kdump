@@ -25,30 +25,56 @@
 # Description:    This script loads the kdump kernel on startup.
 ### END INIT INFO
 
+KDUMPTOOL=/usr/sbin/kdumptool
+LOAD_KDUMP=/lib/kdump/load.sh
+UNLOAD_KDUMP=/lib/kdump/unload.sh
+
 . /etc/rc.status
-. /lib/kdump/rc.kdump.functions
+
+#
+# Checks if currently a kdump kernel is loaded.
+#
+# Returns: 0 (true) if a kdump kernel is loaded,
+#          1 (false) if the kdump kernel is not loaded and
+#          -1 (false) if the feature is not implemented (too old kernel)
+function kdump_kernel_loaded()
+{
+    eval $($KDUMPTOOL dump_config)
+    if [ "$KDUMP_FADUMP" = "yes" ] ; then
+	if [ -r /sys/kernel/fadump_registered ] ; then
+	    if [ $(cat /sys/kernel/fadump_registered) = "1" ] ; then
+		return 0
+	    else
+		return 1
+	    fi
+	else
+	    return -1
+	fi
+    elif [ -r /sys/kernel/kexec_crash_loaded ] ; then
+        if [ $(cat /sys/kernel/kexec_crash_loaded) = "1" ] ; then
+            return 0
+        else
+            return 1
+        fi
+    else
+        return -1
+    fi
+}
 
 case "$1" in
   start|restart|force-reload)
-        load_kdump
+	echo -n "Loading kdump"
+        $LOAD_KDUMP
+	rc_status
         ;;
   stop)
         if [ "$RUNLEVEL" != "" ]; then
             echo -n "Not unloading kdump during runlevel changes"
             rc_status -s
         else
-            kdump_kernel_loaded
-            if [ $? -ne 1 ] ; then
+            if kdump_kernel_loaded ; then
                 echo -n "Unloading kdump"
-		if fadump_enabled; then
-		    # The kernel fails with EINVAL if unregistered already
-		    # (see bnc#814780)
-		    if [ "$(cat $FADUMP_REGISTERED)" != "0" ]; then
-			echo 0 > $FADUMP_REGISTERED
-		    fi
-		else
-                    $KEXEC -p -u
-		fi
+		$UNLOAD_KDUMP
             fi
             rc_status -v
         fi
@@ -71,7 +97,8 @@ case "$1" in
         ;;
   try-restart)
         if kdump_kernel_loaded ; then
-            $0 start
+	    echo "Loading kdump"
+            $LOAD_KDUMP
         else
             rc_reset
         fi

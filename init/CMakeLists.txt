@@ -30,6 +30,17 @@ INSTALL(
 
 INSTALL(
     FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/kdump.service
+    DESTINATION
+        /usr/lib/systemd/system
+    PERMISSIONS
+        OWNER_READ OWNER_WRITE
+        GROUP_READ
+        WORLD_READ
+)
+
+INSTALL(
+    FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/setup-mkdumprd.sh
         ${CMAKE_CURRENT_SOURCE_DIR}/setup-kdumpfs.sh
         ${CMAKE_CURRENT_SOURCE_DIR}/setup-kdump.sh
@@ -56,9 +67,10 @@ INSTALL(
 
 INSTALL(
     FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/rc.kdump.functions
         ${CMAKE_CURRENT_SOURCE_DIR}/setup-kdump.functions
         ${CMAKE_CURRENT_SOURCE_DIR}/save_dump.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/load.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/unload.sh
     DESTINATION
         /lib/kdump
     PERMISSIONS

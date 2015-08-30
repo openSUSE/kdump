@@ -15,7 +15,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 
-. /lib/kdump/rc.kdump.functions
 . /lib/kdump/setup-kdump.functions
 
 kdump_get_config || return 1
@@ -223,13 +222,6 @@ if (( ! $FORCE )) ; then
         status_message "Not regenerating kdump initrd. Use mkdumprd -f to force regeneration."
         exit 0
     fi
-fi
-
-# Update the bootloader if necessary
-if [ "$KDUMP_FADUMP" != "yes" ]; then
-    fadump_bootloader off
-else
-    fadump_bootloader on
 fi
 
 if type dracut >/dev/null 2>&1 ; then
