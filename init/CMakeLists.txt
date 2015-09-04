@@ -70,6 +70,7 @@ INSTALL(
         ${CMAKE_CURRENT_SOURCE_DIR}/setup-kdump.functions
         ${CMAKE_CURRENT_SOURCE_DIR}/save_dump.sh
         ${CMAKE_CURRENT_SOURCE_DIR}/load.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/load-once.sh
         ${CMAKE_CURRENT_SOURCE_DIR}/unload.sh
     DESTINATION
         /lib/kdump

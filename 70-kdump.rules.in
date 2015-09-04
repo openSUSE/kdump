@@ -20,7 +20,7 @@ GOTO="kdump_end"
 
 # Reload only if panic kernel is already loaded
 LABEL="kdump_try_restart"
-PROGRAM="/bin/cat /sys/kernel/kexec_crash_loaded", RESULT!="0", RUN+="/lib/kdump/load.sh"
+PROGRAM="/bin/cat /sys/kernel/kexec_crash_loaded", RESULT!="0", RUN+="/lib/kdump/load-once.sh"
 
 LABEL="kdump_end"
 @endif
