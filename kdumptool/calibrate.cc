@@ -21,6 +21,7 @@
 #include <cerrno>
 #include <cstring>
 #include <cstdlib>
+#include <limits>
 #include <unistd.h>
 #include <dirent.h>
 
@@ -645,6 +646,152 @@ const SlabInfos::Map& SlabInfos::getInfo(void)
 }
 
 //}}}
+//{{{ MemRange -----------------------------------------------------------------
+
+class MemRange {
+
+    public:
+
+        typedef unsigned long long Addr;
+
+        /**
+	 * Initialize a new MemRange object.
+	 *
+	 * @param[in] start First address within the range
+	 * @param[in] end   Last address within the range
+	 */
+	MemRange(Addr start, Addr end)
+	throw ()
+	: m_start(start), m_end(end)
+	{}
+
+	/**
+	 * Get first address in range.
+	 */
+	Addr start(void) const
+	throw ()
+	{ return m_start; }
+
+	/**
+	 * Get last address in range.
+	 */
+	Addr end(void) const
+	throw ()
+	{ return m_end; }
+
+	/**
+	 * Get range length.
+	 *
+	 * @return number of bytes in the range
+	 */
+	Addr length() const
+	throw ()
+	{ return m_end - m_start + 1; }
+
+    protected:
+
+	Addr m_start, m_end;
+};
+
+//}}}
+//{{{ MemMap -------------------------------------------------------------------
+
+class MemMap {
+
+    public:
+
+	typedef std::list<const MemRange*> List;
+
+        /**
+	 * Initialize a new MemMap object.
+	 *
+	 * @param[in] procdir Mount point for procfs
+	 */
+	MemMap(const char *procdir = "/proc");
+
+	~MemMap()
+	{ destroyRanges(); }
+
+	/**
+	 * Get the total System RAM (in bytes).
+	 */
+	unsigned long long total(void) const
+	throw ();
+
+    private:
+
+	List m_ranges;
+
+	/**
+	 * Destroy MemRange objects in m_ranges.
+	 */
+	void destroyRanges(void)
+	throw();
+};
+
+MemMap::MemMap(const char *procdir)
+{
+    FilePath path(procdir);
+
+    path.appendPath("iomem");
+    ifstream f(path.c_str());
+    if (!f)
+	throw KError(path + ": Open failed");
+
+    f.setf(std::ios::hex, std::ios::basefield);
+    while (f) {
+	if (f.peek() != ' ' && !f.eof()) {
+	    MemRange::Addr start, end;
+
+	    if (!(f >> start))
+		throw KError("Invalid resource start");
+	    if (f.get() != '-')
+		throw KError("Invalid range delimiter");
+	    if (!(f >> end))
+		throw KError("Invalid resource end");
+
+	    int c;
+	    while ((c = f.get()) == ' ');
+	    if (c != ':')
+		throw KError("Invalid resource name delimiter");
+	    while ((c = f.get()) == ' ');
+	    f.unget();
+
+	    std::string name;
+	    std::getline(f, name);
+	    if (name == "System RAM")
+		m_ranges.push_back(new MemRange(start, end));
+	} else
+	    f.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+
+    f.close();
+}
+
+// -----------------------------------------------------------------------------
+void MemMap::destroyRanges(void)
+    throw()
+{
+    List::iterator it;
+    for (it = m_ranges.begin(); it != m_ranges.end(); ++it)
+	delete *it;
+    m_ranges.clear();
+}
+
+// -----------------------------------------------------------------------------
+unsigned long long MemMap::total(void) const
+    throw ()
+{
+    List::const_iterator it;
+    unsigned long long ret = 0;
+
+    for (it = m_ranges.begin(); it != m_ranges.end(); ++it)
+	ret += (*it)->length();
+
+    return ret;
+}
+
+//}}}
 //{{{ Calibrate ----------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
@@ -673,7 +820,8 @@ void Calibrate::execute()
 	bool needsnet = config->needsNetwork();
 
 	// Get total RAM size
-	unsigned long memtotal = Util::getMemorySize();
+	MemMap mm;
+	unsigned long memtotal = shr_round_up(mm.total(), 10);
         Debug::debug()->dbg("Expected total RAM: %lu KiB", memtotal);
 
 	// Calculate boot requirements
