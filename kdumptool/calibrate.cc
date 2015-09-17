@@ -812,16 +812,16 @@ void Calibrate::execute()
 {
     Debug::debug()->trace("Calibrate::execute()");
 
+    MemMap mm;
     unsigned long required, prev;
     unsigned long pagesize = sysconf(_SC_PAGESIZE);
+    unsigned long memtotal = shr_round_up(mm.total(), 10);
 
     try {
 	Configuration *config = Configuration::config();
 	bool needsnet = config->needsNetwork();
 
 	// Get total RAM size
-	MemMap mm;
-	unsigned long memtotal = shr_round_up(mm.total(), 10);
         Debug::debug()->dbg("Expected total RAM: %lu KiB", memtotal);
 
 	// Calculate boot requirements
@@ -937,6 +937,7 @@ void Calibrate::execute()
 	required = DEF_RESERVE_KB;
     }
 
+    cout << "Total: " << (memtotal >> 10) << endl;
     cout << "Low: " << shr_round_up(required, 10) << endl;
 }
 
