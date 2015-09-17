@@ -20,8 +20,6 @@
 #include <cstring>
 #include <cstdlib>
 #include <cerrno>
-#include <fstream>
-#include <sstream>
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -35,14 +33,11 @@
 
 #include "global.h"
 #include "util.h"
-#include "stringutil.h"
 #include "debug.h"
 
 using std::string;
 using std::strerror;
 using std::getenv;
-
-#define PROC_MEMINFO	"/proc/meminfo"
 
 // -----------------------------------------------------------------------------
 std::string Util::getArch()
@@ -344,30 +339,6 @@ bool Util::isX86(const string &arch)
 {
     return arch == "i386" || arch == "i686" ||
         arch == "i586" || arch == "x86_64";
-}
-
-// -----------------------------------------------------------------------------
-unsigned long Util::getMemorySize()
-    throw (KError)
-{
-    unsigned long ret = 0;
-
-    std::ifstream fin(PROC_MEMINFO);
-    if (!fin) {
-        throw KError("Unable to read " PROC_MEMINFO);
-    }
-
-    KString s;
-    while (std::getline(fin, s)) {
-	if (s.startsWith("MemTotal:")) {
-	    std::istringstream split(s);
-	    split >> s >> ret;
-	    break;
-	}
-    }
-
-    fin.close();
-    return ret;
 }
 
 // -----------------------------------------------------------------------------

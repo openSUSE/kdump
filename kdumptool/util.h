@@ -53,12 +53,6 @@ class Util {
         static bool isX86(const std::string &arch)
         throw ();
 
-	/*
-	 * Get memory size (in KBytes)
-	 */
-	static unsigned long getMemorySize()
-	throw (KError);
-
         /**
          * Checks if the specified file is a gzip compressed file.
          *
