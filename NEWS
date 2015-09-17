@@ -1,5 +1,6 @@
 0.8.16
 ------
+  * Enhance "kdumptool calibrate" output
   * Install systemd unit file
   * Drop dependency on libssh2 (use system ssh binary for SFTP)
   * IPv6 modes for KDUMP_NETCONFIG

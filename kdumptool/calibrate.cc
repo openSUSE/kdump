@@ -937,7 +937,7 @@ void Calibrate::execute()
 	required = DEF_RESERVE_KB;
     }
 
-    cout << shr_round_up(required, 10) << endl;
+    cout << "Low: " << shr_round_up(required, 10) << endl;
 }
 
 //}}}
