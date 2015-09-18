@@ -224,6 +224,10 @@ static inline unsigned long s390x_align_memmap(unsigned long maxpfn)
 // with 4-KiB pages this covers 0.5 TiB of RAM in one cycle
 #define MAX_BITMAP_KB	MB(32)
 
+// Minimum lowmem allocation. This is 64M for swiotlb and 8M
+// for overflow, DMA buffers, etc.
+#define MINLOW_KB	MB(64 + 8)
+
 using std::cout;
 using std::endl;
 using std::ifstream;
@@ -718,6 +722,28 @@ class MemMap {
 	unsigned long long total(void) const
 	throw ();
 
+	/**
+	 * Get the size (in bytes) of the largest block up to
+	 * a given limit.
+	 *
+	 * @param[in] limit  maximum address to be considered
+	 */
+	unsigned long long largest(unsigned long long limit) const
+	throw ();
+
+	/**
+	 * Get the size (in bytes) of the largest block.
+	 */
+	unsigned long long largest(void) const
+	throw ()
+	{ return largest(std::numeric_limits<unsigned long long>::max()); }
+
+	/**
+	 * Try to allocate a block.
+	 */
+	unsigned long long find(unsigned long size, unsigned long align) const
+	throw ();
+
     private:
 
 	List m_ranges;
@@ -789,6 +815,49 @@ unsigned long long MemMap::total(void) const
 	ret += (*it)->length();
 
     return ret;
+}
+
+// -----------------------------------------------------------------------------
+unsigned long long MemMap::largest(unsigned long long limit) const
+    throw ()
+{
+    List::const_iterator it;
+    unsigned long long ret = 0;
+
+    for (it = m_ranges.begin(); it != m_ranges.end(); ++it) {
+	MemRange::Addr start, end, length;
+
+	start = (*it)->start();
+	if (start > limit)
+	    continue;
+
+	end = (*it)->end();
+	length = (end <= limit ? end : limit) - start + 1;
+	if (length > ret)
+	    ret = length;
+    }
+
+    return ret;
+}
+
+// -----------------------------------------------------------------------------
+unsigned long long MemMap::find(unsigned long size, unsigned long align) const
+    throw ()
+{
+    List::const_reverse_iterator it;
+
+    for (it = m_ranges.rbegin(); it != m_ranges.rend(); ++it) {
+	MemRange::Addr start, end;
+
+	start = (*it)->start();
+	if ((start % align) != 0)
+	    start += align - (start % align);
+	end = (*it)->end();
+	if (start + size - 1 <= end)
+	    return start;
+    }
+
+    return ~0ULL;
 }
 
 //}}}
@@ -938,7 +1007,33 @@ void Calibrate::execute()
     }
 
     cout << "Total: " << (memtotal >> 10) << endl;
+#if defined(__x86_64__)
+    unsigned long long base = mm.find(required << 10, 16UL << 20);
+    if (base < (1ULL<<32)) {
+	cout << "Low: " << shr_round_up(required, 10) << endl;
+	cout << "High: 0" << endl;
+    } else {
+	cout << "Low: 72" << endl;
+	cout << "High: " << (shr_round_up(required, 10) - 72) << endl;
+    }
+#else
     cout << "Low: " << shr_round_up(required, 10) << endl;
+    cout << "High: 0" << endl;
+#endif
+    cout << "MinLow: " << shr_round_up(MINLOW_KB, 10) << endl;
+#if defined(__x86_64__)
+    cout << "MaxLow: " << (mm.largest(1ULL<<32) >> 20) << endl;
+    cout << "MinHigh: 0" << endl;
+    cout << "MaxHigh: " << (mm.largest() >> 20) << endl;
+#else
+# if defined(__i386__)
+    cout << "MaxLow: " << (mm.largest(512ULL<<20) >> 20) << endl;
+# else
+    cout << "MaxLow: " << (mm.largest() >> 20) << endl;
+# endif
+    cout << "MinHigh: 0 " << endl;
+    cout << "MaxHigh: 0 " << endl;
+#endif
 }
 
 //}}}
