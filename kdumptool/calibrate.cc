@@ -1007,25 +1007,27 @@ void Calibrate::execute()
     }
 
     cout << "Total: " << (memtotal >> 10) << endl;
+
 #if defined(__x86_64__)
     unsigned long long base = mm.find(required << 10, 16UL << 20);
+    unsigned long low, high;
     if (base < (1ULL<<32)) {
-	cout << "Low: " << shr_round_up(required, 10) << endl;
-	cout << "High: 0" << endl;
+	low = 0;
+	high = required;
     } else {
-	cout << "Low: 72" << endl;
-	cout << "High: " << (shr_round_up(required, 10) - 72) << endl;
+	low = MINLOW_KB;
+	high = (required > low ? required - low : 0);
     }
-#else
-    cout << "Low: " << shr_round_up(required, 10) << endl;
-    cout << "High: 0" << endl;
-#endif
-    cout << "MinLow: " << shr_round_up(MINLOW_KB, 10) << endl;
-#if defined(__x86_64__)
+    cout << "Low: " << shr_round_up(low, 10) << endl;
+    cout << "High: " << shr_round_up(high, 10) << endl;
+    cout << "MinLow: " << shr_round_up(low, 10) << endl;
     cout << "MaxLow: " << (mm.largest(1ULL<<32) >> 20) << endl;
     cout << "MinHigh: 0" << endl;
     cout << "MaxHigh: " << (mm.largest() >> 20) << endl;
 #else
+    cout << "Low: " << shr_round_up(required, 10) << endl;
+    cout << "High: 0" << endl;
+    cout << "MinLow: " << shr_round_up(MINLOW_KB, 10) << endl;
 # if defined(__i386__)
     cout << "MaxLow: " << (mm.largest(512ULL<<20) >> 20) << endl;
 # else
