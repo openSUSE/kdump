@@ -175,7 +175,7 @@ static inline unsigned long s390x_align_memmap(unsigned long maxpfn)
 #define INITRD_COMPRESS	50
 
 // Estimated non-changing dynamic data (sysfs, procfs, etc.)
-#define KERNEL_DYNAMIC_KB	MB(4)
+#define KERNEL_DYNAMIC_KB	MB(8)
 
 // Default framebuffer size: 1024x768 @ 32bpp, except on mainframe
 #if defined(__s390__) || defined(__s390x__)
