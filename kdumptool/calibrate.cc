@@ -205,14 +205,15 @@ static inline unsigned long s390x_align_memmap(unsigned long maxpfn)
 
 // Userspace base requirements:
 //   systemd (PID 1)	 3 M
+//   haveged             4 M
 //   journald		 2 M
 //   the journal itself	 4 M
 //   10 * udevd		12 M
 //   kdumptool		 4 M
 //   makedumpfile	 1 M
 // -------------------------
-// TOTAL:		26 M
-#define USER_BASE_KB	MB(26)
+// TOTAL:		30 M
+#define USER_BASE_KB	MB(30)
 
 // Additional requirements when network is configured
 //   dhclient		 7 M
