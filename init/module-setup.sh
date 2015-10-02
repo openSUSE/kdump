@@ -142,6 +142,9 @@ install() {
 
     inst_hook cmdline 50 "$moddir/kdump-root.sh"
     if dracut_module_included "systemd" ; then
+	inst_binary "$moddir/device-timeout-generator" \
+	    "$systemdutildir"/system-generators/kdump-device-timeout-generator
+
 	inst_simple /lib/kdump/save_dump.sh
 	awk -v mountpoints="${kdump_mnt[*]}" '{
 		gsub(/@KDUMP_MOUNTPOINTS@/, mountpoints)
