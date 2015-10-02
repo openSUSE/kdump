@@ -9,7 +9,7 @@
 # Paths and other configuration variables
 #
 
-CONFIG=/etc/sysconfig/kdump
+KDUMP_CONFIG=/etc/sysconfig/kdump
 
 #
 # Checks whether there is a device in the system which is handled
@@ -538,7 +538,7 @@ function kdump_get_config()						   # {{{
 # Parameters:
 #   1) dest: root of the temporary area
 # Input variables:
-#   KDUMP_* variables (as sourced from $CONFIG)
+#   KDUMP_* variables (as sourced from $KDUMP_CONFIG)
 #   kdump_URL[]
 #   kdump_Protocol[]
 #   kdump_Host[]
@@ -605,7 +605,7 @@ function kdump_modify_config()						   # {{{
         print $1"=\""ENVIRON[id]"\""
     else
         print
-}' > "${dest}${CONFIG}"
+}' > "${dest}${KDUMP_CONFIG}"
 }									   # }}}
 
 #
@@ -728,7 +728,7 @@ function kdump_setup_files()						   # {{{
     #
     # create target configuration
     #
-    mkdir -p "${outdir}${CONFIG%/*}"
+    mkdir -p "${outdir}${KDUMP_CONFIG%/*}"
     kdump_modify_config "$outdir"
 
     #
