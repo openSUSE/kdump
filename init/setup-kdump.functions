@@ -639,8 +639,10 @@ function kdump_modify_multipath()					   # {{{
 {
     local -a wwids
     eval wwids="($1)"
+    local conf="/etc/multipath.conf"
+    test -e "$conf" || conf="/dev/null"
     kdumptool multipath "${wwids[@]}" \
-	< /etc/multipath.conf
+	< "$conf"
 }									   # }}}
 
 #
@@ -746,9 +748,7 @@ function kdump_setup_files()						   # {{{
     #
     # create modified multipath.conf
     #
-    if [ -e /etc/multipath.conf ] ; then
-	kdump_modify_multipath "$mpathdevs" > "${outdir}/etc/multipath.conf"
-    fi
+    kdump_modify_multipath "$mpathdevs" > "${outdir}/etc/multipath.conf"
 
     return 0
 }									   # }}}
