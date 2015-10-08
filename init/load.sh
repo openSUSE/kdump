@@ -231,13 +231,29 @@ function load_kdump_fadump()
 	return 5
     fi
 
+    local msg
+
     # The kernel fails with EINVAL if registered already
     # (see bnc#814780)
     if [ $(cat "$FADUMP_REGISTERED") != "1" ] ; then
-	echo 1 > "$FADUMP_REGISTERED"
+	local output=$( (echo 1 > "$FADUMP_REGISTERED") 2>&1)
+	local result=$?
+
+	if [ $result -eq 0 ] ; then
+	    msg="Registered fadump"
+	else
+	    msg="FAILED to register fadump: $output"
+	fi
+    else
+	msg="fadump is already registered"
     fi
 
-    return 0
+    echo "$msg"
+    if [ $((${KDUMP_VERBOSE:-0} & 1)) -gt 0 ] ; then
+	logger -i -t kdump "$msg"
+    fi
+
+    return $result
 }
 
 #
