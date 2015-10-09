@@ -88,6 +88,8 @@ SET(COMMON_SRC
     multipath.h
     calibrate.cc
     calibrate.h
+    routable.cc
+    routable.h
 )
 
 add_library(common STATIC ${COMMON_SRC})
