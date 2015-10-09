@@ -28,6 +28,8 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <errno.h>
+#include <poll.h>
+#include <time.h>
 
 #include "global.h"
 #include "routable.h"
@@ -43,6 +45,14 @@ class NetLink {
 		size_t recv_max = NETLINK_DEF_RECV_MAX);
 
 	~NetLink();
+
+	void setTimeout(int timeout)
+	throw ()
+	{ m_timeout = timeout; }
+
+	int getTimeout(void) const
+	throw ()
+	{ return m_timeout; }
 
 	int checkRoute(const struct addrinfo *ai);
 
@@ -80,6 +90,8 @@ class NetLink {
 	{ return m_message; }
 
     private:
+	int m_timeout;
+
 	int m_fd;
 	struct sockaddr_nl m_local;
 	static unsigned m_seq;
@@ -93,7 +105,7 @@ unsigned NetLink::m_seq;
 
 // -----------------------------------------------------------------------------
 NetLink::NetLink(unsigned subscribe, size_t recv_max)
-    : m_buflen(recv_max)
+    : m_timeout(-1), m_buflen(recv_max)
 {
     struct sockaddr_nl sa;
     socklen_t salen;
@@ -162,6 +174,8 @@ int NetLink::receive(const RecvCheck &rc)
     struct sockaddr_nl nladdr;
     struct iovec iov;
     struct msghdr msg;
+    struct pollfd pd;
+    struct timespec tsnow, tsend;
 
     m_message = NULL;
 
@@ -170,9 +184,32 @@ int NetLink::receive(const RecvCheck &rc)
     msg.msg_iov = &iov;
     msg.msg_iovlen = 1;
 
+    pd.fd = m_fd;
+    pd.events = POLLIN;
+
+    clock_gettime(CLOCK_MONOTONIC, &tsend);
+    tsend.tv_sec += m_timeout;
+
     while (1) {
 	struct nlmsghdr *nh;
 	ssize_t len;
+	int timeout;
+	int res;
+
+	if (m_timeout >= 0) {
+	    clock_gettime(CLOCK_MONOTONIC, &tsnow);
+	    timeout = (tsend.tv_sec - tsnow.tv_sec) * 1000;
+	    timeout += (tsend.tv_nsec - tsnow.tv_nsec) / 1000000L;
+	    if (timeout < 0)
+		return -ETIME;
+	} else
+	    timeout = -1;
+
+	res = poll(&pd, 1, timeout);
+	if (res < 0)
+	    throw KSystemError("Cannot poll netlink", errno);
+	if (!res)
+	    return -ETIME;
 
 	iov.iov_base = m_buffer;
 	iov.iov_len = m_buflen;
@@ -390,9 +427,10 @@ bool Routable::resolve(void)
 }
 
 // -----------------------------------------------------------------------------
-bool Routable::check(void)
+bool Routable::check(int timeout)
 {
     NetLink nl(RTMGRP_IPV4_ROUTE | RTMGRP_IPV6_ROUTE);
+    nl.setTimeout(timeout);
 
     while (!resolve())
 	if (nl.waitRouteChange() != 0)

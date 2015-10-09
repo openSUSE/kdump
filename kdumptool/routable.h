@@ -40,7 +40,7 @@ class Routable {
 
 	~Routable();
 
-	bool check(void);
+	bool check(int timeout);
 
     protected:
 	bool resolve(void)
