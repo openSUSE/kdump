@@ -31,6 +31,7 @@
 #include "process.h"
 #include "socket.h"
 #include "sshtransfer.h"
+#include "routable.h"
 
 using std::string;
 using std::cerr;
@@ -50,6 +51,12 @@ SSHTransfer::SSHTransfer(const RootDirURLVector &urlv,
 
     Debug::debug()->trace("SSHTransfer::SSHTransfer(%s)",
 			  target.getURL().c_str());
+
+    // Check network status
+    Configuration *config = Configuration::config();
+    Routable rt(target.getHostname());
+    if (!rt.check(config->KDUMP_NET_TIMEOUT.value()))
+	cerr << "WARNING: Dump target not reachable" << endl;
 
     string remote;
     FilePath fp = target.getPath();
@@ -358,6 +365,12 @@ SFTPTransfer::SFTPTransfer(const RootDirURLVector &urlv,
     if (urlv.size() > 1)
 	cerr << "WARNING: First dump target used; rest ignored." << endl;
     const RootDirURL &parser = urlv.front();
+
+    // Check network status
+    Configuration *config = Configuration::config();
+    Routable rt(parser.getHostname());
+    if (!rt.check(config->KDUMP_NET_TIMEOUT.value()))
+	cerr << "WARNING: Dump target not reachable" << endl;
 
     Debug::debug()->trace("SFTPTransfer::SFTPTransfer(%s)",
 			  parser.getURL().c_str());

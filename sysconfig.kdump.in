@@ -301,6 +301,17 @@ KDUMPTOOL_FLAGS=""
 #
 KDUMP_NETCONFIG="auto"
 
+## Type:        integer
+## Default:     30
+## ServiceRestart:      kdump
+#
+# Timeout for network changes. Kdumptool gives up waiting for a working
+# network setup when it does not change for the given number of seconds.
+#
+# See also: kdump(5)
+#
+KDUMP_NET_TIMEOUT=30
+
 ## Type:        string
 ## Default:     ""
 ## ServiceRestart:	kdump

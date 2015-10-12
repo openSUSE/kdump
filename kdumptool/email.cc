@@ -30,6 +30,7 @@
 #include "configuration.h"
 #include "util.h"
 #include "stringutil.h"
+#include "routable.h"
 
 using std::string;
 
@@ -212,8 +213,17 @@ void Email::send()
     Debug::debug()->dbg("Host: %s", host.c_str());
 
     // default to "smtp" (25) port instead of 587
-    if (host.find(':') == string::npos)
+    string hostname;
+    size_t colonpos = host.find(':');
+    if (colonpos == string::npos) {
+        hostname = host;
         host += ":25";
+    } else
+	hostname = host.substr(0, colonpos);
+
+    Routable rt(hostname);
+    if (!rt.check(config->KDUMP_NET_TIMEOUT.value()))
+	throw KError("SMTP server not reachable");
 
     ret = smtp_set_server(session, strdup(host.c_str()));
     if (ret == 0)

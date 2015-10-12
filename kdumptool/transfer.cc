@@ -36,6 +36,7 @@
 #include "fileutil.h"
 #include "stringutil.h"
 #include "configuration.h"
+#include "routable.h"
 
 using std::fopen;
 using std::fread;
@@ -416,6 +417,12 @@ void FTPTransfer::open(DataProvider *dataprovider,
     RootDirURLVector &urlv = getURLVector();
     const RootDirURL &parser = urlv.front();
 
+    // Check network status
+    Configuration *config = Configuration::config();
+    Routable rt(parser.getHostname());
+    if (!rt.check(config->KDUMP_NET_TIMEOUT.value()))
+	cerr << "WARNING: Dump target not reachable" << endl;
+
     // set the URL
     FilePath full_url = parser.getURL();
     full_url.appendPath(getSubDir()).appendPath(target_file);
@@ -452,6 +459,12 @@ RootDirURL NFSTransfer::translate(const RootDirURL &parser)
     // mount the NFS share
     StringVector options;
     options.push_back("nolock");
+
+    // Check network status
+    Configuration *config = Configuration::config();
+    Routable rt(parser.getHostname());
+    if (!rt.check(config->KDUMP_NET_TIMEOUT.value()))
+	cerr << "WARNING: Dump target not reachable" << endl;
 
     string mountedDir = parser.getPath();
     FileUtil::nfsmount(parser.getHostname(), mountedDir,
@@ -524,6 +537,12 @@ CIFSTransfer::CIFSTransfer(const RootDirURLVector &urlv,
 RootDirURL CIFSTransfer::translate(const RootDirURL &parser)
     throw (KError)
 {
+    // Check network status
+    Configuration *config = Configuration::config();
+    Routable rt(parser.getHostname());
+    if (!rt.check(config->KDUMP_NET_TIMEOUT.value()))
+	cerr << "WARNING: Dump target not reachable" << endl;
+
     KString share = parser.getPath();
     share.ltrim("/");
     string::size_type first_slash = share.find("/");

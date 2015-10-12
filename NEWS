@@ -1,5 +1,6 @@
 0.8.16
 ------
+  * Add a network check with configurable timeout (KDUMP_NET_TIMEOUT)
   * Enhance "kdumptool calibrate" output
   * Install systemd unit file
   * Drop dependency on libssh2 (use system ssh binary for SFTP)
