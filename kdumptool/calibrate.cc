@@ -60,6 +60,7 @@
 #if defined(__x86_64__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(16)
+# define KERNEL_INIT_KB		MB(5)
 # define INIT_KB		MB(34)
 # define INIT_NET_KB		MB(3)
 # define SIZE_STRUCT_PAGE	56
@@ -70,6 +71,7 @@
 #elif defined(__i386__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(14)
+# define KERNEL_INIT_KB		MB(4)
 # define INIT_KB		MB(29)
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	32
@@ -80,6 +82,7 @@
 #elif defined(__powerpc64__)
 # define DEF_RESERVE_KB		MB(256)
 # define KERNEL_KB		MB(16)
+# define KERNEL_INIT_KB		MB(5)
 # define INIT_KB		MB(58)
 # define INIT_NET_KB		MB(4)
 # define SIZE_STRUCT_PAGE	64
@@ -90,6 +93,7 @@
 #elif defined(__powerpc__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(12)
+# define KERNEL_INIT_KB		MB(5)
 # define INIT_KB		MB(34)
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	32
@@ -100,6 +104,7 @@
 #elif defined(__s390x__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(13)
+# define KERNEL_INIT_KB		512
 # define INIT_KB		MB(34)
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	56
@@ -112,6 +117,7 @@
 #elif defined(__s390__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(12)
+# define KERNEL_INIT_KB		512
 # define INIT_KB		MB(29)
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	32
@@ -124,6 +130,7 @@
 #elif defined(__ia64__)
 # define DEF_RESERVE_KB		MB(512)
 # define KERNEL_KB		MB(32)
+# define KERNEL_INIT_KB		MB(3)
 # define INIT_KB		MB(44)
 # define INIT_NET_KB		MB(4)
 # define SIZE_STRUCT_PAGE	56
@@ -134,6 +141,7 @@
 #elif defined(__aarch64__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(10)
+# define KERNEL_INIT_KB		MB(1)
 # define INIT_KB		MB(29)
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	56
@@ -144,6 +152,7 @@
 #elif defined(__arm__)
 # define DEF_RESERVE_KB		MB(128)
 # define KERNEL_KB		MB(12)
+# define KERNEL_INIT_KB		MB(1)
 # define INIT_KB		MB(29)
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	32
@@ -232,7 +241,7 @@ static inline unsigned long s390x_align_memmap(unsigned long maxpfn)
 // Default (pessimistic) boot-time requirements.
 // This value is used if exact calculation fails.
 #define DEF_BOOTSIZE					\
-    (KERNEL_KB +					\
+    (KERNEL_KB + KERNEL_INIT_KB +			\
      INIT_KB + INIT_NET_KB +				\
      ((INIT_KB + INIT_NET_KB) * INITRD_COMPRESS) / 100)
 
@@ -907,7 +916,7 @@ void Calibrate::execute()
 	if (needsnet)
 	    ramfs += INIT_NET_KB;
 	unsigned long initrd = (ramfs * INITRD_COMPRESS) / 100;
-	bootsize = KERNEL_KB + initrd + ramfs;
+	bootsize = KERNEL_KB + KERNEL_INIT_KB + initrd + ramfs;
         Debug::debug()->dbg("Memory needed at boot: %lu KiB", bootsize);
 
 	// Run-time kernel requirements
