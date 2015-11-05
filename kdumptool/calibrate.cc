@@ -229,6 +229,13 @@ static inline unsigned long s390x_align_memmap(unsigned long maxpfn)
 // for overflow, DMA buffers, etc.
 #define MINLOW_KB	MB(64 + 8)
 
+// Default (pessimistic) boot-time requirements.
+// This value is used if exact calculation fails.
+#define DEF_BOOTSIZE					\
+    (KERNEL_KB +					\
+     INIT_KB + INIT_NET_KB +				\
+     ((INIT_KB + INIT_NET_KB) * INITRD_COMPRESS) / 100)
+
 using std::cout;
 using std::endl;
 using std::ifstream;
@@ -886,6 +893,7 @@ void Calibrate::execute()
     unsigned long required, prev;
     unsigned long pagesize = sysconf(_SC_PAGESIZE);
     unsigned long memtotal = shr_round_up(mm.total(), 10);
+    unsigned long bootsize = DEF_BOOTSIZE;
 
     try {
 	Configuration *config = Configuration::config();
@@ -899,7 +907,7 @@ void Calibrate::execute()
 	if (needsnet)
 	    ramfs += INIT_NET_KB;
 	unsigned long initrd = (ramfs * INITRD_COMPRESS) / 100;
-	unsigned long bootsize = KERNEL_KB + initrd + ramfs;
+	bootsize = KERNEL_KB + initrd + ramfs;
         Debug::debug()->dbg("Memory needed at boot: %lu KiB", bootsize);
 
 	// Run-time kernel requirements
@@ -1018,6 +1026,8 @@ void Calibrate::execute()
     } else {
 	low = MINLOW_KB;
 	high = (required > low ? required - low : 0);
+	if (high < bootsize)
+	    high = bootsize;
     }
     cout << "Low: " << shr_round_up(low, 10) << endl;
     cout << "High: " << shr_round_up(high, 10) << endl;
