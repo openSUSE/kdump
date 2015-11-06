@@ -864,14 +864,15 @@ unsigned long long MemMap::find(unsigned long size, unsigned long align) const
     List::const_reverse_iterator it;
 
     for (it = m_ranges.rbegin(); it != m_ranges.rend(); ++it) {
-	MemRange::Addr start, end;
+	MemRange::Addr base = (*it)->end() + 1;
 
-	start = (*it)->start();
-	if ((start % align) != 0)
-	    start += align - (start % align);
-	end = (*it)->end();
-	if (start + size - 1 <= end)
-	    return start;
+	if (base < size)
+	    continue;
+
+	base -= size;
+	base -= base % align;
+	if (base >= (*it)->start())
+	    return base;
     }
 
     return ~0ULL;
