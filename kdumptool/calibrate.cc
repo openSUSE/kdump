@@ -1030,6 +1030,15 @@ void Calibrate::execute()
 #if defined(__x86_64__)
     unsigned long long base = mm.find(required << 10, 16UL << 20);
     unsigned long low, high;
+
+    Debug::debug()->dbg("Estimated crash area base: 0x%llx", base);
+
+    // If maxpfn is above 4G, SWIOTLB may be needed
+    if ((base + (required << 10)) >= (1ULL<<32)) {
+	Debug::debug()->dbg("Adding 64 MiB for SWIOTLB");
+	required += MB(64);
+    }
+
     if (base < (1ULL<<32)) {
 	low = 0;
 	high = required;
