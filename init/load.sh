@@ -159,7 +159,7 @@ function load_kdump_kexec()
         echo "Loading kdump kernel: $KEXEC_CALL"
     fi
 
-    local output=$($KEXEC_CALL 2>&1)
+    local output=$(eval "$KEXEC_CALL" 2>&1)
     if [ $? -eq 0 ] ; then
 	result=0
     else
