@@ -214,6 +214,35 @@ function kdump_bridge_config()						   # {{{
     echo -n " bridge=$iface:${slaves// /,}"
 }									   # }}}
 
+#
+# Extract the VLAN tag ID from ip link output
+#
+# Input:
+#   output of "ip -d link show"
+# Output:
+#   VLAN tag (or empty)
+function kdump_link2vlan()                                                # {{{{
+{
+    sed -n '/^ *vlan /s/.* id \([0-9]\+\).*/\1/p'
+}                                                                         # }}}
+
+#
+# Get VLAN configuration options
+#
+# Parameters:
+#   1) iface  device name
+# Output:
+#   corresponding vlan= initrd parameter and dependencies
+function kdump_vlan_config()						   # {{{
+{
+    local iface="$1"
+    local vid=$(ip -d link show "$iface" | kdump_link2vlan)
+    local slaves=$(kdump_list_slaves "$iface")
+    local if="${slaves# }"
+    kdump_ifname_config "$if"
+    echo -n " vlan=$if.$vid:$if"
+}									   # }}}
+
 # Get the ifname parameter for a given device
 #
 # Parameters:
@@ -233,6 +262,9 @@ function kdump_ifname_config()						   # {{{
 	case "$ifkind" in
 	    bridge)
 		kdump_bridge_config "$iface"
+		;;
+	    vlan)
+		kdump_vlan_config "$iface"
 		;;
 	    *)
 		return 1
