@@ -120,23 +120,20 @@ function kdump_bridge_phys_dev()					   # {{{
 {
     local ifname="$1"
 
-    if [ -d "/sys/class/net/$ifname/bridge" -a \
-            -d "/sys/class/net/$ifname/brif" ] ; then
+    [ -d "/sys/class/net/$ifname/bridge" -a \
+      -d "/sys/class/net/$ifname/brif" ] || return 1
 
-        local ifname2 count=0
-        local -a res
-        for ifname2 in "/sys/class/net/$ifname/brif"/*; do
-            case "$(readlink -f "$ifname2")" in
-            /sys/devices/virtual/*)
-                continue
-            esac
-            res[count]="${ifname2##*/}"
-            count=$(( count+1 ))
-        done
-        ifname=${res[@]}
-    fi
-
-    echo "$ifname"
+    local ifname2 count=0
+    local -a res
+    for ifname2 in "/sys/class/net/$ifname/brif"/*; do
+        case "$(readlink -f "$ifname2")" in
+        /sys/devices/virtual/*)
+            continue
+        esac
+        res[count]="${ifname2##*/}"
+        count=$(( count+1 ))
+    done
+    echo "${res[@]}"
 }									   # }}}
 
 #
@@ -202,8 +199,18 @@ function kdump_netdev_mode()						   # {{{
 function kdump_ifname_config()						   # {{{
 {
     local iface="$1"
-    local hwaddr=$(<"/sys/class/net/$iface/address")
-    [ -n "$hwaddr" ] && echo "ifname=$iface:$hwaddr"
+
+    local phys
+    if phys=$(kdump_bridge_phys_dev "$iface") ; then
+	echo -n " bridge=$iface:${phys// */,}"
+	for iface in ${phys}
+	do
+	    kdump_ifname_config "$iface"
+	done
+    else
+	local hwaddr=$(<"/sys/class/net/$iface/address")
+	[ -n "$hwaddr" ] && echo -n " ifname=$iface:$hwaddr"
+    fi
 }									   # }}}
 
 #
