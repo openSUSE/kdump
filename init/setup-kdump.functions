@@ -198,16 +198,19 @@ function kdump_list_slaves()						   # {{{
 #   1) iface  device name
 # Output:
 #   corresponding bridge= initrd parameter and dependencies
+# Output variables:
+#   iface  device name in initrd
 function kdump_bridge_config()						   # {{{
 {
-    local iface="$1"
+    local bridge="$1"
     local if slaves
 
-    for if in $(kdump_list_slaves "$iface")
+    for if in $(kdump_list_slaves "$bridge")
     do
 	kdump_ifname_config "$if" || continue
-	slaves="$slaves $if"
+	slaves="$slaves $iface"
     done
+    iface="$bridge"
     [ -n "$slaves" ] || return 1
 
     slaves="${slaves# }"
@@ -233,14 +236,20 @@ function kdump_link2vlan()                                                # {{{{
 #   1) iface  device name
 # Output:
 #   corresponding vlan= initrd parameter and dependencies
+# Output variables:
+#   iface  device name in initrd
+#
+# Because of dracut limitations for vlan interface naming, the initrd
+# interface name may be different from the original name.
 function kdump_vlan_config()						   # {{{
 {
-    local iface="$1"
-    local vid=$(ip -d link show "$iface" | kdump_link2vlan)
-    local slaves=$(kdump_list_slaves "$iface")
-    local if="${slaves# }"
+    local if="$1"
+    local vid=$(ip -d link show "$if" | kdump_link2vlan)
+    local slaves=$(kdump_list_slaves "$if")
+    if="${slaves# }"
     kdump_ifname_config "$if"
-    echo -n " vlan=$if.$vid:$if"
+    iface="$if.$vid"
+    echo -n " vlan=$iface:$if"
 }									   # }}}
 
 # Get the ifname parameter for a given device
@@ -249,9 +258,11 @@ function kdump_vlan_config()						   # {{{
 #   1) device  device name
 # Output:
 #   ifname corresponding ifname= initrd parameter (or empty)
+# Output variables:
+#   iface  device name in initrd
 function kdump_ifname_config()						   # {{{
 {
-    local iface="$1"
+    iface="$1"
     local ifkind=$(kdump_ifkind "$iface")
 
     if [ -z "$ifkind" ]

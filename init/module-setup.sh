@@ -78,7 +78,9 @@ kdump_cmdline_ip() {
 
     [ "$_if" = "default" ] && _if=$(kdump_default_netdev)
 
-    printf " %s" $(kdump_ifname_config "$_if")
+    local iface
+    kdump_ifname_config "$_if"
+    _if="$iface"
 
     if [ "$_mode" = "auto" ] ; then
 	if [ -n $(kdump_ip_config "$_if") ] ; then
