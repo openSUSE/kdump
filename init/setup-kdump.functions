@@ -108,34 +108,6 @@ function kdump_default_netdev()						   # {{{
     echo "$ifname"
 }									   # }}}
 
-# Get the underlying physical devices of a bridge.
-#
-# Virtual devices (tap or vif) are ignored.
-#
-# Parameters:
-#   1) ifname  bridge interface name
-# Output:
-#   ifnames  list of underlying physical interfaces;
-function kdump_bridge_phys_dev()					   # {{{
-{
-    local ifname="$1"
-
-    [ -d "/sys/class/net/$ifname/bridge" -a \
-      -d "/sys/class/net/$ifname/brif" ] || return 1
-
-    local ifname2 count=0
-    local -a res
-    for ifname2 in "/sys/class/net/$ifname/brif"/*; do
-        case "$(readlink -f "$ifname2")" in
-        /sys/devices/virtual/*)
-            continue
-        esac
-        res[count]="${ifname2##*/}"
-        count=$(( count+1 ))
-    done
-    echo "${res[@]}"
-}									   # }}}
-
 #
 # Determine the default network mode of a given device.
 #
@@ -190,6 +162,58 @@ function kdump_netdev_mode()						   # {{{
 }									   # }}}
 
 #
+# Get the interface kind
+#
+# Parameters:
+#   1) iface  device name
+# Output:
+#   interface kind (IFLA_INFO_KIND)
+function kdump_ifkind()							   # {{{
+{
+    ip -d link show "$1" | sed -n '3{s/^ *\([^ ]*\).*/\1/;s/.*_slave$//;p}'
+}									   # }}}
+
+#
+# Get a list of slave interfaces
+#
+# Parameters:
+#   1) iface  master device name
+# Output:
+#   list of slave interfaces
+function kdump_list_slaves()						   # {{{
+{
+    local syspath="/sys/class/net/$1/lower_"
+    local lower=$(echo ${syspath}*)
+    local if
+    for if in $lower
+    do
+	echo -n " ${if#$syspath}"
+    done
+}									   # }}}
+
+#
+# Get the bridge configuration options
+#
+# Parameters:
+#   1) iface  device name
+# Output:
+#   corresponding bridge= initrd parameter and dependencies
+function kdump_bridge_config()						   # {{{
+{
+    local iface="$1"
+    local if slaves
+
+    for if in $(kdump_list_slaves "$iface")
+    do
+	kdump_ifname_config "$if" || continue
+	slaves="$slaves $if"
+    done
+    [ -n "$slaves" ] || return 1
+
+    slaves="${slaves# }"
+    echo -n " bridge=$iface:${slaves// /,}"
+}									   # }}}
+
 # Get the ifname parameter for a given device
 #
 # Parameters:
@@ -199,17 +223,21 @@ function kdump_netdev_mode()						   # {{{
 function kdump_ifname_config()						   # {{{
 {
     local iface="$1"
+    local ifkind=$(kdump_ifkind "$iface")
 
-    local phys
-    if phys=$(kdump_bridge_phys_dev "$iface") ; then
-	echo -n " bridge=$iface:${phys// */,}"
-	for iface in ${phys}
-	do
-	    kdump_ifname_config "$iface"
-	done
-    else
+    if [ -z "$ifkind" ]
+    then
 	local hwaddr=$(<"/sys/class/net/$iface/address")
 	[ -n "$hwaddr" ] && echo -n " ifname=$iface:$hwaddr"
+    else
+	case "$ifkind" in
+	    bridge)
+		kdump_bridge_config "$iface"
+		;;
+	    *)
+		return 1
+		;;
+	esac
     fi
 }									   # }}}
 
