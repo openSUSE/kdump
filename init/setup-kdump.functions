@@ -267,7 +267,14 @@ function kdump_ifname_config()						   # {{{
 
     if [ -z "$ifkind" ]
     then
-	local hwaddr=$(<"/sys/class/net/$iface/address")
+	local hwaddr
+	local addrtype=$(<"/sys/class/net/$iface/addr_assign_type")
+	if [ "$addrtype" -eq 0 ]
+	then
+	    hwaddr=$(<"/sys/class/net/$iface/address")
+	else
+	    hwaddr=$(ethtool -P "$iface" | sed 's/^[^:]*: *//')
+	fi
 	[ -n "$hwaddr" ] && echo -n " ifname=$iface:$hwaddr"
     else
 	case "$ifkind" in
