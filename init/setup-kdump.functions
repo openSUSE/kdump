@@ -218,6 +218,44 @@ function kdump_bridge_config()						   # {{{
 }									   # }}}
 
 #
+# Get the bond configuration options
+#
+# Parameters:
+#   1) iface  device name
+# Output:
+#   corresponding bond= initrd parameter and dependencies
+# Output variables:
+#   iface  device name in initrd
+function kdump_bond_config()						   # {{{
+{
+    local bond="$1"
+    local if slaves
+
+    for if in $(kdump_list_slaves "$bond")
+    do
+	kdump_ifname_config "$if" || continue
+	slaves="$slaves $iface"
+    done
+    iface="$bond"
+    [ -n "$slaves" ] || return 1
+
+    slaves="${slaves# }"
+    local ro_keys=(
+	ad_actor_key
+	ad_aggregator
+	ad_num_ports
+	ad_partner_key
+	ad_partner_mac
+    )
+    local ro_sed="s/,\(${ro_keys[@]}\)=[^,]*//g"
+    ro_sed="${ro_sed// /\|}"
+
+    local opts=$(ip -d link show "$bond" | \
+	sed -n '3{s/^ *bond//;s/ \([^ ]*\) \([^ ]*\)/,\1=\2/g;'"$ro_sed"';p}')
+    echo -n " bond=$iface:${slaves// /,}:${opts#,}"
+}									   # }}}
+
+#
 # Extract the VLAN tag ID from ip link output
 #
 # Input:
@@ -280,6 +318,9 @@ function kdump_ifname_config()						   # {{{
 	case "$ifkind" in
 	    bridge)
 		kdump_bridge_config "$iface"
+		;;
+	    bond)
+		kdump_bond_config "$iface"
 		;;
 	    vlan)
 		kdump_vlan_config "$iface"
