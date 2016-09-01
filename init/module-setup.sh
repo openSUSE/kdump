@@ -80,7 +80,6 @@ kdump_cmdline_ip() {
 
     local iface
     kdump_ifname_config "$_if"
-    _if="$iface"
 
     if [ "$_mode" = "auto" ] ; then
 	if [ -n $(kdump_ip_config "$_if") ] ; then
@@ -95,17 +94,17 @@ kdump_cmdline_ip() {
     case "$_mode" in
 	static)
 	    printf " %s" \
-		$(kdump_ip_config "$_if") \
-		$(kdump_ip6_config "$_if")
+		$(kdump_ip_config "$_if" "$iface") \
+		$(kdump_ip6_config "$_if" "$iface")
 	    ;;
 	dhcp|dhcp4)
-	    echo " ip=${_if}:dhcp"
+	    echo " ip=${iface}:dhcp"
 	    ;;
 	dhcp6)
-	    echo " ip=${_if}:dhcp6"
+	    echo " ip=${iface}:dhcp6"
 	    ;;
 	auto6)
-	    echo " ip=${_if}:auto6"
+	    echo " ip=${iface}:auto6"
 	    ;;
 	*)
 	    derror "Wrong KDUMP_NETCONFIG mode: $_mode"

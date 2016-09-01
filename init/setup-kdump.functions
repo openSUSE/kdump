@@ -359,12 +359,14 @@ kdump_prefix2netmask() {						   # {{{
 # Get the IPv4 ip= parameter for a given device
 #
 # Parameters:
-#   1) device  device name
+#   1) iface   current interface name
+#   2) bootif  interface name in initrd
 # Output:
 #   ip configuration string that can be used for the ip= initrd parameter
 function kdump_ip_config()						   # {{{
 {
     local iface="$1"
+    local bootif="$2"
     local ipaddr peeraddr gwaddr netmask hostname
     local family cidr rest
     local prefix
@@ -389,19 +391,21 @@ function kdump_ip_config()						   # {{{
     gwaddr=$(ip route show 0/0 | sed -n 's/.* via \([^ ]*\).*/\1/p')
     hostname=$(hostname)
 
-    echo "ip=$ipaddr:$peeraddr:$gwaddr:$netmask:$hostname:$iface:none"
+    echo "ip=$ipaddr:$peeraddr:$gwaddr:$netmask:$hostname:$bootif:none"
 }									   # }}}
 
 #
 # Get the IPv6 ip= parameter for a given device
 #
 # Parameters:
-#   1) device  device name
+#   1) iface   current interface name
+#   2) bootif  interface name in initrd
 # Output:
 #   ip configuration string that can be used for the ip= initrd parameter
 function kdump_ip6_config()						   # {{{
 {
     local iface="$1"
+    local bootif="$2"
     local ipaddr peeraddr gwaddr hostname
     local family cidr rest prefix
 
@@ -425,7 +429,7 @@ function kdump_ip6_config()						   # {{{
 	    peeraddr=
         fi
 
-	echo "ip=$ipaddr:$peeraddr:$gwaddr::$hostname:$iface:none"
+	echo "ip=$ipaddr:$peeraddr:$gwaddr::$hostname:$bootif:none"
     done < <(ip -6 address show dev "$iface" permanent scope global)
 }									   # }}}
 
