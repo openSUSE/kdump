@@ -77,19 +77,10 @@ kdump_cmdline_ip() {
     fi
 
     [ "$_if" = "default" ] && _if=$(kdump_default_netdev)
+    [ "$_mode" = "auto" ] && _mode=$(kdump_netdev_mode "$_if")
 
     local iface
     kdump_ifname_config "$_if"
-
-    if [ "$_mode" = "auto" ] ; then
-	if [ -n $(kdump_ip_config "$_if") ] ; then
-	    _mode=dhcp4
-	elif [ -n $(kdump_ip6_config "$_if") ] ; then
-	    _mode=dhcp6
-	else
-	    _mode=auto6
-	fi
-    fi
 
     case "$_mode" in
 	static)
