@@ -170,7 +170,60 @@ function kdump_netdev_mode()						   # {{{
 #   interface kind (IFLA_INFO_KIND)
 function kdump_ifkind()							   # {{{
 {
-    ip -d link show "$1" | sed -n '3{s/^ *\([^ ]*\).*/\1/;s/.*_slave$//;p}'
+    local if="$1"
+
+    # ovs-system is special, because it's recognized by its name
+    if [ "$if" = "ovs-system" ]
+    then
+	echo ovs-system
+
+    # get kind using wicked if possible
+    elif [ -n "$(type -P wicked)" ]
+    then
+	local -a elems=(
+	    infiniband
+	    infiniband:child
+	    bond
+	    team
+	    ovs-bridge
+	    bridge
+	    vlan
+	    macvlan
+	    macvtap
+	    dummy
+	    wireless
+	    tun
+	    tap
+	    ipip
+	    gre
+	    sit
+	)
+	local elem opt var
+	for elem in "${elems[@]}"
+	do
+	    opt="$opt;${elem//[-:]/_}=%{$elem or false}"
+	done
+
+	var="${elems[@]}"
+	var="${var//[-:]/_}"
+	local $var
+	eval  $(wicked show-config | \
+		wicked xpath --reference "/interface[name='$if']" "${opt#;}")
+
+	for elem in "${elems[@]}"
+	do
+	    var="${elem//[-:]/_}"
+	    if [ "${!var}" = true ]
+	    then
+		echo "$elem"
+		break
+	    fi
+	done
+
+    # fall back to reading the current state via netlink
+    else
+	ip -d link show "$1" | sed -n '3{s/^ *\([^ ]*\).*/\1/;s/.*_slave$//;p}'
+    fi
 }									   # }}}
 
 #
