@@ -62,15 +62,15 @@ function kdump_route2dev()						   # {{{
 #
 # Parameters:
 #   1) ifname  network interface name
-#   2) conf    configuration XPath under /interface
+#   *) conf    wicked xpath expression(s) under /interface
 # Output:
 #   configuration value
 function kdump_wicked_conf()						   # {{{
 {
     local ifname="$1"
-    local conf="$2"
-
-    wicked show-config | wicked xpath "%{/interface[name='$ifname']/$conf}"
+    shift
+    wicked show-config | \
+	wicked xpath --reference "/interface[name='$ifname']" "$@"
 }									   # }}}
 
 #
@@ -123,10 +123,12 @@ function kdump_netdev_mode()						   # {{{
 
     # get mode using wicked if possible
     if [ -n "$(type -P wicked)" -a \
-	"$(kdump_wicked_conf "$ifname" name)" = "$ifname" ]
+	"$(kdump_wicked_conf "$ifname" "%{name}")" = "$ifname" ]
     then
-	local dhcpv4=$(kdump_wicked_conf "$ifname" ipv4:dhcp/enabled)
-	local dhcpv6=$(kdump_wicked_conf "$ifname" ipv6:dhcp/enabled)
+	local dhcpv4 dhcpv6
+	eval $( kdump_wicked_conf "$ifname" \
+		"dhcpv4=%{ipv4:dhcp/enabled}" \
+		"dhcpv6=%{ipv6:dhcp/enabled}" )
 	if [ "$dhcpv4" = true -o "$dhcpv6" = true ] ; then
 	    BOOTPROTO=dhcp
 	else
@@ -207,8 +209,7 @@ function kdump_ifkind()							   # {{{
 	var="${elems[@]}"
 	var="${var//[-:]/_}"
 	local $var
-	eval  $(wicked show-config | \
-		wicked xpath --reference "/interface[name='$if']" "${opt#;}")
+	eval $( kdump_wicked_conf "$if" "${opt#;}" )
 
 	for elem in "${elems[@]}"
 	do
@@ -340,9 +341,8 @@ function kdump_vlan_config()						   # {{{
     # use wicked to read VLAN configuration, if possible
     if [ -n "$(type -P wicked)" ]
     then
-	eval $( wicked show-config |
-		wicked xpath --reference "/interface[name='$if']" \
-		    "vid=%{vlan/tag}; if=%{vlan/device}" )
+	eval $( kdump_wicked_conf "$if" \
+		"vid=%{vlan/tag}; if=%{vlan/device}" )
     fi
 
     # fall back to sysfs
