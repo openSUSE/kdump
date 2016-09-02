@@ -258,8 +258,20 @@ function kdump_bridge_config()						   # {{{
 {
     local bridge="$1"
     local if slaves
+    local curslaves
 
-    for if in $(kdump_list_slaves "$bridge")
+    # use wicked to read VLAN configuration, if possible
+    if [ -n "$(type -P wicked)" ]
+    then
+	curslaves=$( kdump_wicked_conf "$bridge" "%{bridge/ports/port/device}" )
+    fi
+    # fall back to current configuration
+    if [ -z "$curslaves" ]
+    then
+	curslaves=$( kdump_list_slaves "$bridge" )
+    fi
+
+    for if in $curslaves
     do
 	kdump_ifname_config "$if" || continue
 	slaves="$slaves $iface"
