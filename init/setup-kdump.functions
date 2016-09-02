@@ -335,9 +335,24 @@ function kdump_link2vlan()                                                # {{{{
 function kdump_vlan_config()						   # {{{
 {
     local if="$1"
-    local vid=$(ip -d link show "$if" | kdump_link2vlan)
-    local slaves=$(kdump_list_slaves "$if")
-    if="${slaves# }"
+    local vid
+
+    # use wicked to read VLAN configuration, if possible
+    if [ -n "$(type -P wicked)" ]
+    then
+	eval $( wicked show-config |
+		wicked xpath --reference "/interface[name='$if']" \
+		    "vid=%{vlan/tag}; if=%{vlan/device}" )
+    fi
+
+    # fall back to sysfs
+    if [ -z "$vid" ]
+    then
+	vid=$(ip -d link show "$if" | kdump_link2vlan)
+	local slaves=$(kdump_list_slaves "$if")
+	if="${slaves# }"
+    fi
+
     kdump_ifname_config "$if"
     iface="$if.$vid"
     echo -n " vlan=$iface:$if"
