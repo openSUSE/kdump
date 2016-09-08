@@ -18,6 +18,7 @@
  */
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <cerrno>
 #include <cstring>
@@ -449,7 +450,17 @@ bool FilterDots::test(int dirfd, const struct dirent *d) const
 // -----------------------------------------------------------------------------
 bool FilterDotsAndNondirs::test(int dirfd, const struct dirent *d) const
 {
-    return FilterDots::test(dirfd, d) && d->d_type == DT_DIR;
+    if (!FilterDots::test(dirfd, d))
+        return false;
+    if (d->d_type == DT_DIR)
+        return true;
+    if (d->d_type != DT_UNKNOWN)
+        return false;
+
+    struct stat mystat;
+    if (fstatat(dirfd, d->d_name, &mystat, AT_SYMLINK_NOFOLLOW) != 0)
+        return false;
+    return S_ISDIR(mystat.st_mode);
 }
 //}}}
 
