@@ -989,7 +989,33 @@ function kdump_init_dirs()						   # {{{
 	d="${kdump_Realpath[i]}"
 	ln -snf "${d#/}" "${root}/kdump/${kdump_URL[i]}"
     done
-}
+}									   # }}}
+
+#
+# Filter out problematic sysctl settings
+# Parameters:
+#   1) root:     initrd temporary root
+function kdump_filter_sysctl()						   # {{{
+{
+    local root="$1"
+
+    local restoreopt=$( shopt -p nullglob )
+    shopt -s nullglob
+
+    for f in \
+	"$root"/boot/sysctl.conf-* \
+	"$root"/run/sysctl.d/*.conf \
+	"$root"/etc/sysctl.d/*.conf \
+	"$root"/usr/local/lib/sysctl.d/*.conf \
+	"$root"/usr/lib/sysctl.d/*.conf \
+	"$root"/lib/sysctl.d/*.conf \
+	"$root"/etc/sysctl.conf
+    do
+	sed -i -e '/^[ \t]*vm\./d' "$f"
+    done
+
+    eval "$restoreopt"
+}									   # }}}
 
 #
 # Set up or create all necessary files
@@ -1035,6 +1061,11 @@ function kdump_setup_files()						   # {{{
     # create modified multipath.conf
     #
     kdump_modify_multipath "$mpathdevs" > "${outdir}/etc/multipath.conf"
+
+    #
+    # filter out problematic sysctl settings
+    #
+    kdump_filter_sysctl "$outdir"
 
     return 0
 }									   # }}}
