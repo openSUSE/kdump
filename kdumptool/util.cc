@@ -235,12 +235,39 @@ static off_t FindElfNoteByName(int fd, off_t offset, size_t sz,
 // -----------------------------------------------------------------------------
 #define ELF_HEADER_MAPSIZE          (128*1024)
 
+static void *map_elf(int fd, size_t len)
+{
+    void *map;
+    map = mmap(NULL, len, PROT_READ, MAP_PRIVATE, fd, 0);
+    if (map == MAP_FAILED) {
+	map = mmap(NULL, len, PROT_READ | PROT_WRITE,
+		   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+	if (map == MAP_FAILED)
+	    throw KSystemError("Cannot allocate ELF headers", errno);
+
+	size_t to_read = len;
+	char *p = reinterpret_cast<char *>(map);
+	while (to_read) {
+	    ssize_t bytes_read = read(fd, p, to_read);
+	    if (bytes_read < 0)
+		throw KSystemError("ELF read error", errno);
+	    else if (!bytes_read)
+		break;
+
+	    to_read -= bytes_read;
+	    p += bytes_read;
+	}
+    }
+    return map;
+}
+
 bool Util::isXenCoreDump(int fd)
     throw (KError)
 {
     void *map = MAP_FAILED;
     Elf *elf = (Elf*)0;
     bool ret = false;
+    size_t mapsize = ELF_HEADER_MAPSIZE;
 
     Debug::debug()->trace("isXenCoreDump(%d)", fd);
 
@@ -248,39 +275,43 @@ bool Util::isXenCoreDump(int fd)
         throw KError("libelf is out of date.");
 
     try {
-        map = mmap(NULL, ELF_HEADER_MAPSIZE, PROT_READ, MAP_PRIVATE, fd, 0);
-        if (map == MAP_FAILED) {
-            map = mmap(NULL, ELF_HEADER_MAPSIZE, PROT_READ,
-                       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-            if (map == MAP_FAILED)
-                throw KSystemError("Cannot allocate ELF headers", errno);
-
-            size_t to_read = ELF_HEADER_MAPSIZE;
-            char *p = reinterpret_cast<char *>(map);
-            while (to_read) {
-                ssize_t bytes_read = read(fd, p, to_read);
-                if (bytes_read < 0)
-                    throw KSystemError("ELF read error", errno);
-                else if (!bytes_read)
-                    break;
-
-                to_read -= bytes_read;
-                p += bytes_read;
-            }
-        }
-        elf = elf_memory(reinterpret_cast<char *>(map), ELF_HEADER_MAPSIZE);
+        map = map_elf(fd, mapsize);
+        elf = elf_memory(reinterpret_cast<char *>(map), mapsize);
         if (!elf)
             throw KELFError("elf_memory() failed", elf_errno());
 
         if (elf_kind(elf) != ELF_K_ELF)
             return false;
 
+        size_t endphdr;
+        Elf32_Ehdr *ehdr32;
+        Elf64_Ehdr *ehdr64;
+
         switch (gelf_getclass(elf)) {
         case ELFCLASS32:
+            ehdr32 = reinterpret_cast<Elf32_Ehdr*>(map);
+            endphdr = ehdr32->e_phoff + ehdr32->e_phentsize * ehdr32->e_phnum;
+            break;
         case ELFCLASS64:
+            ehdr64 = reinterpret_cast<Elf64_Ehdr*>(map);
+            endphdr = ehdr64->e_phoff + ehdr64->e_phentsize * ehdr64->e_phnum;
             break;
         default:
             throw KError("Unrecognized ELF class");
+        }
+
+        if (endphdr > mapsize) {
+            elf_end(elf);
+            munmap(map, mapsize);
+
+            long pagesize = sysconf(_SC_PAGESIZE);
+            mapsize = (endphdr + pagesize - 1) & ~(pagesize - 1);
+            Debug::debug()->dbg("Enlarging map size to %zu bytes", mapsize);
+
+            map = map_elf(fd, mapsize);
+            elf = elf_memory(reinterpret_cast<char *>(map), mapsize);
+            if (!elf)
+                throw KELFError("elf_memory() failed", elf_errno());
         }
 
         size_t phnum, i;
@@ -304,11 +335,11 @@ bool Util::isXenCoreDump(int fd)
         if (elf)
             elf_end(elf);
         if (map != MAP_FAILED)
-            munmap(map, ELF_HEADER_MAPSIZE);
+            munmap(map, mapsize);
         throw;
     }
 
-    munmap(map, ELF_HEADER_MAPSIZE);
+    munmap(map, mapsize);
     elf_end(elf);
     return ret;
 }
