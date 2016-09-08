@@ -433,7 +433,7 @@ class Framebuffers {
 		virtual ~DirFilter()
 		{}
 
-		bool test(const struct dirent *d) const
+		bool test(int dirfd, const struct dirent *d) const
 		{
 		    char *end;
 		    if (strncmp(d->d_name, "fb", 2))

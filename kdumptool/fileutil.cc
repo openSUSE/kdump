@@ -312,7 +312,7 @@ StringVector FilePath::listDir(const ListDirFilter &filter) const
 
 	errno = 0;
 	while ( (d = readdir(dirp)) ) {
-	    if (filter.test(d))
+	    if (filter.test(dirfd(dirp), d))
 		v.push_back(d->d_name);
 	    errno = 0;
 	}
@@ -433,7 +433,7 @@ void FilePath::rmdir(bool recursive)
 //{{{ FilterDots ---------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-bool FilterDots::test(const struct dirent *d) const
+bool FilterDots::test(int dirfd, const struct dirent *d) const
 {
     if (strcmp(d->d_name, ".") == 0)
         return false;
@@ -447,24 +447,24 @@ bool FilterDots::test(const struct dirent *d) const
 //{{{ FilterDotsAndNondirs -----------------------------------------------------
 
 // -----------------------------------------------------------------------------
-bool FilterDotsAndNondirs::test(const struct dirent *d) const
+bool FilterDotsAndNondirs::test(int dirfd, const struct dirent *d) const
 {
-    return FilterDots::test(d) && d->d_type == DT_DIR;
+    return FilterDots::test(dirfd, d) && d->d_type == DT_DIR;
 }
 //}}}
 
 //{{{ FilterKdumpDirs ----------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-bool FilterKdumpDirs::test(const struct dirent *d) const
+bool FilterKdumpDirs::test(int dirfd, const struct dirent *d) const
 {
-    if (!FilterDotsAndNondirs::test(d))
+    if (!FilterDotsAndNondirs::test(dirfd, d))
 	return false;
 
-    FilePath vmcore(m_path);
-    vmcore.appendPath(d->d_name);
+    struct stat mystat;
+    FilePath vmcore(d->d_name);
     vmcore.appendPath("vmcore");
-    return vmcore.exists();
+    return fstatat(dirfd, vmcore.c_str(), &mystat, 0) == 0;
 }
 //}}}
 

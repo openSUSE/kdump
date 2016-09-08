@@ -91,7 +91,7 @@ class ListDirFilter {
 	virtual ~ListDirFilter()
 	{}
 
-	virtual bool test(const struct dirent *d) const = 0;
+	virtual bool test(int dirfd, const struct dirent *d) const = 0;
 };
 //}}}
 //{{{ FilePath -----------------------------------------------------------------
@@ -267,7 +267,7 @@ class FilterDots : public ListDirFilter {
 	virtual ~FilterDots()
 	{}
 
-	bool test(const struct dirent *d) const;
+	bool test(int dirfd, const struct dirent *d) const;
 };
 //}}}
 //{{{ FilterDotsAndNondirs -----------------------------------------------------
@@ -277,24 +277,17 @@ class FilterDotsAndNondirs : public FilterDots {
 	virtual ~FilterDotsAndNondirs()
 	{}
 
-	bool test(const struct dirent *d) const;
+	bool test(int dirfd, const struct dirent *d) const;
 };
 //}}}
 //{{{ FilterKdumpDirs ----------------------------------------------------------
 class FilterKdumpDirs : public FilterDotsAndNondirs {
 
     public:
-	FilterKdumpDirs(const std::string &path)
-	    : m_path(path)
-	{}
-
 	virtual ~FilterKdumpDirs()
 	{}
 
-	bool test(const struct dirent *d) const;
-
-    private:
-	const std::string m_path;
+	bool test(int dirfd, const struct dirent *d) const;
 };
 //}}}
 //{{{ Functions ----------------------------------------------------------------

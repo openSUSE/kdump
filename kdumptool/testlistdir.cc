@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     else if (mode == "dirs")
 	filt = new FilterDotsAndNondirs();
     else if (mode == "kdumpdirs")
-	filt = new FilterKdumpDirs(dir);
+	filt = new FilterKdumpDirs();
     else {
 	cerr << "Mode must be one of: 'all', 'dirs', 'kdumpdirs'" << endl;
 	return EXIT_FAILURE;
