@@ -23,6 +23,7 @@ KERNELVERSION=
 FORCE=0
 QUIET=0
 MKINITRD_EXTRA_PARAMS=
+DRACUT=/usr/bin/dracut
 
 #
 # Prints usage.                                                              {{{
@@ -138,7 +139,7 @@ function run_dracut()
 
     DRACUT_ARGS="$DRACUT_ARGS --add 'kdump' $INITRD $KERNELVERSION"
     echo "Regenerating kdump initrd ..." >&2
-    eval "bash -$- dracut $DRACUT_ARGS"
+    eval "bash -$- $DRACUT $DRACUT_ARGS"
 }                                                                          # }}}
 
 
@@ -224,7 +225,7 @@ if (( ! $FORCE )) ; then
     fi
 fi
 
-if type dracut >/dev/null 2>&1 ; then
+if [ -e $DRACUT ] ; then
     run_dracut
     ret=$?
 else
