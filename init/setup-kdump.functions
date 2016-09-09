@@ -692,7 +692,7 @@ function kdump_read_mounts()						   # {{{
     local proc_mounts=/proc/mounts
     test -e "$proc_mounts" || proc_mounts=
     sed -e 's/[ \t][ \t]*/\t/g;s/^\t//;/^$/d;/^#/d' \
-        /etc/fstab "$proc_mounts"
+        "$proc_mounts" /etc/fstab
 }									   # }}}
 
 #
@@ -772,7 +772,7 @@ function kdump_get_mountpoints()					   # {{{
             realpath="${kdump_Realpath[i]}"
             if [ \( "$protocol" = "file" -o "$protocol" = "srcfile" \) -a \
 		"${realpath#$mountpoint}" != "$realpath" -a \
-		"${#mountpoint}" -gt "${#curmp[i]}" ] ; then
+		"${#mountpoint}" -ge "${#curmp[i]}" ] ; then
 		curmp[i]="$mountpoint"
 		mntdev[i]="$device"
 		mntfstype[i]="$filesystem"
