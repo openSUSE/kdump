@@ -112,6 +112,11 @@ cmdline() {
     kdump_cmdline_ip
 }
 
+installkernel() {
+    [ -n "$kdump_kmods" ] || return 0
+    hostonly='' instmods $kdump_kmods
+}
+
 install() {
     if [[ $hostonly_cmdline == "yes" ]] ; then
         local _cmdline=$(cmdline)

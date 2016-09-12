@@ -253,6 +253,7 @@ function kdump_list_slaves()						   # {{{
 # Output variables:
 #   kdump_netif  corresponding bridge= initrd parameter added
 #   kdump_iface  device name in initrd
+#   kdump_kmods  additional kernel modules updated
 function kdump_bridge_config()						   # {{{
 {
     local bridge="$1"
@@ -278,6 +279,7 @@ function kdump_bridge_config()						   # {{{
     kdump_iface="$bridge"
     [ -n "$slaves" ] || return 1
 
+    kdump_kmods="$kdump_kmods bridge"
     slaves="${slaves# }"
     kdump_netif="$kdump_netif bridge=$kdump_iface:${slaves// /,}"
 }									   # }}}
@@ -290,6 +292,7 @@ function kdump_bridge_config()						   # {{{
 # Output variables:
 #   kdump_netif  corresponding bond= initrd parameter added
 #   kdump_iface  device name in initrd
+#   kdump_kmods  additional kernel modules updated
 function kdump_bond_config()						   # {{{
 {
     local bond="$1"
@@ -392,6 +395,7 @@ function kdump_bond_config()						   # {{{
     [ -n "$slaves" ] || return 1
     slaves="${slaves# }"
 
+    kdump_kmods="$kdump_kmods bonding"
     kdump_netif="$kdump_netif bond=$kdump_iface:${slaves// /,}:${opts#,}"
 }									   # }}}
 
@@ -415,6 +419,7 @@ function kdump_link2vlan()                                                # {{{{
 # Output variables:
 #   kdump_netif  corresponding vlan= initrd parameter added
 #   kdump_iface  device name in initrd
+#   kdump_kmods  additional kernel modules updated
 #
 # Because of dracut limitations for vlan interface naming, the initrd
 # interface name may be different from the original name.
@@ -438,6 +443,7 @@ function kdump_vlan_config()						   # {{{
 	if="${slaves# }"
     fi
 
+    kdump_kmods="$kdump_kmods 8021q"
     kdump_ifname_config "$if"
     kdump_iface="$if.$vid"
     kdump_netif="$kdump_netif vlan=$kdump_iface:$if"
@@ -450,6 +456,7 @@ function kdump_vlan_config()						   # {{{
 # Output variables:
 #   kdump_netif  corresponding ifname= initrd parameter added
 #   kdump_iface  device name in initrd
+#   kdump_kmods  additional kernel modules updated
 function kdump_ifname_config()						   # {{{
 {
     kdump_iface="$1"
