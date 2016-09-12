@@ -253,7 +253,7 @@ function kdump_list_slaves()						   # {{{
 # Output:
 #   corresponding bridge= initrd parameter and dependencies
 # Output variables:
-#   iface  device name in initrd
+#   kdump_iface  device name in initrd
 function kdump_bridge_config()						   # {{{
 {
     local bridge="$1"
@@ -274,13 +274,13 @@ function kdump_bridge_config()						   # {{{
     for if in $curslaves
     do
 	kdump_ifname_config "$if" || continue
-	slaves="$slaves $iface"
+	slaves="$slaves $kdump_iface"
     done
-    iface="$bridge"
+    kdump_iface="$bridge"
     [ -n "$slaves" ] || return 1
 
     slaves="${slaves# }"
-    echo -n " bridge=$iface:${slaves// /,}"
+    echo -n " bridge=$kdump_iface:${slaves// /,}"
 }									   # }}}
 
 #
@@ -291,7 +291,7 @@ function kdump_bridge_config()						   # {{{
 # Output:
 #   corresponding bond= initrd parameter and dependencies
 # Output variables:
-#   iface  device name in initrd
+#   kdump_iface  device name in initrd
 function kdump_bond_config()						   # {{{
 {
     local bond="$1"
@@ -388,13 +388,13 @@ function kdump_bond_config()						   # {{{
     for if in $curslaves
     do
 	kdump_ifname_config "$if" || continue
-	slaves="$slaves $iface"
+	slaves="$slaves $kdump_iface"
     done
-    iface="$bond"
+    kdump_iface="$bond"
     [ -n "$slaves" ] || return 1
     slaves="${slaves# }"
 
-    echo -n " bond=$iface:${slaves// /,}:${opts#,}"
+    echo -n " bond=$kdump_iface:${slaves// /,}:${opts#,}"
 }									   # }}}
 
 #
@@ -417,7 +417,7 @@ function kdump_link2vlan()                                                # {{{{
 # Output:
 #   corresponding vlan= initrd parameter and dependencies
 # Output variables:
-#   iface  device name in initrd
+#   kdump_iface  device name in initrd
 #
 # Because of dracut limitations for vlan interface naming, the initrd
 # interface name may be different from the original name.
@@ -442,8 +442,8 @@ function kdump_vlan_config()						   # {{{
     fi
 
     kdump_ifname_config "$if"
-    iface="$if.$vid"
-    echo -n " vlan=$iface:$if"
+    kdump_iface="$if.$vid"
+    echo -n " vlan=$kdump_iface:$if"
 }									   # }}}
 
 # Get the ifname parameter for a given device
@@ -453,33 +453,33 @@ function kdump_vlan_config()						   # {{{
 # Output:
 #   ifname corresponding ifname= initrd parameter (or empty)
 # Output variables:
-#   iface  device name in initrd
+#   kdump_iface  device name in initrd
 function kdump_ifname_config()						   # {{{
 {
-    iface="$1"
-    local ifkind=$(kdump_ifkind "$iface")
+    kdump_iface="$1"
+    local ifkind=$(kdump_ifkind "$kdump_iface")
 
     if [ -z "$ifkind" ]
     then
 	local hwaddr
-	local addrtype=$(<"/sys/class/net/$iface/addr_assign_type")
+	local addrtype=$(<"/sys/class/net/$kdump_iface/addr_assign_type")
 	if [ "$addrtype" -eq 0 ]
 	then
-	    hwaddr=$(<"/sys/class/net/$iface/address")
+	    hwaddr=$(<"/sys/class/net/$kdump_iface/address")
 	else
-	    hwaddr=$(ethtool -P "$iface" | sed 's/^[^:]*: *//')
+	    hwaddr=$(ethtool -P "$kdump_iface" | sed 's/^[^:]*: *//')
 	fi
-	[ -n "$hwaddr" ] && echo -n " ifname=$iface:$hwaddr"
+	[ -n "$hwaddr" ] && echo -n " ifname=$kdump_iface:$hwaddr"
     else
 	case "$ifkind" in
 	    bridge)
-		kdump_bridge_config "$iface"
+		kdump_bridge_config "$kdump_iface"
 		;;
 	    bond)
-		kdump_bond_config "$iface"
+		kdump_bond_config "$kdump_iface"
 		;;
 	    vlan)
-		kdump_vlan_config "$iface"
+		kdump_vlan_config "$kdump_iface"
 		;;
 	    *)
 		return 1
