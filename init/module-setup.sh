@@ -80,6 +80,7 @@ kdump_cmdline_ip() {
     [ "$_mode" = "auto" ] && _mode=$(kdump_netdev_mode "$_if")
 
     kdump_ifname_config "$_if"
+    echo -n "$kdump_netif"
 
     case "$_mode" in
 	static)
