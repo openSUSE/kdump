@@ -18,6 +18,26 @@ kdump_check_net() {
 
     # network explicitly disabled in configuration?
     [ -z "$KDUMP_NETCONFIG" ] && kdump_neednet=
+
+    [ "$kdump_neednet" = y ] || return 0
+
+    if [ "$KDUMP_NETCONFIG" = "auto" ] ; then
+	kdump_host_if=default
+	kdump_net_mode=auto
+    else
+	set -- ${KDUMP_NETCONFIG//:/ }
+	kdump_host_if=$1
+	kdump_net_mode=$2
+    fi
+
+    if [ "$kdump_host_if" = "default" ] ; then
+	kdump_host_if=$(kdump_default_netdev)
+    fi
+    if [ "$kdump_net_mode" = "auto" ] ; then
+	kdump_net_mode=$(kdump_netdev_mode "$kdump_host_if")
+    fi
+
+    kdump_ifname_config "$kdump_host_if"
 }
 
 check() {
@@ -65,28 +85,13 @@ kdump_cmdline_ip() {
     [ "$kdump_neednet" = y ] || return 0
 
     echo -n "rd.neednet=1"
-
-    local _if _mode
-    if [ "$KDUMP_NETCONFIG" = "auto" ] ; then
-	_if=default
-	_mode=auto
-    else
-	set -- ${KDUMP_NETCONFIG//:/ }
-	local _if=$1
-	local _mode=$2
-    fi
-
-    [ "$_if" = "default" ] && _if=$(kdump_default_netdev)
-    [ "$_mode" = "auto" ] && _mode=$(kdump_netdev_mode "$_if")
-
-    kdump_ifname_config "$_if"
     echo -n "$kdump_netif"
 
-    case "$_mode" in
+    case "$kdump_net_mode" in
 	static)
 	    printf " %s" \
-		$(kdump_ip_config "$_if" "$kdump_iface") \
-		$(kdump_ip6_config "$_if" "$kdump_iface")
+		$(kdump_ip_config "$kdump_host_if" "$kdump_iface") \
+		$(kdump_ip6_config "$kdump_host_if" "$kdump_iface")
 	    ;;
 	dhcp|dhcp4)
 	    echo " ip=${kdump_iface}:dhcp"
@@ -98,7 +103,7 @@ kdump_cmdline_ip() {
 	    echo " ip=${kdump_iface}:auto6"
 	    ;;
 	*)
-	    derror "Wrong KDUMP_NETCONFIG mode: $_mode"
+	    derror "Wrong KDUMP_NETCONFIG mode: $kdump_net_mode"
 	    ;;
     esac
 }
