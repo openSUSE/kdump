@@ -294,7 +294,19 @@ if [ $((${KDUMP_VERBOSE:-0} & 16)) -gt 0 ] ; then
 fi
 
 find_kernel || exit 6
-rebuild_kdumprd || exit 1
+if [ "$1" = "--update" ] ; then
+    before=$(stat -c %Y $kdump_initrd 2> /dev/null)
+    rebuild_kdumprd || exit 1
+    after=$(stat -c %Y $kdump_initrd)
+
+    # If the initial ram disk was not updated,
+    # do not execute kexec again. This script
+    # is called from kdump.service and
+    # kdump-rebuild-initrd.service.
+    if [ "$before" = "$after" ] ; then
+        exit 0
+    fi
+fi
 
 if [ "$KDUMP_FADUMP" = "yes" ] ; then
     load_kdump_fadump

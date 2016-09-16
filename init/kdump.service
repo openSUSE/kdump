@@ -1,6 +1,7 @@
 [Unit]
 Description=Load kdump kernel on startup
 After=local-fs.target
+Wants=kdump-rebuild-initrd.service
 
 [Service]
 Type=oneshot

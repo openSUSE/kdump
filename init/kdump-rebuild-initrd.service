@@ -1,0 +1,12 @@
+[Unit]
+Description=Reload kdump kernel and updated initrd after the network is configured
+After=local-fs.target network.service YaST2-Second-Stage.service YaST2-Firstboot.service
+
+[Service]
+Type=oneshot
+ExecStart=/lib/kdump/load.sh --update
+ExecStop=/lib/kdump/unload.sh
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target
