@@ -1,8 +1,11 @@
 0.8.16
 ------
   * Add a network check with configurable timeout (KDUMP_NET_TIMEOUT)
+  * Improve network setup (VLANs, bridges, bonding)
+  * Get network configuration from wicked if possible
   * Enhance "kdumptool calibrate" output
   * Install systemd unit file
+  * Add a separate systemd service to rebuild kdumprd at boot
   * Drop dependency on libssh2 (use system ssh binary for SFTP)
   * IPv6 modes for KDUMP_NETCONFIG
   * Honour KDUMP_IMMEDIATE_REBOOT with fadump
@@ -11,6 +14,7 @@
   * Override kdump device systemd job timeout (using rd.timeout)
   * Take framebuffer size into account for calibrate
   * Take constant-size slabs (ACPI and ftrace) into account for calibrate
+  * Security: use full path to dracut in mkdumprd (CVE-2016-5759)
   * Bugfix: use device from /etc/fstab to mount / and /boot
   * Bugfix: use proper regexp in multipath.conf
 
