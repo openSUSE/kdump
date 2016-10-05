@@ -317,12 +317,13 @@ Default: "5"
 KDUMP_FREE_DISK_SIZE
 ~~~~~~~~~~~~~~~~~~~~
 
-Don't save the dump (or delete it afterwards) if after saving the dump less than
-KDUMP_FREE_DISK_SIZE megabytes are free. Because when dump compression or dump
-filtering (see KDUMP_DUMPLEVEL and KDUMP_DUMPFORMAT) is used, we don't know in
-advance how large the dump will be, we have to delete the dump after saving it.
+Make sure that at least KDUMP_FREE_DISK_SIZE megabytes are free on the target
+partition after saving the dump file. Since the target dump file size may not
+be known (because of compression and/or filtering), *kdump* always attempts to
+save the dump, but checks remaining free space afterwards and deletes the dump
+directory again if remaining space is less than the value specified here.
 
-That option applies only to local file systems, i.e. KDUMP_SAVEDIR must start
+This option applies only to local file systems, i.e. KDUMP_SAVEDIR must start
 with _file_.
 
 Default: "64"
@@ -684,7 +685,7 @@ File Transfer Protocol (_ftp_)
 
 This URL type is used to specify paths on a remote FTP server.
 
-_Format:_ *ftp*://[_user_[:__password__]@]_hostname_[:__port__]]/_path_
+_Format:_ *ftp*://[_user_[:__password__]@]_hostname_[:__port__]/_path_
 
 The remote _user_ is optional, if no user is specified, anonymous FTP is
 assumed. Even if a username is specified, the _password_ is optional, if no
@@ -693,7 +694,7 @@ password is specified, an empty password is used. When the username is
 servers deny anonymous FTP with empty passwords.
 
 _hostname_ can be either a (DNS-)resolvable hostname, with or without a domain
-name, or an IP address in totted decimal format. _port_ can be used to
+name, or an IP address in dotted decimal format. _port_ can be used to
 specify the remote port, if no port is specified in the URL, the default FTP
 port is used. Finally, _path_ must conform to the same rules as for local
 files (see above).
@@ -714,34 +715,76 @@ SFTP. It's important that an SFTP server must be running (which is the default
 on SUSE), the *kdumptool* does not use FISH (FIles transferred over SHell
 protocol).
 
-_Format:_ *sftp*://[_user_[:__password__]@]_hostname_[:__port__]]/_path_
+_Format:_ *sftp*://\[__user__@]_hostname_[:__port__]/_path_
 
-It's valid to use "scp" as alias for "sftp" (for backward
-compatibility), but the "sftp" prefix is recommended.
+It's possible to use "scp" as an alias for "sftp" (for backward compatibility),
+but it is a misnomer; *kdumptool* does not implement the SCP protocol and it
+will use SFTP instead.
 
-For the elements, see the description of FTP above. Please note that the use of
-an password here is not recommended. The recommended way is to add the key where
-the file should be copied to to the "authorized_keys" file of the user where the
-dump is saved. For example, if you want to save the dump to the "kdump" user of
-the machine "collector", then generate a private/public key pair on the machine
-that saves the dump with `ssh-keygen -t dsa`. Append the file _id_dsa.pub_ (in
-_root/.ssh/_) to _~dump/.ssh/authorized_keys_ on "collector".
+See the description of FTP for an explanation of the _hostname_ and _port_
+elements.
 
+After a system crash, the crashed machine first verifies the identity of the
+target host to make sure it does not save the dump to an imposter. Then the
+target host verifies the identity of the crashed machine. SSH private/public
+key pairs are used in both cases.
+
+Server Identification
+^^^^^^^^^^^^^^^^^^^^^
+
+Since system dumps may contain sensitive information, *kdump* uses strict
+host key checking for the target server. The SSH client must have a copy
+of the public part of the target server's host key. The copy is kept in a
+known_hosts file on the client. *Kdump* will use the key found in
++~root/.ssh/known_hosts+ when the kdump initrd is generated.
+
+Client Authentication
+^^^^^^^^^^^^^^^^^^^^^
+
+The crashed system uses root's private SSH key to login to the target system.
+The public part of that key must be copied to the target user's
++~/.ssh/authorized_keys+ on the target host.
+
+Example Setup
+^^^^^^^^^^^^^
+
+To set up _crasher_ for saving dumps over SFTP to _dump@collector_, follow
+these steps:
+
+1. Add the target host public key to +~root/.ssh/known_hosts+ on _crasher_,
+   e.g.:
++
 --------------------------------------------------------------------------------
-root@earth:~# ssh-keygen -t dsa
-...
-root@earth:~# cat /root/.ssh/id_dsa.pub \
-        | ssh kdump@collector "cat - >> /root/.ssh/authorized_keys"
+root@crasher:~# ssh-keyscan -t rsa,ecdsa,ed25519 collector \
+	>> ~/.ssh/known_hosts
 --------------------------------------------------------------------------------
++
+*WARNING:* Note that the above command accepts the identity of _collector_
+without any checking that it is genuine. This is a security risk unless the
+network connection between _crasher_ and _collector_ can be fully trusted when
+you run this command.
 
-Don't use any password to encrypt the key. *kdumptool* is designed to be used
+2. Generate a private/public key pair for the _root_ user on _crasher_, e.g.
+   to make a 4096-bit RSA key, run this as _root_:
++
+--------------------------------------------------------------------------------
+root@crasher:~# ssh-keygen -t rsa -b 4096 -N "" -f ~/.ssh/id_rsa
+--------------------------------------------------------------------------------
++
+Do not use any password to encrypt the key. *kdumptool* is designed to be used
 non-interactively.
+
+3. Append the content of +\~.ssh/id_rsa.pub+ to +~dump/.ssh/authorized_keys+
+   on _collector_:
++
+--------------------------------------------------------------------------------
+root@crasher:~# ssh-copy-id dump@collector
+--------------------------------------------------------------------------------
 
 _Examples:_
 
-* +sftp://kdump@collector:22/var/log/dump+
+* +sftp://dump@collector:22/var/log/dump+
 * +sftp://neptunium/var/log/dump+
-* +scp://neptunium/var/log/dump+
 
 
 Secure Shell Protocol (_ssh_)
@@ -750,12 +793,13 @@ Secure Shell Protocol (_ssh_)
 Unlike the _sftp_ URL type, this protocol does not use SFTP, but rather
 transfers the data to a remote *dd* command.
 
-_Format:_ *ssh*://[_user_[__password__]@]_hostname_[:__port__]]/_path_
+_Format:_ *ssh*://\[__user__@]_hostname_[:__port__]/_path_
 
 Most of the notes for SFTP also apply to SSH, except:
 
 * SFTP need not be configured on the target host.
 * Shell access must be granted to the dump user.
+* The shell must allow execution of +mkdir+, +dd+ and +mv+.
 
 _Examples:_
 

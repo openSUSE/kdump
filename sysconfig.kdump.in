@@ -129,10 +129,14 @@ KDUMP_TRANSFER=""
 #   - a local file, for example "file:///var/log/dump" (or, deprecated,
 #     just "/var/log/dump")
 #   - a FTP server, for example "ftp://user:password@host/var/log/dump"
-#   - a SSH server, for example "ssh://user:password@host/var/log/dump"
+#   - a SFTP server, for example "sftp://user@host/var/log/dump"
+#   - a SSH server, for example "ssh://user@host/var/log/dump"
 #   - a NFS share, for example "nfs://server/export/var/log/dump"
 #   - a CIFS (SMB) share, for example
 #     "cifs://user:password@host/share/var/log/dump"
+#
+# SFTP and SSH targets use public/private key authentication, see the manual
+# page for more details on setting it up.
 #
 # See also: kdump(5) which contains an exact specification for the URL format.
 # Consider using the "yast2 kdump" module if you are unsure.
