@@ -1,0 +1,13 @@
+[Unit]
+Description=Load kdump kernel on startup
+After=local-fs.target
+Wants=kdump.service
+
+[Service]
+Type=oneshot
+ExecStart=/lib/kdump/load.sh
+ExecStop=/lib/kdump/unload.sh
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target
