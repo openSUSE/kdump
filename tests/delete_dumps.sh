@@ -47,7 +47,7 @@ fi
 
 . "$DIR/testdirs.sh"
 
-setup_testdir "$DIR/tmp" || exit 1
+setup_testdir "$DIR/tmp-delete_dumps" || exit 1
 SORTDUMPS=$( LANG= sort <(
 	IFS=$'\n'
 	echo "${TESTKDUMP[*]}"
@@ -55,17 +55,17 @@ SORTDUMPS=$( LANG= sort <(
 
 errors=0
 
-CONF="$DIR/tmp/kdump.conf"
+CONF="$DIR/tmp-delete_dumps/kdump.conf"
 
 echo "Disable delete_dumps"
 cat <<EOF >"$CONF"
-KDUMP_SAVEDIR="file:///$DIR/tmp"
+KDUMP_SAVEDIR="file:///$DIR/tmp-delete_dumps"
 KDUMP_KEEP_OLD_DUMPS=0
 EOF
 
 "$KDUMPTOOL" -F "$CONF" delete_dumps || exit 1
 for f in "${TESTKDUMP[@]}" "${TESTDIRS[@]}" "${TESTFILES[@]}"; do
-    if ! test -e "$DIR/tmp/$f"; then
+    if ! test -e "$DIR/tmp-delete_dumps/$f"; then
 	echo "$f incorrectly deleted!" >&2
 	errors=$(( $errors+1 ))
     fi
@@ -74,14 +74,14 @@ done
 echo "Keep all existing dumps"
 nkeep=${#TESTKDUMP[@]}
 cat <<EOF >"$CONF"
-KDUMP_SAVEDIR="file:///$DIR/tmp"
+KDUMP_SAVEDIR="file:///$DIR/tmp-delete_dumps"
 KDUMP_KEEP_OLD_DUMPS=$nkeep
 EOF
 
 "$KDUMPTOOL" -F "$CONF" delete_dumps || exit 1
 
 for f in "${TESTKDUMP[@]}" "${TESTDIRS[@]}" "${TESTFILES[@]}"; do
-    if ! test -e "$DIR/tmp/$f"; then
+    if ! test -e "$DIR/tmp-delete_dumps/$f"; then
 	echo "$f incorrectly deleted!" >&2
 	errors=$(( $errors+1 ))
     fi
@@ -91,7 +91,7 @@ echo "Keep all but one dump"
 
 nkeep=$(( ${#TESTKDUMP[@]} - 1 ))
 cat <<EOF >"$CONF"
-KDUMP_SAVEDIR="file:///$DIR/tmp"
+KDUMP_SAVEDIR="file:///$DIR/tmp-delete_dumps"
 KDUMP_KEEP_OLD_DUMPS=$nkeep
 EOF
 
@@ -104,14 +104,14 @@ REMOVEDUMP=( $( echo "$SORTDUMPS" | head -n 1 ) )
 IFS=save_ifs
 
 for f in "${KEPTDUMP[@]}" "${TESTDIRS[@]}" "${TESTFILES[@]}"; do
-    if ! test -e "$DIR/tmp/$f"; then
+    if ! test -e "$DIR/tmp-delete_dumps/$f"; then
 	echo "$f incorrectly deleted!" >&2
 	errors=$(( $errors+1 ))
     fi
 done
 
 for f in "${REMOVEDUMP[@]}"; do
-    if test -e "$DIR/tmp/$f"; then
+    if test -e "$DIR/tmp-delete_dumps/$f"; then
 	echo "$f incorrectly kept!" >&2
 	errors=$(( $errors+1 ))
     fi
@@ -121,7 +121,7 @@ echo "Keep only 1 dump"
 
 nkeep=1
 cat <<EOF >"$CONF"
-KDUMP_SAVEDIR="file:///$DIR/tmp"
+KDUMP_SAVEDIR="file:///$DIR/tmp-delete_dumps"
 KDUMP_KEEP_OLD_DUMPS=1
 EOF
 
@@ -134,14 +134,14 @@ REMOVEDUMP=( $( echo "$SORTDUMPS" | head -n $(( ${#TESTKDUMP[@]} - 1)) ) )
 IFS=save_ifs
 
 for f in "${KEPTDUMP[@]}" "${TESTDIRS[@]}" "${TESTFILES[@]}"; do
-    if ! test -e "$DIR/tmp/$f"; then
+    if ! test -e "$DIR/tmp-delete_dumps/$f"; then
 	echo "$f incorrectly deleted!" >&2
 	errors=$(( $errors+1 ))
     fi
 done
 
 for f in "${REMOVEDUMP[@]}"; do
-    if test -e "$DIR/tmp/$f"; then
+    if test -e "$DIR/tmp-delete_dumps/$f"; then
 	echo "$f incorrectly kept!" >&2
 	errors=$(( $errors+1 ))
     fi
@@ -151,21 +151,21 @@ echo "Delete all dumps"
 
 nkeep=1
 cat <<EOF >"$CONF"
-KDUMP_SAVEDIR="file:///$DIR/tmp"
+KDUMP_SAVEDIR="file:///$DIR/tmp-delete_dumps"
 KDUMP_KEEP_OLD_DUMPS=-1
 EOF
 
 "$KDUMPTOOL" -F "$CONF" delete_dumps || exit 1
 
 for f in "${TESTDIRS[@]}" "${TESTFILES[@]}"; do
-    if ! test -e "$DIR/tmp/$f"; then
+    if ! test -e "$DIR/tmp-delete_dumps/$f"; then
 	echo "$f incorrectly deleted!" >&2
 	errors=$(( $errors+1 ))
     fi
 done
 
 for f in "${TESTKDUMP[@]}"; do
-    if test -e "$DIR/tmp/$f"; then
+    if test -e "$DIR/tmp-delete_dumps/$f"; then
 	echo "$f incorrectly kept!" >&2
 	errors=$(( $errors+1 ))
     fi
