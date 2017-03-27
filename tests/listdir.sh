@@ -47,7 +47,7 @@ fi
 
 . "$DIR/testdirs.sh"
 
-setup_testdir "$DIR/tmp" || exit 1
+setup_testdir "$DIR/tmp-testdirs" || exit 1
 
 errors=0
 
@@ -57,7 +57,7 @@ EXPECT=$( LANG= sort <(
 	echo "${TESTDIRS[*]}"
 	echo "${TESTFILES[*]}"
     ) )
-OUTPUT=$( "$LISTDIR" "$DIR/tmp" all || echo "*** testlistdir FAILED!" )
+OUTPUT=$( "$LISTDIR" "$DIR/tmp-testdirs" all || echo "*** testlistdir FAILED!" )
 check_output
 
 EXPECT=$( LANG= sort <(
@@ -65,14 +65,14 @@ EXPECT=$( LANG= sort <(
 	echo "${TESTKDUMP[*]}"
 	echo "${TESTDIRS[*]}"
     ) )
-OUTPUT=$( "$LISTDIR" "$DIR/tmp" dirs  || echo "*** testlistdir FAILED!" )
+OUTPUT=$( "$LISTDIR" "$DIR/tmp-testdirs" dirs  || echo "*** testlistdir FAILED!" )
 check_output
 
 EXPECT=$( LANG= sort <(
 	IFS=$'\n'
 	echo "${TESTKDUMP[*]}"
     ) )
-OUTPUT=$( "$LISTDIR" "$DIR/tmp" kdumpdirs  || echo "*** testlistdir FAILED!" )
+OUTPUT=$( "$LISTDIR" "$DIR/tmp-testdirs" kdumpdirs  || echo "*** testlistdir FAILED!" )
 check_output
 
 exit $errors
