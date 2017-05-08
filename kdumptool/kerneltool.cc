@@ -130,6 +130,8 @@ list<string> KernelTool::imageNames(const std::string &arch)
         ret.push_back("vmlinuz");
     } else if (arch == "s390x") {
         ret.push_back("image");
+    } else if (arch == "aarch64") {
+        ret.push_back("Image");
     } else {
         ret.push_back("vmlinux");
     }
@@ -426,6 +428,7 @@ string KernelTool::archFromElfMachine(unsigned long long et_machine) const
         case EM_S390:   return "s390";
         case EM_IA_64:  return "ia64";
         case EM_X86_64: return "x86_64";
+        case EM_AARCH64: return "aarch64";
         default:        return "unknown";
     }
 }
