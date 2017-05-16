@@ -383,3 +383,13 @@ KDUMP_NOTIFICATION_CC=""
 #
 # See also: kdump(5)
 KDUMP_HOST_KEY=""
+
+## Type:        string
+## Default:     ""
+## ServiceRestart:	kdump
+#
+# List of SSH identity files for public key authentication. If empty, kdump
+# will try all standard OpenSSH identities for the 'root' user.
+#
+# See also: kdump(5)
+KDUMP_SSH_IDENTITY=""
