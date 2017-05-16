@@ -643,7 +643,16 @@ Example (broken into lines for readability):
 
 Default: ""
 
+KDUMP_SSH_IDENTITY
+~~~~~~~~~~~~~~~~~~
 
+List of SSH identity files for public key authentication. If empty, kdump
+will try all standard OpenSSH identities for the 'root' user (rsa, dsa,
+ecdsa, ed25519, in this order).
+
+Example: "/root/.ssh/id_kdump_rsa"
+
+Default: ""
 
 URL FORMAT
 ----------
