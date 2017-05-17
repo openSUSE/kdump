@@ -135,6 +135,11 @@ function build_kexec_options()
         options="$options --noio"
     fi
 
+    # add -s on x86_64 for signature verification of kernel
+    if [ "$(uname -i)" = "x86_64" ] ; then
+	options="$options -s"
+    fi
+
     echo "$options"
 }
 
