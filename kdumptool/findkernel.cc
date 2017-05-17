@@ -130,14 +130,33 @@ bool FindKernel::suitableForKdump(const string &kernelImage, bool strict)
         }
     }
 
+    Kconfig *kconfig = kt.retrieveKernelConfig();
+    KconfigValue kv;
+    bool isxen;
+
+    // Avoid Xenlinux kernels, because they do not run on bare metal
+    kv = kconfig->get("CONFIG_X86_64_XEN");
+    isxen = (kv.getType() == KconfigValue::T_TRISTATE &&
+             kv.getTristateValue() == KconfigValue::ON);
+    if (!isxen) {
+        kv = kconfig->get("CONFIG_X86_XEN");
+        isxen = (kv.getType() == KconfigValue::T_TRISTATE &&
+                 kv.getTristateValue() == KconfigValue::ON);
+    }
+    if (isxen) {
+        Debug::debug()->dbg("%s is a Xen kernel. Avoid.",
+            kernelImage.c_str());
+	delete kconfig;
+	return false;
+    }
+
     if (strict) {
         string arch = Util::getArch();
-        Kconfig *kconfig = kt.retrieveKernelConfig();
 
         // avoid large number of CPUs on x86 since that increases
         // memory size constraints of the capture kernel
         if (arch == "i386" || arch == "x86_64") {
-            KconfigValue kv = kconfig->get("CONFIG_NR_CPUS");
+            kv = kconfig->get("CONFIG_NR_CPUS");
             if (kv.getType() == KconfigValue::T_INTEGER &&
                     kv.getIntValue() > MAXCPUS_KDUMP) {
                 Debug::debug()->dbg("NR_CPUS of %s is %d >= %d. Avoid.",
@@ -148,16 +167,16 @@ bool FindKernel::suitableForKdump(const string &kernelImage, bool strict)
         }
 
         // avoid realtime kernels
-        KconfigValue kv = kconfig->get("CONFIG_PREEMPT_RT");
+        kv = kconfig->get("CONFIG_PREEMPT_RT");
         if (kv.getType() != KconfigValue::T_INVALID) {
             Debug::debug()->dbg("%s is realtime kernel. Avoid.",
                 kernelImage.c_str());
             delete kconfig;
             return false;
         }
-
-        delete kconfig;
     }
+
+    delete kconfig;
 
     return true;
 }
