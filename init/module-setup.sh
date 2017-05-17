@@ -123,7 +123,7 @@ kdump_gen_mount_units() {
 	echo "${line[@]}" >> "$fstab"
     done
 
-    echo "root=kdump" > "$initdir/proc/cmdline"
+    echo > "$initdir/proc/cmdline"
     inst_binary -l \
 	"$systemdutildir/system-generators/systemd-fstab-generator" \
 	"/tmp/systemd-fstab-generator"

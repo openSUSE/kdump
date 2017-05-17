@@ -71,7 +71,7 @@ function build_kdump_commandline()
         # Use deadline for saving the memory footprint
         commandline="$commandline elevator=deadline sysrq=yes reset_devices acpi_no_memhotplug cgroup_disable=memory"
         commandline="$commandline irqpoll ${nr_cpus}=${KDUMP_CPUS:-1}"
-        commandline="$commandline root=kdump rd.udev.children-max=8"
+        commandline="$commandline root=kdump rootflags=bind rd.udev.children-max=8"
         case $(uname -i) in
         i?86|x86_64)
             local boot_apicid=$(
