@@ -563,6 +563,13 @@ string SaveDump::findKernel()
     if (binaryroot.exists())
         return binary;
 
+    // 5: Image
+    (binary = "/boot").appendPath("Image-" + m_crashrelease);
+    (binaryroot = m_rootdir).appendPath(binary);
+    Debug::debug()->dbg("Trying %s", binaryroot.c_str());
+    if (binaryroot.exists())
+        return binary;
+
     FilePath fp = m_rootdir;
     fp.appendPath("/boot");
     throw KError("No kernel image found in " + fp);

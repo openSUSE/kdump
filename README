@@ -24,6 +24,7 @@ Requirements:
   - libcurl (http://curl.haxx.se/),
   - asciidoc (http://www.methods.co.nz/asciidoc/),
   - cmake (http://www.cmake.org/).
+  - libblkid (libblkid-devel)
 
 It's maintained in a Mercurial (hg) tree at http://freehg.org/u/bwalle/kdump/.
 
