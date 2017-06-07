@@ -1,13 +1,14 @@
 [Unit]
-Description=Load kdump kernel on startup
+Description=Load kdump kernel early on startup
 After=local-fs.target
-Wants=kdump.service
 
 [Service]
 Type=oneshot
 ExecStart=/lib/kdump/load.sh
 ExecStop=/lib/kdump/unload.sh
 RemainAfterExit=true
+# It is OK if the initrd is missing in this early attempt
+SuccessExitStatus=6
 
 [Install]
 WantedBy=multi-user.target

@@ -1,5 +1,5 @@
 [Unit]
-Description=Reload kdump kernel and updated initrd after the network is configured
+Description=Load kdump kernel and initrd
 After=local-fs.target network.service YaST2-Second-Stage.service YaST2-Firstboot.service
 
 [Service]
@@ -10,3 +10,4 @@ RemainAfterExit=true
 
 [Install]
 WantedBy=multi-user.target
+Also=kdump-early.service
