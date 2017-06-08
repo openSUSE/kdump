@@ -648,7 +648,8 @@ KDUMP_SSH_IDENTITY
 
 List of SSH identity files for public key authentication. If empty, kdump
 will try all standard OpenSSH identities for the 'root' user (rsa, dsa,
-ecdsa, ed25519, in this order).
+ecdsa, ed25519, in this order). The path to every identity file is relative
+to +~root/.ssh+, or an absolute path can be given.
 
 Example: "/root/.ssh/id_kdump_rsa"
 

@@ -946,6 +946,7 @@ function kdump_copy_ssh_ident()						   # {{{
 
     shift
     for f in "$@"; do
+	test "${f:0:1}" = "/" || f=~root/".ssh/$f"
 	test -f "$f" || continue
 
 	cp "$f" "$sshdir/"
@@ -977,7 +978,7 @@ function kdump_init_ssh()						   # {{{
     if [ -n "$KDUMP_SSH_IDENTITY" ] ; then
 	kdump_copy_ssh_ident "$dest" $KDUMP_SSH_IDENTITY
     else
-	kdump_copy_ssh_ident "$dest" /root/.ssh/id_{rsa,dsa,ecdsa,ed25519}
+	kdump_copy_ssh_ident "$dest" id_{rsa,dsa,ecdsa,ed25519}
     fi
 }									   # }}}
 
