@@ -392,7 +392,7 @@ bool KernelTool::elfIsRelocatable() const
 bool KernelTool::isArchAlwaysRelocatable(const string &machine) const
     throw ()
 {
-    return machine == "ia64";
+    return machine == "ia64" || machine == "aarch64";
 }
 
 // -----------------------------------------------------------------------------
