@@ -940,18 +940,19 @@ function kdump_modify_multipath()					   # {{{
 #   1) dest: root of the temporary area
 function kdump_copy_ssh_ident()						   # {{{
 {
-    local dest="$1"
-    local ssh_conf="$dest/kdump/.ssh/config"
+    local sshdir="$1/kdump/.ssh"
+    local ssh_conf="$sshdir/config"
     local f
 
     shift
     for f in "$@"; do
 	test -f "$f" || continue
 
-        cp "$f" "${dest}/kdump/.ssh/"
-	test -f "${f}.pub" && cp "${f}.pub" "${dest}/kdump/.ssh/"
-	test -f "${f}-cert.pub" && cp "${f}-cert.pub" "${dest}/kdump/.ssh/"
-	echo "IdentityFile ${f}" >> "$ssh_conf"
+	cp "$f" "$sshdir/"
+	test -f "${f}.pub" && cp "${f}.pub" "$sshdir/"
+	test -f "${f}-cert.pub" && cp "${f}-cert.pub" "$sshdir/"
+	f=$( basename $f )
+	echo "IdentityFile /kdump/.ssh/${f}" >> "$ssh_conf"
     done
 }									   # }}}
 
