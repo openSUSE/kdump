@@ -42,6 +42,7 @@ class KernelTool {
             KT_ELF_GZ,
             KT_X86,
             KT_S390,
+            KT_AARCH64,
             KT_NONE
         };
 
@@ -204,6 +205,14 @@ class KernelTool {
          * @return @c true if it's a S/390 kernel image, @c false otherwise.
          */
         bool isS390Kernel() const
+        throw (KError);
+
+        /**
+         * Checks if the kernel is an Aarch64 kernel image.
+         *
+         * @return @c true if it's an Aarch64 kernel image, @c false otherwise.
+         */
+        bool isAarch64Kernel() const
         throw (KError);
 
         /**

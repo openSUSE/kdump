@@ -183,6 +183,11 @@ KernelTool::KernelType KernelTool::getKernelType() const
             return KT_S390;
         else
             return KT_NONE;
+    } else if (Util::getArch() == "aarch64") {
+        if (isAarch64Kernel())
+            return KT_AARCH64;
+        else
+            return KT_NONE;
     } else      
         return KT_NONE;
 }
@@ -201,6 +206,9 @@ bool KernelTool::isRelocatable() const
             break;
 
         case KernelTool::KT_S390:
+            return true;
+
+        case KernelTool::KT_AARCH64:
             return true;
 
         default:
@@ -256,6 +264,39 @@ bool KernelTool::isS390Kernel() const
            S390_HEADER_SIZE_IPLSTART);
 
     return memcmp(buffer, S390_HEADER, sizeof(S390_HEADER)) == 0;
+}
+
+// -----------------------------------------------------------------------------
+bool KernelTool::isAarch64Kernel() const
+    throw (KError)
+{
+    struct {
+        uint32_t code0;         /* Executable code */
+        uint32_t code1;         /* Executable code */
+        uint64_t text_offset;   /* Image load offset, little endian */
+        uint64_t image_size;    /* Effective Image size, little endian */
+        uint64_t flags;         /* kernel flags, little endian */
+        uint64_t res2;          /* reserved */
+        uint64_t res3;          /* reserved */
+        uint64_t res4;          /* reserved */
+        uint32_t magic;         /* Magic number, little endian, "ARM\x64" */
+        uint32_t res5;          /* reserved (used for PE COFF offset) */
+    } buffer;
+
+    /* check the magic number */
+    if (lseek(m_fd, 0, SEEK_SET) == (off_t)-1) {
+        throw KSystemError("IdentifyKernel::isAarch64Kernel: lseek to "
+            "file start failed", errno);
+    }
+
+    int ret = read(m_fd, &buffer, sizeof(buffer));
+    if (ret < 0) {
+        throw KSystemError("IdentifyKernel::isAarch64Kernel: read of magic "
+            "start failed", errno);
+    } else if (ret < (int)sizeof(buffer))
+        return false;
+
+    return buffer.magic == 0x644d5241; /* little endian "ARM\x64" */
 }
 
 // -----------------------------------------------------------------------------
@@ -684,6 +725,7 @@ string KernelTool::extractKernelConfig() const
         case KernelTool::KT_ELF:
         case KernelTool::KT_ELF_GZ:
         case KernelTool::KT_S390:
+        case KernelTool::KT_AARCH64:
             return extractKernelConfigELF();
 
         case KernelTool::KT_X86:
