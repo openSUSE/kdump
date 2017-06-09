@@ -58,6 +58,10 @@ class NetLink {
 
 	int waitRouteChange(void);
 
+        const char *prefSrc(void) const
+        throw ()
+        { return m_prefsrc; }
+
     protected:
 	class RecvCheck {
 	    public:
@@ -89,6 +93,8 @@ class NetLink {
 	throw ()
 	{ return m_message; }
 
+        int parseAttrs(const struct rtattr *rta, size_t len);
+
     private:
 	int m_timeout;
 
@@ -99,13 +105,16 @@ class NetLink {
 	size_t m_buflen;
 	unsigned char *m_buffer;
 	struct nlmsghdr *m_message;
+
+        int m_family;
+        char m_prefsrc[INET6_ADDRSTRLEN];
 };
 
 unsigned NetLink::m_seq;
 
 // -----------------------------------------------------------------------------
 NetLink::NetLink(unsigned subscribe, size_t recv_max)
-    : m_timeout(-1), m_buflen(recv_max)
+    : m_timeout(-1), m_buflen(recv_max), m_family(AF_UNSPEC)
 {
     struct sockaddr_nl sa;
     socklen_t salen;
@@ -126,6 +135,8 @@ NetLink::NetLink(unsigned subscribe, size_t recv_max)
 	throw KSystemError("Cannot get local netlink address", errno);
     if (salen != sizeof m_local || m_local.nl_family != AF_NETLINK)
 	throw KError("Invalid local netlink address");
+
+    m_prefsrc[0] = '\0';
 }
 
 // -----------------------------------------------------------------------------
@@ -354,7 +365,8 @@ int NetLink::checkRoute(const struct addrinfo *ai)
     case RTN_BROADCAST:
     case RTN_ANYCAST:
     case RTN_MULTICAST:
-	return 0;
+        m_family = rt->rtm_family;
+        return parseAttrs(RTM_RTA(rt), RTM_PAYLOAD(nh));
     case RTN_UNREACHABLE:
 	return -EHOSTUNREACH;
     case RTN_BLACKHOLE:
@@ -366,6 +378,49 @@ int NetLink::checkRoute(const struct addrinfo *ai)
     default:
 	return -EINVAL;
     }
+}
+
+// -----------------------------------------------------------------------------
+int NetLink::parseAttrs(const struct rtattr *rta, size_t len)
+{
+    while (RTA_OK(rta, len)) {
+        void *data = RTA_DATA(rta);
+        size_t dlen = RTA_PAYLOAD(rta);
+        int res;
+
+        switch (rta->rta_type) {
+        case RTA_PREFSRC:
+            if (m_family == AF_INET &&
+                dlen == sizeof(struct in_addr)) {
+                struct sockaddr_in saddr;
+                memset(&saddr, 0, sizeof saddr);
+                saddr.sin_family = AF_INET;
+                saddr.sin_addr = *(struct in_addr *)data;
+                res = getnameinfo((struct sockaddr*)&saddr, sizeof saddr,
+                                  m_prefsrc, sizeof m_prefsrc,
+                                  NULL, 0, NI_NUMERICHOST);
+            } else if (m_family == AF_INET6 &&
+                       dlen == sizeof(struct in6_addr)) {
+                struct sockaddr_in6 saddr;
+                memset(&saddr, 0, sizeof saddr);
+                saddr.sin6_family = AF_INET6;
+                saddr.sin6_addr = *(struct in6_addr *)data;
+                res = getnameinfo((struct sockaddr*)&saddr, sizeof saddr,
+                                  m_prefsrc, sizeof m_prefsrc,
+                                  NULL, 0, NI_NUMERICHOST);
+            } else
+                res = EAI_FAMILY;
+            if (res)
+                throw KGaiError("Cannot parse preferred source address", res);
+
+            break;
+        }
+        rta = RTA_NEXT(rta, len);
+    }
+    if (len)
+        throw KError("Netlink rtattr truncated");
+
+    return 0;
 }
 
 //}}}
@@ -388,8 +443,11 @@ bool Routable::hasRoute(void)
     Debug::debug()->trace("hasRoute(%s)", m_host.c_str());
 
     for (p = m_ai; p; p = p->ai_next) {
-	if (nl.checkRoute(p) == 0)
+        if (nl.checkRoute(p) == 0) {
+            Debug::debug()->dbg("m_prefsrc='%s'", nl.prefSrc());
+            m_prefsrc.assign(nl.prefSrc());
 	    return true;
+        }
     }
 
     return false;

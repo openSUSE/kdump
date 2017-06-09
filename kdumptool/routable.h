@@ -42,6 +42,10 @@ class Routable {
 
 	bool check(int timeout);
 
+        const std::string& prefsrc(void) const
+        throw ()
+        { return m_prefsrc; }
+
     protected:
 	bool resolve(void)
 	throw (KError);
@@ -51,6 +55,7 @@ class Routable {
     private:
 	int m_nlfd;
 	std::string m_host;
+        std::string m_prefsrc;
 	struct addrinfo *m_ai;
 };
 
