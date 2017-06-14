@@ -40,6 +40,7 @@
 #include "vmcoreinfo.h"
 #include "identifykernel.h"
 #include "email.h"
+#include "routable.h"
 
 using std::string;
 using std::list;
@@ -114,8 +115,17 @@ void SaveDump::execute()
     std::istringstream iss(config->KDUMP_SAVEDIR.value());
     FilePath elem;
     while (iss >> elem) {
-        RootDirURL url(elem.appendPath(subdir), m_rootdir);
-        urlv.push_back(url);
+        RootDirURL url(elem, m_rootdir);
+        if (url.getProtocol() != URLParser::PROT_FILE) {
+            Routable rt(url.getHostname());
+            if (!rt.check(config->KDUMP_NET_TIMEOUT.value())) {
+                cerr << "WARNING: Dump target not reachable" << endl;
+                elem.appendPath(string("unknown-") + subdir);
+            } else
+                elem.appendPath(rt.prefsrc() + '-' + subdir);
+        } else
+            elem.appendPath(subdir);
+        urlv.push_back(RootDirURL(elem, m_rootdir));
     }
 
     m_transfer = getTransfer(urlv);
