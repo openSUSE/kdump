@@ -40,10 +40,9 @@ using std::endl;
 //{{{ SSHTransfer -------------------------------------------------------------
 
 /* -------------------------------------------------------------------------- */
-SSHTransfer::SSHTransfer(const RootDirURLVector &urlv,
-			 const std::string &subdir)
+SSHTransfer::SSHTransfer(const RootDirURLVector &urlv)
     throw (KError)
-    : URLTransfer(urlv, subdir)
+    : URLTransfer(urlv)
 {
     if (urlv.size() > 1)
 	cerr << "WARNING: First dump target used; rest ignored." << endl;
@@ -59,9 +58,7 @@ SSHTransfer::SSHTransfer(const RootDirURLVector &urlv,
 	cerr << "WARNING: Dump target not reachable" << endl;
 
     string remote;
-    FilePath fp = target.getPath();
-    fp.appendPath(getSubDir());
-    remote.assign("mkdir -p ").append(fp);
+    remote.assign("mkdir -p ").append(target.getPath());
 
     SubProcess p;
     p.spawn("ssh", makeArgs(remote));
@@ -96,7 +93,7 @@ void SSHTransfer::perform(DataProvider *dataprovider,
     const RootDirURL &target = urlv.front();
 
     FilePath fp = target.getPath();
-    fp.appendPath(getSubDir()).appendPath(target_files.front());
+    fp.appendPath(target_files.front());
 
     string remote;
     remote.assign("dd of=").append(fp).append("-incomplete");
@@ -357,10 +354,9 @@ ByteVector const &SFTPPacket::update(void)
 //{{{ SFTPTransfer -------------------------------------------------------------
 
 /* -------------------------------------------------------------------------- */
-SFTPTransfer::SFTPTransfer(const RootDirURLVector &urlv,
-			   const std::string &subdir)
+SFTPTransfer::SFTPTransfer(const RootDirURLVector &urlv)
     throw (KError)
-    : URLTransfer(urlv, subdir)
+    : URLTransfer(urlv)
 {
     if (urlv.size() > 1)
 	cerr << "WARNING: First dump target used; rest ignored." << endl;
@@ -394,9 +390,7 @@ SFTPTransfer::SFTPTransfer(const RootDirURLVector &urlv,
     m_proto_ver = initpkt.getInt32();
     Debug::debug()->dbg("Remote SFTP version %lu", m_proto_ver);
 
-    FilePath fp = parser.getPath();
-    fp.appendPath(getSubDir());
-    mkpath(fp);
+    mkpath(parser.getPath());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -433,7 +427,7 @@ void SFTPTransfer::perform(DataProvider *dataprovider,
     const RootDirURL &target = urlv.front();
 
     FilePath fp = target.getPath();
-    fp.appendPath(getSubDir()).appendPath(target_files.front());
+    fp.appendPath(target_files.front());
 
     string handle = createfile(fp);
     try {

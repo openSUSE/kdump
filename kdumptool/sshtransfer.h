@@ -41,7 +41,7 @@ class SSHTransfer : public URLTransfer {
          *
          * @exception KError when initialising the underlying library fails
          */
-        SSHTransfer(const RootDirURLVector &urlv, const std::string &subdir)
+        SSHTransfer(const RootDirURLVector &urlv)
         throw (KError);
 
         /**
@@ -205,7 +205,7 @@ class SFTPTransfer : public URLTransfer {
          *
          * @exception KError when initialising the underlying library fails
          */
-        SFTPTransfer(const RootDirURLVector &urlv, const std::string &subdir)
+        SFTPTransfer(const RootDirURLVector &urlv)
         throw (KError);
 
         /**

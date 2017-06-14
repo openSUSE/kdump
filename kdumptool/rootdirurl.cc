@@ -44,19 +44,4 @@ RootDirURL::RootDirURL(const std::string &url, const std::string &rootdir)
 
 //}}}
 
-//{{{ RootDirURLVector ---------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-RootDirURLVector::RootDirURLVector(const std::string &urls,
-				   const std::string &rootdir)
-    throw (KError)
-{
-    std::istringstream iss(urls);
-    std::string url;
-    while (iss >> url)
-	push_back(RootDirURL(url, rootdir));
-}
-
-//}}}
-
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

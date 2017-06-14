@@ -87,10 +87,12 @@ void DeleteDumps::execute()
         return;
     }
 
-    RootDirURLVector urls(config->KDUMP_SAVEDIR.value(), m_rootdir);
-    RootDirURLVector::const_iterator it;
-    for (it = urls.begin(); it != urls.end(); ++it)
-        delete_one(*it, oldDumps);
+    std::istringstream iss(config->KDUMP_SAVEDIR.value());
+    string elem;
+    while (iss >> elem) {
+        RootDirURL url(elem, m_rootdir);
+        delete_one(url, oldDumps);
+    }
 }
 
 // -----------------------------------------------------------------------------

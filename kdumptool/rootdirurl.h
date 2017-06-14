@@ -59,28 +59,7 @@ class RootDirURL : public URLParser {
 	std::string m_realpath;
 };
 
-//}}}
-
-//{{{ RootDirURLVector ---------------------------------------------------------
-
-/**
- * Parse a list of URLs.
- */
-class RootDirURLVector: public std::vector<RootDirURL> {
-
-    public:
-
-        /**
-         * Creates a new RootDirURLVector.
-         *
-         * @param[in] urls space-separated list of URLs to parse
-         * @param[in] rootdir root directory for local files
-         * @exception KError if any URL from the list cannot be parsed
-         */
-        RootDirURLVector(const std::string &urls, const std::string &rootdir)
-        throw (KError);
-
-};
+typedef std::vector<RootDirURL> RootDirURLVector;
 
 //}}}
 

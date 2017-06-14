@@ -180,11 +180,13 @@ bool Configuration::needsNetwork()
     if (netconfig != "auto")
 	return true;
 
-    RootDirURLVector urlv(KDUMP_SAVEDIR.value(), "");
-    RootDirURLVector::iterator it;
-    for (it = urlv.begin(); it != urlv.end(); ++it)
-	if (it->getProtocol() != URLParser::PROT_FILE)
+    std::istringstream iss(KDUMP_SAVEDIR.value());
+    string elem;
+    while (iss >> elem) {
+        URLParser url(elem);
+        if (url.getProtocol() != URLParser::PROT_FILE)
 	    return true;
+    }
 
     return !KDUMP_SMTP_SERVER.value().empty() &&
 	!KDUMP_NOTIFICATION_TO.value().empty();

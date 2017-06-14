@@ -86,12 +86,10 @@ class SaveDump : public Subcommand {
         std::string findMapfile()
         throw (KError);
 
-        void checkAndDelete(const RootDirURLVector &urlv,
-			    const std::string &subdir)
+        void checkAndDelete(const RootDirURLVector &urlv)
         throw (KError);
 
-        void sendNotification(bool failure, const RootDirURLVector &urlv,
-			      const std::string &subdir)
+        void sendNotification(bool failure, const RootDirURLVector &urlv)
         throw ();
 
         std::string getKernelReleaseCommandline()
@@ -106,8 +104,7 @@ class SaveDump : public Subcommand {
          * @exception KError if parsing the URL failed or there's no
          *            implementation for that class.
          */
-	Transfer *getTransfer(const RootDirURLVector &urlv,
-			      const std::string &subdir)
+	Transfer *getTransfer(const RootDirURLVector &urlv)
 	throw (KError);
 
     private:
@@ -122,8 +119,7 @@ class SaveDump : public Subcommand {
         std::string m_hostname;
         bool m_nomail;
 
-        void check_one(const RootDirURL &parser,
-		       const std::string &subdir)
+        void check_one(const RootDirURL &parser)
         throw (KError);
 };
 

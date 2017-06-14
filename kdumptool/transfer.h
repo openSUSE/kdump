@@ -102,10 +102,10 @@ class URLTransfer : public Transfer {
         /**
          * Creates a new URLTransfer object.
          *
-         * @param[in] url the URL
+         * @param[in] urlv target URLs
          * @throw KError if parsing the URL failed
          */
-        URLTransfer(const RootDirURLVector &urlv, const std::string &subdir)
+        URLTransfer(const RootDirURLVector &urlv)
         throw (KError);
 
         /**
@@ -117,18 +117,8 @@ class URLTransfer : public Transfer {
         throw ()
 	{ return m_urlVector; }
 
-	/**
-	 * Returns the subdirectory part.
-	 *
-	 * @return reference to the subdirectory.
-	 */
-	const std::string &getSubDir()
-	throw ()
-	{ return m_subDir; }
-
     private:
         RootDirURLVector m_urlVector;
-	std::string m_subDir;
 };
 
 //}}}
@@ -144,10 +134,10 @@ class FileTransfer : public URLTransfer {
         /**
          * Creates a new FileTransfer object.
          *
-         * @param[in] target_url the directory
+         * @param[in] urlv target directories
          * @throw KError if parsing the URL or creating the directory failed
          */
-        FileTransfer(const RootDirURLVector &urlv, const std::string &subdir)
+        FileTransfer(const RootDirURLVector &urlv)
         throw (KError);
 
         /**
@@ -202,7 +192,7 @@ class FTPTransfer : public URLTransfer {
          *
          * @exception KError when initialising the underlying library fails
          */
-        FTPTransfer(const RootDirURLVector &urlv, const std::string &subdir)
+        FTPTransfer(const RootDirURLVector &urlv)
         throw (KError);
 
         /**
@@ -248,7 +238,7 @@ class NFSTransfer : public URLTransfer {
          *
          * @exception KError when mounting the share failes
          */
-        NFSTransfer(const RootDirURLVector &urlv, const std::string &subdir)
+        NFSTransfer(const RootDirURLVector &urlv)
         throw (KError);
 
         /**
@@ -302,7 +292,7 @@ class CIFSTransfer : public URLTransfer {
          *
          * @exception KError when mounting the share failes
          */
-        CIFSTransfer(const RootDirURLVector &urlv, const std::string &subdir)
+        CIFSTransfer(const RootDirURLVector &urlv)
         throw (KError);
 
         /**

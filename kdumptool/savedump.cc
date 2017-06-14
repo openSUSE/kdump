@@ -110,9 +110,15 @@ void SaveDump::execute()
     // build the transfer object
     // prepend a time stamp to the save dir
     string subdir = Stringutil::formatCurrentTime(ISO_DATETIME);
-    RootDirURLVector urlv(config->KDUMP_SAVEDIR.value(), m_rootdir);
+    RootDirURLVector urlv;
+    std::istringstream iss(config->KDUMP_SAVEDIR.value());
+    FilePath elem;
+    while (iss >> elem) {
+        RootDirURL url(elem.appendPath(subdir), m_rootdir);
+        urlv.push_back(url);
+    }
 
-    m_transfer = getTransfer(urlv, subdir);
+    m_transfer = getTransfer(urlv);
 
     // save the dump
     try {
@@ -120,11 +126,11 @@ void SaveDump::execute()
     } catch (const KError &error) {
         setErrorCode(1);
 
-        sendNotification(true, urlv, subdir);
+        sendNotification(true, urlv);
 
         // run checkAndDelete() in any case
         try {
-            checkAndDelete(urlv, subdir);
+            checkAndDelete(urlv);
         } catch (const KError &error) {
             cout << error.what() << endl;
         }
@@ -136,13 +142,13 @@ void SaveDump::execute()
     }
 
     // send the email afterwards
-    sendNotification(false, urlv, subdir);
+    sendNotification(false, urlv);
 
     // because we don't know the file size in advance, check
     // afterwards if the disk space is not sufficient and delete
     // the dump again
     try {
-        checkAndDelete(urlv, subdir);
+        checkAndDelete(urlv);
     } catch (const KError &error) {
         setErrorCode(1);
         if (config->KDUMP_CONTINUE_ON_ERROR.value())
@@ -594,22 +600,20 @@ string SaveDump::findMapfile()
 }
 
 // -----------------------------------------------------------------------------
-void SaveDump::checkAndDelete(const RootDirURLVector &urlv,
-			      const string &subdir)
+void SaveDump::checkAndDelete(const RootDirURLVector &urlv)
     throw (KError)
 {
     RootDirURLVector::const_iterator it;
     for (it = urlv.begin(); it != urlv.end(); ++it)
-	check_one(*it, subdir);
+	check_one(*it);
 }
 
 // -----------------------------------------------------------------------------
-void SaveDump::check_one(const RootDirURL &parser,
-			 const string &subdir)
+void SaveDump::check_one(const RootDirURL &parser)
     throw (KError)
 {
-    Debug::debug()->trace("SaveDump::check_one(\"%s\", \"%s\")",
-			  parser.getURL().c_str(), subdir.c_str());
+    Debug::debug()->trace("SaveDump::check_one(\"%s\")",
+			  parser.getURL().c_str());
 
     // only do that check for local files
     if (parser.getProtocol() != URLParser::PROT_FILE) {
@@ -618,7 +622,6 @@ void SaveDump::check_one(const RootDirURL &parser,
     }
 
     FilePath path = parser.getRealPath();
-    path.appendPath(subdir);
     Configuration *config = Configuration::config();
 
     unsigned long long freeSize = path.freeDiskSize();
@@ -634,8 +637,7 @@ void SaveDump::check_one(const RootDirURL &parser,
 }
 
 // -----------------------------------------------------------------------------
-void SaveDump::sendNotification(bool failure, const RootDirURLVector &urlv,
-				const string &subdir)
+void SaveDump::sendNotification(bool failure, const RootDirURLVector &urlv)
     throw ()
 {
     Debug::debug()->trace("SaveDump::sendNotification");
@@ -694,10 +696,8 @@ void SaveDump::sendNotification(bool failure, const RootDirURLVector &urlv,
         else {
 	    ss << "Dump has been copied to" << endl;
 	    RootDirURLVector::const_iterator it;
-            for (it = urlv.begin(); it != urlv.end(); ++it) {
-                FilePath fp = it->getURL();
-                ss << fp.appendPath(subdir) << endl;
-            }
+            for (it = urlv.begin(); it != urlv.end(); ++it)
+                ss << it->getURL() << endl;
 	}
 
         email.setBody(ss.str());
@@ -738,12 +738,11 @@ string SaveDump::getKernelReleaseCommandline()
 }
 
 // -----------------------------------------------------------------------------
-Transfer *SaveDump::getTransfer(const RootDirURLVector &urlv,
-				const string &subdir)
+Transfer *SaveDump::getTransfer(const RootDirURLVector &urlv)
     throw (KError)
 {
-    Debug::debug()->trace("SaveDump::getTransfer(%p, \"%s\")",
-			  &urlv, subdir.c_str());
+    Debug::debug()->trace("SaveDump::getTransfer(%p)",
+			  &urlv);
 
     if (urlv.size() == 0)
 	throw KError("No target specified!");
@@ -751,27 +750,27 @@ Transfer *SaveDump::getTransfer(const RootDirURLVector &urlv,
     switch (urlv.begin()->getProtocol()) {
         case URLParser::PROT_FILE:
             Debug::debug()->dbg("Returning FileTransfer");
-            return new FileTransfer(urlv, subdir);
+            return new FileTransfer(urlv);
 
         case URLParser::PROT_FTP:
             Debug::debug()->dbg("Returning FTPTransfer");
-            return new FTPTransfer(urlv, subdir);
+            return new FTPTransfer(urlv);
 
         case URLParser::PROT_SFTP:
             Debug::debug()->dbg("Returning SFTPTransfer");
-            return new SFTPTransfer(urlv, subdir);
+            return new SFTPTransfer(urlv);
 
         case URLParser::PROT_SSH:
 	    Debug::debug()->dbg("Returning SSHTransfer");
-	    return new SSHTransfer(urlv, subdir);
+	    return new SSHTransfer(urlv);
 
         case URLParser::PROT_NFS:
             Debug::debug()->dbg("Returning NFSTransfer");
-            return new NFSTransfer(urlv, subdir);
+            return new NFSTransfer(urlv);
 
         case URLParser::PROT_CIFS:
             Debug::debug()->dbg("Returning CIFSTransfer");
-            return new CIFSTransfer(urlv, subdir);
+            return new CIFSTransfer(urlv);
 
         default:
             throw KError("Unknown protocol.");

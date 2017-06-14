@@ -60,12 +60,16 @@ void PrintTarget::execute()
 
     Configuration *config = Configuration::config();
 
-    RootDirURLVector urlv(config->KDUMP_SAVEDIR.value(), m_rootdir);
-    RootDirURLVector::iterator it;
-    for (it = urlv.begin(); it != urlv.end(); ++it) {
-	if (it != urlv.begin())
+    std::istringstream iss(config->KDUMP_SAVEDIR.value());
+    string elem;
+    bool first = true;
+    while (iss >> elem) {
+        RootDirURL url(elem, m_rootdir);
+        if (first)
+            first = false;
+        else
 	    cout << endl;
-	print_one(*it);
+	print_one(url);
     }
 }
 

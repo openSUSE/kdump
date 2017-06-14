@@ -64,9 +64,9 @@ void Transfer::perform(DataProvider *dataprovider,
 //{{{ URLTransfer --------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-URLTransfer::URLTransfer(const RootDirURLVector &urlv, const string &subdir)
+URLTransfer::URLTransfer(const RootDirURLVector &urlv)
     throw (KError)
-    : m_urlVector(urlv), m_subDir(subdir)
+    : m_urlVector(urlv)
 {
 }
 
@@ -74,10 +74,9 @@ URLTransfer::URLTransfer(const RootDirURLVector &urlv, const string &subdir)
 //{{{ FileTransfer -------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-FileTransfer::FileTransfer(const RootDirURLVector &urlv,
-			   const std::string &subdir)
+FileTransfer::FileTransfer(const RootDirURLVector &urlv)
     throw (KError)
-    : URLTransfer(urlv, subdir), m_bufferSize(0), m_buffer(NULL)
+    : URLTransfer(urlv), m_bufferSize(0), m_buffer(NULL)
 {
     RootDirURLVector::const_iterator it;
     for (it = urlv.begin(); it != urlv.end(); ++it)
@@ -87,7 +86,6 @@ FileTransfer::FileTransfer(const RootDirURLVector &urlv,
     // create directories
     for (it = urlv.begin(); it != urlv.end(); ++it) {
         FilePath dir = it->getRealPath();
-        dir.appendPath(subdir);
         dir.mkdir(true);
     }
 
@@ -130,7 +128,7 @@ void FileTransfer::perform(DataProvider *dataprovider,
     RootDirURLVector::const_iterator itv = urlv.begin();
     for (it = target_files.begin(); it != target_files.end(); ++it) {
         FilePath fp = itv->getRealPath();
-        full_targets.push_back(fp.appendPath(getSubDir()).appendPath(*it));
+        full_targets.push_back(fp.appendPath(*it));
 	if (++itv == urlv.end())
 	    itv = urlv.begin();
     }
@@ -308,10 +306,9 @@ static int curl_debug(CURL *curl, curl_infotype info, char *buffer,
 }
 
 // -----------------------------------------------------------------------------
-FTPTransfer::FTPTransfer(const RootDirURLVector &urlv,
-			 const std::string &subdir)
+FTPTransfer::FTPTransfer(const RootDirURLVector &urlv)
     throw (KError)
-    : URLTransfer(urlv, subdir), m_curl(NULL)
+    : URLTransfer(urlv), m_curl(NULL)
 {
     if (urlv.size() > 1)
 	cerr << "WARNING: First dump target used; rest ignored." << endl;
@@ -425,7 +422,7 @@ void FTPTransfer::open(DataProvider *dataprovider,
 
     // set the URL
     FilePath full_url = parser.getURL();
-    full_url.appendPath(getSubDir()).appendPath(target_file);
+    full_url.appendPath(target_file);
     err = curl_easy_setopt(m_curl, CURLOPT_URL, full_url.c_str());
     if (err != CURLE_OK)
         throw KError(string("CURL error: ") + m_curlError);
@@ -440,16 +437,15 @@ void FTPTransfer::open(DataProvider *dataprovider,
 //{{{ NFSTransfer --------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-NFSTransfer::NFSTransfer(const RootDirURLVector &urlv,
-			 const std::string &subdir)
+NFSTransfer::NFSTransfer(const RootDirURLVector &urlv)
     throw (KError)
-    : URLTransfer(urlv, subdir), m_mountpoint(""), m_fileTransfer(NULL)
+    : URLTransfer(urlv), m_mountpoint(""), m_fileTransfer(NULL)
 {
-    RootDirURLVector file_urlv("", "");
+    RootDirURLVector file_urlv;
     RootDirURLVector::const_iterator it;
     for (it = urlv.begin(); it != urlv.end(); ++it)
 	file_urlv.push_back(translate(*it));
-    m_fileTransfer = new FileTransfer(file_urlv, subdir);
+    m_fileTransfer = new FileTransfer(file_urlv);
 }
 
 // -----------------------------------------------------------------------------
@@ -521,16 +517,15 @@ void NFSTransfer::close()
 //{{{ CIFSTransfer -------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-CIFSTransfer::CIFSTransfer(const RootDirURLVector &urlv,
-			   const std::string &subdir)
+CIFSTransfer::CIFSTransfer(const RootDirURLVector &urlv)
     throw (KError)
-    : URLTransfer(urlv, subdir), m_mountpoint(""), m_fileTransfer(NULL)
+    : URLTransfer(urlv), m_mountpoint(""), m_fileTransfer(NULL)
 {
-    RootDirURLVector file_urlv("", "");
+    RootDirURLVector file_urlv;
     RootDirURLVector::const_iterator it;
     for (it = urlv.begin(); it != urlv.end(); ++it)
 	file_urlv.push_back(translate(*it));
-    m_fileTransfer = new FileTransfer(file_urlv, subdir);
+    m_fileTransfer = new FileTransfer(file_urlv);
 }
 
 // -----------------------------------------------------------------------------
