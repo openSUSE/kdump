@@ -17,7 +17,7 @@ ConditionPathExists=/proc/vmcore
 
 [Service]
 Type=oneshot
-ExecStart=/lib/kdump/save_dump.sh
+ExecStart=/bin/bash -c "source /lib/kdump/save_dump.sh"
 StandardInput=tty
 StandardOutput=tty
 StandardError=tty
