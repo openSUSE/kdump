@@ -49,7 +49,8 @@ function handle_exit()
 
     if fadump_enabled; then
         # release memory if possible
-        test -f $FADUMP_RELEASE_MEM && echo 1 > $FADUMP_RELEASE_MEM
+        [ -f $FADUMP_RELEASE_MEM -a $KDUMP_IMMEDIATE_REBOOT != "yes" \
+                -a "$KDUMP_IMMEDIATE_REBOOT" != "YES" ] && echo 1 > $FADUMP_RELEASE_MEM
         if [ "$KDUMP_FADUMP_SHELL" = "yes" \
                 -o "$KDUMP_FADUMP_SHELL" = "YES" ] ; then
             echo
