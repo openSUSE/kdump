@@ -128,13 +128,38 @@ wait_for_dumpdev()
     check_for_device "$@"
 }
 
+function rw_fixup()
+{
+    # handle remounting existing readonly mounts readwrite
+    # mount -a works only for not yet mounted filesystems
+    # remounting bind mounts needs special incantation
+    while read dev mpt fs opt dummy ; do
+        case "$opt" in
+            *bind*)
+                if [ "$fs" = "none" ] && ! [ -w "$mpt" ]; then
+                    mount none "$mpt" -o remount,rw
+                fi
+                ;;
+            ro,* | *,ro,* | *,ro) ;;
+            *)
+                if ! [ -w "$mpt" ]; then
+                    mount "$mpt" -o remount,rw
+                fi
+                ;;
+        esac
+    done < /etc/fstab
+}
+
 #
 # Mounts all partitions listed in /etc/fstab.kdump
 function mount_all()
 {
     local ret=0
 
-    test -f /etc/fstab.kdump || return 0
+    if ! [ -f /etc/fstab.kdump ] ; then
+        rw_fixup
+        return 0
+    fi
 
     if [ -f /etc/fstab ] ; then
         mv /etc/fstab /etc/fstab.orig
@@ -143,6 +168,8 @@ function mount_all()
     cp /etc/fstab.kdump /etc/fstab
     mount -a
     ret=$?
+
+    rw_fixup
 
     if [ -f /etc/fstab.orig ] ; then
         mv /etc/fstab.orig /etc/fstab
