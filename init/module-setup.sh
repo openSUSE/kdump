@@ -168,7 +168,7 @@ install() {
 	do
 	    line=( ${fstab_lines[i]} )
 	    if [ "${line[1]%/*}" = "/kdump" ] ; then
-		fstab_lines[i]="/sysroot ${line[1]} none bind"
+		fstab_lines[i]="/sysroot ${line[1]} none bind 0 0"
 	    fi
 	done
     fi
