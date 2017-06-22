@@ -462,22 +462,20 @@ RootDirURL NFSTransfer::translate(const RootDirURL &parser)
     if (!rt.check(config->KDUMP_NET_TIMEOUT.value()))
 	cerr << "WARNING: Dump target not reachable" << endl;
 
-    string mountedDir = parser.getPath();
-    FileUtil::nfsmount(parser.getHostname(), mountedDir,
-        DEFAULT_MOUNTPOINT, options);
-
+    FilePath path = parser.getPath();
+    string mountedDir = path.dirName();
+    string rest = path.baseName();
 
     m_mountpoint = DEFAULT_MOUNTPOINT;
-    m_rest = parser.getPath();
-    m_rest.replace(m_rest.begin(), m_rest.begin() + mountedDir.size(), "");
-    m_rest.ltrim("/");
+    m_mountpoint.appendPath(parser.getHostname()).appendPath(mountedDir);
+    m_mountpoint.mkdir(true);
+    Debug::debug()->dbg("Path: %s, Mountpoint: %s, Rest: %s",
+        path.c_str(), m_mountpoint.c_str(), rest.c_str());
 
-    (m_prefix = m_mountpoint).appendPath(m_rest);
+    FileUtil::nfsmount(parser.getHostname(), mountedDir,
+        m_mountpoint, options);
 
-    Debug::debug()->dbg("Mountpoint: %s, Rest: %s, Prefix: $s",
-        m_mountpoint.c_str(), m_rest.c_str(), m_prefix.c_str());
-
-    return RootDirURL("file://" + m_prefix, "");
+    return RootDirURL("file://" + m_mountpoint + PATH_SEPARATOR + rest, "");
 }
 
 // -----------------------------------------------------------------------------
@@ -507,7 +505,7 @@ void NFSTransfer::close()
     throw (KError)
 {
     Debug::debug()->trace("NFSTransfer::close()");
-    if (m_mountpoint.size() > 0) {
+    if (!m_mountpoint.empty()) {
         FileUtil::umount(m_mountpoint);
         m_mountpoint.clear();
     }
