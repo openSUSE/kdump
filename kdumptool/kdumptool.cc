@@ -67,6 +67,7 @@ KdumpTool::~KdumpTool()
     throw ()
 {
     Debug::debug()->trace("KdumpTool::~KdumpTool()");
+    delete m_subcommand;
 }
 
 // -----------------------------------------------------------------------------
