@@ -271,14 +271,15 @@ KDUMP_POSTSCRIPT=""
 #
 KDUMP_COPY_KERNEL="yes"
 
-## Type:        string(NOSPARSE,NOSPLIT,XENALLDOMAINS)
+## Type:        string(NOSPARSE,SPLIT,SINGLE,XENALLDOMAINS)
 ## Default:     ""
 ## ServiceRestart:	kdump
 #
 # Space-separated list of flags to tweak the run-time behaviour of kdumptool:
 #
 #   NOSPARSE disable creation of sparse files.
-#   NOSPLIT  do not pass "--split" to makedumpfile even if KDUMP_CPUS > 1
+#   SPLIT    split the dump file with "makedumpfile --split"
+#   SINGLE   use single CPU to save the dump
 #   XENALLDOMAINS do not filter out Xen DomU pages
 #
 # See also: kdump(5).

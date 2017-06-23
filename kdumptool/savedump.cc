@@ -291,11 +291,24 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
         cpus = syscpu.numOnline();
     }
     if (!config->kdumptoolContainsFlag("NOSPLIT") &&
+        !config->kdumptoolContainsFlag("SINGLE") &&
         cpus > 1) {
 	if (!useElf)
 	    m_split = cpus;
 	else
 	    cerr << "Splitting ELF dumps is not supported." << endl;
+
+        if (config->kdumptoolContainsFlag("SPLIT")) {
+            if (!useElf)
+                m_split = cpus;
+            else
+                cerr << "Splitting ELF dumps is not supported." << endl;
+        } else {
+            if (!useElf)
+                m_threads = cpus - 1;
+            else
+                cerr << "Multithreading is unavailable for ELF dumps" << endl;
+        }
     }
 
     bool excludeDomU = false;
@@ -313,6 +326,10 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
         cmdline << "makedumpfile ";
 	if (m_split)
 	    cmdline << "--split ";
+        if (m_threads) {
+	    SystemCPU syscpu;
+            cmdline << "--num-threads " << m_threads << " ";
+        }
         cmdline << config->MAKEDUMPFILE_OPTIONS.value() << " ";
         cmdline << "-d " << config->KDUMP_DUMPLEVEL.value() << " ";
 	if (excludeDomU)

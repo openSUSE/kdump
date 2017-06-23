@@ -513,11 +513,17 @@ This is a space-separated list of flags to tweak the run-time behaviour of
   Because SFTP and FTP are not mounted, that option has no meaning when saving
   the dump to SFTP and FTP.
 
-*NOSPLIT*::
-  Disable the _--split_ option of *makedumpfile*(8). This option is normally
-  added when KDUMP_CPUS>1, because otherwise the additional CPUs are idle.
-  You can specify this flag to force the use of only one dumping process,
-  regardless of the value of KDUMP_CPUS.
+*SPLIT*::
+  If KDUMP_CPUS>1, use the _--split_ option of *makedumpfile*(8) instead of
+  the default _--num-threads_.
+
+*SINGLE*::
+  Specify this flag to force the use of only one CPU for dumping, regardless
+  of the value of KDUMP_CPUS.
+  It disables the _--split_ and _--num-threads_ options of *makedumpfile*(8).
+
+  For compatibility with older versions, *NOSPLIT* is an alias for *SINGLE*.
+  Its use is deprecated.
 
 *XENALLDOMAINS*::
   When dumping a Xen virtualization host, *makedumpfile*(8) is normally
