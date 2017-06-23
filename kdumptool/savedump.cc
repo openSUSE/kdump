@@ -41,6 +41,7 @@
 #include "identifykernel.h"
 #include "email.h"
 #include "routable.h"
+#include "calibrate.h"
 
 using std::string;
 using std::list;
@@ -60,7 +61,7 @@ using std::ifstream;
 SaveDump::SaveDump()
     throw ()
     : m_dump(DEFAULT_DUMP), m_transfer(NULL), m_usedDirectSave(false),
-      m_useMakedumpfile(false), m_useSplit(false), m_nomail(false)
+      m_useMakedumpfile(false), m_split(0), m_nomail(false)
 {
     Debug::debug()->trace("SaveDump::SaveDump()");
 
@@ -284,10 +285,15 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
     if (noDump)
 	return;			// nothing to be done
 
+    unsigned long cpus = config->KDUMP_CPUS.value();
+    if (cpus) {
+        SystemCPU syscpu;
+        cpus = syscpu.numOnline();
+    }
     if (!config->kdumptoolContainsFlag("NOSPLIT") &&
-        config->KDUMP_CPUS.value() > 1) {
+        cpus > 1) {
 	if (!useElf)
-	    m_useSplit = true;
+	    m_split = cpus;
 	else
 	    cerr << "Splitting ELF dumps is not supported." << endl;
     }
@@ -305,7 +311,7 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
         // use makedumpfile
         ostringstream cmdline;
         cmdline << "makedumpfile ";
-	if (m_useSplit)
+	if (m_split)
 	    cmdline << "--split ";
         cmdline << config->MAKEDUMPFILE_OPTIONS.value() << " ";
         cmdline << "-d " << config->KDUMP_DUMPLEVEL.value() << " ";
@@ -340,10 +346,9 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
             provider->setProgress(&progress);
         else
             cout << "Saving dump ..." << endl;
-	if (m_useSplit) {
+	if (m_split) {
 	    StringVector targets;
-            const int cpus = config->KDUMP_CPUS.value();
-	    for (int i = 1; i <= cpus; ++i) {
+	    for (unsigned long i = 1; i <= m_split; ++i) {
 		ostringstream ss;
 		ss << "vmcore" << i;
 		targets.push_back(ss.str());
@@ -482,8 +487,8 @@ void SaveDump::generateInfo()
     ss << "Dump level     : "
        << Stringutil::number2string(config->KDUMP_DUMPLEVEL.value()) << endl;
     ss << "Dump format    : " << config->KDUMP_DUMPFORMAT.value() << endl;
-    if (m_useSplit && m_usedDirectSave)
-        ss << "Split parts    : " << config->KDUMP_CPUS.value() << endl;
+    if (m_split && m_usedDirectSave)
+        ss << "Split parts    : " << m_split << endl;
     ss << endl;
 
 

@@ -905,10 +905,10 @@ void Calibrate::execute()
 	}
 
 	// Add memory based on CPU count
-	unsigned long cpus;
-	if (CAN_REDUCE_CPUS) {
+	unsigned long cpus = 0;
+	if (CAN_REDUCE_CPUS)
 	    cpus = config->KDUMP_CPUS.value();
-	} else {
+        if (!cpus) {
 	    SystemCPU syscpu;
 	    unsigned long online = syscpu.numOnline();
 	    unsigned long offline = syscpu.numOffline();

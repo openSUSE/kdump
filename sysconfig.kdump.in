@@ -18,13 +18,8 @@ KDUMP_KERNELVER=""
 #
 # Number of CPUs to be used in the kdump environment. You may want to
 # increase the number if computing power is the bottleneck in your setup.
-# This value is used as the maxcpus parameter of the secondary kernel, so
-# DON'T CHANGE IT unless your system can reliably re-initialize SMP after
-# a kernel crash.
 #
-# WARNING: SETTING THIS NUMBER TO A NUMBER HIGHER THAN 1 IS EXPERIMENTAL!
-# SOME MACHINES ARE KNOWN TO HANG OR REBOOT RANDOMLY DURING INITIALISATION
-# OF THE DUMP KERNEL IF KDUMP_CPUS > 1.
+# If the value is zero, use all available CPUs.
 #
 # See also: kdump(5).
 #

@@ -112,7 +112,7 @@ class SaveDump : public Subcommand {
         Transfer *m_transfer;
         bool m_usedDirectSave;
         bool m_useMakedumpfile;
-	bool m_useSplit;
+	unsigned long m_split;
         std::string m_crashtime;
         std::string m_crashrelease;
         std::string m_rootdir;

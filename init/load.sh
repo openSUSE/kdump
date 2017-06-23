@@ -63,14 +63,17 @@ function build_kdump_commandline()
     local commandline="$KDUMP_COMMANDLINE"
 
     if [ -z "$commandline" ] ; then
-        local nr_cpus=$(cpus_param "$kdump_kernel")
+        local nr_cpus
         commandline=$(
             remove_from_commandline \
                 'root|resume|crashkernel|splash|mem|BOOT_IMAGE|showopts|zfcp\.allow_lun_scan|hugepages|acpi_no_memhotplug|cgroup_disable|unknown_nmi_panic|rd\.udev\.children-max' \
                 < /proc/cmdline)
+        if [ ${KDUMP_CPUS:-1} -ne 0 ] ; then
+            nr_cpus=$(cpus_param "$kdump_kernel")=${KDUMP_CPUS:-1}
+        fi
         # Use deadline for saving the memory footprint
         commandline="$commandline elevator=deadline sysrq=yes reset_devices acpi_no_memhotplug cgroup_disable=memory"
-        commandline="$commandline irqpoll ${nr_cpus}=${KDUMP_CPUS:-1}"
+        commandline="$commandline irqpoll ${nr_cpus}"
         commandline="$commandline root=kdump rootflags=bind rd.udev.children-max=8"
         case $(uname -i) in
         i?86|x86_64)

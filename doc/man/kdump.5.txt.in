@@ -136,12 +136,11 @@ the number of CPUs in your system.
 This parameter modifies the _maxcpus_ parameter of the kdump kernel and
 the number of *makedumpfile*(8) processes created.
 
+If the value is zero, all available CPUs are used, i.e. the _maxcpus_
+parameter is not added to the kdump kernel command line.
+
 *Note:* This parameter does not work properly for the _ELF_ format,
 because *makedumpfile*(8) does not support split _ELF_ dump files.
-
-*WARNING:* SETTING THIS NUMBER TO A NUMBER HIGHER THAN 1 IS EXPERIMENTAL!
-SOME MACHINES ARE KNOWN TO HANG OR REBOOT RANDOMLY DURING INITIALISATION
-OF THE DUMP KERNEL IF KDUMP_CPUS > 1.
 
 Default is 1.
 
