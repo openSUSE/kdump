@@ -20,6 +20,7 @@
 #define CALIBRATE_H
 
 #include "subcommand.h"
+#include "fileutil.h"
 
 //{{{ Calibrate ----------------------------------------------------------------
 
@@ -51,6 +52,56 @@ class Calibrate : public Subcommand {
         throw (KError);
 
     private:
+};
+
+//}}}
+//{{{ SystemCPU ----------------------------------------------------------------
+
+class SystemCPU {
+
+    public:
+        /**
+	 * Initialize a new SystemCPU object.
+	 *
+	 * @param[in] sysdir Mount point for sysfs
+	 */
+	SystemCPU(const char *sysdir = "/sys")
+	throw ()
+	: m_cpudir(FilePath(sysdir).appendPath("devices/system/cpu"))
+	{}
+
+    protected:
+        /**
+	 * Path to the cpu system devices base directory
+	 */
+	const FilePath m_cpudir;
+
+        /**
+	 * Count the number of CPUs in a cpuset
+	 *
+	 * @param[in] name Name of the cpuset ("possible", "present", "online")
+	 *
+	 * @exception KError if the file cannot be opened or parsed
+	 */
+	unsigned long count(const char *name);
+
+    public:
+        /**
+	 * Count the number of online CPUs
+	 *
+	 * @exception KError see @c count()
+	 */
+	unsigned long numOnline(void)
+	{ return count("online"); }
+
+        /**
+	 * Count the number of offline CPUs
+	 *
+	 * @exception KError see @c count()
+	 */
+	unsigned long numOffline(void)
+	{ return count("offline"); }
+
 };
 
 //}}}
