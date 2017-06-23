@@ -81,6 +81,25 @@ kdump_add_mpath_dev() {
     fi
 }
 
+kdump_cmdline_zfcp() {
+    is_zfcp() {
+        local _dev=$1
+        local _devpath=$(cd -P /sys/dev/block/$_dev ; echo $PWD)
+        local _sdev _lun _wwpn _ccw
+
+        [ "${_devpath#*/sd}" == "$_devpath" ] && return 1
+        _sdev="${_devpath%%/block/*}"
+        [ -e ${_sdev}/fcp_lun ] || return 1
+        _ccw=$(cat ${_sdev}/hba_id)
+        _lun=$(cat ${_sdev}/fcp_lun)
+        _wwpn=$(cat ${_sdev}/wwpn)
+        echo "rd.zfcp=${_ccw},${_wwpn},${_lun}"
+    }
+    [[ $hostonly ]] || [[ $mount_needs ]] && {
+        for_each_host_dev_and_slaves_all is_zfcp
+    } | sort -u
+}
+
 kdump_cmdline_ip() {
     [ "$kdump_neednet" = y ] || return 0
 
@@ -142,6 +161,9 @@ kdump_gen_mount_units() {
 }
 
 cmdline() {
+    local _arch=$(uname -m)
+    [ "$_arch" = "s390" -o "$_arch" = "s390x" ] && kdump_cmdline_zfcp
+
     kdump_cmdline_ip
 }
 
