@@ -473,6 +473,13 @@ function kdump_ifname_config()						   # {{{
 	    hwaddr=$(ethtool -P "$kdump_iface" | sed 's/^[^:]*: *//')
 	fi
 	[ -n "$hwaddr" ] && kdump_netif="$kdump_netif ifname=$kdump_iface:$hwaddr"
+
+	local mod="/sys/class/net/$kdump_iface/device/driver/module"
+	if [ -L "$mod" ]
+	then
+	    mod=$(readlink "$mod")
+	    kdump_kmods="$kdump_kmods ${mod##*/}"
+	fi
     else
 	case "$ifkind" in
 	    bridge)
