@@ -457,6 +457,7 @@ function kdump_vlan_config()						   # {{{
 #   kdump_netif  corresponding ifname= initrd parameter added
 #   kdump_iface  device name in initrd
 #   kdump_kmods  additional kernel modules updated
+#   kdump_hwif   hardware interfaces updated
 function kdump_ifname_config()						   # {{{
 {
     kdump_iface="$1"
@@ -464,6 +465,8 @@ function kdump_ifname_config()						   # {{{
 
     if [ -z "$ifkind" ]
     then
+	kdump_hwif="$kdump_hwif $kdump_iface"
+
 	local hwaddr
 	local addrtype=$(<"/sys/class/net/$kdump_iface/addr_assign_type")
 	if [ "$addrtype" -eq 0 ]
@@ -1045,6 +1048,69 @@ function kdump_filter_sysctl()						   # {{{
 }									   # }}}
 
 #
+# Set up a QETH network interface
+# Parameters:
+#   1) _root:   initrd temporary root
+#   2) _iface:  interface name
+# Input variables:
+#   kdump_hwif   hardware network interfaces
+function kdump_setup_qeth()						   # {{{
+{
+    local _root="$1"
+    local _iface="$2"
+    local _dev=$( readlink "/sys/class/net/$_iface/device" )
+    _dev="${_dev##*/}"
+    local _cdev0=$( readlink "/sys/class/net/$_iface/device/cdev0" )
+    _cdev0="${_cdev0##*/}"
+    local _cdev1=$( readlink "/sys/class/net/$_iface/device/cdev1" )
+    _cdev1="${_cdev1##*/}"
+    local _cdev2=$( readlink "/sys/class/net/$_iface/device/cdev2" )
+    _cdev2="${_cdev2##*/}"
+    local _layer2=$(</sys/class/net/$_iface/device/layer2)
+    local _portno=$(</sys/class/net/$_iface/device/portno)
+
+    cat >"${_root}/etc/udev/rules.d/51-qeth-${_dev}.rules" <<EOF
+ACTION=="add", SUBSYSTEM=="drivers", KERNEL=="qeth", IMPORT{program}="collect $_dev %k $_cdev0 $_cdev1 $_cdev2 qeth"
+ACTION=="add", SUBSYSTEM=="ccw", KERNEL=="$_cdev0", IMPORT{program}="collect $_dev %k $_cdev0 $_cdev1 $_cdev2 qeth"
+ACTION=="add", SUBSYSTEM=="ccw", KERNEL=="$_cdev1", IMPORT{program}="collect $_dev %k $_cdev0 $_cdev1 $_cdev2 qeth"
+ACTION=="add", SUBSYSTEM=="ccw", KERNEL=="$_cdev2", IMPORT{program}="collect $_dev %k $_cdev0 $_cdev1 $_cdev2 qeth"
+ACTION=="remove", SUBSYSTEM=="drivers", KERNEL=="qeth", IMPORT{program}="collect --remove $_dev %k $_cdev0 $_cdev1 $_cdev2 qeth"
+ACTION=="remove", SUBSYSTEM=="ccw", KERNEL=="$_cdev0", IMPORT{program}="collect --remove $_dev %k $_cdev0 $_cdev1 $_cdev2 qeth"
+ACTION=="remove", SUBSYSTEM=="ccw", KERNEL=="$_cdev1", IMPORT{program}="collect --remove $_dev %k $_cdev0 $_cdev1 $_cdev2 qeth"
+ACTION=="remove", SUBSYSTEM=="ccw", KERNEL=="$_cdev2", IMPORT{program}="collect --remove $_dev %k $_cdev0 $_cdev1 $_cdev2 qeth"
+TEST=="[ccwgroup/$_dev]", GOTO="qeth-${_dev}-end"
+ACTION=="add", SUBSYSTEM=="ccw", ENV{COLLECT_$_dev}=="0", ATTR{[drivers/ccwgroup:qeth]group}="$_cdev0,$_cdev1,$_cdev2"
+ACTION=="add", SUBSYSTEM=="drivers", KERNEL=="qeth", ENV{COLLECT_$_dev}=="0", ATTR{[drivers/ccwgroup:qeth]group}="$_cdev0,$_cdev1,$_cdev2"
+LABEL="qeth-$_dev-end"
+ACTION=="add", SUBSYSTEM=="ccwgroup", KERNEL=="$_dev", ATTR{portno}="$_portno"
+ACTION=="add", SUBSYSTEM=="ccwgroup", KERNEL=="$_dev", ATTR{layer2}="$_layer2"
+ACTION=="add", SUBSYSTEM=="ccwgroup", KERNEL=="$_dev", ATTR{online}="1"
+EOF
+}									   # }}}
+
+#
+# Set up hardware network interfaces
+# Parameters:
+#   1) _root:   initrd temporary root
+# Input variables:
+#   kdump_hwif   hardware network interfaces
+function kdump_setup_hwif()						   # {{{
+{
+    local _root="$1"
+    local _iface _drv
+
+    for _iface in $kdump_hwif
+    do
+	_drv=$( readlink "/sys/class/net/$_iface/device/driver" )
+	case "$_drv" in
+	    */qeth)
+		kdump_setup_qeth "$_root" "$_iface"
+		;;
+	esac
+    done
+}									   # }}}
+
+#
 # Set up or create all necessary files
 # Parameters:
 #   1) outdir:    initrd temporary root
@@ -1053,6 +1119,7 @@ function kdump_filter_sysctl()						   # {{{
 # Input variables:
 #   KDUMP_*      see kdump_get_config
 #   kdump_mnt[]  mountpoints in kdump environment
+#   kdump_hwif   hardware network interfaces
 # Output variables:
 #   KDUMP_REQUIRED_PROGRAMS updated as necessary
 function kdump_setup_files()						   # {{{
@@ -1093,6 +1160,11 @@ function kdump_setup_files()						   # {{{
     # filter out problematic sysctl settings
     #
     kdump_filter_sysctl "$outdir"
+
+    #
+    # set up hardware interfaces
+    #
+    kdump_setup_hwif "$outdir"
 
     return 0
 }									   # }}}
