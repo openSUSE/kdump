@@ -309,13 +309,13 @@ if [ "$1" = "--update" ] ; then
     rebuild_kdumprd || exit 1
     after=$(stat -c %Y $kdump_initrd)
 
-    # If the initial ram disk was not updated,
-    # do not execute kexec again. This script
-    # is called from kdump.service and
+    # This script is called from kdump.service and
     # kdump-rebuild-initrd.service.
-    if [ "$before" = "$after" ] ; then
-        exit 0
-    fi
+    # Proceed further even if there is no change in initrd
+    # because restart kdump.service unloads kdump/fadump and
+    # in next service start below enablement will be required
+    # otherwise kdump/fadump won't be enabled and leads to panic
+    # on crash.
 fi
 
 if [ "$KDUMP_FADUMP" = "yes" ] ; then
