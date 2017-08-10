@@ -294,15 +294,12 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
         if (cpus > online_cpus)
             cpus = online_cpus;
     }
-    if (!config->kdumptoolContainsFlag("NOSPLIT") &&
-        !config->kdumptoolContainsFlag("SINGLE") &&
+    if (!config->kdumptoolContainsFlag("SINGLE") &&
         cpus > 1) {
-	if (!useElf)
-	    m_split = cpus;
-	else
-	    cerr << "Splitting ELF dumps is not supported." << endl;
 
-        if (config->kdumptoolContainsFlag("SPLIT")) {
+        /* The check for NOSPLIT is for backward compatibility */
+        if (config->kdumptoolContainsFlag("SPLIT") &&
+            !config->kdumptoolContainsFlag("NOSPLIT")) {
             if (!useElf)
                 m_split = cpus;
             else
