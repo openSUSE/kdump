@@ -26,8 +26,9 @@ Requirements:
   - cmake (http://www.cmake.org/).
   - libblkid (libblkid-devel)
 
-It's maintained in a Mercurial (hg) tree at http://freehg.org/u/bwalle/kdump/.
+It's maintained in a git tree at https://github.com/opensuse/kdump/
 
 Author:     Bernhard Walle <bwalle@suse.de>
-Copyright:  (c) 2008, SUSE LINUX Products GmbH
+Maintainer: Lance Wang <lzwang@suse.com>
+Copyright:  (c) 2008-2017, SUSE LINUX Products GmbH
 License:    GPL v2 or later
