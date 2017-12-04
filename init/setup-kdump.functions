@@ -866,6 +866,8 @@ function kdump_modify_config()						   # {{{
             KDUMP_SAVEDIR="${KDUMP_SAVEDIR}file://${kdump_Realpath[i]}"
 	elif [ "$protocol" != "srcfile" ] ; then
             KDUMP_SAVEDIR="${KDUMP_SAVEDIR}${kdump_URL[i]}"
+            cp /etc/hosts "${dest}/etc"
+            grep '^hosts:' /etc/nsswitch.conf > "${dest}/etc/nsswitch.conf"
 	fi
 
 	#
