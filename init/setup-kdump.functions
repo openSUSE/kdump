@@ -875,11 +875,11 @@ function kdump_modify_config()						   # {{{
             kdump_over_ssh=yes
             if [ -z "$KDUMP_HOST_KEY" ] ; then
 		KDUMP_HOST_KEY=$(
-		    ssh-keygen -F "$kdump_Host" 2>/dev/null | \
+		    ssh-keygen -F "${kdump_Host[i]}" 2>/dev/null | \
 		    awk '/^[^#]/ { if (NF==3) { print $3; exit } }'
 		)
             fi
-	    ssh-keygen -F "$kdump_Host" 2> /dev/null \
+	    ssh-keygen -F "${kdump_Host[i]}" 2> /dev/null \
 		>>"${dest}/kdump/.ssh/known_hosts"
 	fi
 
