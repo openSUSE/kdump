@@ -146,29 +146,17 @@ function build_kexec_options()
     echo "$options"
 }
 
-#
-# Load kdump using kexec
-function load_kdump_kexec()
+function run_kexec()
 {
+    local kexec_call="$1"
     local result
 
-    if [ ! -f "$kdump_initrd" ] ; then
-        echo "No kdump initial ramdisk found. Tried to locate $kdump_initrd."
-	return 6
-    fi
-
-    local kdump_commandline=$(build_kdump_commandline "$kdump_kernel")
-    local kexec_options=$(build_kexec_options "$kdump_kernel")
-
-    KEXEC_CALL="$KEXEC -p $kdump_kernel --append=\"$kdump_commandline\""
-    KEXEC_CALL="$KEXEC_CALL --initrd=$kdump_initrd $kexec_options"
-
     if [ $((${KDUMP_VERBOSE:-0} & 4)) -gt 0 ] ; then
-        echo "Loading kdump kernel: $KEXEC_CALL"
+        echo "Loading kdump kernel: $kexec_call"
     fi
 
     local output
-    output=$(eval "$KEXEC_CALL" 2>&1)
+    output=$(eval "$kexec_call" 2>&1)
     if [ $? -eq 0 ] ; then
 	result=0
     else
@@ -182,11 +170,39 @@ function load_kdump_kexec()
     if [ $((${KDUMP_VERBOSE:-0} & 1)) -gt 0 ] ; then
         if [ $result -eq 0 ] ; then
             logger -i -t kdump \
-		"Loaded kdump kernel: $KEXEC_CALL, Result: $output"
+		"Loaded kdump kernel: $kexec_call, Result: $output"
         else
             logger -i -t kdump \
-                "FAILED to load kdump kernel: $KEXEC_CALL, Result: $output"
+                "FAILED to load kdump kernel: $kexec_call, Result: $output"
         fi
+    fi
+
+    return $result
+}
+
+#
+# Load kdump using kexec
+function load_kdump_kexec()
+{
+    local result
+
+    if [ ! -f "$kdump_initrd" ] ; then
+	echo "No kdump initial ramdisk found. Tried to locate $kdump_initrd."
+	return 6
+    fi
+
+    local kdump_commandline=$(build_kdump_commandline "$kdump_kernel")
+    local kexec_options=$(build_kexec_options "$kdump_kernel")
+
+    KEXEC_CALL="$KEXEC -p $kdump_kernel --append=\"$kdump_commandline\""
+    KEXEC_CALL="$KEXEC_CALL --initrd=$kdump_initrd $kexec_options"
+
+    run_kexec "$KEXEC_CALL"
+    result=$?
+    # try kexec_load_file
+    if [ $result -eq 1 ] && [ "$(uname -i)" = "x86_64" ] ; then
+	run_kexec "$KEXEC_CALL -s"
+	result=$?
     fi
 
     return $result
