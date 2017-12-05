@@ -184,7 +184,7 @@ function run_kexec()
 # Load kdump using kexec
 function load_kdump_kexec()
 {
-    local result
+    local kexec_load_file=no
 
     if [ ! -f "$kdump_initrd" ] ; then
 	echo "No kdump initial ramdisk found. Tried to locate $kdump_initrd."
@@ -197,15 +197,11 @@ function load_kdump_kexec()
     KEXEC_CALL="$KEXEC -p $kdump_kernel --append=\"$kdump_commandline\""
     KEXEC_CALL="$KEXEC_CALL --initrd=$kdump_initrd $kexec_options"
 
-    run_kexec "$KEXEC_CALL"
-    result=$?
-    # try kexec_load_file
-    if [ $result -eq 1 ] && [ "$(uname -i)" = "x86_64" ] ; then
-	run_kexec "$KEXEC_CALL -s"
-	result=$?
-    fi
+    [ "$(uname -i)" = "x86_64" ] && kexec_load_file=yes
 
-    return $result
+    { [ $kexec_load_file = yes ] && run_kexec "$KEXEC_CALL -s" ; } || run_kexec "$KEXEC_CALL"
+
+    return $?
 }
 
 #
