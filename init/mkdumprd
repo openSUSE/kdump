@@ -142,9 +142,6 @@ function run_dracut()
     # Make resolved variables visible to the dracut module
     kdump_export_targets
 
-    # Include additional files in the kdump initial ram disk
-    DRACUT_ARGS="$DRACUT_ARGS --install '/etc/hosts /etc/nsswitch.conf'"
-
     DRACUT_ARGS="$DRACUT_ARGS --add 'kdump' $INITRD $KERNELVERSION"
     echo "Regenerating kdump initrd ..." >&2
     eval "bash -$- $DRACUT $DRACUT_ARGS"
