@@ -163,9 +163,7 @@ function load_kdump_kexec()
     KEXEC_CALL="$KEXEC -p $kdump_kernel --append=\"$kdump_commandline\""
     KEXEC_CALL="$KEXEC_CALL --initrd=$kdump_initrd $kexec_options"
 
-    if [ $((${KDUMP_VERBOSE:-0} & 4)) -gt 0 ] ; then
-        echo "Loading kdump kernel: $KEXEC_CALL"
-    fi
+    kdump_echo "Loading kdump kernel: $KEXEC_CALL"
 
     local output
     output=$(eval "$KEXEC_CALL" 2>&1)
@@ -179,14 +177,10 @@ function load_kdump_kexec()
     # would be supressed (bnc#374185)
     echo -n "$output"
 
-    if [ $((${KDUMP_VERBOSE:-0} & 1)) -gt 0 ] ; then
-        if [ $result -eq 0 ] ; then
-            logger -i -t kdump \
-		"Loaded kdump kernel: $KEXEC_CALL, Result: $output"
-        else
-            logger -i -t kdump \
-                "FAILED to load kdump kernel: $KEXEC_CALL, Result: $output"
-        fi
+    if [ $result -eq 0 ] ; then
+        kdump_logger "Loaded kdump kernel: $KEXEC_CALL, Result: $output"
+    else
+        kdump_logger "FAILED to load kdump kernel: $KEXEC_CALL, Result: $output"
     fi
 
     return $result
@@ -298,6 +292,24 @@ function rebuild_kdumprd()
 #
 
 eval $($KDUMPTOOL dump_config)
+
+if [ $((${KDUMP_VERBOSE:-0} & 4)) -gt 0 ] ; then
+    function kdump_echo()
+    {
+        echo "$@"
+    }
+else
+    function kdump_echo(){ :; }
+fi
+
+if [ $((${KDUMP_VERBOSE:-0} & 1)) -gt 0 ] ; then
+    function kdump_logger()
+    {
+        logger -i -t kdump "$@"
+    }
+else
+    function kdump_logger(){ :; }
+fi
 
 if [ $((${KDUMP_VERBOSE:-0} & 16)) -gt 0 ] ; then
     KDUMPTOOL="$KDUMPTOOL -D"
