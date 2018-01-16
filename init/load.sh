@@ -138,11 +138,6 @@ function build_kexec_options()
         options="$options --noio"
     fi
 
-    # add -s on x86_64 for signature verification of kernel
-    if [ "$(uname -i)" = "x86_64" ] ; then
-	options="$options -s"
-    fi
-
     echo "$options"
 }
 
@@ -151,6 +146,7 @@ function build_kexec_options()
 function load_kdump_kexec()
 {
     local result
+    local output
 
     if [ ! -f "$kdump_initrd" ] ; then
         echo "No kdump initial ramdisk found. Tried to locate $kdump_initrd."
@@ -163,19 +159,35 @@ function load_kdump_kexec()
     KEXEC_CALL="$KEXEC -p $kdump_kernel --append=\"$kdump_commandline\""
     KEXEC_CALL="$KEXEC_CALL --initrd=$kdump_initrd $kexec_options"
 
-    kdump_echo "Loading kdump kernel: $KEXEC_CALL"
+    kdump_echo "Starting load kdump kernel with kexec_file_load(2)"
+    kdump_echo "kexec cmdline: $KEXEC_CALL -s"
 
-    local output
-    output=$(eval "$KEXEC_CALL" 2>&1)
-    if [ $? -eq 0 ] ; then
-	result=0
-    else
-	result=1
+    output=$(eval "$KEXEC_CALL -s" 2>&1)
+    result=$?
+    if [ $result -eq 255 ] ; then
+        echo $output | grep -q 'syscall kexec_file_load not available' && result=7
     fi
 
     # print stderr in any case to show warnings that normally
     # would be supressed (bnc#374185)
-    echo -n "$output"
+    echo -n "$output"; echo
+
+    if [ $result -eq 0 ] ; then
+        kdump_logger "Loaded kdump kernel: $KEXEC_CALL -s, Result: $output"
+        return 0
+    elif [ $result -ne 7 ]; then
+        kdump_logger "FAILED to load kdump kernel: $KEXEC_CALL -s, Result: $output"
+        return $result
+    fi
+
+    # kexec_file_load(2) not available
+    kdump_echo "kexec_file_load(2) not available"
+    kdump_echo "Starting load kdump kernel with kexec_load(2)"
+    kdump_echo "kexec cmdline: $KEXEC_CALL"
+
+    output=$(eval "$KEXEC_CALL" 2>&1)
+    result=$?
+    echo -n "$output";echo
 
     if [ $result -eq 0 ] ; then
         kdump_logger "Loaded kdump kernel: $KEXEC_CALL, Result: $output"
