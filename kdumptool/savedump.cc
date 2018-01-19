@@ -61,7 +61,7 @@ using std::ifstream;
 SaveDump::SaveDump()
     throw ()
     : m_dump(DEFAULT_DUMP), m_transfer(NULL), m_usedDirectSave(false),
-      m_useMakedumpfile(false), m_split(0), m_nomail(false)
+      m_useMakedumpfile(false), m_split(0), m_threads(0), m_nomail(false)
 {
     Debug::debug()->trace("SaveDump::SaveDump()");
 
