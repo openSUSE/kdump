@@ -213,20 +213,20 @@ static inline unsigned long s390x_align_memmap(unsigned long maxpfn)
 #define DIRTY_RATIO		20
 
 // Userspace base requirements:
-//   systemd (PID 1)	 3 M
-//   haveged             4 M
-//   journald		 2 M
+//   systemd (PID 1)	 8 M
+//   haveged             6 M
+//   journald		 5 M
 //   the journal itself	 4 M
-//   10 * udevd		12 M
+//   10 * udevd		28 M
 //   kdumptool		 4 M
 //   makedumpfile	 1 M
 // -------------------------
-// TOTAL:		30 M
-#define USER_BASE_KB	MB(30)
+// TOTAL:		56 M
+#define USER_BASE_KB	MB(56)
 
 // Additional requirements when network is configured
-//   dhclient		 7 M
-#define USER_NET_KB	MB(7)
+//   dhclient		10 M
+#define USER_NET_KB	MB(10)
 
 // Maximum size of the page bitmap
 // 32 MiB is 32*1024*1024*8 = 268435456 bits
