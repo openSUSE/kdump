@@ -33,6 +33,11 @@ kdump_check_net() {
     if [ "$kdump_host_if" = "default" ] ; then
 	kdump_host_if=$(kdump_default_netdev)
     fi
+    if [ -z "$kdump_host_if" ] ; then
+        kdump_neednet=
+        return 1
+    fi
+
     if [ "$kdump_net_mode" = "auto" ] ; then
 	kdump_net_mode=$(kdump_netdev_mode "$kdump_host_if")
     fi
