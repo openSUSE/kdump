@@ -18,31 +18,6 @@ kdump_check_net() {
 
     # network explicitly disabled in configuration?
     [ -z "$KDUMP_NETCONFIG" ] && kdump_neednet=
-
-    [ "$kdump_neednet" = y ] || return 0
-
-    if [ "$KDUMP_NETCONFIG" = "auto" ] ; then
-	kdump_host_if=default
-	kdump_net_mode=auto
-    else
-	set -- ${KDUMP_NETCONFIG//:/ }
-	kdump_host_if=$1
-	kdump_net_mode=$2
-    fi
-
-    if [ "$kdump_host_if" = "default" ] ; then
-	kdump_host_if=$(kdump_default_netdev)
-    fi
-    if [ -z "$kdump_host_if" ] ; then
-        kdump_neednet=
-        return 1
-    fi
-
-    if [ "$kdump_net_mode" = "auto" ] ; then
-	kdump_net_mode=$(kdump_netdev_mode "$kdump_host_if")
-    fi
-
-    kdump_ifname_config "$kdump_host_if"
 }
 
 check() {
@@ -107,6 +82,26 @@ kdump_cmdline_zfcp() {
 
 kdump_cmdline_ip() {
     [ "$kdump_neednet" = y ] || return 0
+
+    if [ "$KDUMP_NETCONFIG" = "auto" ] ; then
+	kdump_host_if=default
+	kdump_net_mode=auto
+    else
+	set -- ${KDUMP_NETCONFIG//:/ }
+	kdump_host_if=$1
+	kdump_net_mode=$2
+    fi
+
+    if [ "$kdump_host_if" = "default" ] ; then
+	kdump_host_if=$(kdump_default_netdev)
+    fi
+    [ -n "$kdump_host_if" ] || return 1
+
+    if [ "$kdump_net_mode" = "auto" ] ; then
+	kdump_net_mode=$(kdump_netdev_mode "$kdump_host_if")
+    fi
+
+    kdump_ifname_config "$kdump_host_if"
 
     echo -n "rd.neednet=1"
     echo -n "$kdump_netif"
