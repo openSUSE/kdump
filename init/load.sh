@@ -329,17 +329,7 @@ fi
 
 find_kernel || exit 6
 if [ "$1" = "--update" ] ; then
-    before=$(stat -c %Y $kdump_initrd 2> /dev/null)
     rebuild_kdumprd || exit 1
-    after=$(stat -c %Y $kdump_initrd)
-
-    # This script is called from kdump.service and
-    # kdump-rebuild-initrd.service.
-    # Proceed further even if there is no change in initrd
-    # because restart kdump.service unloads kdump/fadump and
-    # in next service start below enablement will be required
-    # otherwise kdump/fadump won't be enabled and leads to panic
-    # on crash.
 fi
 
 if [ "$KDUMP_FADUMP" = "yes" ] ; then
