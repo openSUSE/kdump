@@ -968,6 +968,10 @@ void Calibrate::execute()
 	required = prev + align_memmap(maxpfn) * SIZE_STRUCT_PAGE;
         Debug::debug()->dbg("Maximum memmap size: %lu KiB", required - prev);
 
+        // Memory between 0 and KDUMP_PHYS_LOAD is not really allocated,
+        // so subtract it again after memmap has been sized.
+	required -= KDUMP_PHYS_LOAD;
+
 	// Make sure there is enough space at boot
 	Debug::debug()->dbg("Total run-time size: %lu KiB", required);
 	if (required < bootsize)
