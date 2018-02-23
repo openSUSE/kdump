@@ -164,30 +164,24 @@ function load_kdump_kexec()
 
     output=$(eval "$KEXEC_CALL -s" 2>&1)
     result=$?
-    if [ $result -eq 255 ] ; then
-        echo $output | grep -q 'syscall kexec_file_load not available' && result=7
-    fi
 
     # print stderr in any case to show warnings that normally
     # would be supressed (bnc#374185)
-    echo -n "$output"; echo
+    echo "$output"
 
     if [ $result -eq 0 ] ; then
         kdump_logger "Loaded kdump kernel: $KEXEC_CALL -s, Result: $output"
         return 0
-    elif [ $result -ne 7 ]; then
-        kdump_logger "FAILED to load kdump kernel: $KEXEC_CALL -s, Result: $output"
-        return $result
     fi
 
-    # kexec_file_load(2) not available
-    kdump_echo "kexec_file_load(2) not available"
+    # kexec_file_load(2) failed
+    kdump_echo "kexec_file_load(2) failed"
     kdump_echo "Starting load kdump kernel with kexec_load(2)"
     kdump_echo "kexec cmdline: $KEXEC_CALL"
 
     output=$(eval "$KEXEC_CALL" 2>&1)
     result=$?
-    echo -n "$output";echo
+    echo "$output"
 
     if [ $result -eq 0 ] ; then
         kdump_logger "Loaded kdump kernel: $KEXEC_CALL, Result: $output"
