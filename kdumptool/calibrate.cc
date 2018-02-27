@@ -290,6 +290,102 @@ unsigned long SystemCPU::count(const char *name)
 }
 
 //}}}
+//{{{ HyperInfo ----------------------------------------------------------------
+
+class HyperInfo {
+
+    public:
+        /**
+         * Initialize a new HyperInfo object.
+         *
+         * @param[in] procdir Mount point for procfs
+         * @param[in] sysdir  Mount point for sysfs
+         */
+        HyperInfo(const char *procdir = "/proc", const char *sysdir = "/sys");
+
+    protected:
+        std::string m_type, m_guest_type, m_guest_variant;
+
+    private:
+        /**
+         * Read a file under a base directory into a string.
+         */
+        void read_str(std::string &str, const FilePath &basedir,
+                      const char *attr);
+
+    public:
+        /**
+         * Get hypervisor type.
+         */
+        const std::string& type(void) const
+        { return m_type; }
+
+        /**
+         * Get hypervisor guest type.
+         */
+        const std::string& guest_type(void) const
+        { return m_guest_type; }
+
+        /**
+         * Get hypervisor guest variant (Dom0 or DomU).
+         */
+        const std::string& guest_variant(void) const
+        { return m_guest_variant; }
+};
+
+// -----------------------------------------------------------------------------
+HyperInfo::HyperInfo(const char *procdir, const char *sysdir)
+{
+    FilePath basedir(sysdir);
+    basedir.appendPath("hypervisor");
+
+    read_str(m_type, basedir, "type");
+    read_str(m_guest_type, basedir, "guest_type");
+
+    if (m_type == "xen") {
+        std::string caps;
+        std::string::size_type pos, next, len;
+
+        basedir = procdir;
+        basedir.appendPath("xen");
+        read_str(caps, basedir, "capabilities");
+
+        m_guest_variant = "DomU";
+        pos = 0;
+        while (pos != std::string::npos) {
+            len = next = caps.find(',', pos);
+            if (next != std::string::npos) {
+                ++next;
+                len -= pos;
+            }
+            if (caps.compare(pos, len, "control_d") == 0) {
+                m_guest_variant = "Dom0";
+                break;
+            }
+            pos = next;
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+void HyperInfo::read_str(std::string &str, const FilePath &basedir,
+                         const char *attr)
+{
+    FilePath fp(basedir);
+    std::ifstream f;
+
+    fp.appendPath(attr);
+    f.open(fp.c_str());
+    if (!f)
+        return;
+
+    getline(f, str);
+    f.close();
+    if (f.bad())
+        throw KError(fp + ": Read failed");
+}
+
+//}}}
 //{{{ Framebuffer --------------------------------------------------------------
 
 class Framebuffer {
@@ -851,6 +947,22 @@ void Calibrate::execute()
     throw (KError)
 {
     Debug::debug()->trace("Calibrate::execute()");
+
+    HyperInfo hyper;
+    Debug::debug()->dbg("Hypervisor type: %s", hyper.type().c_str());
+    Debug::debug()->dbg("Guest type: %s", hyper.guest_type().c_str());
+    Debug::debug()->dbg("Guest variant: %s", hyper.guest_variant().c_str());
+    if (hyper.type() == "xen" && hyper.guest_type() == "PV" &&
+        hyper.guest_variant() == "DomU") {
+        cout << "Total: 0" << endl;
+        cout << "Low: 0" << endl;
+        cout << "High: 0" << endl;
+        cout << "MinLow: 0" << endl;
+        cout << "MaxLow: 0" << endl;
+        cout << "MinHigh: 0 " << endl;
+        cout << "MaxHigh: 0 " << endl;
+        return;
+    }
 
     MemMap mm;
     unsigned long required, prev;
