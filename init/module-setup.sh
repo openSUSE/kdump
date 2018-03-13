@@ -222,4 +222,6 @@ install() {
     inst_multiple makedumpfile makedumpfile-R.pl kdumptool \
 	$KDUMP_REQUIRED_PROGRAMS
     inst_simple /etc/resolv.conf
+    inst_simple /usr/share/zoneinfo/UTC
+    inst_simple /etc/localtime
 }
