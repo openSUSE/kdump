@@ -561,12 +561,14 @@ function kdump_ip_config()						   # {{{
     gwaddr=$(ip route show 0/0 | sed -n 's/.* via \([^ ]*\).*/\1/p')
     hostname=$(hostname)
 
-    echo "ip=$ipaddr:$peeraddr:$gwaddr:$netmask:$hostname:$bootif:none"
+    if [ -n "$ipaddr" ] ; then
+        echo "ip=$ipaddr:$peeraddr:$gwaddr:$netmask:$hostname:$bootif:none"
 
-    routes=$(ip route show dev "$iface" | sed -n 's/\([0-9].*\) via \([^ ]*\).*/\1:\2/p')
-    for r in $routes ; do
-        echo "rd.route=$r:$bootif"
-    done
+        routes=$(ip route show dev "$iface" | sed -n 's/\([0-9].*\) via \([^ ]*\).*/\1:\2/p')
+        for r in $routes ; do
+            echo "rd.route=$r:$bootif"
+        done
+    fi 
 }									   # }}}
 
 #
