@@ -575,7 +575,7 @@ function kdump_ip6_config()						   # {{{
 {
     local iface="$1"
     local bootif="$2"
-    local ipaddr peeraddr gwaddr hostname
+    local ipaddr peeraddr gwaddr netmask hostname
     local family cidr rest prefix
 
     hostname=$(hostname)
@@ -587,7 +587,8 @@ function kdump_ip6_config()						   # {{{
 
 	ipaddr="${cidr%/*}"
 	prefix="${cidr:${#ipaddr}}"
-	ipaddr="[$ipaddr]$prefix"
+	netmask="${prefix:1}"
+	ipaddr="[$ipaddr]"
 	set -- $rest
 
         if [ "$1" == "peer" ] ; then
@@ -598,7 +599,7 @@ function kdump_ip6_config()						   # {{{
 	    peeraddr=
         fi
 
-	echo "ip=$ipaddr:$peeraddr:$gwaddr::$hostname:$bootif:none"
+	echo "ip=$ipaddr:$peeraddr:$gwaddr:$netmask:$hostname:$bootif:none"
     done < <(ip -6 address show dev "$iface" permanent scope global)
 }									   # }}}
 
