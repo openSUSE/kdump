@@ -453,6 +453,24 @@ function kdump_vlan_config()						   # {{{
 #
 # Parameters:
 #   1) device  device name
+# Output:
+#   permanent hardware address
+function kdump_hwaddr()							   # {{{
+{
+    local _iface="$1"
+    local _type=$(<"/sys/class/net/$_iface/addr_assign_type")
+    if [ "$_type" -eq 0 ]
+    then
+	cat "/sys/class/net/$kdump_iface/address"
+    else
+	ethtool -P "$kdump_iface" | sed 's/^[^:]*: *//'
+    fi
+}									   # }}}
+
+# Get the ifname parameter for a given device
+#
+# Parameters:
+#   1) device  device name
 # Output variables:
 #   kdump_netif  corresponding ifname= initrd parameter added
 #   kdump_iface  device name in initrd
@@ -466,16 +484,16 @@ function kdump_ifname_config()						   # {{{
     if [ -z "$ifkind" ]
     then
 	kdump_hwif="$kdump_hwif $kdump_iface"
+	local _drv=$( readlink "/sys/class/net/$kdump_iface/device/driver" )
 
-	local hwaddr
-	local addrtype=$(<"/sys/class/net/$kdump_iface/addr_assign_type")
-	if [ "$addrtype" -eq 0 ]
-	then
-	    hwaddr=$(<"/sys/class/net/$kdump_iface/address")
-	else
-	    hwaddr=$(ethtool -P "$kdump_iface" | sed 's/^[^:]*: *//')
-	fi
-	[ -n "$hwaddr" ] && kdump_netif="$kdump_netif ifname=$kdump_iface:$hwaddr"
+	case "$_drv" in
+	    */qeth)
+		;;
+	    *)
+		local hwaddr=$(kdump_hwaddr "$kdump_iface")
+		[ -n "$hwaddr" ] && kdump_netif="$kdump_netif ifname=$kdump_iface:$hwaddr"
+		;;
+	esac
 
 	local mod="/sys/class/net/$kdump_iface/device/driver/module"
 	if [ -L "$mod" ]
@@ -1070,6 +1088,13 @@ function kdump_setup_qeth()						   # {{{
     _cdev2="${_cdev2##*/}"
     local _layer2=$(</sys/class/net/$_iface/device/layer2)
     local _portno=$(</sys/class/net/$_iface/device/portno)
+    local _type=$(</sys/class/net/$_iface/type)
+    local _dev_id _dev_id_match
+    if [ "$_layer2" -ne 0 ]
+    then
+       _dev_id=""$(</sys/class/net/$_iface/dev_id)
+       _dev_id_match=", ATTR{dev_id}==\"$_dev_id\""
+    fi
 
     cat >"${_root}/etc/udev/rules.d/51-qeth-${_dev}.rules" <<EOF
 ACTION=="add", SUBSYSTEM=="drivers", KERNEL=="qeth", IMPORT{program}="collect $_dev %k $_cdev0 $_cdev1 $_cdev2 qeth"
@@ -1087,6 +1112,10 @@ LABEL="qeth-$_dev-end"
 ACTION=="add", SUBSYSTEM=="ccwgroup", KERNEL=="$_dev", ATTR{portno}="$_portno"
 ACTION=="add", SUBSYSTEM=="ccwgroup", KERNEL=="$_dev", ATTR{layer2}="$_layer2"
 ACTION=="add", SUBSYSTEM=="ccwgroup", KERNEL=="$_dev", ATTR{online}="1"
+EOF
+
+    cat >"${_root}/etc/udev/rules.d/70-persistent-net-${_iface}.rules" <<EOF
+SUBSYSTEM=="net", ACTION=="add", DRIVERS=="qeth"$_dev_id_match, KERNELS=="$_dev", ATTR{type}=="$_type", NAME="$_iface"
 EOF
 }									   # }}}
 
