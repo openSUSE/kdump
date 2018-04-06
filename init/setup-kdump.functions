@@ -557,6 +557,7 @@ function kdump_ip_config()						   # {{{
     local ipaddr peeraddr gwaddr netmask hostname
     local family cidr rest
     local prefix
+    local routes r
     while read family cidr rest
     do
 	[ "$family" = "inet" ] || continue
@@ -578,7 +579,14 @@ function kdump_ip_config()						   # {{{
     gwaddr=$(ip route show 0/0 | sed -n 's/.* via \([^ ]*\).*/\1/p')
     hostname=$(hostname)
 
-    echo "ip=$ipaddr:$peeraddr:$gwaddr:$netmask:$hostname:$bootif:none"
+    if [ -n "$ipaddr" ] ; then
+        echo "ip=$ipaddr:$peeraddr:$gwaddr:$netmask:$hostname:$bootif:none"
+
+        routes=$(ip route show dev "$iface" | sed -n 's/\([0-9].*\) via \([^ ]*\).*/\1:\2/p')
+        for r in $routes ; do
+            echo "rd.route=$r:$bootif"
+        done
+    fi 
 }									   # }}}
 
 #
@@ -593,8 +601,9 @@ function kdump_ip6_config()						   # {{{
 {
     local iface="$1"
     local bootif="$2"
-    local ipaddr peeraddr gwaddr hostname
+    local ipaddr peeraddr gwaddr netmask hostname
     local family cidr rest prefix
+    local routes r
 
     hostname=$(hostname)
     gwaddr=$(ip -6 route show ::/0 | sed -n 's/.* via \([^ ]*\).*/[\1]/p')
@@ -605,7 +614,8 @@ function kdump_ip6_config()						   # {{{
 
 	ipaddr="${cidr%/*}"
 	prefix="${cidr:${#ipaddr}}"
-	ipaddr="[$ipaddr]$prefix"
+	netmask="${prefix:1}"
+	ipaddr="[$ipaddr]"
 	set -- $rest
 
         if [ "$1" == "peer" ] ; then
@@ -616,8 +626,13 @@ function kdump_ip6_config()						   # {{{
 	    peeraddr=
         fi
 
-	echo "ip=$ipaddr:$peeraddr:$gwaddr::$hostname:$bootif:none"
+	echo "ip=$ipaddr:$peeraddr:$gwaddr:$netmask:$hostname:$bootif:none"
     done < <(ip -6 address show dev "$iface" permanent scope global)
+
+    routes=$(ip -6 route show dev "$iface" | sed -n 's/\([0-9a-fA-F:].*\) via \([^ ]*\).*/[\1]:[\2]/p')
+    for r in $routes ; do
+        echo "rd.route=$r:$bootif"
+    done
 }									   # }}}
 
 #

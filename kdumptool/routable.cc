@@ -33,6 +33,7 @@
 
 #include "global.h"
 #include "routable.h"
+#include "stringutil.h"
 #include "debug.h"
 
 //{{{ NetLink ------------------------------------------------------------------
@@ -459,8 +460,14 @@ bool Routable::resolve(void)
 {
     struct addrinfo hints;
     int res;
+    KString raw_host(m_host);
 
-    Debug::debug()->trace("resolve(%s)", m_host.c_str());
+    // remove IPv6 URL bracketing for getaddrinfo
+    if (raw_host.size() > 0 &&
+            raw_host[0] == '[' && raw_host[raw_host.size()-1] == ']')
+        raw_host = raw_host.substr(1, raw_host.size()-2);
+
+    Debug::debug()->trace("resolve(%s)", raw_host.c_str());
 
     if (m_ai)
 	freeaddrinfo(m_ai);
@@ -469,7 +476,7 @@ bool Routable::resolve(void)
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_RAW;
     do {
-	res = getaddrinfo(m_host.c_str(), NULL, &hints, &m_ai);
+	res = getaddrinfo(raw_host.c_str(), NULL, &hints, &m_ai);
     } while (res == EAI_AGAIN);
 
     if (res == 0)
