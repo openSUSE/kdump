@@ -673,59 +673,6 @@ function kdump_get_targets()						   # {{{
 }									   # }}}
 
 #
-# Print array content so that it can be used as bash input
-#
-# Parameters:
-#   1) name  array variable to be printed
-# Output:
-#   shell code that can be passed to eval to restore the array
-function kdump_print_array()
-{
-    local name="$1"
-    local i
-    echo -n "( "
-    for i in $(eval printf \"%q \" \"\${!$name[@]}\")
-    do
-	printf "[%s]=%q " "$i" "$(eval echo \"\${$name[i]}\")"
-    done
-    echo ")"
-}
-
-#
-# Export kdump_*[] arrays, returned by kdump_get_targets.
-#
-# Input variables:
-#   kdump_URL[], kdump_Protocol[], kdump_Host[], kdump_Realpath,
-#   kdump_mnt[]
-# Output variables (exported):
-#   KDUMP_x_URL, KDUMP_x_Protocol, KDUMP_x_Host, KDUMP_x_Realpath,
-#   KDUMP_x_mnt
-function kdump_export_targets()						   # {{{
-{
-    export KDUMP_x_URL=$( kdump_print_array kdump_URL )
-    export KDUMP_x_Protocol=$( kdump_print_array kdump_Protocol )
-    export KDUMP_x_Host=$( kdump_print_array kdump_Host )
-    export KDUMP_x_Realpath=$( kdump_print_array kdump_Realpath )
-    export KDUMP_x_mnt=$( kdump_print_array kdump_mnt )
-    export kdump_max
-}									   # }}}
-
-#
-# Import kdump_*[] arrays from environment.
-#
-# Input/Output Variables:
-#   reverse of kdump_export_arrays
-function kdump_import_targets()						   # {{{
-{
-    eval "kdump_URL=$KDUMP_x_URL"
-    eval "kdump_Protocol=$KDUMP_x_Protocol"
-    eval "kdump_Host=$KDUMP_x_Host"
-    eval "kdump_Realpath=$KDUMP_x_Realpath"
-    eval "kdump_mnt=$KDUMP_x_mnt"
-    test ${#kdump_URL[@]} -gt 0
-}									   # }}}
-
-#
 # Read and normalize /etc/fstab and /proc/mounts (if exists).
 # The following transformations are done:
 #   - initial TABs and SPACEs are removed

@@ -128,20 +128,6 @@ function run_dracut()
 	KERNELVERSION=$(get_kernel_version "$KERNEL")
     fi
 
-    # add mount points
-    kdump_get_mountpoints || return 1
-    i=0
-    while [ $i -lt ${#kdump_mnt[@]} ]
-    do
-	if [ -n "${kdump_mnt[i]}" ] ; then
-	    DRACUT_ARGS="$DRACUT_ARGS --mount '${kdump_dev[i]} ${kdump_mnt[i]} ${kdump_fstype[i]} ${kdump_opts[i]}'"
-	fi
-	i=$((i+1))
-    done
-
-    # Make resolved variables visible to the dracut module
-    kdump_export_targets
-
     DRACUT_ARGS="$DRACUT_ARGS --add 'kdump' $INITRD $KERNELVERSION"
     echo "Regenerating kdump initrd ..." >&2
     eval "bash -$- $DRACUT $DRACUT_ARGS"

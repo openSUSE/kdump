@@ -20,10 +20,71 @@ kdump_check_net() {
     [ -z "$KDUMP_NETCONFIG" ] && kdump_neednet=
 }
 
+kdump_get_fs_type() {
+    local _dev="/dev/block/$1"
+    local _fstype
+    if [ -b "$_dev" ] && _fstype=$(get_fs_env "$_dev") ; then
+        host_fs_types["$(readlink -f "$_dev")"]="$_fstype"
+    elif _fstype=$(find_dev_fstype "$_dev"); then
+        host_fs_types["$_dev"]="$_fstype"
+    fi
+    return 1
+}
+
+kdump_add_host_dev() {
+    local _dev=$1
+    [[ " ${host_devs[@]} " == *" $_dev "* ]] && return
+    host_devs+=( "$_dev" )
+    check_block_and_slaves_all kdump_get_fs_type "$(get_maj_min "$_dev")"
+}
+
+kdump_add_mnt() {
+    local _idx=$1
+    local _dev="${kdump_dev[_idx]}"
+    local _mp="${kdump_mnt[_idx]}"
+
+    # Convert system root mounts to bind mounts
+    if [ "$KDUMP_FADUMP" = "yes" -a "${_mp%/*}" = "/kdump" ] ; then
+        mkdir -p "$initdir/etc"
+        echo "/sysroot $_mp none bind 0 0" >> "$initdir/etc/fstab"
+        return
+    fi
+
+    case "$_dev" in
+        UUID=*|LABEL=*|PARTUUID=*|PARTLABLE=*)
+            _dev=$(blkid -l -t "$_dev" -o device)
+            ;;
+    esac
+    kdump_add_host_dev "$_dev"
+    host_fs_types["$_dev"]="${kdump_fstype[_idx]}"
+    if [ "${kdump_fstype[_idx]}" = btrfs ] ; then
+        for _dev in $() ; do
+            kdump_add_host_dev "$_dev"
+        done
+    fi
+
+    mkdir -p "$initdir/etc"
+    local _passno=2
+    [ "${kdump_fstype[_idx]}" = nfs ] && _passno=0
+    echo "${kdump_dev[_idx]} ${kdump_mnt[_idx]} ${kdump_fstype[_idx]} ${kdump_opts[_idx]} 0 $_passno" >> "$initdir/etc/fstab"
+}
+
 check() {
     # Get configuration
-    kdump_import_targets || return 1
     kdump_get_config || return 1
+
+    # add mount points
+    if ! [[ $mount_needs ]] ; then
+        kdump_get_mountpoints || return 1
+
+        local _i=0
+        while [ $_i -lt ${#kdump_mnt[@]} ]
+        do
+	    [ -n "${kdump_mnt[_i]}" ] && kdump_add_mnt $_i
+	    _i=$((_i+1))
+        done
+    fi
+
     kdump_check_net
 
     return 255
@@ -182,18 +243,6 @@ install() {
     local kdump_mpath_wwids
     kdump_map_mpath_wwid
     for_each_host_dev_and_slaves_all kdump_add_mpath_dev
-
-    # Convert system root mounts to bind mounts
-    if [ "$KDUMP_FADUMP" = "yes" ] ; then
-	local i line
-	for i in "${!fstab_lines[@]}"
-	do
-	    line=( ${fstab_lines[i]} )
-	    if [ "${line[1]%/*}" = "/kdump" ] ; then
-		fstab_lines[i]="/sysroot ${line[1]} none bind 0 0"
-	    fi
-	done
-    fi
 
     kdump_setup_files "$initdir" "$kdump_mpath_wwids"
 
