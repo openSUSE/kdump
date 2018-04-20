@@ -117,6 +117,25 @@ function run_mkinitrd()
 }                                                                          # }}}
 
 #
+# Create a new fadump initrd using mkinitrd                                  {{{
+function run_mkinitrd_fadump()
+{
+    # With fadump, we have no control over which kernel will be booted
+    # to save the dump, so do not add any versions here.
+    MKINITRD_ARGS=""
+
+    #
+    # if -q is specified, don't print mkinitrd output
+    if (( $QUIET )) ; then
+	MKINITRD_ARGS="$MKINITRD_ARGS &>/dev/null"
+    fi
+
+    status_message "Calling mkinitrd $MKINITRD_ARGS"
+    echo "Regenerating initrd ..." >&2
+    eval "bash -$- /sbin/mkinitrd $MKINITRD_ARGS"
+}                                                                          # }}}
+
+#
 # Create a new initrd using dracut                                           {{{
 function run_dracut()
 {
@@ -219,7 +238,11 @@ if (( ! $FORCE )) ; then
 fi
 
 if [ -e $DRACUT ] ; then
-    run_dracut
+    if [ "$KDUMP_FADUMP" = "yes" ] ; then
+        run_mkinitrd_fadump
+    else
+        run_dracut
+    fi
     ret=$?
 else
     run_mkinitrd
