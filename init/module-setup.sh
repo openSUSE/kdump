@@ -3,6 +3,21 @@
 
 . /lib/kdump/setup-kdump.functions
 
+kdump_needed() {
+    # Building a kdump initrd?
+    if [[ " $dracutmodules $add_dracutmodules $force_add_dracutmodules" == *\ $_mod\ * ]]; then
+        return 0
+    fi
+
+    # Is FADUMP active?
+    if [ "$KDUMP_FADUMP" = "yes" ]; then
+        return 0
+    fi
+
+    # Do not include kdump by default
+    return 1
+}
+
 kdump_check_net() {
     kdump_neednet=
     for protocol in "${kdump_Protocol[@]}" ; do
@@ -73,6 +88,8 @@ check() {
     # Get configuration
     kdump_get_config || return 1
 
+    kdump_needed || return 1
+
     # add mount points
     if ! [[ $mount_needs ]] ; then
         kdump_get_mountpoints || return 1
@@ -87,7 +104,7 @@ check() {
 
     kdump_check_net
 
-    return 255
+    return 0
 }
 
 depends() {
