@@ -39,7 +39,7 @@ INSTALL(
 INSTALL(
     FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/kdump.service
-        ${CMAKE_CURRENT_SOURCE_DIR}/kdump-rebuild-initrd.service
+        ${CMAKE_CURRENT_SOURCE_DIR}/kdump-early.service
     DESTINATION
         /usr/lib/systemd/system
     PERMISSIONS
