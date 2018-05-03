@@ -11,41 +11,6 @@
 
 KDUMP_CONFIG=/etc/sysconfig/kdump
 
-#
-# Checks whether there is a device in the system which is handled
-# by the specified module.
-# Parameters:
-#   1) modname: kernel module name
-# Exit status:
-#   zero     if a matching device was found
-#   non-zero otherwise
-function kdump_module_has_device()					   # {{{
-{
-    local modname="$1"
-    local -a aliaslist
-    local line
-
-    while read line; do
-	aliaslist[${#aliaslist[@]}]="$line"
-    done < <(modinfo -k "$kernel_version" -F alias "$modname" 2>/dev/null)
-
-    # for each device in the system, check the device modalias file ...
-    find /sys/devices -type f -name modalias -print0 | xargs -0 cat | \
-    (
-	while read line; do
-	    # ... against each modalias of the checked module
-	    for modalias in "${aliaslist[@]}"; do
-		case "$line" in
-		    $modalias)
-			exit 0
-			;;
-	        esac
-	    done
-	done
-	exit 1
-    )
-}									   # }}}
-
 # Extract the device name from a route
 #
 # Input:
