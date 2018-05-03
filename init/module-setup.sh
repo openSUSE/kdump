@@ -205,39 +205,6 @@ kdump_cmdline_ip() {
     esac
 }
 
-kdump_gen_mount_units() {
-    local line
-    local fstab="$initdir/etc/fstab"
-
-    [ -e "$fstab" ] && mv "$fstab" "$fstab.kdumpsave"
-    for line in "${fstab_lines[@]}"
-    do
-	line=($line)
-	[ "${line[1]#/kdump}" = "${line[1]}" ] && continue
-	[ -z "${line[3]}" ] && line[3]="defaults"
-	[ -z "${line[4]}" ] && line[4]="0"
-	[ -z "${line[5]}" ] && line[5]="2"
-	echo "${line[@]}" >> "$fstab"
-    done
-
-    echo > "$initdir/proc/cmdline"
-    inst_binary -l \
-	"$systemdutildir/system-generators/systemd-fstab-generator" \
-	"/tmp/systemd-fstab-generator"
-    chroot "$initdir" "/tmp/systemd-fstab-generator" \
-	"$systemdsystemunitdir" \
-	"$systemdsystemunitdir" \
-	"$systemdsystemunitdir"
-    rm -f "$initdir/tmp/systemd-fstab-generator"
-    rm -f "$initdir/proc/cmdline"
-
-    if [ -e "$fstab.kdumpsave" ]; then
-	mv "$fstab.kdumpsave" "$fstab"
-    else
-	rm "$fstab"
-    fi
-}
-
 cmdline() {
     local _arch=$(uname -m)
     [ "$_arch" = "s390" -o "$_arch" = "s390x" ] && kdump_cmdline_zfcp
@@ -276,8 +243,6 @@ install() {
 	    "$initdir/$systemdsystemunitdir"/kdump-save.service
 	ln_r "$systemdsystemunitdir"/kdump-save.service \
 	    "$systemdsystemunitdir"/initrd.target.wants/kdump-save.service
-
-	kdump_gen_mount_units
     else
 	[ "$KDUMP_FADUMP" != yes ] && \
 	    inst_hook mount 30 "$moddir/mount-kdump.sh"
