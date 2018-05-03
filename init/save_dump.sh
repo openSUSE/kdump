@@ -19,11 +19,6 @@
 # 02110-1301, USA.
 #
 
-# Certain shell variables must be set:
-#
-#   dumpdev  space-separated list of block devices used for dumping
-#
-
 #
 # Checks if fadump is enabled
 #
@@ -113,21 +108,6 @@ function continue_error()
     fi
 }
 
-#
-# Wait for a given device to appear
-wait_for_dumpdev()
-{
-    local dev="$1"
-    test -z "$dev" && return 0
-    test -e "$dev" && return 0
-
-    case "$dev" in
-        *:/*) return 0 ;;
-        /dev/nfs) return 0 ;;
-    esac
-    check_for_device "$@"
-}
-
 function rw_fixup()
 {
     # handle remounting existing readonly mounts readwrite
@@ -183,15 +163,6 @@ if [ -n "$KDUMP_TRANSFER" ] ; then
     echo "Running $KDUMP_TRANSFER"
     eval "$KDUMP_TRANSFER"
 else
-    #
-    # wait for /boot device and dump device(s)
-    for dev in $dumpdev ; do
-	wait_for_dumpdev "$dev" dump
-	if ! continue_error $?; then
-            return
-	fi
-    done
-
     #
     # remount r/w
     rw_fixup
