@@ -1,3 +1,13 @@
+0.9.0
+-----
+  * Support for Aarch64.
+  * KDUMP_SSH_IDENTITY option to use a separate SSH private key.
+  * Update kdump runt-time memory requirements.
+  * Prefer kexec_load_file(2) if available.
+  * Bugfix: Fix systemd service file dependencies.
+  * Bugfix: Fix remote kdump in IPv6-only networks.
+  * Remove support of old SUSE mkinitrd.
+
 0.8.16
 ------
   * Add a network check with configurable timeout (KDUMP_NET_TIMEOUT)
