@@ -151,36 +151,6 @@ function rw_fixup()
 }
 
 #
-# Mounts all partitions listed in /etc/fstab.kdump
-function mount_all()
-{
-    local ret=0
-
-    if ! [ -f /etc/fstab.kdump ] ; then
-        rw_fixup
-        return 0
-    fi
-
-    if [ -f /etc/fstab ] ; then
-        mv /etc/fstab /etc/fstab.orig
-    fi
-
-    cp /etc/fstab.kdump /etc/fstab
-    mount -a
-    ret=$?
-
-    rw_fixup
-
-    if [ -f /etc/fstab.orig ] ; then
-        mv /etc/fstab.orig /etc/fstab
-    else
-        rm /etc/fstab
-    fi
-
-    return $ret
-}
-
-#
 # sanity check
 if [ ! -f /proc/vmcore ] ; then
     echo "Kdump initrd booted in non-kdump kernel"
@@ -223,11 +193,8 @@ else
     done
 
     #
-    # mount all partitions in fstab
-    mount_all
-    if ! continue_error $?; then
-        return
-    fi
+    # remount r/w
+    rw_fixup
 
     #
     # prescript
