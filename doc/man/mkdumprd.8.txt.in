@@ -42,7 +42,7 @@ mkdumprd - (Re)build the initramfs for kdump
 
 SYNOPSIS
 --------
-*mkdumprd* [-h] [-q] [-f] [-k _kernelver_] [-i _opts_]
+*mkdumprd* [-h] [-q] [-f] [-k _kernelver_]
 
 DESCRIPTION
 -----------
@@ -80,9 +80,6 @@ all standard command line parsing rules.
 *-q*::
   Be quiet. Don't output status messages. Used to call *mkdumprd*(8) from
   /etc/init.d/kdump init script.
-
-*-i* _parameters_::
-  Append the specified _parameters_ to *mkinitrd*(8) call.
 
 FILES
 -----

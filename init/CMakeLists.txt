@@ -50,20 +50,6 @@ INSTALL(
 
 INSTALL(
     FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/setup-mkdumprd.sh
-        ${CMAKE_CURRENT_SOURCE_DIR}/setup-kdumpfs.sh
-        ${CMAKE_CURRENT_SOURCE_DIR}/setup-kdump.sh
-        ${CMAKE_CURRENT_SOURCE_DIR}/boot-kdump.sh
-    DESTINATION
-        /lib/mkinitrd/scripts
-    PERMISSIONS
-        OWNER_READ OWNER_WRITE OWNER_EXECUTE
-        GROUP_READ GROUP_EXECUTE
-        WORLD_READ WORLD_EXECUTE
-)
-
-INSTALL(
-    FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/mkdumprd
         ${CMAKE_CURRENT_SOURCE_DIR}/kdump-bootloader.pl
     DESTINATION

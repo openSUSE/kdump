@@ -22,7 +22,6 @@ kdump_get_config || return 1
 KERNELVERSION=
 FORCE=0
 QUIET=0
-MKINITRD_EXTRA_PARAMS=
 DRACUT=/usr/bin/dracut
 
 #
@@ -38,7 +37,6 @@ function usage()
     echo "   -f               Force regeneration even if the configuration"
     echo "                    did not change"
     echo "   -q               quiet (don't print status messages)"
-    echo "   -i <params>      pass <params> to mkinitrd"
     echo "   -h               Print this help"
 }                                                                          # }}}
 
@@ -51,69 +49,6 @@ function status_message()
     if (( ! $QUIET )) ; then
         echo ">>> $msg"
     fi
-}                                                                          # }}}
-
-#
-# Create a new initrd using mkinitrd                                         {{{
-function run_mkinitrd()
-{
-    #
-    # network configuration
-    FEATURE_LIST="kdump"
-    NETARGS=
-    if [ "$KDUMP_NETCONFIG" = "auto" ] ; then
-	FEATURE_LIST="$FEATURE_LIST network"
-	status_message "Network: auto"
-    elif [ -z "$KDUMP_NETCONFIG" ] ; then
-	status_message "Network: none"
-    else
-	interface=$(echo "$KDUMP_NETCONFIG" | cut -d ':' -f 1)
-	mode=$(echo "$KDUMP_NETCONFIG" | cut -d ':' -f 2)
-
-	status_message "Network interface: $interface"
-	if [ "$mode" = "static" ] ; then
-            NETARGS="-I $interface"
-            status_message "Network mode: Static IP"
-	else
-            NETARGS="-D $interface"
-            status_message "Network mode: Automatic IP (DHCP)"
-	fi
-    fi
-
-    INITRD_TMP=`mktemp --tmpdir mkdumprd.XXXXXXXXXX` || exit $?
-    MKINITRD_ARGS="-k $KERNEL -i $INITRD_TMP -f '$FEATURE_LIST'"
-
-    #
-    # the -B parameter skips bootloader update, which is desirable if the
-    # kernel is loaded by kexec, but not if we're using FADUMP
-    if [ "$KDUMP_FADUMP" != "yes" ] ; then
-	MKINITRD_ARGS="$MKINITRD_ARGS -B"
-    fi
-
-    #
-    # the -s parameter is only available when the bootsplash package and its
-    # mkinitrd script is installed ... so check that first
-    if [ -f "/lib/mkinitrd/scripts/setup-splash.sh" ] ; then
-	MKINITRD_ARGS="$MKINITRD_ARGS  -s ''"
-    fi
-
-    MKINITRD_ARGS="$MKINITRD_ARGS $MKINITRD_EXTRA_PARAMS $NETARGS"
-
-    #
-    # if -q is specified, don't print mkinitrd output
-    if (( $QUIET )) ; then
-	MKINITRD_ARGS="$MKINITRD_ARGS &>/dev/null"
-    fi
-
-    status_message "Calling mkinitrd $MKINITRD_ARGS"
-    echo "Regenerating kdump initrd ..." >&2
-    eval "bash -$- /sbin/mkinitrd $MKINITRD_ARGS"
-    ret=$?
-    if [ $ret -eq 0 ]; then
-	mv "$INITRD_TMP" "$INITRD"
-	ret=$?
-    fi
-    return $ret
 }                                                                          # }}}
 
 #
@@ -154,7 +89,7 @@ function run_dracut()
 
 
 # Option parsing                                                             {{{
-while getopts "i:hfqk:K:I:" name ; do
+while getopts "hfqk:K:I:" name ; do
     case $name in
         k)  KERNELVERSION=$OPTARG
             ;;
@@ -175,16 +110,12 @@ while getopts "i:hfqk:K:I:" name ; do
         I)  INITRD=$OPTARG
             ;;
 
-        i)  MKINITRD_EXTRA_PARAMS=$OPTARG
-            ;;
-
         ?)  usage
             exit 1
             ;;
     esac
 done
 shift $(($OPTIND -1))
-
                                                                            # }}}
 
 #
@@ -203,9 +134,6 @@ if [ -z "$KERNEL" ] ; then
         INITRD=$(echo "$output" | grep ^Initrd | cut -f 2)
     fi
 fi
-
-#
-# If 
 
 if ! [ -f "$KERNEL" ] ; then
     echo "Kernel $KERNEL does not exist."
@@ -237,16 +165,10 @@ if (( ! $FORCE )) ; then
     fi
 fi
 
-if [ -e $DRACUT ] ; then
-    if [ "$KDUMP_FADUMP" = "yes" ] ; then
-        run_mkinitrd_fadump
-    else
-        run_dracut
-    fi
-    ret=$?
+if [ "$KDUMP_FADUMP" = "yes" ] ; then
+    run_mkinitrd_fadump
 else
-    run_mkinitrd
-    ret=$?
+    run_dracut
 fi
 
 exit $ret
