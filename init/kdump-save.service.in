@@ -11,7 +11,7 @@
 Description=save kernel crash dump
 Documentation=man:kdump(7)
 RequiresMountsFor=@KDUMP_MOUNTPOINTS@
-Before=initrd-cleanup.service
+Before=initrd-parse-etc.service
 ConditionPathExists=/etc/initrd-release
 ConditionPathExists=/proc/vmcore
 
