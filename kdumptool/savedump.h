@@ -114,7 +114,7 @@ class SaveDump : public Subcommand {
         bool m_useMakedumpfile;
 	unsigned long m_split;
 	unsigned long m_threads;
-        std::string m_crashtime;
+        unsigned long long m_crashtime;
         std::string m_crashrelease;
         std::string m_rootdir;
         std::string m_hostname;

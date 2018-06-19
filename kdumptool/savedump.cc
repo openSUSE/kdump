@@ -61,7 +61,8 @@ using std::ifstream;
 SaveDump::SaveDump()
     throw ()
     : m_dump(DEFAULT_DUMP), m_transfer(NULL), m_usedDirectSave(false),
-      m_useMakedumpfile(false), m_split(0), m_threads(0), m_nomail(false)
+      m_useMakedumpfile(false), m_split(0), m_threads(0), m_crashtime(0),
+      m_nomail(false)
 {
     Debug::debug()->trace("SaveDump::SaveDump()");
 
@@ -109,9 +110,16 @@ void SaveDump::execute()
     if (!m_dump.exists())
         throw KError("The dump file " + m_dump + " does not exist.");
 
+    try {
+        fillVmcoreinfo();
+    } catch (const KError &error) {
+        Debug::debug()->dbg("Error when reading VMCOREINFO: %s", error.what());
+        m_crashtime = time(NULL);
+    }
+
     // build the transfer object
     // prepend a time stamp to the save dir
-    string subdir = Stringutil::formatCurrentTime(ISO_DATETIME);
+    string subdir = Stringutil::formatUnixTime(ISO_DATETIME, m_crashtime);
     RootDirURLVector urlv;
     std::istringstream iss(config->KDUMP_SAVEDIR.value());
     FilePath elem;
@@ -178,12 +186,6 @@ void SaveDump::execute()
             cout << error.what() << endl;
         else
             throw;
-    }
-
-    try {
-        fillVmcoreinfo();
-    } catch (const KError &error) {
-        Debug::debug()->dbg("Error when reading VMCOREINFO: %s", error.what());
     }
 
     // if we have no VMCOREINFO, then try to command line to get the
@@ -469,16 +471,14 @@ void SaveDump::fillVmcoreinfo()
 {
     Vmcoreinfo vm;
     vm.readFromELF(m_dump.c_str());
-    unsigned long long time = vm.getLLongValue("CRASHTIME");
-
-    m_crashtime = Stringutil::formatUnixTime("%Y-%m-%d %H:%M (%z)", time);
+    m_crashtime = vm.getLLongValue("CRASHTIME");
 
     // don't overwrite m_crashrelease from command line
     if (m_crashrelease.size() == 0)
         m_crashrelease = vm.getStringValue("OSRELEASE");
 
-    Debug::debug()->dbg("Using crashtime: %s, crashrelease: %s",
-        m_crashtime.c_str(), m_crashrelease.c_str());
+    Debug::debug()->dbg("Using crashtime: %lld, crashrelease: %s",
+        m_crashtime, m_crashrelease.c_str());
 }
 
 // -----------------------------------------------------------------------------
@@ -497,8 +497,9 @@ void SaveDump::generateInfo()
     if (m_hostname.size() == 0)
         m_hostname = Util::getHostDomain();
 
-    if (m_crashtime.size() > 0)
-        ss << "Crash time     : " << m_crashtime << endl;
+    ss << "Crash time     : "
+       << Stringutil::formatUnixTime("%Y-%m-%d %H:%M (%z)", m_crashtime)
+       << endl;
     if (m_crashrelease.size() > 0)
         ss << "Kernel version : " << m_crashrelease << endl;
     ss << "Host           : " << m_hostname << endl;
