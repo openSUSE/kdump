@@ -1180,7 +1180,7 @@ function kdump_setup_files()						   # {{{
     #
     # create modified multipath.conf
     #
-    kdump_modify_multipath "$mpathdevs" > "${outdir}/etc/multipath.conf"
+    kdump_modify_multipath "$mpathdevs" > "${outdir}/etc/multipath.conf.kdump"
 
     #
     # filter out problematic sysctl settings

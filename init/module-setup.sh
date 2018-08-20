@@ -231,6 +231,7 @@ install() {
     kdump_setup_files "$initdir" "$kdump_mpath_wwids"
 
     inst_hook cmdline 50 "$moddir/kdump-root.sh"
+    inst_hook cmdline 50 "$moddir/kdump-boot.sh"
     if dracut_module_included "systemd" ; then
 	inst_binary "$moddir/device-timeout-generator" \
 	    "$systemdutildir"/system-generators/kdump-device-timeout-generator
