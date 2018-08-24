@@ -205,10 +205,12 @@ kdump_cmdline_ip() {
     esac
 }
 
-cmdline() {
+cmdline_zfcp() {
     local _arch=$(uname -m)
     [ "$_arch" = "s390" -o "$_arch" = "s390x" ] && kdump_cmdline_zfcp
+}
 
+cmdline_net() {
     kdump_cmdline_ip
 }
 
@@ -219,8 +221,11 @@ installkernel() {
 
 install() {
     if [[ $hostonly_cmdline == "yes" ]] ; then
-        local _cmdline=$(cmdline)
-        [ -n "$_cmdline" ] && printf "%s\n" "$_cmdline" >> "${initdir}/etc/cmdline.d/99kdump.conf"
+        local _cmdline=$(cmdline_zfcp)
+        [ -n "$_cmdline" ] && printf "%s\n" "$_cmdline" >> "${initdir}/etc/cmdline.d/99kdump-zfcp.conf"
+
+        _cmdline=$(cmdline_net)
+        [ -n "$_cmdline" ] && printf "%s\n" "$_cmdline" >> "${initdir}/etc/cmdline.d/99kdump-net.conf"
     fi
 
     # Get a list of required multipath devices
@@ -231,6 +236,7 @@ install() {
     kdump_setup_files "$initdir" "$kdump_mpath_wwids"
 
     inst_hook cmdline 50 "$moddir/kdump-root.sh"
+    inst_hook cmdline 50 "$moddir/kdump-boot.sh"
     if dracut_module_included "systemd" ; then
 	inst_binary "$moddir/device-timeout-generator" \
 	    "$systemdutildir"/system-generators/kdump-device-timeout-generator
