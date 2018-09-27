@@ -251,15 +251,20 @@ function load_kdump_fadump()
     if [ $? -eq 0 ] ; then
         msg="Registered fadump"
     else
-        # For backward compatibility on older kernel that
-        # returns -EEXIST/-EINVAL
+        msg="FAILED to register fadump: $output"
+        result=1
+
+        # For re-registering on an older kernel that returns -EEXIST/-EINVAL,
+        # if fadump was already registered.
         if [ "$(cat $FADUMP_REGISTERED)" == "1" ] ; then
-            # TODO: unregiser/register OR warn user to stop/start?
-            # Best bet is to update to latest kernel.
-            msg="fadump is already registered"
-        else
-            msg="FAILED to register fadump: $output"
-            result=1
+            echo 0 > "$FADUMP_REGISTERED"
+            output=$( (echo 1 > "$FADUMP_REGISTERED") 2>&1)
+            if [ $? -eq 0 ] ; then
+                msg="Registered fadump"
+                result=0
+            else
+                msg="FAILED to register fadump: $output"
+            fi
         fi
     fi
 
