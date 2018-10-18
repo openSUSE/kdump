@@ -114,7 +114,6 @@ void SaveDump::execute()
         fillVmcoreinfo();
     } catch (const KError &error) {
         Debug::debug()->dbg("Error when reading VMCOREINFO: %s", error.what());
-        m_crashtime = time(NULL);
     }
 
     // build the transfer object
@@ -471,11 +470,21 @@ void SaveDump::fillVmcoreinfo()
 {
     Vmcoreinfo vm;
     vm.readFromELF(m_dump.c_str());
-    m_crashtime = vm.getLLongValue("CRASHTIME");
 
-    // don't overwrite m_crashrelease from command line
-    if (m_crashrelease.size() == 0)
-        m_crashrelease = vm.getStringValue("OSRELEASE");
+    try {
+        m_crashtime = vm.getLLongValue("CRASHTIME");
+    } catch (const KError &error) {
+        Debug::debug()->dbg("Error getting CRASHTIME: %s", error.what());
+        m_crashtime = time(NULL);
+    }
+
+    try {
+        // don't overwrite m_crashrelease from command line
+        if (m_crashrelease.size() == 0)
+            m_crashrelease = vm.getStringValue("OSRELEASE");
+    } catch (const KError &error) {
+        Debug::debug()->dbg("Error getting OSRELEASE: %s", error.what());
+    }
 
     Debug::debug()->dbg("Using crashtime: %lld, crashrelease: %s",
         m_crashtime, m_crashrelease.c_str());
