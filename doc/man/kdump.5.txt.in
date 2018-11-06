@@ -540,9 +540,6 @@ network configuration is different from the normal network configuration. Use
 _auto_ to auto-detect the network configuration (see *auto* mode below). The
 interface with the default route will be used. This is the default.
 
-Auto-detection cannot be used to set up dual-stack (IPv4 and IPv6) hosts
-because of limitations in the implementation of the _ip=_ initrd command line
-option.
 
 Use a _netdevice:mode_ string to force a specific network device to be used. A
 _netdevice_ is for example "eth0". The _mode_ can be:
@@ -569,6 +566,10 @@ _netdevice_ is for example "eth0". The _mode_ can be:
   * use DHCP4 if it has an IPv4 address (IPv6 not set up),
   * use DHCP6 if it has a permanent IPv6 address (IPv4 not set up),
   * use IPv6 auto-configuration if it has neither (IPv4 not set up).
+
+Auto-detection cannot be used to set up dual-stack (IPv4 and IPv6) hosts
+because of limitations in the implementation of the _ip=_ initrd command line
+option.
 
 You can set KDUMP_NETCONFIG to "" if you want no network in initrd, i.e. you use
 disk dumping.
