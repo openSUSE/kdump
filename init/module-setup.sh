@@ -19,20 +19,25 @@ kdump_needed() {
 }
 
 kdump_check_net() {
-    kdump_neednet=
-    for protocol in "${kdump_Protocol[@]}" ; do
-	if [ "$protocol" != "file" -a "$protocol" != "srcfile" ]; then
+    if [ -z "$KDUMP_NETCONFIG" ]; then
+        # network explicitly disabled in configuration
+        kdump_neednet=
+    elif [ "${KDUMP_NETCONFIG%:force}" != "$KDUMP_NETCONFIG" ]; then
+        # always set up network
+        kdump_neednet=y
+    else
+        kdump_neednet=
+        for protocol in "${kdump_Protocol[@]}" ; do
+	    if [ "$protocol" != "file" -a "$protocol" != "srcfile" ]; then
+	        kdump_neednet=y
+	    fi
+        done
+
+        # network configuration
+        if [ -n "$KDUMP_SMTP_SERVER" -a -n "$KDUMP_NOTIFICATION_TO" ]; then
 	    kdump_neednet=y
-	fi
-    done
-
-    # network configuration
-    if [ -n "$KDUMP_SMTP_SERVER" -a -n "$KDUMP_NOTIFICATION_TO" ]; then
-	kdump_neednet=y
+        fi
     fi
-
-    # network explicitly disabled in configuration?
-    [ -z "$KDUMP_NETCONFIG" ] && kdump_neednet=
 }
 
 kdump_get_fs_type() {
@@ -161,13 +166,13 @@ kdump_cmdline_zfcp() {
 kdump_cmdline_ip() {
     [ "$kdump_neednet" = y ] || return 0
 
-    if [ "$KDUMP_NETCONFIG" = "auto" ] ; then
+    local _cfg="${KDUMP_NETCONFIG%:force}"
+    if [ "$_cfg" = "auto" ] ; then
 	kdump_host_if=default
 	kdump_net_mode=auto
     else
-	set -- ${KDUMP_NETCONFIG//:/ }
-	kdump_host_if=$1
-	kdump_net_mode=$2
+	kdump_host_if="${_cfg%%:*}"
+	kdump_net_mode="${_cfg#*:}"
     fi
 
     if [ "$kdump_host_if" = "default" ] ; then

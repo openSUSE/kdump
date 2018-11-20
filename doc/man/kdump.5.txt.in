@@ -540,6 +540,11 @@ network configuration is different from the normal network configuration. Use
 _auto_ to auto-detect the network configuration (see *auto* mode below). The
 interface with the default route will be used. This is the default.
 
+Network is configured only if needed, e.g. the dump target is on a remote
+machine, or an email notification should be sent. If network is needed by
+something else, such as a custom script used as KDUMP_PRESCRIPT or
+KDUMP_POSTSCRIPT, add a _:force_ suffix to the network configuration, for
+example "auto:force" or "eth0:dhcp4:force".
 
 Use a _netdevice:mode_ string to force a specific network device to be used. A
 _netdevice_ is for example "eth0". The _mode_ can be:

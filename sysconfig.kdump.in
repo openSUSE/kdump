@@ -294,8 +294,12 @@ KDUMPTOOL_FLAGS=""
 # that contains the network device and the mode (static, dhcp, dhcp6, auto6),
 # separated by a colon. Example: "eth0:static" or "eth1:dhcp".
 #
-# For static configuration, you have to add the configuration to
+# For static configuration, you may have to add the configuration to
 # KDUMP_COMMANDLINE_APPEND.
+#
+# By default, network is set up only if needed. Add ":force" to make sure
+# that network is always available (e.g. for use by a custom pre- or
+# post-script).
 #
 # See also: kdump(5)
 #
