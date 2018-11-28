@@ -906,6 +906,13 @@ function kdump_modify_config()						   # {{{
 	KDUMP_REQUIRED_PROGRAMS="$KDUMP_REQUIRED_PROGRAMS ssh"
     fi
 
+    # copy fence_kdump_send if exists
+    if [ -f "/usr/lib/fence_kdump_send" ] &&
+       ( [[ $KDUMP_PRESCRIPT =~ "fence_kdump_send" ]] ||
+       [[ $KDUMP_POSTSCRIPT =~ "fence_kdump_send" ]] ) ; then
+        KDUMP_REQUIRED_PROGRAMS="$KDUMP_REQUIRED_PROGRAMS /usr/lib/fence_kdump_send"
+    fi
+
     #
     # dump the configuration file, modifying:
     #   KDUMP_SAVEDIR  -> resolved path
