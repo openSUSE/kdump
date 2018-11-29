@@ -11,6 +11,13 @@
 
 KDUMP_CONFIG=/etc/sysconfig/kdump
 
+#
+# Global variables
+#
+
+# Next network interface number
+kdump_ifnum=0
+
 # Extract the device name from a route
 #
 # Input:
@@ -448,7 +455,8 @@ function kdump_ifname_config()						   # {{{
 
     if [ -z "$_ifkind" ]
     then
-	kdump_iface="$_iface"
+	kdump_iface="kdump$kdump_ifnum"
+	kdump_ifnum=$(( $kdump_ifnum + 1 ))
 	kdump_ifmap="$kdump_ifmap $_iface:$kdump_iface"
 
 	local _drv=$( readlink "/sys/class/net/$_iface/device/driver" )
