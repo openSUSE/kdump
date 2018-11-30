@@ -30,7 +30,6 @@ kdump_check_net() {
         # setup network when fence_kdump_send included and configured
         kdump_neednet=y
     else
-        kdump_neednet=
         for protocol in "${kdump_Protocol[@]}" ; do
 	    if [ "$protocol" != "file" -a "$protocol" != "srcfile" ]; then
 	        kdump_neednet=y
@@ -98,6 +97,9 @@ check() {
     kdump_get_config || return 1
 
     kdump_needed || return 1
+
+    # no network needed by default
+    kdump_neednet=
 
     # add mount points
     if ! [[ $mount_needs ]] ; then
