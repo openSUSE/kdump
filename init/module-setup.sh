@@ -25,9 +25,8 @@ kdump_check_net() {
     elif [ "${KDUMP_NETCONFIG%:force}" != "$KDUMP_NETCONFIG" ]; then
         # always set up network
         kdump_neednet=y
-    elif [ -f "/usr/lib/fence_kdump_send" ] &&
-         ( [[ $KDUMP_PRESCRIPT =~ "fence_kdump_send" ]] || \
-         [[ $KDUMP_POSTSCRIPT =~ "fence_kdump_send" ]] ) ; then
+    elif [ -f "$FENCE_KDUMP_SEND" ] &&
+         [[ $KDUMP_POSTSCRIPT =~ "$FENCE_KDUMP_SEND" ]] ; then
         # setup network when fence_kdump_send included and configured
         kdump_neednet=y
     else
