@@ -10,6 +10,7 @@
 #
 
 KDUMP_CONFIG=/etc/sysconfig/kdump
+FENCE_KDUMP_SEND=/usr/lib/fence_kdump_send
 
 #
 # Global variables
@@ -913,6 +914,12 @@ function kdump_modify_config()						   # {{{
     # copy ssh if needed
     if [ -n "$kdump_over_ssh" ] ; then
 	KDUMP_REQUIRED_PROGRAMS="$KDUMP_REQUIRED_PROGRAMS ssh"
+    fi
+
+    # copy fence_kdump_send if exists
+    if [ -f "$FENCE_KDUMP_SEND" ] &&
+       [[ $KDUMP_POSTSCRIPT =~ "$FENCE_KDUMP_SEND" ]] ; then
+        KDUMP_REQUIRED_PROGRAMS="$KDUMP_REQUIRED_PROGRAMS $FENCE_KDUMP_SEND"
     fi
 
     #
