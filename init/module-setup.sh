@@ -25,10 +25,6 @@ kdump_check_net() {
     elif [ "${KDUMP_NETCONFIG%:force}" != "$KDUMP_NETCONFIG" ]; then
         # always set up network
         kdump_neednet=y
-    elif [ -f "$FENCE_KDUMP_SEND" ] &&
-         [[ $KDUMP_POSTSCRIPT =~ "$FENCE_KDUMP_SEND" ]] ; then
-        # setup network when fence_kdump_send included and configured
-        kdump_neednet=y
     else
         for protocol in "${kdump_Protocol[@]}" ; do
 	    if [ "$protocol" != "file" -a "$protocol" != "srcfile" ]; then
@@ -111,6 +107,15 @@ check() {
 	    [ -n "${kdump_mnt[_i]}" ] && kdump_add_mnt $_i
 	    _i=$((_i+1))
         done
+    fi
+
+    # check if fence_kdump_send is installed and configured
+    if [ -f "$FENCE_KDUMP_SEND" ] &&
+           [[ "$KDUMP_POSTSCRIPT" =~ "$FENCE_KDUMP_SEND" ]] ; then
+        # add fence_kdump_send to initrd automatically
+        KDUMP_REQUIRED_PROGRAMS="$KDUMP_REQUIRED_PROGRAMS $FENCE_KDUMP_SEND"
+        # set up network (unless explicitly disabled by KDUMP_NETCONFIG)
+        kdump_neednet=y
     fi
 
     kdump_check_net
