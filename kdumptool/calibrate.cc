@@ -988,12 +988,15 @@ void Calibrate::execute()
 	// Run-time kernel requirements
 	required = KERNEL_KB + ramfs + KERNEL_DYNAMIC_KB;
 
+        // Double the size, because fbcon allocates its own
+        // framebuffer, and many DRM drivers allocate the hw
+        // framebuffer in system RAM
 	try {
 	    Framebuffers fb;
-	    required += fb.size() / 1024UL;
+	    required += 2 * fb.size() / 1024UL;
 	} catch(KError e) {
 	    Debug::debug()->dbg("Cannot get framebuffer size: %s", e.what());
-	    required += DEF_FRAMEBUFFER_KB;
+	    required += 2 * DEF_FRAMEBUFFER_KB;
 	}
 
 	// Add space for constant slabs
