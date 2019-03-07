@@ -5,7 +5,6 @@
 
 KDUMPTOOL=/usr/sbin/kdumptool
 KEXEC=/sbin/kexec
-EFI_SYSTAB=/sys/firmware/efi/systab
 FADUMP_ENABLED=/sys/kernel/fadump_enabled
 FADUMP_REGISTERED=/sys/kernel/fadump_registered
 
@@ -97,16 +96,6 @@ function build_kdump_commandline()
             kernelrelease=$(uname -r)
             commandline="$commandline kernelversion=$kernelrelease"
         fi
-
-	if [ -f /sys/firmware/efi/systab ] ; then
-	    local acpi_addr
-	    if grep -q '^ACPI20=' /sys/firmware/efi/systab ; then
-		acpi_addr=$(awk -F'=' '/^ACPI20=/ {print $2}' "$EFI_SYSTAB")
-	    else
-		acpi_addr=$(awk -F'=' '/^ACPI=/ {print $2}' "$EFI_SYSTAB")
-	    fi
-	    commandline="$commandline noefi acpi_rsdp=$acpi_addr"
-	fi
     fi
 
     commandline="$commandline $KDUMP_COMMANDLINE_APPEND"
