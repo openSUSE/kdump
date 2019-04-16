@@ -764,6 +764,10 @@ function kdump_update_mount()						   # {{{
 	mountpoint="/kdump/mnt$i/${mountpoint#/kdump/mnt*/}"
     done
 
+    if [ "$fstype" = "btrfs" ] ; then
+	opts="$opts,skip_balance"
+    fi
+
     kdump_mnt[i]="${mountpoint%/}"
     kdump_dev[i]="$device"
     kdump_fstype[i]="$fstype"
