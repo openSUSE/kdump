@@ -125,9 +125,9 @@ shift $(($OPTIND -1))
 if [ -z "$KERNEL" ] ; then
     if [ -n "$KERNELVERSION" ] ; then
         KERNEL=/boot/vmlinuz-$KERNELVERSION
-        if ! [ -f "$KERNEL" ] ; then
-            KERNEL=/boot/vmlinux-$KERNELVERSION
-        fi
+        test -f "$KERNEL" || KERNEL=/boot/image-$KERNELVERSION
+        test -f "$KERNEL" || KERNEL=/boot/Image-$KERNELVERSION
+        test -f "$KERNEL" || KERNEL=/boot/vmlinux-$KERNELVERSION
     else
         output=$(kdumptool find_kernel $find_kernel_args)
         KERNEL=$(echo "$output" | grep ^Kernel | cut -f 2)
