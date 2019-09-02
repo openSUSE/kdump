@@ -265,13 +265,18 @@ install() {
 	        "$initdir/$systemdsystemunitdir"/kdump-save.service
 
         local _d _mp
+        local _mnt
         _d="$initdir/$systemdsystemunitdir"/initrd-switch-root.target.d
         mkdir -p "$_d"
         (
             echo "[Unit]"
             for _mp in "${kdump_mnt[@]}" ; do
-                echo -n "Conflicts="
-                systemd-escape -p --suffix=mount "$_mp"
+                _mnt=$(systemd-escape -p --suffix=mount "$_mp")
+                _d="$initdir/$systemdsystemunitdir/$_mnt".d
+                mkdir -p "$_d"
+                echo -e "[Unit]\nConditionPathExists=/proc/vmcore" \
+                     > "$_d"/kdump.conf
+                echo "Conflicts=$_mnt"
             done
         ) > "$_d"/kdump.conf
 
