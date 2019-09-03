@@ -70,7 +70,7 @@ kdump_add_mnt() {
     fi
 
     case "$_dev" in
-        UUID=*|LABEL=*|PARTUUID=*|PARTLABLE=*)
+        UUID=*|LABEL=*|PARTUUID=*|PARTLABEL=*)
             _dev=$(blkid -l -t "$_dev" -o device)
             ;;
     esac
