@@ -587,7 +587,25 @@ function kdump_ip_config()						   # {{{
 
     done < <(ip -4 address show dev "$iface")
 
-    gwaddr=$(ip route show 0/0 | sed -n 's/.* via \([^ ]*\).*/\1/p')
+    case "$kdump_net_mode" in
+    static)
+        KCA=$(grep ^KDUMP_COMMANDLINE_APPEND /etc/sysconfig/kdump)
+        KCA_GW=$(echo $KCA | cut -d ":" -f 3)
+        echo $KCA_GW | grep -qE "([0-9]{1,3}[\.]){3}[0-9]{1,3}"
+        if [ $? -eq 0 ]; then
+                gwaddr=$(echo $KCA_GW)
+            else
+                gwaddr=$(ip route show 0/0 | sed -n 's/.* via \([^ ]*\).*/\1/p')
+        fi
+        ;;
+    dhcp|dhcp4|dhcp6|auto6)
+        gwaddr=$(ip route show 0/0 | sed -n 's/.* via \([^ ]*\).*/\1/p')
+        ;;
+    *)
+        derror "Wrong KDUMP_NETCONFIG mode: $kdump_net_mode"
+        ;;
+    esac
+
     hostname=$(hostname)
 
     if [ -n "$ipaddr" ] ; then
