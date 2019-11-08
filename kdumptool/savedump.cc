@@ -596,7 +596,14 @@ string SaveDump::findKernel()
     if (binaryroot.exists())
         return binary;
 
-    // 3: vmlinuz (check if ELF file)
+    // 3: vmlinux.xz
+    (binary = "/boot").appendPath("vmlinux-" + m_crashrelease + ".xz");
+    (binaryroot = m_rootdir).appendPath(binary);
+    Debug::debug()->dbg("Trying %s", binaryroot.c_str());
+    if (binaryroot.exists())
+        return binary;
+
+    // 4: vmlinuz (check if ELF file)
     (binary = "/boot").appendPath("vmlinuz-" + m_crashrelease);
     (binaryroot = m_rootdir).appendPath(binary);
     Debug::debug()->dbg("Trying %s", binaryroot.c_str());
@@ -605,14 +612,14 @@ string SaveDump::findKernel()
         return binary;
     }
 
-    // 4: image
+    // 5: image
     (binary = "/boot").appendPath("image-" + m_crashrelease);
     (binaryroot = m_rootdir).appendPath(binary);
     Debug::debug()->dbg("Trying %s", binaryroot.c_str());
     if (binaryroot.exists())
         return binary;
 
-    // 5: Image
+    // 6: Image
     (binary = "/boot").appendPath("Image-" + m_crashrelease);
     (binaryroot = m_rootdir).appendPath(binary);
     Debug::debug()->dbg("Trying %s", binaryroot.c_str());
