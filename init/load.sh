@@ -17,15 +17,13 @@ function remove_from_commandline()
     awk 'BEGIN { ORS="" }
     {
         while(length()) {
-            sub(/^[[:space:]]+/,"");
-            pstart=match($0,/("[^"]*"?|[^"[:space:]])+/);
-            plength=RLENGTH;
-            param=substr($0,pstart,plength);
-            raw=param;
+            match($0,/^([[:space:]]*)(.*)/,w);
+            match(w[2],/(("[^"]*"?|[^"[:space:]])+)(.*)/,p);
+            raw=p[1];
             gsub(/"/,"",raw);
             if (raw !~ /^('"$option"')(=|$)/)
-                print param " ";
-            $0=substr($0,pstart+plength);
+                print w[1] p[1];
+            $0=p[3];
         }
         print "\n";
     }'
