@@ -85,7 +85,8 @@ kdump_add_mnt() {
     mkdir -p "$initdir/etc"
     local _passno=2
     [ "${kdump_fstype[_idx]}" = nfs ] && _passno=0
-    echo "${kdump_dev[_idx]} ${kdump_mnt[_idx]} ${kdump_fstype[_idx]} ${kdump_opts[_idx]} 0 $_passno" >> "$initdir/etc/fstab"
+    _dev=$(kdump_mount_dev "${kdump_dev[_idx]}")
+    echo "$_dev ${kdump_mnt[_idx]} ${kdump_fstype[_idx]} ${kdump_opts[_idx]} 0 $_passno" >> "$initdir/etc/fstab"
 }
 
 check() {

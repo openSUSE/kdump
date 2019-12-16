@@ -716,6 +716,33 @@ function kdump_get_targets()						   # {{{
 }									   # }}}
 
 #
+# Get a block device specification that is suitable for use as the
+# first column in /etc/fstab.
+# Since device node names may change after kexec, more stable symlink
+# are preferred (by-path alias or device mapper name).
+# Parameters:
+#   1) _dev: block device specification
+# Output:
+#   block device specification to be used in /etc/fstab
+function kdump_mount_dev()						   # {{{
+{
+    local _dev="$1"
+
+    if [ ! -L "$_dev" -a -b "$_dev" ] ; then
+	local _symlink
+	for _symlink in $(udevadm info --root --query=symlink "$_dev")
+	do
+	    case "$_symlink" in
+		*/by-path/*|*/mapper/*)
+		    _dev="$_symlink"
+		    break
+	    esac
+	done
+    fi
+    echo "$_dev"
+}									   # }}}
+
+#
 # Read and normalize /etc/fstab and /proc/mounts (if exists).
 # The following transformations are done:
 #   - initial TABs and SPACEs are removed
