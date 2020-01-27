@@ -5,6 +5,8 @@ After=local-fs.target network.service YaST2-Second-Stage.service YaST2-Firstboot
 [Service]
 Type=oneshot
 ExecStart=/lib/kdump/load.sh --update
+ExecStartPost=-/usr/bin/cp /usr/lib/kdump/70-kdump.rules /run/udev/rules.d/70-kdump.rules
+ExecStopPost=-/usr/bin/rm -f /run/udev/rules.d/70-kdump.rules
 ExecStop=/lib/kdump/unload.sh
 RemainAfterExit=true
 

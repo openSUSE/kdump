@@ -206,7 +206,7 @@ ADD_CUSTOM_TARGET(
 INSTALL(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/70-kdump.rules
     DESTINATION
-        /etc/udev/rules.d
+        /usr/lib/kdump
 )
 
 #
