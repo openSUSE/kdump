@@ -6,6 +6,7 @@
 KDUMPTOOL=/usr/sbin/kdumptool
 KEXEC=/sbin/kexec
 FADUMP_REGISTERED=/sys/kernel/fadump_registered
+UDEV_RULES_DIR=/run/udev/rules.d
 
 eval $($KDUMPTOOL dump_config)
 
@@ -21,4 +22,5 @@ fi
 
 test $? -eq 0 || exit 1
 
+rm -f "$UDEV_RULES_DIR"/70-kdump.rules
 exit 0

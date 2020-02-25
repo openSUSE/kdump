@@ -7,6 +7,7 @@ KDUMPTOOL=/usr/sbin/kdumptool
 KEXEC=/sbin/kexec
 FADUMP_ENABLED=/sys/kernel/fadump_enabled
 FADUMP_REGISTERED=/sys/kernel/fadump_registered
+UDEV_RULES_DIR=/run/udev/rules.d
 
 #
 # Remove an option from the kernel command line
@@ -332,6 +333,8 @@ result=$?
 
 if [ $result = 0 ] ; then
     echo 1 > /proc/sys/kernel/panic_on_oops
+    mkdir -p "$UDEV_RULES_DIR"
+    cp /usr/lib/kdump/70-kdump.rules "$UDEV_RULES_DIR"/70-kdump.rules
 fi
 
 exit $result
