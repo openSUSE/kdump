@@ -281,6 +281,7 @@ install() {
             done
         ) > "$_d"/kdump.conf
 
+	mkdir -p "$initdir/$systemdsystemunitdir"/initrd.target.wants
 	ln_r "$systemdsystemunitdir"/kdump-save.service \
 	    "$systemdsystemunitdir"/initrd.target.wants/kdump-save.service
     else
