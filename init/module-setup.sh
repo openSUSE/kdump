@@ -198,7 +198,6 @@ kdump_cmdline_ip() {
 
     kdump_ifname_config "$kdump_host_if"
 
-    echo -n "rd.neednet=1"
     echo -n "$kdump_netif"
 
     case "$kdump_net_mode" in
