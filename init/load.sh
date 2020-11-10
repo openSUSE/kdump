@@ -30,6 +30,57 @@ function remove_from_commandline()
     }'
 }
 
+# Construct console= parameter for kdump kernel from current Xen cmdline
+function set_serial_console()
+{
+    local com1 com2 unhandled opt
+    local maybe_console
+    local kdump_console
+
+    test -f /proc/xen/capabilities || return
+    grep -wq 'control_d' /proc/xen/capabilities || return
+    test -x "$(type -P xl)" || return
+
+    read xen_commandline < <(xl info | awk -F ':' '/^xen_commandline/{print $2}')
+    test -n "${xen_commandline}" || return
+
+    for opt in ${xen_commandline}
+    do
+        unhandled=
+        case "${opt}" in
+        console=com1) maybe_console='ttyS0' ;;
+        console=com2) maybe_console='ttyS1' ;;
+        com1=*,*) unhandled=1 ; com1= ;;
+        com1=*) com1="${opt#*=}" ;;
+        com2=*,*) unhandled=1 ; com2=;;
+        com2=*) com2="${opt#*=}" ;;
+        console=*com*) unhandled=1 ; maybe_console= ;;
+        *) ;;
+        esac
+        test -n "${unhandled}" && echo >&2 "${opt} in Xen commandline not handled"
+    done
+
+    test -n "${maybe_console}" || return
+
+    case "${maybe_console}" in
+    ttyS0)
+        test -n "${com1}" && kdump_console="console=${maybe_console},${com1}"
+    ;;
+    ttyS1)
+        test -n "${com2}" && kdump_console="console=${maybe_console},${com2}"
+    ;;
+    esac
+
+    test -n "${kdump_console}" || return
+
+    if test -n "${KDUMP_COMMANDLINE_APPEND}"
+    then
+        echo >&2 "KDUMP_COMMANDLINE_APPEND is set, assuming it already contains '${kdump_console}'"
+        return
+    fi
+
+    echo "${kdump_console}"
+}
 #
 # Get the name of kernel parameter to limit CPUs
 # Linux 2.6.34+ has nr_cpus, older versions must use maxcpus
@@ -97,6 +148,7 @@ function build_kdump_commandline()
         fi
     fi
 
+    commandline="$commandline $(set_serial_console)"
     commandline="$commandline $KDUMP_COMMANDLINE_APPEND"
 
     # Add panic=1 unless there is a panic option already
