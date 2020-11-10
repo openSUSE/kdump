@@ -82,7 +82,7 @@ function build_kdump_commandline()
             test -n "$boot_apicid" && \
 		commandline="$commandline disable_cpu_apicid=$boot_apicid"
             commandline=$(echo "$commandline" |
-                remove_from_commandline 'unknown_nmi_panic|notsc')
+                remove_from_commandline 'unknown_nmi_panic|notsc|console=hvc0')
             ;;
 	s390*)
 	    commandline="$commandline zfcp.allow_lun_scan=0"
