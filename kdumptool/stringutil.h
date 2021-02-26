@@ -248,6 +248,14 @@ class KString : public std::string {
         throw ();
 
         /**
+         * Checks if the string is a hexadecimal number (no leading '0x').
+         *
+         * @return true if it's a hex number, false otherwise
+         */
+        bool isHexNumber()
+        throw ();
+
+        /**
          * Remove trailing or leading stuff.
          *
          * @param[in] chars the characters to remove (default: white space)

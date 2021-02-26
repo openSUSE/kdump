@@ -306,6 +306,21 @@ bool KString::isNumber()
 }
 
 // -----------------------------------------------------------------------------
+bool KString::isHexNumber()
+    throw ()
+{
+    iterator it = begin();
+
+    if (it == end())
+        return false;
+    do {
+        if (!isxdigit(*it))
+          return false;
+    } while (++it != end());
+    return true;
+}
+
+// -----------------------------------------------------------------------------
 KString& KString::trim(const char *chars)
     throw ()
 {
