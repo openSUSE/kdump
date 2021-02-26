@@ -290,19 +290,18 @@ int Stringutil::hex2int(char c)
 bool KString::isNumber()
     throw ()
 {
-    for (size_t i = 0; i < size(); ++i) {
-        char c = operator[](i);
+    iterator it = begin();
 
-        // leading sign
-        if (i == 0 && (c == '-' || c == '+')) {
-            continue;
-        } else {
-            if (!isdigit(c)) {
-                return false;
-            }
-        }
-    }
+    // leading sign
+    if (it != end() && (*it == '-' || *it == '+'))
+        ++it;
 
+    if (it == end())
+        return false;
+    do {
+        if (!isdigit(*it))
+            return false;
+    } while (++it != end());
     return true;
 }
 
