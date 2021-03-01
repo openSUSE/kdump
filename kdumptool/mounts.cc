@@ -370,6 +370,9 @@ StringStringMap& FilesystemTypeMap::devices(void)
 {
     Debug::debug()->trace("FilesystemTypeMap::devices()");
 
+    if (m_sources.empty())
+        return m_devices;
+
     ProcessFilter p;
 
     StringVector args;
