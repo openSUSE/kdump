@@ -24,10 +24,21 @@
 #include <sstream>
 #include <string>
 
+#include <errno.h>
 #include <unistd.h>
 
 // for makedev() and friends:
 #include <sys/sysmacros.h>
+
+// for open() and friends:
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+// for memset():
+#include <string.h>
+
+#include <linux/btrfs.h>
 
 #include "global.h"
 #include "debug.h"
@@ -353,6 +364,88 @@ FilePath PathResolver::resolve(string const& spec)
 }
 
 //}}}
+//{{{ Btrfs --------------------------------------------------------------------
+
+class Btrfs {
+protected:
+    int m_fd;
+
+public:
+    Btrfs(string const& path);
+    ~Btrfs()
+    { close(m_fd); }
+
+    int fd(void) const
+    { return m_fd; }
+
+    void getFsInfo(struct btrfs_ioctl_fs_info_args *info);
+    bool getDevInfo(struct btrfs_ioctl_dev_info_args *info,
+                    unsigned long devid);
+    StringVector getDeviceList(void);
+};
+
+// -----------------------------------------------------------------------------
+Btrfs::Btrfs(string const& path)
+{
+    Debug::debug()->trace("Btrfs::Btrfs(%s)", path.c_str());
+
+    m_fd = open(path.c_str(), O_RDONLY);
+    if (m_fd < 0)
+        throw KSystemError("Cannot open " + path, errno);
+}
+
+// -----------------------------------------------------------------------------
+void Btrfs::getFsInfo(struct btrfs_ioctl_fs_info_args *info)
+{
+    if (ioctl(m_fd, BTRFS_IOC_FS_INFO, info) < 0)
+        throw KSystemError("Cannot get BTRFS filesystem info", errno);
+}
+
+// -----------------------------------------------------------------------------
+bool Btrfs::getDevInfo(struct btrfs_ioctl_dev_info_args *info,
+                       unsigned long devid)
+{
+    info->devid = devid;
+    memset(&info->uuid, 0, sizeof(info->uuid));
+    int ret = ioctl(m_fd, BTRFS_IOC_DEV_INFO, info);
+    if (ret < 0) {
+        if (errno == ENODEV)
+            return false;
+        throw KSystemError("Cannot get BTRFS device info for devid=%d", devid);
+    }
+    return true;
+}
+
+//}}}
+
+// -----------------------------------------------------------------------------
+StringVector Btrfs::getDeviceList(void)
+{
+    Debug::debug()->trace("Btrfs::getDeviceList()");
+
+    struct btrfs_ioctl_fs_info_args fs_info;
+    unsigned long id;
+    StringVector ret;
+
+    getFsInfo(&fs_info);
+    for (id = 0; id <= fs_info.max_id; ++id) {
+        struct btrfs_ioctl_dev_info_args dev_info;
+        if (!getDevInfo(&dev_info, id)) {
+            Debug::debug()->dbg("Device id %d does not exist", id);
+            continue;
+        }
+        if (!dev_info.path[0]) {
+            Debug::debug()->dbg("Device id %d is missing", id);
+            continue;
+        }
+        Debug::debug()->dbg("Found device id %d: %s", id, dev_info.path);
+        ret.push_back((char*)dev_info.path);
+    }
+
+    return ret;
+}
+
+//}}}
 //{{{ FilesystemTypeMap --------------------------------------------------------
 
 // -----------------------------------------------------------------------------
@@ -361,8 +454,21 @@ void FilesystemTypeMap::addPath(FilePath const& path)
     Debug::debug()->trace("FilesystemTypeMap::addPath(%s)", path.c_str());
 
     PathMountPoint mnt(path);
-    if (mnt)
-        m_sources.insert(m_resolver.resolve(mnt.source()));
+    if (mnt) {
+        if (string(mnt.fstype()) == "btrfs") {
+            Debug::debug()->dbg("Enumerating %s btrfs devices", mnt.target());
+
+            Btrfs btrfs(mnt.target());
+            StringVector devices = btrfs.getDeviceList();
+            for (StringVector::iterator it = devices.begin();
+                 it != devices.end();
+                 ++it) {
+                m_sources.insert(m_resolver.resolve(*it));
+            }
+        } else {
+            m_sources.insert(m_resolver.resolve(mnt.source()));
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------
