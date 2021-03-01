@@ -130,6 +130,11 @@ ENDIF(NOT LIBSSL_FOUND)
 # libblkid
 pkg_check_modules(BLKID REQUIRED blkid)
 
+# libmount
+pkg_check_modules(LIBMOUNT REQUIRED mount)
+SET(EXTRA_LIBS ${EXTRA_LIBS} ${LIBMOUNT_LIBRARIES})
+INCLUDE_DIRECTORIES(${LIBMOUNT_INCLUDE_DIRS})
+
 #
 # Check for FADUMP
 #

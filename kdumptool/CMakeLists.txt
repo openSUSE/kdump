@@ -58,6 +58,8 @@ SET(COMMON_SRC
     socket.h
     ledblink.cc
     ledblink.h
+    mounts.cc
+    mounts.h
     progress.cc
     progress.h
     savedump.cc
