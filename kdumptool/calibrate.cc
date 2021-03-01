@@ -31,6 +31,9 @@
 #include "configuration.h"
 #include "util.h"
 #include "fileutil.h"
+#include "mounts.h"
+#include "process.h"
+#include "rootdirurl.h"
 
 // All calculations are in KiB
 
@@ -928,6 +931,69 @@ unsigned long long MemMap::find(unsigned long size, unsigned long align) const
 }
 
 //}}}
+//{{{ CryptInfo ----------------------------------------------------------------
+
+/**
+ * Given a LUKS crypto device, dump the header using 'cryptinfo' and
+ * parse the output looking for maximum memory requirements.
+ */
+class CryptInfo {
+        unsigned long m_memory;
+
+    public:
+        CryptInfo(std::string const& device);
+
+	/**
+	 * Get memory requirements.
+	 *
+	 * @return Maximum memory in KiB needed to open the device
+	 */
+        unsigned long memory(void) const
+        { return m_memory; }
+};
+
+// -----------------------------------------------------------------------------
+CryptInfo::CryptInfo(std::string const& device)
+    : m_memory(0)
+{
+    Debug::debug()->trace("CryptInfo::CryptInfo(%s)", device.c_str());
+
+    ProcessFilter p;
+
+    StringVector args;
+    args.push_back("luksDump");
+    args.push_back(device);
+
+    std::ostringstream stdoutStream, stderrStream;
+    p.setStdout(&stdoutStream);
+    p.setStderr(&stderrStream);
+    int ret = p.execute("cryptsetup", args);
+    if (ret != 0) {
+        KString error = stderrStream.str();
+        throw KError("cryptsetup failed: " + error.trim());
+    }
+
+    KString out = stdoutStream.str();
+    size_t pos = 0;
+    while (pos < out.length()) {
+        size_t end = out.find_first_of("\r\n", pos);
+        size_t sep = out.find(':', pos);
+        if (sep < end) {
+            KString key = out.substr(pos, sep - pos);
+            if (key.trim() == "Memory") {
+                KString val = out.substr(sep + 1, end - sep - 1);
+                unsigned long memory = Stringutil::string2llong(val.trim());
+                Debug::debug()->dbg("Crypto device %s needs %lu KiB",
+                                    device.c_str(), memory);
+                if (memory > m_memory)
+                    m_memory = memory;
+            }
+        }
+        pos = out.find_first_not_of("\r\n", end);
+    }
+}
+
+//}}}
 //{{{ Calibrate ----------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
@@ -998,6 +1064,51 @@ void Calibrate::execute()
 	    Debug::debug()->dbg("Cannot get framebuffer size: %s", e.what());
 	    required += 2 * DEF_FRAMEBUFFER_KB;
 	}
+
+        // LUKS Argon2 hash requires a lot of memory
+        try {
+            FilesystemTypeMap map;
+
+            if (config->KDUMP_COPY_KERNEL.value()) {
+                try {
+                    map.addPath("/boot");
+                } catch (KError) {
+                    // ignore device resolution failures
+                }
+            }
+
+            std::istringstream iss(config->KDUMP_SAVEDIR.value());
+            std::string elem;
+            while (iss >> elem) {
+                RootDirURL url(elem, std::string());
+                if (url.getProtocol() == RootDirURL::PROT_FILE) {
+                    try {
+                        map.addPath(url.getRealPath());
+                    } catch (KError) {
+                        // ignore device resolution failures
+                    }
+                }
+            }
+
+            unsigned long crypto_mem = 0;
+            StringStringMap devices = map.devices();
+            for (StringStringMap::iterator it = devices.begin();
+                 it != devices.end();
+                 ++it) {
+                if (it->second == "crypto_LUKS") {
+                    CryptInfo info(it->first);
+                    if (crypto_mem < info.memory())
+                        crypto_mem = info.memory();
+                }
+            }
+            required += crypto_mem;
+
+            Debug::debug()->dbg("Adding %lu KiB for crypto devices",
+                                crypto_mem);
+        } catch (KError e) {
+	    Debug::debug()->dbg("Cannot check encrypted volumes: %s", e.what());
+            // Fall back to no allocation
+        }
 
 	// Add space for constant slabs
 	try {
