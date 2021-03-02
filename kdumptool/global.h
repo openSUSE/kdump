@@ -134,22 +134,6 @@ class KSystemErrorCode : public KErrorCode {
 };
 
 //}}}
-//{{{ KNetErrorCode ------------------------------------------------------------
-
-/**
- * Class for errors that store a value in the h_errno variable.
- */
-class KNetErrorCode : public KErrorCode {
-    public:
-        KNetErrorCode(int code)
-            : KErrorCode(code)
-        {}
-
-        virtual std::string message(void) const
-        throw ();
-};
-
-//}}}
 //{{{ KGaiErrorCode ------------------------------------------------------------
 
 /**
@@ -185,7 +169,6 @@ class KELFErrorCode : public KErrorCode {
 //{{{ Pre-defined error classes ------------------------------------------------
 
 typedef KCodeError<KSystemErrorCode> KSystemError;
-typedef KCodeError<KNetErrorCode> KNetError;
 typedef KCodeError<KGaiErrorCode> KGaiError;
 typedef KCodeError<KELFErrorCode> KELFError;
 
