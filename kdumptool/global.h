@@ -30,7 +30,6 @@
 //{{{ Constants ----------------------------------------------------------------
 
 #define DEFAULT_DUMP        "/proc/vmcore"
-#define GLOBALDEBUGDIR      "/usr/lib/debug"
 #define PATH_SEPARATOR      "/"
 
 //}}}
