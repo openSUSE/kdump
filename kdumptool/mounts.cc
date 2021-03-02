@@ -295,6 +295,17 @@ bool PathResolver::_devroot_hexhex(void)
     return true;
 }
 
+// Remove quotes from a kernel command line parameter
+static void remove_kparam_quotes(string &s)
+{
+    if (!s.empty() && *s.begin() == '"') {
+        s.erase(s.begin());
+        string::iterator last = s.end();
+        if (last != s.begin() && *--last == '"')
+            s.erase(last);
+    }
+}
+
 // -----------------------------------------------------------------------------
 FilePath& PathResolver::system_root(void)
 {
@@ -316,19 +327,16 @@ FilePath& PathResolver::system_root(void)
                     in_quote = !in_quote;
             }
 
-            // remove surrounding quotes
-            if (!s.empty() && *s.begin() == '"') {
-                s.erase(s.begin());
-                string::iterator last = s.end();
-                if (last != s.begin() && *--last == '"')
-                    s.erase(last);
-            }
+            remove_kparam_quotes(s);
 
             if (s == "--")
                 break;
 
-            if (s.startsWith(param))
-                m_devroot.assign(s, param.length());
+            if (s.startsWith(param)) {
+                s.erase(0, param.length());
+                remove_kparam_quotes(s);
+                m_devroot.assign(s);
+            }
         }
         fin.close();
 
