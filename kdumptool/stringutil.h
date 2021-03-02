@@ -106,20 +106,6 @@ class Stringutil {
         throw ();
 
         /**
-         * Converts a raw byte buffer to hex numbers.
-         *
-         * @param[in] bytes the byte buffer
-         * @param[in] len the lenght of the byte buffer
-         * @param[in] spaces @c true if the code should insert a space between
-         *            a hex pair, @c false otherwise
-         *
-         * @return the hex string
-         */
-        static std::string bytes2hexstr(const char *bytes, size_t len,
-            bool colons = false)
-        throw ();
-
-        /**
          * Converts a string vector to a string.
          *
          * @param[in] begin start of the sequence
