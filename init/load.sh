@@ -310,7 +310,7 @@ function load_kdump_fadump()
 
     echo "$msg"
     if [ $((${KDUMP_VERBOSE:-0} & 1)) -gt 0 ] ; then
-	logger -i -t kdump "$msg"
+	logger -t kdump "$msg"
     fi
 
     return $result
@@ -360,7 +360,7 @@ fi
 if [ $((${KDUMP_VERBOSE:-0} & 1)) -gt 0 ] ; then
     function kdump_logger()
     {
-        logger -i -t kdump "$@"
+        logger -t kdump "$@"
     }
 else
     function kdump_logger(){ :; }
