@@ -722,35 +722,18 @@ function kdump_get_targets()						   # {{{
 #   string that contains the device name
 function kdump_get_root_from_commandline()
 {
-    local _o _val
-    unset _val
-    unset _o
     CMDLINE=$(cat /proc/cmdline)
-    _arg="root"
 
-    for _o in $CMDLINE; do
-        if [ "${_o%%=*}" = "${_arg%%=*}" ]; then
-            if [ -n "${_arg#*=}" -a "${_arg#*=*}" != "${_arg}" ]; then
-                # if $1 has a "=<value>", we want the exact match
-                if [ "$_o" = "_arg" ]; then
-                    _val="1";
-                fi
-                continue
+    for opt in $CMDLINE; do
+        if [ "${opt%%=*}" = "root" ]; then
+            if [ "${opt#*=}" = "$opt" ]; then
+                # if cmdline argument has no "=<value>" ignore
+                continue;
             fi
 
-            if [ "${_o#*=}" = "$_o" ]; then
-                # if cmdline argument has no "=<value>", we assume "=1"
-                _val="1";
-                continue
-            fi
-
-            _val="${_o#*=}"
+            echo "${opt#*=}"
         fi
     done
-
-    if [ -n "$_val" ]; then
-        echo "$_val";
-    fi
 }
 
 #
