@@ -185,22 +185,6 @@ class Stringutil {
                                           time_t value)
         throw ();
 
-#if HAVE_LIBSSL
-
-	/**
-	 * Computes the MD5 and SHA1 digests of a buffer.
-	 *
-	 * @param[in] buf base-64 encoded data to be digested
-	 * @param[in] len length of the base64 input
-	 * @param[out] md5sum resulting MD5 sum
-	 * @param[out] sha1sum resulting SHA1 sum
-	 */
-	static void digest_base64(const void *buf, size_t len,
-				  char *md5sum, char *sha1sum)
-	throw (KError);
-
-#endif	// HAVE_LIBSSL
-
 	static int hex2int(char c)
 	throw (KError);
 };
