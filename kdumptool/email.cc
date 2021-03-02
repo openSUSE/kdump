@@ -36,6 +36,23 @@ using std::string;
 
 #if HAVE_LIBESMTP
 
+//{{{ KSmtpErrorCode -----------------------------------------------------------
+
+#define MAXERROR 4096
+
+// -----------------------------------------------------------------------------
+string KSmtpErrorCode::message(void) const
+    throw ()
+{
+    char smtp_buffer[MAXERROR];
+
+    smtp_strerror(getCode(), smtp_buffer, MAXERROR);
+    smtp_buffer[MAXERROR-1] = 0;
+    return string(smtp_buffer);
+}
+
+//}}}
+
 // -----------------------------------------------------------------------------
 static int authinteract(auth_client_request_t request,
 	     char **result, int fields, void *arg)

@@ -27,6 +27,24 @@
 
 #if HAVE_LIBESMTP
 
+//{{{ KSmtpErrorCode -----------------------------------------------------------
+
+/**
+ * Class for libesmtp errors.
+ */
+class KSmtpErrorCode : public KErrorCode {
+    public:
+        KSmtpErrorCode(int code)
+	    : KErrorCode(code)
+        {}
+
+        virtual std::string message(void) const
+	throw ();
+};
+
+typedef KCodeError<KSmtpErrorCode> KSmtpError;
+
+//}}}
 //{{{ Email --------------------------------------------------------------------
 
 

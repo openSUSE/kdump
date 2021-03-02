@@ -24,13 +24,7 @@
 
 #include "global.h"
 
-#if HAVE_LIBESMTP
-#   include <libesmtp.h>
-#endif
-
 #include <gelf.h>
-
-#define MAXERROR 4096
 
 using std::strerror;
 using std::string;
@@ -72,26 +66,6 @@ string KELFErrorCode::message(void) const
     throw ()
 {
     return string(elf_errmsg(getCode()));
-}
-
-//}}}
-//{{{ KSmtpErrorCode -----------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-string KSmtpErrorCode::message(void) const
-    throw ()
-{
-#if HAVE_LIBESMTP
-    char smtp_buffer[MAXERROR];
-
-    smtp_strerror(getCode(), smtp_buffer, MAXERROR);
-    smtp_buffer[MAXERROR-1] = 0;
-    return string(smtp_buffer);
-
-#else // HAVE_LIBESMTP
-    return string("Compiled without libesmtp support");
-
-#endif // HAVE_LIBESMTP
 }
 
 //}}}
