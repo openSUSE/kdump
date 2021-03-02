@@ -26,8 +26,6 @@
 #include "global.h"
 
 #define ISO_DATETIME "%Y-%m-%d-%H:%M"
-#define MD5SUM_LENGTH	16
-#define SHA1SUM_LENGTH	20
 
 //{{{ Stringutil ---------------------------------------------------------------
 
