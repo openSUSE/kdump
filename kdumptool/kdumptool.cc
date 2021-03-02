@@ -101,7 +101,7 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
         "Use the specified logfile for debugging output");
     StringOption configFileOption(
         "configfile", 'F', &m_configfile,
-        "Use the specified configuration file instead of "DEFAULT_CONFIG);
+        "Use the specified configuration file instead of " DEFAULT_CONFIG);
     StringOption cmdlineOption(
         "cmdline", 'C', &m_kernel_cmdline,
         "Also parse kernel parameters from a given file (e.g. /proc/cmdline)");
