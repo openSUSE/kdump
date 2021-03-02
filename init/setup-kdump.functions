@@ -716,6 +716,44 @@ function kdump_get_targets()						   # {{{
 }									   # }}}
 
 #
+# Get root device from the kernel command line.
+#
+# Output:
+#   string that contains the device name
+function kdump_get_root_from_commandline()
+{
+    local _o _val
+    unset _val
+    unset _o
+    CMDLINE=$(cat /proc/cmdline)
+    _arg="root"
+
+    for _o in $CMDLINE; do
+        if [ "${_o%%=*}" = "${_arg%%=*}" ]; then
+            if [ -n "${_arg#*=}" -a "${_arg#*=*}" != "${_arg}" ]; then
+                # if $1 has a "=<value>", we want the exact match
+                if [ "$_o" = "_arg" ]; then
+                    _val="1";
+                fi
+                continue
+            fi
+
+            if [ "${_o#*=}" = "$_o" ]; then
+                # if cmdline argument has no "=<value>", we assume "=1"
+                _val="1";
+                continue
+            fi
+
+            _val="${_o#*=}"
+        fi
+    done
+
+    if [ -n "$_val" ]; then
+        echo "$_val";
+    fi
+}
+
+#
 # Get a block device specification that is suitable for use as the
 # first column in /etc/fstab.
 # Since device node names may change after kexec, more stable symlink
@@ -782,6 +820,14 @@ function kdump_update_mount()						   # {{{
     local fstype="$3"
     local opts="$4"
     local mnt i
+
+    if [ "$device" = "/dev/root" ]; then
+        root=$(kdump_get_root_from_commandline)
+
+        if [ -n $root ]; then
+            device=$root
+        fi
+    fi
 
     i=0
     for mnt in "${kdump_mnt[@]}"
