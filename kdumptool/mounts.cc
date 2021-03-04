@@ -18,13 +18,14 @@
  */
 
 #include <cctype>
+#include <cerrno>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <sstream>
 #include <string>
 
-#include <errno.h>
 #include <unistd.h>
 
 // for makedev() and friends:
@@ -34,9 +35,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
-// for memset():
-#include <string.h>
 
 #include <linux/btrfs.h>
 
@@ -414,7 +412,7 @@ bool Btrfs::getDevInfo(struct btrfs_ioctl_dev_info_args *info,
                        unsigned long devid)
 {
     info->devid = devid;
-    memset(&info->uuid, 0, sizeof(info->uuid));
+    std::memset(&info->uuid, 0, sizeof(info->uuid));
     int ret = ioctl(m_fd, BTRFS_IOC_DEV_INFO, info);
     if (ret < 0) {
         if (errno == ENODEV)
