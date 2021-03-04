@@ -112,6 +112,11 @@ add_executable(testconfig
 )
 target_link_libraries(testconfig common ${EXTRA_LIBS})
 
+add_executable(teststringutil
+    teststringutil.cc
+)
+target_link_libraries(teststringutil common ${EXTRA_LIBS})
+
 add_executable(testurlparser
     testurlparser.cc
 )
