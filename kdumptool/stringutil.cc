@@ -269,17 +269,16 @@ KString& KString::rtrim(const char *chars)
 bool KString::startsWith(const string &part) const
     throw ()
 {
-    return strncmp(c_str(), part.c_str(), part.size()) == 0;
+    return compare(0, part.length(), part) == 0;
 }
 
 // -----------------------------------------------------------------------------
 bool KString::endsWith(const string &part) const
     throw ()
 {
-    if (part.size() > size())
-        return false;
-
-    return strcmp(c_str() + size() - part.size(), part.c_str()) == 0;
+    return length() >= part.length()
+        ? compare(length() - part.length(), part.length(), part) == 0
+        : false;
 }
 
 // -----------------------------------------------------------------------------
