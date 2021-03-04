@@ -44,7 +44,6 @@ using std::endl;
 using std::auto_ptr;
 using std::stringstream;
 using std::cerr;
-using __gnu_cxx::copy_n;
 using std::back_inserter;
 
 //{{{ DeleteDumps --------------------------------------------------------------
@@ -121,7 +120,7 @@ void DeleteDumps::delete_one(const RootDirURL &url, int oldDumps)
     Debug::debug()->dbg("Deleting the oldest %d entries.", deleteItems);
 
     StringVector toDelete;
-    copy_n(contents.begin(), deleteItems, back_inserter(toDelete));
+    __gnu_cxx::copy_n(contents.begin(), deleteItems, back_inserter(toDelete));
 
     for (StringVector::const_iterator it = toDelete.begin();
             it != toDelete.end(); ++it) {
