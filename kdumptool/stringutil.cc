@@ -31,9 +31,6 @@
 using std::string;
 using std::stringstream;
 using std::strcpy;
-using std::hex;
-using std::setfill;
-using std::setw;
 
 //{{{ Stringutil ---------------------------------------------------------------
 
