@@ -45,42 +45,34 @@ class IdentifyKernel : public Subcommand {
         /**
          * Creates a new IdentifyKernel object.
          */
-        IdentifyKernel()
-        throw ();
+        IdentifyKernel();
 
     public:
         /**
          * Returns the name of the subcommand (identify_kernel).
          */
-        const char *getName() const
-        throw ();
+        const char *getName() const;
 
         /**
          * Parses the non-option arguments from the command line.
          */
-        virtual void parseArgs(const StringVector &args)
-        throw (KError);
+        virtual void parseArgs(const StringVector &args);
 
         /**
          * Executes the function.
          *
          * @throw KError on any error. No exception indicates success.
          */
-        void execute()
-        throw (KError);
+        void execute();
 
     protected:
-        bool checkElfFile(const char *file)
-        throw (KError);
+        bool checkElfFile(const char *file);
 
-        bool checkArchFile(const char *file)
-        throw (KError);
+        bool checkArchFile(const char *file);
 
-        bool checkArchFileX86(const char *file)
-        throw (KError);
+        bool checkArchFileX86(const char *file);
 
-        bool isArchAlwaysRelocatable(const char *machine)
-        throw ();
+        bool isArchAlwaysRelocatable(const char *machine);
 
     private:
         bool m_checkRelocatable;

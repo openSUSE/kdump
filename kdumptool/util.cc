@@ -41,7 +41,6 @@ using std::getenv;
 
 // -----------------------------------------------------------------------------
 std::string Util::getArch()
-    throw (KError)
 {
     struct utsname utsname;
 
@@ -60,7 +59,6 @@ std::string Util::getArch()
 
 // -----------------------------------------------------------------------------
 std::string Util::getKernelRelease()
-    throw (KError)
 {
     struct utsname utsname;
 
@@ -75,7 +73,6 @@ std::string Util::getKernelRelease()
 
 // -----------------------------------------------------------------------------
 bool Util::isGzipFile(int fd)
-    throw (KError)
 {
     unsigned char buffer[2];
 
@@ -94,7 +91,6 @@ bool Util::isGzipFile(int fd)
 
 // -----------------------------------------------------------------------------
 bool Util::isGzipFile(const string &file)
-    throw (KError)
 {
     int fd = open(file.c_str(), O_RDONLY);
     if (fd < 0) {
@@ -114,7 +110,6 @@ bool Util::isGzipFile(const string &file)
 
 // -----------------------------------------------------------------------------
 bool Util::isElfFile(int fd)
-    throw (KError)
 {
     int     dupfd;
     gzFile  fp = NULL;
@@ -150,7 +145,6 @@ bool Util::isElfFile(int fd)
 
 // -----------------------------------------------------------------------------
 bool Util::isElfFile(const string &file)
-    throw (KError)
 {
     int fd = open(file.c_str(), O_RDONLY);
     if (fd < 0) {
@@ -171,7 +165,6 @@ bool Util::isElfFile(const string &file)
 // -----------------------------------------------------------------------------
 static off_t FindElfNoteByName(int fd, off_t offset, size_t sz,
                                const char *name)
-    throw (KError)
 {
     char *buf, *p;
     size_t to_read;
@@ -262,7 +255,6 @@ static void *map_elf(int fd, size_t len)
 }
 
 bool Util::isXenCoreDump(int fd)
-    throw (KError)
 {
     void *map = MAP_FAILED;
     Elf *elf = (Elf*)0;
@@ -346,7 +338,6 @@ bool Util::isXenCoreDump(int fd)
 
 // -----------------------------------------------------------------------------
 bool Util::isXenCoreDump(const string &file)
-    throw (KError)
 {
     int fd = open(file.c_str(), O_RDONLY);
     if (fd < 0) {
@@ -366,7 +357,6 @@ bool Util::isXenCoreDump(const string &file)
 
 // -----------------------------------------------------------------------------
 bool Util::isX86(const string &arch)
-    throw ()
 {
     return arch == "i386" || arch == "i686" ||
         arch == "i586" || arch == "x86_64";
@@ -374,7 +364,6 @@ bool Util::isX86(const string &arch)
 
 // -----------------------------------------------------------------------------
 void Util::daemonize()
-    throw (KError)
 {
     int i;
     int maxfd;
@@ -403,7 +392,6 @@ void Util::daemonize()
 
 // -----------------------------------------------------------------------------
 bool Util::isZero(const char *buffer, size_t size)
-    throw ()
 {
     for (size_t i = 0; i < size; i++)
         if (buffer[i] != 0)
@@ -414,7 +402,6 @@ bool Util::isZero(const char *buffer, size_t size)
 
 // -----------------------------------------------------------------------------
 string Util::getHostDomain()
-    throw (KError)
 {
     struct utsname my_utsname;
     int ret = uname(&my_utsname);
@@ -433,7 +420,6 @@ string Util::getHostDomain()
 // -----------------------------------------------------------------------------
 ssize_t Util::findBytes(const unsigned char *haystack, size_t haystack_len,
                         const unsigned char *needle, size_t needle_len)
-    throw ()
 {
     for (size_t i = 0; i < (haystack_len-needle_len); i++) {
         bool found = true;
@@ -453,7 +439,6 @@ ssize_t Util::findBytes(const unsigned char *haystack, size_t haystack_len,
 
 // -----------------------------------------------------------------------------
 string Util::getenv(const string &env, const string &defaultValue, bool *isDefault)
-    throw ()
 {
     char *ret = ::getenv(env.c_str());
     if (ret == NULL) {

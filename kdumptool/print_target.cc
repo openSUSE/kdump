@@ -37,7 +37,6 @@ using std::endl;
 
 // -----------------------------------------------------------------------------
 PrintTarget::PrintTarget()
-    throw ()
     : m_rootdir()
 {
     m_options.push_back(new StringOption("root", 'R', &m_rootdir,
@@ -46,14 +45,12 @@ PrintTarget::PrintTarget()
 
 // -----------------------------------------------------------------------------
 const char *PrintTarget::getName() const
-    throw ()
 {
     return "print_target";
 }
 
 // -----------------------------------------------------------------------------
 void PrintTarget::execute()
-    throw (KError)
 {
     Debug::debug()->trace("PrintTarget::execute()");
     Debug::debug()->dbg("root: %s", m_rootdir.c_str());
@@ -75,7 +72,6 @@ void PrintTarget::execute()
 
 // -----------------------------------------------------------------------------
 void PrintTarget::print_one(RootDirURL &parser)
-    throw (KError)
 {
     string port;
 

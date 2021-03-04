@@ -41,14 +41,12 @@ class SSHTransfer : public URLTransfer {
          *
          * @exception KError when initialising the underlying library fails
          */
-        SSHTransfer(const RootDirURLVector &urlv)
-        throw (KError);
+        SSHTransfer(const RootDirURLVector &urlv);
 
         /**
          * Destroys a SSHTransfer object.
          */
-        ~SSHTransfer()
-        throw ();
+        ~SSHTransfer();
 
         /**
          * Transfers the file.
@@ -57,8 +55,7 @@ class SSHTransfer : public URLTransfer {
          */
         void perform(DataProvider *dataprovider,
                      const StringVector &target_files,
-                     bool *directSave)
-        throw (KError);
+                     bool *directSave);
 
     private:
         char m_buffer[BUFSIZ];
@@ -107,8 +104,7 @@ class KSFTPErrorCode : public KErrorCode {
             : KErrorCode(code)
         {}
 
-        virtual std::string message(void) const
-        throw ();
+        virtual std::string message(void) const;
 };
 
 typedef KCodeError<KSFTPErrorCode> KSFTPError;
@@ -154,7 +150,6 @@ class SFTPPacket {
 	SFTPPacket(void);
 
 	ByteVector const &data(void) const
-	throw ()
 	{ return m_vector; }
 
 	ByteVector const &update(void);
@@ -205,14 +200,12 @@ class SFTPTransfer : public URLTransfer {
          *
          * @exception KError when initialising the underlying library fails
          */
-        SFTPTransfer(const RootDirURLVector &urlv)
-        throw (KError);
+        SFTPTransfer(const RootDirURLVector &urlv);
 
         /**
          * Destroys a SFTPTransfer object.
          */
-        ~SFTPTransfer()
-        throw ();
+        ~SFTPTransfer();
 
         /**
          * Transfers the file.
@@ -221,8 +214,7 @@ class SFTPTransfer : public URLTransfer {
          */
         void perform(DataProvider *dataprovider,
                      const StringVector &target_files,
-                     bool *directSave)
-        throw (KError);
+                     bool *directSave);
 
     protected:
 	static const int MY_PROTO_VER = 3; // our advertised version
@@ -243,7 +235,6 @@ class SFTPTransfer : public URLTransfer {
 	StringVector makeArgs(void);
 
 	unsigned long nextId(void)
-	throw ()
 	{ return m_lastid = (m_lastid + 1) & ((1UL << 32) - 1); }
 
 	void sendPacket(SFTPPacket &pkt);

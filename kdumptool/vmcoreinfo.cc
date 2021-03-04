@@ -57,7 +57,6 @@ using std::min;
 
 // -----------------------------------------------------------------------------
 Vmcoreinfo::Vmcoreinfo()
-    throw (KError)
     : m_xenVmcoreinfo(false)
 {
     // check that there are no version inconsitencies
@@ -67,7 +66,6 @@ Vmcoreinfo::Vmcoreinfo()
 
 // -----------------------------------------------------------------------------
 void Vmcoreinfo::readFromELF(const char *elf_file)
-    throw (KError)
 {
     Debug::debug()->trace("Vmcoreinfo::readFromELF(%s)", elf_file);
 
@@ -104,7 +102,6 @@ void Vmcoreinfo::readFromELF(const char *elf_file)
 
 // -----------------------------------------------------------------------------
 ByteVector Vmcoreinfo::readElfNote(const char *file)
-    throw (KError)
 {
     Elf *elf = NULL;
     int fd = -1;
@@ -239,7 +236,6 @@ ByteVector Vmcoreinfo::readElfNote(const char *file)
 // -----------------------------------------------------------------------------
 ByteVector Vmcoreinfo::readVmcoreinfoFromNotes(const char *buffer, size_t size,
                                                bool isElf64)
-    throw (KError)
 {
 
     Elf64_Nhdr *note64;
@@ -310,7 +306,6 @@ ByteVector Vmcoreinfo::readVmcoreinfoFromNotes(const char *buffer, size_t size,
 
 // -----------------------------------------------------------------------------
 string Vmcoreinfo::getStringValue(const char *key) const
-    throw (KError)
 {
     StringStringMap::const_iterator pos = m_map.find(string(key));
     if (pos == m_map.end())
@@ -321,21 +316,18 @@ string Vmcoreinfo::getStringValue(const char *key) const
 
 // -----------------------------------------------------------------------------
 int Vmcoreinfo::getIntValue(const char *key) const
-    throw (KError)
 {
     return Stringutil::string2number(getStringValue(key));
 }
 
 // -----------------------------------------------------------------------------
 int Vmcoreinfo::getLLongValue(const char *key) const
-    throw (KError)
 {
     return Stringutil::string2llong(getStringValue(key));
 }
 
 // -----------------------------------------------------------------------------
 StringList Vmcoreinfo::getKeys() const
-    throw ()
 {
     StringList ret;
     for (StringStringMap::const_iterator it = m_map.begin();
@@ -346,7 +338,6 @@ StringList Vmcoreinfo::getKeys() const
 
 // -----------------------------------------------------------------------------
 bool Vmcoreinfo::isXenVmcoreinfo() const
-    throw ()
 {
     return m_xenVmcoreinfo;
 }

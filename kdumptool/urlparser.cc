@@ -35,7 +35,6 @@ using std::string;
 
 // -----------------------------------------------------------------------------
 URLParser::Protocol URLParser::string2protocol(const string &protocol)
-    throw (KError)
 {
     if (protocol.size() == 0)
         throw KError("Empty protocols are not allowed.");
@@ -64,7 +63,6 @@ URLParser::Protocol URLParser::string2protocol(const string &protocol)
 
 // -----------------------------------------------------------------------------
 string URLParser::protocol2string(URLParser::Protocol protocol)
-    throw (KError)
 {
     switch (protocol) {
         case PROT_FILE:
@@ -127,7 +125,6 @@ string URLParser::extractAuthority(string::iterator &it,
 
 // -----------------------------------------------------------------------------
 URLParser::URLParser(const std::string &url)
-    throw (KError)
     : m_url(url), m_port(-1)
 {
     Debug::debug()->trace("URLParser::URLParser(%s)", url.c_str());
@@ -231,56 +228,48 @@ URLParser::URLParser(const std::string &url)
 
 // -----------------------------------------------------------------------------
 URLParser::Protocol URLParser::getProtocol() const
-    throw ()
 {
     return m_protocol;
 }
 
 // -----------------------------------------------------------------------------
 string URLParser::getProtocolAsString() const
-    throw ()
 {
     return protocol2string(m_protocol);
 }
 
 // -----------------------------------------------------------------------------
 string URLParser::getUsername() const
-    throw ()
 {
     return m_username;
 }
 
 // -----------------------------------------------------------------------------
 string URLParser::getPassword() const
-    throw ()
 {
     return m_password;
 }
 
 // -----------------------------------------------------------------------------
 string URLParser::getHostname() const
-    throw ()
 {
     return m_hostname;
 }
 
 // -----------------------------------------------------------------------------
 int URLParser::getPort() const
-    throw ()
 {
     return m_port;
 }
 
 // -----------------------------------------------------------------------------
 string URLParser::getPath() const
-    throw ()
 {
     return m_path;
 }
 
 // -----------------------------------------------------------------------------
 string URLParser::getURL() const
-    throw ()
 {
     return m_url;
 }

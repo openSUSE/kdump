@@ -51,13 +51,11 @@ using std::memmove;
 
 // -----------------------------------------------------------------------------
 KconfigValue::KconfigValue()
-    throw ()
     : m_type(T_INVALID)
 {}
 
 // -----------------------------------------------------------------------------
 KconfigValue KconfigValue::fromString(const string &line, string &name)
-    throw (KError)
 {
     KconfigValue ret;
     KString str = line;
@@ -142,35 +140,30 @@ KconfigValue KconfigValue::fromString(const string &line, string &name)
 
 // -----------------------------------------------------------------------------
 enum KconfigValue::Type KconfigValue::getType() const
-    throw ()
 {
     return m_type;
 }
 
 // -----------------------------------------------------------------------------
 string KconfigValue::getStringValue() const
-    throw ()
 {
     return m_string;
 }
 
 // -----------------------------------------------------------------------------
 int KconfigValue::getIntValue() const
-    throw ()
 {
     return m_integer;
 }
 
 // -----------------------------------------------------------------------------
 enum KconfigValue::Tristate KconfigValue::getTristateValue() const
-    throw ()
 {
     return m_tristate;
 }
 
 // -----------------------------------------------------------------------------
 string KconfigValue::toString() const
-    throw ()
 {
     stringstream ss;
 
@@ -229,7 +222,6 @@ ostream& operator<<(ostream& os, const KconfigValue& v)
 
 // -----------------------------------------------------------------------------
 void Kconfig::readFromConfig(const string &configFile)
-    throw (KError)
 {
     Debug::debug()->trace("Kconfig::readFromConfig(%s)", configFile.c_str());
 
@@ -259,7 +251,6 @@ void Kconfig::readFromConfig(const string &configFile)
 
 // -----------------------------------------------------------------------------
 void Kconfig::readFromKernel(const KernelTool &kt)
-    throw (KError)
 {
     Debug::debug()->trace("Kconfig::readFromKernel(%s)", kt.toString().c_str());
 
@@ -278,7 +269,6 @@ void Kconfig::readFromKernel(const KernelTool &kt)
 
 // -----------------------------------------------------------------------------
 void Kconfig::readFromKernel(const string &kernelImage)
-    throw (KError)
 {
     Debug::debug()->trace("Kconfig::readFromKernel(%s)", kernelImage.c_str());
 
@@ -289,7 +279,6 @@ void Kconfig::readFromKernel(const string &kernelImage)
 
 // -----------------------------------------------------------------------------
 KconfigValue Kconfig::get(const string &option)
-    throw ()
 {
     return m_configs[option];
 }

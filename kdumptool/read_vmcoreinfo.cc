@@ -49,7 +49,6 @@ using std::endl;
 
 // -----------------------------------------------------------------------------
 ReadVmcoreinfo::ReadVmcoreinfo()
-    throw ()
     : m_file(DEFAULT_DUMP)
 {
     m_options.push_back(new StringOption("dump", 'u', &m_file,
@@ -58,14 +57,12 @@ ReadVmcoreinfo::ReadVmcoreinfo()
 
 // -----------------------------------------------------------------------------
 const char *ReadVmcoreinfo::getName() const
-    throw ()
 {
     return "read_vmcoreinfo";
 }
 
 // -----------------------------------------------------------------------------
 void ReadVmcoreinfo::parseArgs(const StringVector &args)
-    throw (KError)
 {
     Debug::debug()->trace(__FUNCTION__);
 
@@ -77,7 +74,6 @@ void ReadVmcoreinfo::parseArgs(const StringVector &args)
 
 // -----------------------------------------------------------------------------
 void ReadVmcoreinfo::execute()
-    throw (KError)
 {
     Vmcoreinfo vm;
     vm.readFromELF(m_file.c_str());

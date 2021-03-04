@@ -43,7 +43,6 @@ const char *DumpConfig::usage_names[] = {
 
 // -----------------------------------------------------------------------------
 DumpConfig::DumpConfig()
-    throw ()
     : m_format(FMT_SHELL), m_usage((1 << ConfigOption::USE_MAX) - 1),
       m_nodefault(false)
 {
@@ -76,14 +75,12 @@ DumpConfig::DumpConfig()
 
 // -----------------------------------------------------------------------------
 const char *DumpConfig::getName() const
-    throw ()
 {
     return "dump_config";
 }
 
 // -----------------------------------------------------------------------------
 void DumpConfig::parseArgs(const StringVector &args)
-    throw (KError)
 {
     Debug::debug()->trace(__FUNCTION__);
 
@@ -130,7 +127,6 @@ void DumpConfig::parseArgs(const StringVector &args)
 
 // -----------------------------------------------------------------------------
 void DumpConfig::execute()
-    throw (KError)
 {
     Debug::debug()->trace("DumpConfig::execute()");
 

@@ -50,7 +50,6 @@ class ConfigParser {
          *            (here it is not checked if the file exists)
          */
         ConfigParser(const std::string &filename)
-        throw ()
 	: m_configFile(filename)
 	{}
 
@@ -58,8 +57,7 @@ class ConfigParser {
          * Deletes the ConfigParser object.
          */
         virtual ~ConfigParser()
-	throw ()
-        {}
+        { }
 
         /**
          * Adds a variable which should be parsed.
@@ -67,8 +65,7 @@ class ConfigParser {
          * @param[in] name the name of the variable
 	 * @param[in] defvalue default value for the variable
          */
-        void addVariable(const std::string &name, const std::string &defvalue)
-        throw ();
+        void addVariable(const std::string &name, const std::string &defvalue);
 
         /**
          * Parse the configuration file.
@@ -76,8 +73,7 @@ class ConfigParser {
          * @exception KError if opening of the file failed or if spawning the
          *            shell that actually parses the configuration file fails
          */
-        virtual void parse()
-        throw (KError) = 0;
+        virtual void parse() = 0;
 
         /**
          * Returns the value of the specified configuration option.
@@ -87,8 +83,7 @@ class ConfigParser {
          *
          * @exception KError if the value cannot be found
          */
-        std::string getValue(const std::string &name) const
-        throw (KError);
+        std::string getValue(const std::string &name) const;
 
     protected:
         std::string m_configFile;
@@ -118,8 +113,7 @@ class ShellConfigParser : public ConfigParser {
          * @param[in] filename the file name of the configuration file
          *            (here it is not checked if the file exists)
          */
-        ShellConfigParser(const std::string &filename)
-        throw ();
+        ShellConfigParser(const std::string &filename);
 
         /**
          * Parse the configuration file.
@@ -127,8 +121,7 @@ class ShellConfigParser : public ConfigParser {
          * @exception KError if opening of the file failed or if spawning the
          *            shell that actually parses the configuration file fails
          */
-        virtual void parse()
-        throw (KError);
+        virtual void parse();
 };
 
 //}}}
@@ -151,16 +144,14 @@ class KernelConfigParser : public ConfigParser {
          * @param[in] filename the file name of the configuration file
          *            (here it is not checked if the file exists)
          */
-        KernelConfigParser(const std::string &filename)
-        throw ();
+        KernelConfigParser(const std::string &filename);
 
         /**
          * Parse the configuration file.
          *
          * @exception KError if opening of the file failed
          */
-        virtual void parse()
-        throw (KError);
+        virtual void parse();
 };
 
 //}}}

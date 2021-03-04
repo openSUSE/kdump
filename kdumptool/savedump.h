@@ -37,63 +37,48 @@ class SaveDump : public Subcommand {
         /**
          * Creates a new SaveDump object.
          */
-        SaveDump()
-        throw ();
+        SaveDump();
 
         /**
          * Deletes a SaveDump object.
          */
-        ~SaveDump()
-        throw ();
+        ~SaveDump();
 
     public:
         /**
          * Returns the name of the subcommand (save_dump).
          */
-        const char *getName() const
-        throw ();
+        const char *getName() const;
 
         /**
          * Executes the function.
          *
          * @throw KError on any error. No exception indicates success.
          */
-        void execute()
-        throw (KError);
+        void execute();
 
     protected:
-        void saveDump(const RootDirURLVector &urlv)
-        throw (KError);
+        void saveDump(const RootDirURLVector &urlv);
 
-        void copyMakedumpfile()
-        throw (KError);
+        void copyMakedumpfile();
 
-        void generateInfo()
-        throw (KError);
+        void generateInfo();
 
-        void generateRearrange()
-        throw (KError);
+        void generateRearrange();
 
-        void fillVmcoreinfo()
-        throw (KError);
+        void fillVmcoreinfo();
 
-        void copyKernel()
-        throw (KError);
+        void copyKernel();
 
-        std::string findKernel()
-        throw (KError);
+        std::string findKernel();
 
-        std::string findMapfile()
-        throw (KError);
+        std::string findMapfile();
 
-        void checkAndDelete(const RootDirURLVector &urlv)
-        throw (KError);
+        void checkAndDelete(const RootDirURLVector &urlv);
 
-        void sendNotification(bool failure, const RootDirURLVector &urlv)
-        throw ();
+        void sendNotification(bool failure, const RootDirURLVector &urlv);
 
-        std::string getKernelReleaseCommandline()
-        throw (KError);
+        std::string getKernelReleaseCommandline();
 
         /**
          * Returns a Transfer object suitable for the provided URL.
@@ -104,8 +89,7 @@ class SaveDump : public Subcommand {
          * @exception KError if parsing the URL failed or there's no
          *            implementation for that class.
          */
-	Transfer *getTransfer(const RootDirURLVector &urlv)
-	throw (KError);
+	Transfer *getTransfer(const RootDirURLVector &urlv);
 
     private:
         FilePath m_dump;
@@ -120,8 +104,7 @@ class SaveDump : public Subcommand {
         std::string m_hostname;
         bool m_nomail;
 
-        void check_one(const RootDirURL &parser)
-        throw (KError);
+        void check_one(const RootDirURL &parser);
 };
 
 //}}}

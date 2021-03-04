@@ -33,23 +33,20 @@ class LedBlink : public Subcommand {
         /**
          * Creates a new LedBlink object.
          */
-        LedBlink()
-        throw ();
+        LedBlink();
 
     public:
         /**
          * Returns the name of the subcommand (identify_kernel).
          */
-        const char *getName() const
-        throw ();
+        const char *getName() const;
 
         /**
          * Executes the function.
          *
          * @throw KError on any error. No exception indicates success.
          */
-        void execute()
-        throw (KError);
+        void execute();
 
     private:
         int m_interval;

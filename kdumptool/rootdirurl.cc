@@ -31,7 +31,6 @@ using std::copy;
 
 // -----------------------------------------------------------------------------
 RootDirURL::RootDirURL(const std::string &url, const std::string &rootdir)
-    throw (KError)
     : URLParser(url)
 {
     if (getProtocol() == PROT_FILE) {

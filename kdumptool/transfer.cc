@@ -55,7 +55,6 @@ using std::endl;
 void Transfer::perform(DataProvider *dataprovider,
 		       const std::string &target_file,
 		       bool *directSave)
-    throw (KError)
 {
     const StringVector target_files(1, target_file);
     perform(dataprovider, target_files, directSave);
@@ -65,7 +64,6 @@ void Transfer::perform(DataProvider *dataprovider,
 
 // -----------------------------------------------------------------------------
 URLTransfer::URLTransfer(const RootDirURLVector &urlv)
-    throw (KError)
     : m_urlVector(urlv)
 {
 }
@@ -75,7 +73,6 @@ URLTransfer::URLTransfer(const RootDirURLVector &urlv)
 
 // -----------------------------------------------------------------------------
 FileTransfer::FileTransfer(const RootDirURLVector &urlv)
-    throw (KError)
     : URLTransfer(urlv), m_bufferSize(0), m_buffer(NULL)
 {
     RootDirURLVector::const_iterator it;
@@ -107,7 +104,6 @@ FileTransfer::FileTransfer(const RootDirURLVector &urlv)
 
 // -----------------------------------------------------------------------------
 FileTransfer::~FileTransfer()
-    throw ()
 {
     delete[] m_buffer;
 }
@@ -116,7 +112,6 @@ FileTransfer::~FileTransfer()
 void FileTransfer::perform(DataProvider *dataprovider,
                            const StringVector &target_files,
                            bool *directSave)
-    throw (KError)
 {
     Debug::debug()->trace("FileTransfer::perform(%p, [ \"%s\"%s ])",
 	dataprovider, target_files.front().c_str(),
@@ -147,7 +142,6 @@ void FileTransfer::perform(DataProvider *dataprovider,
 // -----------------------------------------------------------------------------
 void FileTransfer::performFile(DataProvider *dataprovider,
 			       const StringVector &target_files)
-    throw (KError)
 {
     Debug::debug()->trace("FileTransfer::performFile(%p, [ \"%s\"%s ])",
 	dataprovider, target_files.front().c_str(),
@@ -159,7 +153,6 @@ void FileTransfer::performFile(DataProvider *dataprovider,
 // -----------------------------------------------------------------------------
 void FileTransfer::performPipe(DataProvider *dataprovider,
 			       const StringVector &target_files)
-    throw (KError)
 {
     Debug::debug()->trace("FileTransfer::performPipe(%p, [ \"%s\"%s ])",
         dataprovider, target_files.front().c_str(),
@@ -233,7 +226,6 @@ void FileTransfer::performPipe(DataProvider *dataprovider,
 
 // -----------------------------------------------------------------------------
 FILE *FileTransfer::open(const string &target_file)
-    throw (KError)
 {
     Debug::debug()->trace("FileTransfer::open(%s)", target_file.c_str());
 
@@ -246,7 +238,6 @@ FILE *FileTransfer::open(const string &target_file)
 
 // -----------------------------------------------------------------------------
 void FileTransfer::close(FILE *fp)
-    throw ()
 {
     Debug::debug()->trace("FileTransfer::close()");
 
@@ -307,7 +298,6 @@ static int curl_debug(CURL *curl, curl_infotype info, char *buffer,
 
 // -----------------------------------------------------------------------------
 FTPTransfer::FTPTransfer(const RootDirURLVector &urlv)
-    throw (KError)
     : URLTransfer(urlv), m_curl(NULL)
 {
     if (urlv.size() > 1)
@@ -366,7 +356,6 @@ FTPTransfer::FTPTransfer(const RootDirURLVector &urlv)
 
 // -----------------------------------------------------------------------------
 FTPTransfer::~FTPTransfer()
-    throw ()
 {
     if (m_curl)
         curl_easy_cleanup(m_curl);
@@ -376,7 +365,6 @@ FTPTransfer::~FTPTransfer()
 void FTPTransfer::perform(DataProvider *dataprovider,
                           const StringVector &target_files,
                           bool *directSave)
-    throw (KError)
 {
     Debug::debug()->trace("FTPTransfer::perform(%p, [ \"%s\"%s ])",
 	dataprovider, target_files.front().c_str(),
@@ -404,7 +392,6 @@ void FTPTransfer::perform(DataProvider *dataprovider,
 // -----------------------------------------------------------------------------
 void FTPTransfer::open(DataProvider *dataprovider,
                         const string &target_file)
-    throw (KError)
 {
     CURLcode err;
 
@@ -438,7 +425,6 @@ void FTPTransfer::open(DataProvider *dataprovider,
 
 // -----------------------------------------------------------------------------
 NFSTransfer::NFSTransfer(const RootDirURLVector &urlv)
-    throw (KError)
     : URLTransfer(urlv), m_mountpoint(""), m_fileTransfer(NULL)
 {
     RootDirURLVector file_urlv;
@@ -450,7 +436,6 @@ NFSTransfer::NFSTransfer(const RootDirURLVector &urlv)
 
 // -----------------------------------------------------------------------------
 RootDirURL NFSTransfer::translate(const RootDirURL &parser)
-    throw (KError)
 {
     // mount the NFS share
     StringVector options;
@@ -480,7 +465,6 @@ RootDirURL NFSTransfer::translate(const RootDirURL &parser)
 
 // -----------------------------------------------------------------------------
 NFSTransfer::~NFSTransfer()
-    throw ()
 {
     Debug::debug()->trace("NFSTransfer::~NFSTransfer()");
 
@@ -495,14 +479,12 @@ NFSTransfer::~NFSTransfer()
 void NFSTransfer::perform(DataProvider *dataprovider,
                           const StringVector &target_files,
                           bool *directSave)
-    throw (KError)
 {
     m_fileTransfer->perform(dataprovider, target_files, directSave);
 }
 
 // -----------------------------------------------------------------------------
 void NFSTransfer::close()
-    throw (KError)
 {
     Debug::debug()->trace("NFSTransfer::close()");
     if (!m_mountpoint.empty()) {
@@ -516,7 +498,6 @@ void NFSTransfer::close()
 
 // -----------------------------------------------------------------------------
 CIFSTransfer::CIFSTransfer(const RootDirURLVector &urlv)
-    throw (KError)
     : URLTransfer(urlv), m_mountpoint(""), m_fileTransfer(NULL)
 {
     RootDirURLVector file_urlv;
@@ -528,7 +509,6 @@ CIFSTransfer::CIFSTransfer(const RootDirURLVector &urlv)
 
 // -----------------------------------------------------------------------------
 RootDirURL CIFSTransfer::translate(const RootDirURL &parser)
-    throw (KError)
 {
     // Check network status
     Configuration *config = Configuration::config();
@@ -575,7 +555,6 @@ RootDirURL CIFSTransfer::translate(const RootDirURL &parser)
 
 // -----------------------------------------------------------------------------
 CIFSTransfer::~CIFSTransfer()
-    throw ()
 {
     Debug::debug()->trace("CIFSTransfer::~CIFSTransfer()");
 
@@ -590,14 +569,12 @@ CIFSTransfer::~CIFSTransfer()
 void CIFSTransfer::perform(DataProvider *dataprovider,
                           const StringVector &target_files,
                           bool *directSave)
-    throw (KError)
 {
     m_fileTransfer->perform(dataprovider, target_files, directSave);
 }
 
 // -----------------------------------------------------------------------------
 void CIFSTransfer::close()
-    throw (KError)
 {
     Debug::debug()->trace("CIFSTransfer::close()");
     if (m_mountpoint.size() > 0) {

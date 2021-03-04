@@ -33,7 +33,6 @@ using std::string;
 
 // -----------------------------------------------------------------------------
 string KSystemErrorCode::message(void) const
-    throw ()
 {
     return string(strerror(getCode()));
 }
@@ -43,7 +42,6 @@ string KSystemErrorCode::message(void) const
 
 // -----------------------------------------------------------------------------
 string KGaiErrorCode::message(void) const
-    throw ()
 {
     return string(gai_strerror(getCode()));
 }
@@ -53,7 +51,6 @@ string KGaiErrorCode::message(void) const
 
 // -----------------------------------------------------------------------------
 string KELFErrorCode::message(void) const
-    throw ()
 {
     return string(elf_errmsg(getCode()));
 }

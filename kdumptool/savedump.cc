@@ -59,7 +59,6 @@ using std::ifstream;
 
 // -----------------------------------------------------------------------------
 SaveDump::SaveDump()
-    throw ()
     : m_dump(DEFAULT_DUMP), m_transfer(NULL), m_usedDirectSave(false),
       m_useMakedumpfile(false), m_split(0), m_threads(0), m_crashtime(0),
       m_nomail(false)
@@ -80,7 +79,6 @@ SaveDump::SaveDump()
 
 // -----------------------------------------------------------------------------
 SaveDump::~SaveDump()
-    throw ()
 {
     Debug::debug()->trace("SaveDump::~SaveDump()");
 
@@ -89,14 +87,12 @@ SaveDump::~SaveDump()
 
 // -----------------------------------------------------------------------------
 const char *SaveDump::getName() const
-    throw ()
 {
     return "save_dump";
 }
 
 // -----------------------------------------------------------------------------
 void SaveDump::execute()
-    throw (KError)
 {
     Debug::debug()->trace(__FUNCTION__);
     Debug::debug()->dbg("dump: %s, root: %s, crashrelease: %s, "
@@ -229,7 +225,6 @@ void SaveDump::execute()
 
 // -----------------------------------------------------------------------------
 void SaveDump::saveDump(const RootDirURLVector &urlv)
-    throw (KError)
 {
     Configuration *config = Configuration::config();
 
@@ -386,7 +381,6 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
 
 // -----------------------------------------------------------------------------
 void SaveDump::copyMakedumpfile()
-    throw (KError)
 {
     list<FilePath> paths;
     Configuration *config = Configuration::config();
@@ -426,7 +420,6 @@ void SaveDump::copyMakedumpfile()
 
 // -----------------------------------------------------------------------------
 void SaveDump::generateRearrange()
-    throw (KError)
 {
     Configuration *config = Configuration::config();
 
@@ -466,7 +459,6 @@ void SaveDump::generateRearrange()
 
 // -----------------------------------------------------------------------------
 void SaveDump::fillVmcoreinfo()
-    throw (KError)
 {
     Vmcoreinfo vm;
     vm.readFromELF(m_dump.c_str());
@@ -492,7 +484,6 @@ void SaveDump::fillVmcoreinfo()
 
 // -----------------------------------------------------------------------------
 void SaveDump::generateInfo()
-    throw (KError)
 {
     Debug::debug()->trace("SaveDump::generateInfo");
     Configuration *config = Configuration::config();
@@ -541,7 +532,6 @@ void SaveDump::generateInfo()
 
 // -----------------------------------------------------------------------------
 void SaveDump::copyKernel()
-    throw (KError)
 {
     Debug::debug()->trace("SaveDump::copyKernel()");
 
@@ -575,7 +565,6 @@ void SaveDump::copyKernel()
 
 // -----------------------------------------------------------------------------
 string SaveDump::findKernel()
-    throw (KError)
 {
     Debug::debug()->trace("SaveDump::findKernel()");
 
@@ -633,7 +622,6 @@ string SaveDump::findKernel()
 
 // -----------------------------------------------------------------------------
 string SaveDump::findMapfile()
-    throw (KError)
 {
     Debug::debug()->trace("SaveDump::findMapfile()");
 
@@ -651,7 +639,6 @@ string SaveDump::findMapfile()
 
 // -----------------------------------------------------------------------------
 void SaveDump::checkAndDelete(const RootDirURLVector &urlv)
-    throw (KError)
 {
     RootDirURLVector::const_iterator it;
     for (it = urlv.begin(); it != urlv.end(); ++it)
@@ -660,7 +647,6 @@ void SaveDump::checkAndDelete(const RootDirURLVector &urlv)
 
 // -----------------------------------------------------------------------------
 void SaveDump::check_one(const RootDirURL &parser)
-    throw (KError)
 {
     Debug::debug()->trace("SaveDump::check_one(\"%s\")",
 			  parser.getURL().c_str());
@@ -688,7 +674,6 @@ void SaveDump::check_one(const RootDirURL &parser)
 
 // -----------------------------------------------------------------------------
 void SaveDump::sendNotification(bool failure, const RootDirURLVector &urlv)
-    throw ()
 {
     Debug::debug()->trace("SaveDump::sendNotification");
 
@@ -761,7 +746,6 @@ void SaveDump::sendNotification(bool failure, const RootDirURLVector &urlv)
 
 // -----------------------------------------------------------------------------
 string SaveDump::getKernelReleaseCommandline()
-    throw (KError)
 {
     Debug::debug()->trace("SaveDump::getKernelReleaseCommandline()");
 
@@ -789,7 +773,6 @@ string SaveDump::getKernelReleaseCommandline()
 
 // -----------------------------------------------------------------------------
 Transfer *SaveDump::getTransfer(const RootDirURLVector &urlv)
-    throw (KError)
 {
     Debug::debug()->trace("SaveDump::getTransfer(%p)",
 			  &urlv);

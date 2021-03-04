@@ -47,8 +47,7 @@ class FileUtil {
          static void mount(const std::string &device,
                            const std::string &mountpoint,
                            const std::string &fs,
-                           const StringVector &options)
-         throw (KError);
+                           const StringVector &options);
 
          /**
           * Mounts a NFS directory.
@@ -66,8 +65,7 @@ class FileUtil {
          static void nfsmount(const std::string &host,
                                const std::string &dir,
                                const std::string &mountpoint,
-                               const StringVector &options)
-         throw (KError);
+                               const StringVector &options);
 
          /**
           * Unmounts a file system from the given mountpoint.
@@ -76,8 +74,7 @@ class FileUtil {
           *
           * @exception KError if the mount did not succeed.
           */
-         static void umount(const std::string &device)
-         throw (KError);
+         static void umount(const std::string &device);
 };
 
 //}}}
@@ -136,24 +133,21 @@ class FilePath : public KString {
          *
          * @throw KError on any error
          */
-        static FilePath getcwd(void)
-        throw (KError);
+        static FilePath getcwd(void);
 
         /**
          * Gets the base name of a file. This function is not thread-safe!
          *
          * @return the base name
          */
-        std::string baseName() const
-        throw ();
+        std::string baseName() const;
 
         /**
          * Gets the directory name of a file. This function is not thread-safe!
          *
          * @return the directory name
          */
-        std::string dirName() const
-        throw ();
+        std::string dirName() const;
 
         /**
          * Concatenates two path components.
@@ -161,24 +155,21 @@ class FilePath : public KString {
          * @param[in] p the path component to be appended
          * @return reference to this instance
          */
-        FilePath& appendPath(const std::string &p)
-        throw ();
+        FilePath& appendPath(const std::string &p);
 
         /**
          * Checks if the specified file exists.
          *
          * @return @c true on success, @c false otherwise
          */
-        bool exists() const
-        throw ();
+        bool exists() const;
 
         /**
          * Checks if the given path is a symbolic link.
          *
          * @throw KError on any error
          */
-        bool isSymlink() const
-        throw (KError);
+        bool isSymlink() const;
 
         /**
          * Reads a symbolic link. Does the same like readlink(2), only
@@ -189,8 +180,7 @@ class FilePath : public KString {
          *
          * @throw KError if an error occured
          */
-        std::string readLink() const
-        throw (KError);
+        std::string readLink() const;
 
         /**
          * Returns the canonical representation of the specified path.
@@ -202,8 +192,7 @@ class FilePath : public KString {
          *
          * @throw KError when chroot or realpath() fail
          */
-        FilePath getCanonicalPath(const std::string &root = m_slash) const
-        throw (KError);
+        FilePath getCanonicalPath(const std::string &root = m_slash) const;
 
         /**
          * Returns the size of a given file.
@@ -212,8 +201,7 @@ class FilePath : public KString {
          * @exception KError if the file does not exist or if stat() does
          *            fail for another reason
          */
-        unsigned long long fileSize() const
-        throw (KError);
+        unsigned long long fileSize() const;
 
         /**
          * Gets a sorted list of the contents of the specified directory.
@@ -224,8 +212,7 @@ class FilePath : public KString {
          *            list, @c false if all files should be included
          * @exception KError if something went wrong
          */
-        StringVector listDir(const ListDirFilter &filter) const
-        throw (KError);
+        StringVector listDir(const ListDirFilter &filter) const;
 
         /**
          * Get the free disk size in bytes.
@@ -233,8 +220,7 @@ class FilePath : public KString {
          * @return the free disk size in bytes
          * @exception KError if the underlying statfs() call fails
          */
-        unsigned long long freeDiskSize() const
-        throw (KError);
+        unsigned long long freeDiskSize() const;
 
         /**
          * Creates a new directory in the specified path.
@@ -244,8 +230,7 @@ class FilePath : public KString {
          *
          * @throw KError on any error
          */
-        void mkdir(bool recursive)
-        throw (KError);
+        void mkdir(bool recursive);
 
         /**
          * Delete the specified directory.
@@ -254,8 +239,7 @@ class FilePath : public KString {
          *            directories should be deleted, @c false otherwise
          * @exception KError if something went wrong
          */
-        void rmdir(bool recursive)
-        throw (KError);
+        void rmdir(bool recursive);
 
 };
 

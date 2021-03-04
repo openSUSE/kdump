@@ -56,19 +56,16 @@ using std::list;
 
 // -----------------------------------------------------------------------------
 FindKernel::FindKernel()
-    throw ()
 {}
 
 // -----------------------------------------------------------------------------
 const char *FindKernel::getName() const
-    throw ()
 {
     return "find_kernel";
 }
 
 // -----------------------------------------------------------------------------
 void FindKernel::execute()
-    throw (KError)
 {
     Debug::debug()->trace("FindKernel::execute()");
 
@@ -112,7 +109,6 @@ void FindKernel::execute()
 
 // -----------------------------------------------------------------------------
 bool FindKernel::suitableForKdump(const string &kernelImage, bool strict)
-    throw (KError)
 {
     KernelTool kt(kernelImage);
 
@@ -183,7 +179,6 @@ bool FindKernel::suitableForKdump(const string &kernelImage, bool strict)
 
 // -----------------------------------------------------------------------------
 string FindKernel::findForVersion(const string &kernelver)
-    throw (KError)
 {
     Debug::debug()->trace("FindKernel::findForVersion(%s)", kernelver.c_str());
 
@@ -211,7 +206,6 @@ string FindKernel::findForVersion(const string &kernelver)
 
 // -----------------------------------------------------------------------------
 string FindKernel::findKernelAuto()
-    throw (KError)
 {
     Debug::debug()->trace("FindKernel::findKernelAuto()");
 
@@ -304,7 +298,6 @@ string FindKernel::findKernelAuto()
 
 // -----------------------------------------------------------------------------
 bool FindKernel::isKdumpKernel(const KString &kernelimage)
-    throw (KError)
 {
     bool ret = kernelimage.endsWith("kdump");
     Debug::debug()->trace("FindKernel::isKdumpKernel(%s)=%s",
@@ -314,7 +307,6 @@ bool FindKernel::isKdumpKernel(const KString &kernelimage)
 
 // -----------------------------------------------------------------------------
 string FindKernel::findInitrd(const FilePath &kernelPath)
-    throw ()
 {
     Debug::debug()->trace("FindKernel::findInitrd(%s)", kernelPath.c_str());
 

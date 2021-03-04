@@ -51,7 +51,6 @@ using std::back_inserter;
 
 // -----------------------------------------------------------------------------
 DeleteDumps::DeleteDumps()
-    throw ()
     : m_dryRun(false)
 {
     Debug::debug()->trace("DeleteDumps::DeleteDumps()");
@@ -64,14 +63,12 @@ DeleteDumps::DeleteDumps()
 
 // -----------------------------------------------------------------------------
 const char *DeleteDumps::getName() const
-    throw ()
 {
     return "delete_dumps";
 }
 
 // -----------------------------------------------------------------------------
 void DeleteDumps::execute()
-    throw (KError)
 {
     Debug::debug()->trace("DeleteDumps::execute()");
     Debug::debug()->dbg("Using root dir %s, dry run: %d",
@@ -97,7 +94,6 @@ void DeleteDumps::execute()
 
 // -----------------------------------------------------------------------------
 void DeleteDumps::delete_one(const RootDirURL &url, int oldDumps)
-    throw (KError)
 {
     if (url.getProtocol() != URLParser::PROT_FILE) {
         cerr << "Deletion of old dump only on local disk." << endl;

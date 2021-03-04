@@ -50,8 +50,7 @@ class DataProvider {
          *
          * @exception KError if any error happened
          */
-        virtual void prepare()
-        throw (KError) = 0;
+        virtual void prepare() = 0;
 
         /**
          * This method is called to check if the data provider itself is able
@@ -62,8 +61,7 @@ class DataProvider {
          * @return @c true if the process is capable of saving the contents
          *            to a file, @c false otherwise.
          */
-        virtual bool canSaveToFile() const
-        throw () = 0;
+        virtual bool canSaveToFile() const = 0;
 
         /**
          * If DataProvider::canSaveToFile() returns @c true, that method
@@ -73,8 +71,7 @@ class DataProvider {
          * @exception KError if saving failed or DataProvider::canSaveToFile()
          *            returns @c false.
          */
-        virtual void saveToFile(const StringVector &targets)
-        throw (KError) = 0;
+        virtual void saveToFile(const StringVector &targets) = 0;
 
         /**
          * This method gets called repeatedly
@@ -86,8 +83,7 @@ class DataProvider {
          *
          * @exception KError when something goes wrong
          */
-        virtual size_t getData(char *buffer, size_t maxread)
-        throw (KError) = 0;
+        virtual size_t getData(char *buffer, size_t maxread) = 0;
 
         /**
          * This method gets called after the last DataProvider::getData()
@@ -96,16 +92,14 @@ class DataProvider {
          *
          * @exception KError if any error happened
          */
-        virtual void finish()
-        throw (KError) = 0;
+        virtual void finish() = 0;
 
         /**
          * Sets the error flag
          *
          * @param[in] error @c true on error, @c false on success
          */
-        virtual void setError(bool error)
-        throw () = 0;
+        virtual void setError(bool error) = 0;
 
         /**
          * Sets a progress notifier. The caller has to delete @p progress,
@@ -113,8 +107,7 @@ class DataProvider {
          *
          * @param[in] progress the progress notifier.
          */
-        virtual void setProgress(Progress *progress)
-        throw () = 0;
+        virtual void setProgress(Progress *progress) = 0;
 };
 
 //}}}
@@ -131,38 +124,33 @@ class AbstractDataProvider : public DataProvider {
         /**
          * Creates a new AbstractDataProvider.
          */
-        AbstractDataProvider()
-        throw ();
+        AbstractDataProvider();
 
         /**
          * Empty implementation (beside from starting the progress)
          * of DataProvider::prepare().
          */
-        void prepare()
-        throw (KError);
+        void prepare();
 
         /**
          * Empty implementation (beside from stopping the progress)
          * of DataProvider::finish().
          */
-        void finish()
-        throw (KError);
+        void finish();
 
         /**
          * Sets the progress.
          *
          * @see DataProvider::setProgress()
          */
-        void setProgress(Progress *progress)
-        throw ();
+        void setProgress(Progress *progress);
 
         /**
          * Returns the progress.
          *
          * @return the Progress or @p NULL if not progress has been set
          */
-        Progress *getProgress() const
-        throw ();
+        Progress *getProgress() const;
 
         /**
          * Returns @c false as default implementation.
@@ -170,8 +158,7 @@ class AbstractDataProvider : public DataProvider {
          * @return @c false
          * @see DataProvider::canSaveToFile()
          */
-        bool canSaveToFile() const
-        throw ();
+        bool canSaveToFile() const;
 
         /**
          * Throws a KError.
@@ -181,24 +168,21 @@ class AbstractDataProvider : public DataProvider {
          *            returns @c false in AbstractDataProvider.
          * @see DataProvider::saveToFile().
          */
-        void saveToFile(const StringVector &targets)
-        throw (KError);
+        void saveToFile(const StringVector &targets);
 
         /**
          * Sets the error flag
          *
          * @param[in] error @c true on error, @c false on success
          */
-        void setError(bool error)
-        throw ();
+        void setError(bool error);
 
         /**
          * Returns the error flag.
          *
          * @return the error flag
          */
-        bool getError() const
-        throw ();
+        bool getError() const;
 
     private:
         Progress *m_progress;
@@ -220,32 +204,28 @@ class FileDataProvider : public AbstractDataProvider {
          *
          * @param[in] filename the name of the file
          */
-        FileDataProvider(const char *filename)
-        throw ();
+        FileDataProvider(const char *filename);
 
         /**
          * Actually opens the file.
          *
          * @see DataProvider::prepare()
          */
-        void prepare()
-        throw (KError);
+        void prepare();
 
         /**
          * Provides the data.
          *
          * @see DataProvider::getData()
          */
-        size_t getData(char *buffer, size_t maxread)
-        throw (KError);
+        size_t getData(char *buffer, size_t maxread);
 
         /**
          * Closes the file.
          *
          * @see DataProvider::finish()
          */
-        virtual void finish()
-        throw (KError);
+        virtual void finish();
 
     private:
         std::string m_filename;
@@ -269,16 +249,14 @@ class BufferDataProvider : public AbstractDataProvider {
          *
          * @param[in] data the buffer
          */
-        BufferDataProvider(const ByteVector &data)
-        throw ();
+        BufferDataProvider(const ByteVector &data);
 
         /**
          * Provides the data.
          *
          * @see DataProvider::getData()
          */
-        size_t getData(char *buffer, size_t maxread)
-        throw (KError);
+        size_t getData(char *buffer, size_t maxread);
 
     private:
         ByteVector m_data;
@@ -304,16 +282,14 @@ class ProcessDataProvider : public AbstractDataProvider {
          * @param[in] add_cmdline additional parameters when the
          *            ProcessDataProvider::saveToFile() shortcut is used
          */
-        ProcessDataProvider(const char *cmdline, const char *add_cmdline="")
-        throw ();
+        ProcessDataProvider(const char *cmdline, const char *add_cmdline="");
 
         /**
          * Returns @c true.
          *
          * @return @c true
          */
-        bool canSaveToFile() const
-        throw ();
+        bool canSaveToFile() const;
 
         /**
          * Runs the process with @c target as last parameter to save the
@@ -322,32 +298,28 @@ class ProcessDataProvider : public AbstractDataProvider {
          * @param[in] targets the target files
          * @param KError if saving to the file failed
          */
-        void saveToFile(const StringVector &targets)
-        throw (KError);
+        void saveToFile(const StringVector &targets);
 
         /**
          * Starts the process
          *
          * @see DataProvider::prepare()
          */
-        virtual void prepare()
-        throw (KError);
+        virtual void prepare();
 
         /**
          * Provides the data.
          *
          * @see DataProvider::getData()
          */
-        size_t getData(char *buffer, size_t maxread)
-        throw (KError);
+        size_t getData(char *buffer, size_t maxread);
 
         /**
          * Terminates the process.
          *
          * @see DataProvider::finish()
          */
-        virtual void finish()
-        throw (KError);
+        virtual void finish();
 
     private:
         std::string m_pipeCmdline;

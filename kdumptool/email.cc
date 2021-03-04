@@ -42,7 +42,6 @@ using std::string;
 
 // -----------------------------------------------------------------------------
 string KSmtpErrorCode::message(void) const
-    throw ()
 {
     char smtp_buffer[MAXERROR];
 
@@ -150,7 +149,6 @@ static void smtp_monitor_cb(const char *buf, int buflen, int writing, void *arg)
 
 // -----------------------------------------------------------------------------
 Email::Email(const string &from)
-    throw ()
     : m_from(from)
 {
     Debug::debug()->trace("Email::Email(%s)", from.c_str());
@@ -158,7 +156,6 @@ Email::Email(const string &from)
 
 // -----------------------------------------------------------------------------
 void Email::setTo(const string &recipient)
-    throw ()
 {
     Debug::debug()->trace("Email::setTo(%s)", recipient.c_str());
 
@@ -167,7 +164,6 @@ void Email::setTo(const string &recipient)
 
 // -----------------------------------------------------------------------------
 void Email::addCc(const string &cc)
-    throw ()
 {
     Debug::debug()->trace("Email::addCc(%s)", cc.c_str());
 
@@ -176,7 +172,6 @@ void Email::addCc(const string &cc)
 
 // -----------------------------------------------------------------------------
 void Email::setSubject(const string &subject)
-    throw ()
 {
     Debug::debug()->trace("Email::setSubject(%s)", subject.c_str());
 
@@ -185,7 +180,6 @@ void Email::setSubject(const string &subject)
 
 // -----------------------------------------------------------------------------
 void Email::setBody(const string &body)
-    throw ()
 {
     Debug::debug()->trace("Email::setBody()");
 
@@ -194,7 +188,6 @@ void Email::setBody(const string &body)
 
 // -----------------------------------------------------------------------------
 void Email::setHostname(const string &hostname)
-    throw ()
 {
     Debug::debug()->trace("Email::setHostname(%s)", hostname.c_str());
 
@@ -209,7 +202,6 @@ void Email::setHostname(const string &hostname)
 
 // -----------------------------------------------------------------------------
 void Email::send()
-    throw (KError)
 {
     Debug::debug()->trace("Email::send()");
     int ret;

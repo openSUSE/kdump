@@ -32,36 +32,31 @@ class ReadIKConfig : public Subcommand {
         /**
          * Creates a new ReadIKConfig object.
          */
-        ReadIKConfig()
-        throw ();
+        ReadIKConfig();
 
     public:
 
         /**
          * Returns the name of the subcommand (read_ikconfig).
          */
-        const char *getName() const
-        throw ();
+        const char *getName() const;
 
         /**
          * Parses the non-option arguments from the command line.
          */
-        virtual void parseArgs(const StringVector &args)
-        throw (KError);
+        virtual void parseArgs(const StringVector &args);
 
         /**
          * That command does not need a config file.
          */
-        bool needsConfigfile() const
-        throw ();
+        bool needsConfigfile() const;
 
         /**
          * Executes the function.
          *
          * @throw KError on any error. No exception indicates success.
          */
-        void execute()
-        throw (KError);
+        void execute();
 
     private:
         std::string m_file;

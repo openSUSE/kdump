@@ -30,26 +30,22 @@ using std::cout;
 
 // -----------------------------------------------------------------------------
 ReadIKConfig::ReadIKConfig()
-    throw ()
 {}
 
 // -----------------------------------------------------------------------------
 const char *ReadIKConfig::getName() const
-    throw ()
 {
     return "read_ikconfig";
 }
 
 // -----------------------------------------------------------------------------
 bool ReadIKConfig::needsConfigfile() const
-    throw ()
 {
     return false;
 }
 
 // -----------------------------------------------------------------------------
 void ReadIKConfig::parseArgs(const StringVector &args)
-    throw (KError)
 {
     Debug::debug()->trace(__FUNCTION__);
 
@@ -62,7 +58,6 @@ void ReadIKConfig::parseArgs(const StringVector &args)
 
 // -----------------------------------------------------------------------------
 void ReadIKConfig::execute()
-    throw (KError)
 {
     KernelTool kt(m_file);
     cout << kt.extractKernelConfig();

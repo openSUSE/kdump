@@ -38,14 +38,13 @@ class Vmcoreinfo {
          *
          * @exception KError if the libelf library is out of date
          */
-        Vmcoreinfo()
-        throw (KError);
+        Vmcoreinfo();
 
         /**
          * Deletes the Vmcoreinfo object.
          */
         virtual ~Vmcoreinfo()
-        throw () {}
+        { }
 
         /**
          * Reads the vmcoreinfo from a ELF file as NOTES section.
@@ -53,16 +52,14 @@ class Vmcoreinfo {
          * @param[in] elf_file the ELF file
          * @exception KError if reading the vmcoreinfo failed
          */
-        void readFromELF(const char *elf_file)
-        throw (KError);
+        void readFromELF(const char *elf_file);
 
         /**
          * Gets all keys.
          *
          * @return a list of keys
          */
-        StringList getKeys() const
-        throw ();
+        StringList getKeys() const;
 
         /**
          * Returns a value.
@@ -71,8 +68,7 @@ class Vmcoreinfo {
          * @return the value for @p key
          * @exception KError if the value has not been found
          */
-        std::string getStringValue(const char *key) const
-        throw (KError);
+        std::string getStringValue(const char *key) const;
 
         /**
          * Returns an integer value.
@@ -81,8 +77,7 @@ class Vmcoreinfo {
          * @return the value for @p key
          * @exception KError if the value has not been found
          */
-        int getIntValue(const char *key) const
-        throw (KError);
+        int getIntValue(const char *key) const;
 
         /**
          * Returns an integer value.
@@ -91,8 +86,7 @@ class Vmcoreinfo {
          * @return the value for @p key
          * @exception KError if the value has not been found
          */
-        int getLLongValue(const char *key) const
-        throw (KError);
+        int getLLongValue(const char *key) const;
 
         /**
          * Returns true if the VMCOREINFO is VMCOREINFO_XEN, and false
@@ -100,16 +94,13 @@ class Vmcoreinfo {
          *
          * @return @c true if it's @c VMCOREINFO_XEN and false otherwise.
          */
-        bool isXenVmcoreinfo() const
-        throw ();
+        bool isXenVmcoreinfo() const;
 
     protected:
-        ByteVector readElfNote(const char *file)
-        throw (KError);
+        ByteVector readElfNote(const char *file);
 
         ByteVector readVmcoreinfoFromNotes(const char *buffer, size_t size,
-                                           bool isElf64)
-        throw (KError);
+                                           bool isElf64);
 
     private:
         StringStringMap m_map;

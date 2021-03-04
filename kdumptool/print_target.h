@@ -33,23 +33,20 @@ class PrintTarget : public Subcommand {
         /**
          * Creates a new PrintTarget object.
          */
-        PrintTarget()
-        throw ();
+        PrintTarget();
 
     public:
         /**
          * Returns the name of the subcommand (print_target).
          */
-        const char *getName() const
-        throw ();
+        const char *getName() const;
 
         /**
          * Executes the function.
          *
          * @throw KError on any error. No exception indicates success.
          */
-        void execute()
-        throw (KError);
+        void execute();
 
     private:
         std::string m_rootdir;
@@ -59,8 +56,7 @@ class PrintTarget : public Subcommand {
 	 *
 	 * @throw KError on any error. No exception indicates success.
 	 */
-	void print_one(RootDirURL &url)
-	throw (KError);
+	void print_one(RootDirURL &url);
 };
 
 //}}}

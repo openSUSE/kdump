@@ -33,23 +33,20 @@ class Calibrate : public Subcommand {
         /**
          * Creates a new Calibrate object.
          */
-        Calibrate()
-        throw ();
+        Calibrate();
 
     public:
         /**
          * Returns the name of the subcommand (calibrate).
          */
-        const char *getName() const
-        throw ();
+        const char *getName() const;
 
         /**
          * Executes the function.
          *
          * @throw KError on any error. No exception indicates success.
          */
-        void execute()
-        throw (KError);
+        void execute();
 
     private:
 };
@@ -66,7 +63,6 @@ class SystemCPU {
 	 * @param[in] sysdir Mount point for sysfs
 	 */
 	SystemCPU(const char *sysdir = "/sys")
-	throw ()
 	: m_cpudir(FilePath(sysdir).appendPath("devices/system/cpu"))
 	{}
 

@@ -64,8 +64,7 @@ class KconfigValue {
         /**
          * Creates a invalid configuration option (T_INVALID).
          */
-        KconfigValue()
-        throw ();
+        KconfigValue();
 
         /**
          * Returns a KconfigValue value from a .config line. If the line is
@@ -81,16 +80,14 @@ class KconfigValue {
          * @exception Kconfig if the line cannot be from a .config file
          */
         static KconfigValue fromString(const std::string &string,
-                                       std::string &name)
-        throw (KError);
+                                       std::string &name);
 
         /**
          * Returns the type of the KconfigValue.
          *
          * @return the type
          */
-        enum Type getType() const
-        throw ();
+        enum Type getType() const;
 
         /**
          * For T_STRING objects, return the string without quotation marks.
@@ -98,8 +95,7 @@ class KconfigValue {
          * @return the string value
          * @exception KError if the type is not T_STRING
          */
-        std::string getStringValue() const
-        throw ();
+        std::string getStringValue() const;
 
         /**
          * For T_INTEGER objects, return the integer value.
@@ -107,8 +103,7 @@ class KconfigValue {
          * @return the integer value
          * @exception KError if the type is not T_INTEGER.
          */
-        int getIntValue() const
-        throw ();
+        int getIntValue() const;
 
         /**
          * For T_TRISTATE objects, return the tristate value.
@@ -116,16 +111,14 @@ class KconfigValue {
          * @return the tristate value, see enum Tristate.
          * @exception KError if the type is not T_INTEGER.
          */
-        enum Tristate getTristateValue() const
-        throw ();
+        enum Tristate getTristateValue() const;
 
         /**
          * Converts a KconfigValue into a string representation.
          *
          * @return the string representation
          */
-        std::string toString() const
-        throw ();
+        std::string toString() const;
 
     private:
         enum Type m_type;
@@ -157,7 +150,7 @@ class Kconfig {
          * Deletes the Vmcoreinfo object.
          */
         virtual ~Kconfig()
-        throw () {}
+        { }
 
         /**
          * Reads the kernel configuration from a normal (like
@@ -167,8 +160,7 @@ class Kconfig {
          * @param[in] configFile the full path to the configuration file
          * @exception KError if reading of the configuration file fails
          */
-        void readFromConfig(const std::string &configFile)
-        throw (KError);
+        void readFromConfig(const std::string &configFile);
 
         /**
          * Reads the configuration from a kernel image if the kernel has been
@@ -177,8 +169,7 @@ class Kconfig {
          * @param[in] kernelImage the kernel image to look for
          * @exception KError if reading of the kernel image fails
          */
-        void readFromKernel(const std::string &kernelImage)
-        throw (KError);
+        void readFromKernel(const std::string &kernelImage);
 
         /**
          * Reads the configuration from a kernel image if the kernel has been
@@ -187,8 +178,7 @@ class Kconfig {
          * @param[in] kt a kerneltool object
          * @exception KError if reading of the kernel image fails
          */
-        void readFromKernel(const KernelTool &kt)
-        throw (KError);
+        void readFromKernel(const KernelTool &kt);
 
         /**
          * Returns the configuration value for a specific option.
@@ -200,8 +190,7 @@ class Kconfig {
          * @return the configuration option value, the function returns
          *         a KconfigValue with type T_INVALID.
          */
-        KconfigValue get(const std::string &option)
-        throw ();
+        KconfigValue get(const std::string &option);
 
     private:
         std::map<std::string, KconfigValue> m_configs;

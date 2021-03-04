@@ -36,14 +36,12 @@ class KdumpTool {
         /**
          * Creates a new KdumpTool object. Mainly for initialisation.
          */
-        KdumpTool()
-        throw ();
+        KdumpTool();
 
         /**
          * Delete a KdumpTool object.
          */
-        virtual ~KdumpTool()
-        throw ();
+        virtual ~KdumpTool();
 
     public:
         /**
@@ -55,22 +53,19 @@ class KdumpTool {
          * Parses the command line. This method must be called before the
          * execute() method is called.
          */
-        void parseCommandline(int argc, char *argv[])
-        throw (KError);
+        void parseCommandline(int argc, char *argv[]);
 
         /**
          * Reads the configuration.
          *
          * @exception KError if reading the configuration failed
          */
-        void readConfiguration()
-        throw (KError);
+        void readConfiguration();
 
         /**
          * Executes the main program.
          */
-        void execute()
-        throw (KError);
+        void execute();
 
         /**
          * Returns the error code. Important: It's optional that a non-zero
@@ -79,8 +74,7 @@ class KdumpTool {
          *
          * @return the error code
          */
-        int getErrorCode() const
-        throw ();
+        int getErrorCode() const;
 
     protected:
         void printVersion();

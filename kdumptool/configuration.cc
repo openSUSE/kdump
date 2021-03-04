@@ -29,14 +29,12 @@ using std::string;
 
 //{{{ StringConfigOption -------------------------------------------------------
 string StringConfigOption::valueAsString() const
-    throw ()
 {
     return m_value;
 }
 
 // -----------------------------------------------------------------------------
 void StringConfigOption::update(const string &value)
-    throw (KError)
 {
     m_value = value;
 }
@@ -45,14 +43,12 @@ void StringConfigOption::update(const string &value)
 
 //{{{ IntConfigOption ----------------------------------------------------------
 string IntConfigOption::valueAsString() const
-    throw ()
 {
     return Stringutil::number2string(m_value);
 }
 
 // -----------------------------------------------------------------------------
 void IntConfigOption::update(const string &value)
-    throw (KError)
 {
     std::stringstream ss;
     ss << value;
@@ -63,14 +59,12 @@ void IntConfigOption::update(const string &value)
 
 //{{{ BoolConfigOption -------------------------------------------------------
 string BoolConfigOption::valueAsString() const
-    throw ()
 {
     return m_value ? "yes" : "no";
 }
 
 // -----------------------------------------------------------------------------
 void BoolConfigOption::update(const string &value)
-    throw (KError)
 {
     string val = value;
     for (string::iterator it = val.begin(); it != val.end(); ++it)
@@ -86,7 +80,6 @@ Configuration *Configuration::m_instance = NULL;
 
 // -----------------------------------------------------------------------------
 Configuration *Configuration::config()
-    throw ()
 {
     if (!m_instance)
         m_instance = new Configuration();
@@ -95,7 +88,6 @@ Configuration *Configuration::config()
 
 // -----------------------------------------------------------------------------
 Configuration::Configuration()
-    throw ()
     :
 #define MKINITRD (1<<ConfigOption::USE_MKINITRD)
 #define KEXEC    (1<<ConfigOption::USE_KEXEC)
@@ -118,7 +110,6 @@ Configuration::Configuration()
 
 /* -------------------------------------------------------------------------- */
 void Configuration::readFile(const string &filename)
-    throw (KError)
 {
     ShellConfigParser cp(filename);
 
@@ -140,7 +131,6 @@ void Configuration::readFile(const string &filename)
 
 /* -------------------------------------------------------------------------- */
 void Configuration::readCmdLine(const string &filename)
-    throw (KError)
 {
     KernelConfigParser cp(filename);
 
@@ -162,7 +152,6 @@ void Configuration::readCmdLine(const string &filename)
 
 // -----------------------------------------------------------------------------
 bool Configuration::kdumptoolContainsFlag(const std::string &flag)
-    throw (KError, std::out_of_range, std::bad_cast)
 {
     string::size_type pos = KDUMPTOOL_FLAGS.value().find(flag);
     return pos != string::npos;

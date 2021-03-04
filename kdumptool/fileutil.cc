@@ -53,7 +53,6 @@ void FileUtil::nfsmount(const string &host,
                         const string &dir,
                         const string &mountpoint,
                         const StringVector &options)
-    throw (KError)
 {
     Debug::debug()->trace("FileUtil::nfsmount(%s, %s, %s, %s)",
         host.c_str(), dir.c_str(), mountpoint.c_str(),
@@ -66,7 +65,6 @@ void FileUtil::nfsmount(const string &host,
 // -----------------------------------------------------------------------------
 void FileUtil::mount(const std::string &device, const std::string &mountpoint,
                      const std::string &fs, const StringVector &options)
-    throw (KError)
 {
     StringVector args;
 
@@ -100,7 +98,6 @@ void FileUtil::mount(const std::string &device, const std::string &mountpoint,
 
 // -----------------------------------------------------------------------------
 void FileUtil::umount(const std::string &mountpoint)
-    throw (KError)
 {
     StringVector args;
     args.push_back(mountpoint);
@@ -126,7 +123,6 @@ const string FilePath::m_slash("/");
 
 // -----------------------------------------------------------------------------
 FilePath FilePath::getcwd(void)
-    throw (KError)
 {
     char *cwd = ::getcwd(NULL, 0);
 
@@ -142,7 +138,6 @@ FilePath FilePath::getcwd(void)
 
 // -----------------------------------------------------------------------------
 string FilePath::baseName() const
-    throw ()
 {
     // modification of the arguments is allowed
     char *path = new char[length() + 1];
@@ -154,7 +149,6 @@ string FilePath::baseName() const
 
 // -----------------------------------------------------------------------------
 string FilePath::dirName() const
-    throw ()
 {
     // modification of the arguments is allowed
     char *path = new char[length() + 1];
@@ -166,7 +160,6 @@ string FilePath::dirName() const
 
 // -----------------------------------------------------------------------------
 FilePath& FilePath::appendPath(const string &p)
-    throw ()
 {
     rtrim(PATH_SEPARATOR);
     append(PATH_SEPARATOR);
@@ -178,7 +171,6 @@ FilePath& FilePath::appendPath(const string &p)
 
 // -----------------------------------------------------------------------------
 bool FilePath::exists() const
-    throw ()
 {
     struct stat mystat;
     int ret = stat(c_str(), &mystat);
@@ -187,7 +179,6 @@ bool FilePath::exists() const
 
 // -----------------------------------------------------------------------------
 bool FilePath::isSymlink() const
-    throw (KError)
 {
     struct stat mystat;
 
@@ -201,7 +192,6 @@ bool FilePath::isSymlink() const
 
 // -----------------------------------------------------------------------------
 string FilePath::readLink() const
-    throw (KError)
 {
     char buffer[BUFSIZ];
 
@@ -216,7 +206,6 @@ string FilePath::readLink() const
 
 // -----------------------------------------------------------------------------
 FilePath FilePath::getCanonicalPath(const string &root) const
-    throw (KError)
 {
     Debug::debug()->trace("getCanonicalPathRoot(%s, %s)",
                           c_str(), root.c_str());
@@ -297,7 +286,6 @@ FilePath FilePath::getCanonicalPath(const string &root) const
 
 // -----------------------------------------------------------------------------
 StringVector FilePath::listDir(const ListDirFilter &filter) const
-    throw (KError)
 {
     StringVector v;
 
@@ -331,7 +319,6 @@ StringVector FilePath::listDir(const ListDirFilter &filter) const
 
 // -----------------------------------------------------------------------------
 unsigned long long FilePath::freeDiskSize() const
-    throw (KError)
 {
     Debug::debug()->trace("FileUtil::freeDiskSize(%s)", c_str());
 
@@ -345,7 +332,6 @@ unsigned long long FilePath::freeDiskSize() const
 
 // -----------------------------------------------------------------------------
 unsigned long long FilePath::fileSize() const
-    throw (KError)
 {
     Debug::debug()->trace("FileUtil::fileSize(%s)", c_str());
 
@@ -360,7 +346,6 @@ unsigned long long FilePath::fileSize() const
 
 // -----------------------------------------------------------------------------
 void FilePath::mkdir(bool recursive)
-    throw (KError)
 {
     Debug::debug()->trace("mkdir(%s, %d)", c_str(), int(recursive));
 
@@ -393,7 +378,6 @@ void FilePath::mkdir(bool recursive)
 
 // -----------------------------------------------------------------------------
 void FilePath::rmdir(bool recursive)
-    throw (KError)
 {
     Debug::debug()->trace("FileUtil::rmdir(%s, %d)", c_str(), recursive);
 

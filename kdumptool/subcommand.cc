@@ -27,7 +27,6 @@ using std::string;
 
 // -----------------------------------------------------------------------------
 Subcommand::Subcommand()
-    throw ()
     : m_options(), m_errorcode(0)
 {
 }
@@ -42,7 +41,6 @@ Subcommand::~Subcommand()
 
 // -----------------------------------------------------------------------------
 void Subcommand::setErrorCode(int errorcode)
-    throw ()
 {
     Debug::debug()->dbg("set error code to %d", errorcode);
     m_errorcode = errorcode;
@@ -50,7 +48,6 @@ void Subcommand::setErrorCode(int errorcode)
 
 // -----------------------------------------------------------------------------
 int Subcommand::getErrorCode() const
-    throw ()
 {
     Debug::debug()->trace("%s: Returning error code of %d", __FUNCTION__,
         m_errorcode);
@@ -59,14 +56,12 @@ int Subcommand::getErrorCode() const
 
 // -----------------------------------------------------------------------------
 bool Subcommand::needsConfigfile() const
-    throw ()
 {
     return true;
 }
 
 // -----------------------------------------------------------------------------
 void Subcommand::parseArgs(const StringVector &args)
-    throw (KError)
 {
     Debug::debug()->trace(__FUNCTION__);
 }

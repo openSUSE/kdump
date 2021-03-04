@@ -54,9 +54,8 @@ class KernelTool {
          * @param[in] the kernel image to get information for
          * @throw KError if opening of the kernel failed
          */
-        KernelTool(const std::string &image)
-        throw (KError);
-        
+        KernelTool(const std::string &image);
+
         /**
          * Destroys a kerneltool object.
          */
@@ -69,8 +68,7 @@ class KernelTool {
          * @param[in] arch the architecture name such as "i386"
          * @return a list of suitable image names like ("vmlinuz", "vmlinux")
          */
-        static std::list<std::string> imageNames(const std::string &arch)
-        throw ();
+        static std::list<std::string> imageNames(const std::string &arch);
 
         /**
          * Uses KernelTool::imageNames() and strips off the image names
@@ -86,25 +84,22 @@ class KernelTool {
          */
         static bool stripImageName(const FilePath &kernelImage,
                                    std::string &directory,
-                                   std::string &rest)
-        throw (KError);
+                                   std::string &rest);
 
         /**
          * Returns the type for the kernel image specified in the constructor.
          *
          * @exception KError if opening of the kernel image fails
          */
-        KernelType getKernelType() const
-        throw (KError);
+        KernelType getKernelType() const;
 
         /**
          * Checks if a kernel is relocatable, regardless of the kernel type.
          *
          * @return @c true if the kernel is relocatable, @c false otherwise
          */
-        bool isRelocatable() const
-        throw (KError);
-        
+        bool isRelocatable() const;
+
         /**
          * Extracts the kernel configuration from a kernel image. The kernel
          * image can be of type ELF, ELF.gz and bzImage.
@@ -112,9 +107,8 @@ class KernelTool {
          * @return the embedded kernel configuration
          * @exception KError if reading of the kernel image failed
          */
-        std::string extractKernelConfig() const
-        throw (KError);
-        
+        std::string extractKernelConfig() const;
+
         /**
          * Retrieves a Kconfig object for the given kernel.
          *
@@ -133,16 +127,14 @@ class KernelTool {
          *         (it's a pointer to avoid a cyclic dependency between
          *         Kconfig and KernelTool)
          */
-        Kconfig *retrieveKernelConfig() const
-        throw (KError);
+        Kconfig *retrieveKernelConfig() const;
 
         /**
          * String representation of kerneltool.
          *
          * @return "[KernelTool] name"
          */
-        std::string toString() const
-        throw ();
+        std::string toString() const;
 
     protected:
         /**
@@ -150,8 +142,7 @@ class KernelTool {
          *
          * @return @c true if the kernel is relocatable, @c false otherwise
          */
-        bool x86isRelocatable() const
-        throw (KError);
+        bool x86isRelocatable() const;
 
         /**
          * Checks if the architecture has always relocatable kernels.
@@ -160,8 +151,7 @@ class KernelTool {
          * @return @c true if it always has relocatable architectures,
          *         @c false otherwise
          */
-        bool isArchAlwaysRelocatable(const std::string &machine) const
-        throw ();
+        bool isArchAlwaysRelocatable(const std::string &machine) const;
 
         /**
          * Checks if the architecture has CONFIG_RELOCATABLE.
@@ -170,8 +160,7 @@ class KernelTool {
          * @return @c true if it has CONFIG_RELOCATABLE option.
          *         @c false otherwise
          */
-        bool hasConfigRelocatable(const std::string &machine) const
-        throw ();
+        bool hasConfigRelocatable(const std::string &machine) const;
 
         /**
          * Checks if the kernel was compiled with CONFIG_RELOCATABLE.
@@ -180,40 +169,35 @@ class KernelTool {
          * @return @c true if configured with CONFIG_RELOCATABLE=y.
          *         @c false otherwise
          */
-        bool isConfigRelocatable() const
-        throw (KError);
+        bool isConfigRelocatable() const;
 
         /**
          * Checks if a ELF kernel image is relocatable.
          *
          * @return @c true if the ELF kernel is relocatable, @c false otherwise
          */
-        bool elfIsRelocatable() const
-        throw (KError);
+        bool elfIsRelocatable() const;
 
         /**
          * Checks if the kernel is a x86 kernel.
          *
          * @return @c true if it's a x86 kernel, @c false otherwise.
          */
-        bool isX86Kernel() const
-        throw (KError);
+        bool isX86Kernel() const;
 
         /**
          * Checks if the kernel is a S/390 kernel image.
          *
          * @return @c true if it's a S/390 kernel image, @c false otherwise.
          */
-        bool isS390Kernel() const
-        throw (KError);
+        bool isS390Kernel() const;
 
         /**
          * Checks if the kernel is an Aarch64 kernel image.
          *
          * @return @c true if it's an Aarch64 kernel image, @c false otherwise.
          */
-        bool isAarch64Kernel() const
-        throw (KError);
+        bool isAarch64Kernel() const;
 
         /**
          * Returns the architecture as string from the ELF machine type.
@@ -221,10 +205,9 @@ class KernelTool {
          * @param[in] et_machine the ELF machine type such as EM_386
          * @return the architecture as string such as "i386".
          */
-        std::string archFromElfMachine(unsigned long long et_machine) const
-        throw ();
-        
-                /**
+        std::string archFromElfMachine(unsigned long long et_machine) const;
+
+        /**
          * Extracts the kernel configuration from a ELF kernel image.
          * The image may be compressed.
          *
@@ -232,8 +215,7 @@ class KernelTool {
          * @return the embedded kernel configuration
          * @exception KError if reading of the kernel image failed
          */
-        std::string extractKernelConfigELF() const
-        throw (KError);
+        std::string extractKernelConfigELF() const;
 
         /**
          * Extracts the kernel configuration from a bzImage. The
@@ -243,8 +225,7 @@ class KernelTool {
          * @return the kernel configuration
          * @exception KError if reading of the kernel image failed
          */
-        std::string extractKernelConfigbzImage() const
-        throw (KError);
+        std::string extractKernelConfigbzImage() const;
 
         /**
          * Extracts the kernel configuration from a IKCONFIG buffer.
@@ -254,8 +235,7 @@ class KernelTool {
          * @return the configuration string
          * @exception KError if the buffer contains invalid data
          */
-        std::string extractFromIKconfigBuffer(const char *buffer, size_t buflen)
-        const throw (KError);
+        std::string extractFromIKconfigBuffer(const char *buffer, size_t buflen) const;
 
     private:
         FilePath m_kernel;

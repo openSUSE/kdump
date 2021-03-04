@@ -38,8 +38,7 @@ class KSmtpErrorCode : public KErrorCode {
 	    : KErrorCode(code)
         {}
 
-        virtual std::string message(void) const
-	throw ();
+        virtual std::string message(void) const;
 };
 
 typedef KCodeError<KSmtpErrorCode> KSmtpError;
@@ -60,14 +59,13 @@ class Email {
          * @param[in] from the sender in a RFC-compilant form, e.g.
          *                 <tt>"Bla Blub" &lt;bla@blub.org&gt;</tt>
          */
-        Email(const std::string &from)
-        throw ();
+        Email(const std::string &from);
 
         /**
          * Destroyes a Email object.
          */
         virtual ~Email()
-        throw () {}
+        { }
 
     public:
         /**
@@ -75,8 +73,7 @@ class Email {
          *
          * @param[in] recipient the recipient
          */
-        void setTo(const std::string &recipient)
-        throw ();
+        void setTo(const std::string &recipient);
 
         /**
          * Adds an address to Cc.
@@ -84,8 +81,7 @@ class Email {
          * @param[in] cc an address in a RFC-compilant form, e.g.
          *               <tt>"Bla Blub" &lt;bla@blub.org&gt;</tt>
          */
-        void addCc(const std::string &cc)
-        throw ();
+        void addCc(const std::string &cc);
 
         /**
          * Sets the subject of the mail.
@@ -93,16 +89,14 @@ class Email {
          * @param[in] subject the subject string, must not contain umlauts,
          *                    i.e. only ASCII characters
          */
-        void setSubject(const std::string &subject)
-        throw ();
+        void setSubject(const std::string &subject);
 
         /**
          * Sets the body of the mail.
          *
          * @param[in] body the body string
          */
-        void setBody(const std::string &body)
-        throw ();
+        void setBody(const std::string &body);
 
         /**
          * Sets the hostname of localhost. If that function is not called,
@@ -110,8 +104,7 @@ class Email {
          *
          * @param[in] hostname the host name to use
          */
-        void setHostname(const std::string &hostname)
-        throw ();
+        void setHostname(const std::string &hostname);
 
         /**
          * Sends the specified email.
@@ -119,8 +112,7 @@ class Email {
          * @exception ESmtpError the exception that is thrown when an error
          *            occurred
          */
-        void send()
-        throw (KError);
+        void send();
 
 
      private:

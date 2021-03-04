@@ -57,14 +57,12 @@ static void close_file(int error, void *arg)
 
 // -----------------------------------------------------------------------------
 KdumpTool::KdumpTool()
-    throw ()
     : m_subcommand(NULL), m_errorcode(false), m_background(false),
       m_configfile(DEFAULT_CONFIG), m_kernel_cmdline()
 {}
 
 // -----------------------------------------------------------------------------
 KdumpTool::~KdumpTool()
-    throw ()
 {
     Debug::debug()->trace("KdumpTool::~KdumpTool()");
     delete m_subcommand;
@@ -78,7 +76,6 @@ void KdumpTool::addSubcommand(Subcommand *subcommand)
 
 // -----------------------------------------------------------------------------
 void KdumpTool::parseCommandline(int argc, char *argv[])
-    throw (KError)
 {
     bool doHelp = false, doVersion = false;
     bool debugEnabled = false;
@@ -147,7 +144,6 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
 
 // -----------------------------------------------------------------------------
 void KdumpTool::readConfiguration()
-    throw (KError)
 {
     Debug::debug()->trace("KdumpTool::readConfiguration");
 
@@ -161,7 +157,6 @@ void KdumpTool::readConfiguration()
 
 // -----------------------------------------------------------------------------
 void KdumpTool::execute()
-    throw (KError)
 {
     if (m_background) {
         Debug::debug()->dbg("Daemonize");
@@ -195,7 +190,6 @@ void KdumpTool::printVersion()
 
 // -----------------------------------------------------------------------------
 int KdumpTool::getErrorCode() const
-    throw ()
 {
     if (m_subcommand)
         return m_subcommand->getErrorCode();

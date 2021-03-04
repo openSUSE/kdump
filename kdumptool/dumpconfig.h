@@ -32,29 +32,25 @@ class DumpConfig : public Subcommand {
         /**
          * Creates a new DumpConfig object.
          */
-        DumpConfig()
-        throw ();
+        DumpConfig();
 
     public:
         /**
          * Returns the name of the subcommand (dump_config).
          */
-        const char *getName() const
-        throw ();
+        const char *getName() const;
 
         /**
          * Parses the non-option arguments from the command line.
          */
-        virtual void parseArgs(const StringVector &args)
-        throw (KError);
+        virtual void parseArgs(const StringVector &args);
 
         /**
          * Executes the function.
          *
          * @throw KError on any error. No exception indicates success.
          */
-        void execute()
-        throw (KError);
+        void execute();
 
     private:
 	enum Format {

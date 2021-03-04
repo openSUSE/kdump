@@ -39,8 +39,7 @@ class RootDirURL : public URLParser {
 	 * @param[in] rootdir the root directory for local files
          * @exception KError if the parsing of that URL fails
          */
-        RootDirURL(const std::string &url, const std::string &rootdir)
-        throw (KError);
+        RootDirURL(const std::string &url, const std::string &rootdir);
 
         /**
          * Returns the real path. For local files, this is the canonical
@@ -50,7 +49,6 @@ class RootDirURL : public URLParser {
          * @return the path
          */
         std::string getRealPath() const
-	throw ()
 	{
 		return m_realpath.empty() ? getPath() : m_realpath;
 	}

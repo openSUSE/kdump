@@ -43,7 +43,6 @@ class ConfigOption {
 
     public:
 	ConfigOption(const char *name, unsigned usage)
-	throw ()
 	: m_name(name), m_usage(usage)
 	{ }
 
@@ -51,14 +50,12 @@ class ConfigOption {
 	 * Return the name of the option.
 	 */
 	const char *name() const
-	throw ()
 	{ return m_name; }
 
 	/**
 	 * Return the usage flags of the option.
 	 */
 	unsigned usage() const
-	throw ()
 	{ return m_usage; }
 
 	/**
@@ -71,14 +68,12 @@ class ConfigOption {
 	 *
 	 * @param val new value of the option (as a string)
 	 */
-	virtual void update(const std::string &value)
-	throw (KError) = 0;
+	virtual void update(const std::string &value) = 0;
 
 	/**
 	 * Return true if this option is assigned the default value.
 	 */
-	virtual bool isDefault(void)
-	throw () = 0;
+	virtual bool isDefault(void) = 0;
 
     protected:
 	const char *const m_name;
@@ -96,7 +91,6 @@ class StringConfigOption : public ConfigOption {
     public:
 	StringConfigOption(const char *name, unsigned usage,
 			   const char *const defvalue)
-	throw ()
 	: ConfigOption(name, usage), m_defvalue(defvalue), m_value(defvalue)
 	{ }
 
@@ -104,7 +98,6 @@ class StringConfigOption : public ConfigOption {
 	 * Get the config option value.
 	 */
 	const std::string &value(void) const
-	throw ()
 	{ return m_value; }
 
 	/**
@@ -112,22 +105,19 @@ class StringConfigOption : public ConfigOption {
 	 * This is the same as StringConfigOption::value(), but it
 	 * returns a copy of the string rather than a constant reference.
 	 */
-	virtual std::string valueAsString() const
-	throw ();
+	virtual std::string valueAsString() const;
 
 	/**
 	 * Update the value from a parser.
 	 *
 	 * @param val new value of the option (as a string)
 	 */
-	virtual void update(const std::string &value)
-	throw (KError);
+	virtual void update(const std::string &value);
 
 	/**
 	 * Return true if this option is assigned the default value.
 	 */
 	virtual bool isDefault(void)
-	throw ()
 	{ return m_value == m_defvalue; }
 
     protected:
@@ -145,7 +135,6 @@ class IntConfigOption : public ConfigOption {
 
     public:
 	IntConfigOption(const char *name, unsigned usage, const int defvalue)
-	throw ()
 	: ConfigOption(name, usage), m_defvalue(defvalue), m_value(defvalue)
 	{ }
 
@@ -153,28 +142,24 @@ class IntConfigOption : public ConfigOption {
 	 * Get the config option value.
 	 */
 	int value(void) const
-	throw ()
 	{ return m_value; }
 
 	/**
 	 * Return the string representation of the value.
 	 */
-	virtual std::string valueAsString() const
-	throw ();
+	virtual std::string valueAsString() const;
 
 	/**
 	 * Update the value from a parser.
 	 *
 	 * @param val new value of the option (as a string)
 	 */
-	virtual void update(const std::string &value)
-	throw (KError);
+        virtual void update(const std::string &value);
 
 	/**
 	 * Return true if this option is assigned the default value.
 	 */
 	virtual bool isDefault(void)
-	throw ()
 	{ return m_value == m_defvalue; }
 
     protected:
@@ -192,7 +177,6 @@ class BoolConfigOption : public ConfigOption {
 
     public:
 	BoolConfigOption(const char *name, unsigned usage, const bool defvalue)
-	throw ()
 	: ConfigOption(name, usage), m_defvalue(defvalue), m_value(defvalue)
 	{ }
 
@@ -200,28 +184,24 @@ class BoolConfigOption : public ConfigOption {
 	 * Get the config option value.
 	 */
 	bool value(void) const
-	throw ()
 	{ return m_value; }
 
 	/**
 	 * Return the string representation of the value.
 	 */
-	virtual std::string valueAsString() const
-	throw ();
+	virtual std::string valueAsString() const;
 
 	/**
 	 * Update the value from a parser.
 	 *
 	 * @param val new value of the option (as a string)
 	 */
-	virtual void update(const std::string &value)
-	throw (KError);
+	virtual void update(const std::string &value);
 
 	/**
 	 * Return true if this option is assigned the default value.
 	 */
 	virtual bool isDefault(void)
-	throw ()
 	{ return m_value == m_defvalue; }
 
     protected:
@@ -285,8 +265,7 @@ class Configuration {
          *
          * @return the configuration object
          */
-        static Configuration *config()
-        throw ();
+        static Configuration *config();
 
         /**
          * Reads a configuration file.
@@ -296,8 +275,7 @@ class Configuration {
          *            is necessary to parse the configuration file could not
          *            be spawned
          */
-        void readFile(const std::string &filename)
-        throw (KError);
+        void readFile(const std::string &filename);
 
         /**
          * Reads a kernel command file.
@@ -305,8 +283,7 @@ class Configuration {
          * @param filename the file (e.g. /proc/cmdline)
          * @exception if the @c filename was not found
          */
-        void readCmdLine(const std::string &filename)
-        throw (KError);
+        void readCmdLine(const std::string &filename);
 
         /**
 	 * Checks if KDUMPTOOL_FLAGS contains @p flag.
@@ -315,8 +292,7 @@ class Configuration {
 	 *         otherwise
 	 * @exception see Configuration::getStringValue()
 	 */
-	bool kdumptoolContainsFlag(const std::string &flag)
-	throw (KError, std::out_of_range, std::bad_cast);
+	bool kdumptoolContainsFlag(const std::string &flag);
 
 	/*
 	 * Checks whether this configuration needs network.
@@ -336,19 +312,16 @@ class Configuration {
 	bool needsMakedumpfile();
 
 	ConfigOptionIterator optionsBegin() const
-	throw ()
 	{ return m_options.begin(); }
 
 	ConfigOptionIterator optionsEnd() const
-	throw ()
 	{ return m_options.end(); }
 
     protected:
-        Configuration()
-        throw ();
+        Configuration();
 
         virtual ~Configuration()
-        throw () {}
+        { }
 
     private:
         static Configuration *m_instance;

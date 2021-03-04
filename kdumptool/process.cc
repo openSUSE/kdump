@@ -42,7 +42,6 @@ using std::max;
 
 // -----------------------------------------------------------------------------
 void SubProcess::PipeInfo::close(void)
-    throw()
 {
     closeParent();
     closeChild();
@@ -50,7 +49,6 @@ void SubProcess::PipeInfo::close(void)
 
 // -----------------------------------------------------------------------------
 void SubProcess::PipeInfo::closeParent(void)
-    throw()
 {
     if (parentfd >= 0) {
 	::close(parentfd);
@@ -60,7 +58,6 @@ void SubProcess::PipeInfo::closeParent(void)
 
 // -----------------------------------------------------------------------------
 void SubProcess::PipeInfo::closeChild(void)
-    throw()
 {
     if (childfd >= 0) {
 	::close(childfd);
@@ -85,7 +82,6 @@ SubProcess::~SubProcess()
 
 // -----------------------------------------------------------------------------
 void SubProcess::checkSpawned(void)
-    throw (KError)
 {
     if (m_pid == -1)
 	throw KError("SubProcess::checkSpawned(): no subprocess spawned");
@@ -121,7 +117,6 @@ enum SubProcess::PipeDirection SubProcess::getPipeDirection(int fd)
 
 // -----------------------------------------------------------------------------
 int SubProcess::getPipeFD(int fd)
-    throw (std::out_of_range)
 {
     std::map<int, struct PipeInfo>::iterator ret;
     ret = m_pipes.find(fd);
@@ -244,7 +239,6 @@ void SubProcess::spawn(const string &name, const StringVector &args)
 
 // -----------------------------------------------------------------------------
 void SubProcess::kill(int sig)
-    throw (KError)
 {
     Debug::debug()->trace("SubProcess::kill(%d)", sig);
 
@@ -257,7 +251,6 @@ void SubProcess::kill(int sig)
 
 // -----------------------------------------------------------------------------
 int SubProcess::wait(void)
-    throw (KError)
 {
     Debug::debug()->trace("SubProcess::wait() on %d", m_pid);
 
@@ -286,7 +279,6 @@ int SubProcess::wait(void)
 
 // -----------------------------------------------------------------------------
 MultiplexIO::MultiplexIO(void)
-    throw ()
     : m_active(0)
 {}
 
@@ -306,7 +298,6 @@ int MultiplexIO::add(int fd, short events)
 
 // -----------------------------------------------------------------------------
 struct pollfd &MultiplexIO::operator[](int idx)
-    throw(std::out_of_range)
 {
     return m_fds.at(idx);
 }
@@ -321,7 +312,6 @@ void MultiplexIO::deactivate(int idx)
 
 // -----------------------------------------------------------------------------
 int MultiplexIO::monitor(int timeout)
-    throw (KSystemError)
 {
     int ret;
 
@@ -341,17 +331,14 @@ class Input : public ProcessFilter::IO {
     public:
 
 	Input(int fd)
-	throw ()
 	: ProcessFilter::IO(fd)
 	{ }
 
-	virtual void setupSubProcess(SubProcess &p)
-	throw ();
+	virtual void setupSubProcess(SubProcess &p);
 };
 
 // -----------------------------------------------------------------------------
 void Input::setupSubProcess(SubProcess &p)
-    throw ()
 {
     p.setPipeDirection(m_fd, SubProcess::ParentToChild);
 }
@@ -361,7 +348,6 @@ void Input::setupSubProcess(SubProcess &p)
 class IStream : public Input {
     public:
 	IStream(int fd, std::istream *input)
-	throw ()
 	: Input(fd), m_input(input), bufptr(NULL), bufend(NULL)
 	{ }
 
@@ -413,17 +399,14 @@ void IStream::handleEvents(MultiplexIO &io, SubProcess &p)
 class Output : public ProcessFilter::IO {
     public:
 	Output(int fd)
-	throw ()
 	: ProcessFilter::IO(fd)
 	{ }
 
-	virtual void setupSubProcess(SubProcess &p)
-	throw ();
+	virtual void setupSubProcess(SubProcess &p);
 };
 
 // -----------------------------------------------------------------------------
 void Output::setupSubProcess(SubProcess &p)
-    throw ()
 {
     p.setPipeDirection(m_fd, SubProcess::ChildToParent);
 }
@@ -434,7 +417,6 @@ void Output::setupSubProcess(SubProcess &p)
 class OStream : public Output {
     public:
 	OStream(int fd, std::ostream *output)
-	throw ()
 	: Output(fd), m_output(output)
 	{ }
 
@@ -480,7 +462,6 @@ void OStream::handleEvents(MultiplexIO &io, SubProcess &p)
 
 // -----------------------------------------------------------------------------
 ProcessFilter::~ProcessFilter()
-    throw ()
 {
     std::map<int, IO*>::const_iterator it;
     for (it = m_iomap.begin(); it != m_iomap.end(); ++it)
@@ -529,7 +510,6 @@ void ProcessFilter::setStderr(std::ostream *stream)
 
 // -----------------------------------------------------------------------------
 uint8_t ProcessFilter::execute(const string &name, const StringVector &args)
-    throw (KError)
 {
     Debug::debug()->trace("ProcessFilter::execute(%s, %s)",
         name.c_str(), Stringutil::vector2string(args, ":").c_str());

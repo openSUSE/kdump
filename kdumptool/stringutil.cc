@@ -36,7 +36,6 @@ using std::strcpy;
 
 // -----------------------------------------------------------------------------
 int Stringutil::string2number(const std::string &string)
-    throw ()
 {
     int ret;
     stringstream ss;
@@ -47,7 +46,6 @@ int Stringutil::string2number(const std::string &string)
 
 // -----------------------------------------------------------------------------
 long long Stringutil::string2llong(const std::string &string)
-    throw ()
 {
     long long ret;
     stringstream ss;
@@ -58,7 +56,6 @@ long long Stringutil::string2llong(const std::string &string)
 
 // -----------------------------------------------------------------------------
 char ** Stringutil::stringv2charv(const StringVector &strv)
-    throw (KError)
 {
     char **ret;
 
@@ -84,7 +81,6 @@ char ** Stringutil::stringv2charv(const StringVector &strv)
 
 /* -------------------------------------------------------------------------- */
 ByteVector Stringutil::str2bytes(const string &string)
-    throw ()
 {
     ByteVector ret;
     const char *cstr = string.c_str();
@@ -96,7 +92,6 @@ ByteVector Stringutil::str2bytes(const string &string)
 
 /* -------------------------------------------------------------------------- */
 string Stringutil::bytes2str(const ByteVector &bytes)
-    throw ()
 {
     return string(bytes.begin(), bytes.end());
 }
@@ -104,7 +99,6 @@ string Stringutil::bytes2str(const ByteVector &bytes)
 // -----------------------------------------------------------------------------
 string Stringutil::vector2string(const StringVector &vector,
                                  const char *delimiter)
-    throw ()
 {
     string ret;
 
@@ -119,7 +113,6 @@ string Stringutil::vector2string(const StringVector &vector,
 
 // -----------------------------------------------------------------------------
 StringVector Stringutil::splitlines(const string &str)
-    throw ()
 {
     StringVector ret;
     stringstream ss;
@@ -134,7 +127,6 @@ StringVector Stringutil::splitlines(const string &str)
 
 // -----------------------------------------------------------------------------
 StringVector Stringutil::split(const string &string, char split)
-    throw ()
 {
     string::size_type currentstart = 0;
     string::size_type next;
@@ -155,7 +147,6 @@ StringVector Stringutil::split(const string &string, char split)
 
 // -----------------------------------------------------------------------------
 string Stringutil::join(const StringVector &stringvector, char joinchar)
-    throw ()
 {
     string result;
 
@@ -175,7 +166,6 @@ string Stringutil::join(const StringVector &stringvector, char joinchar)
 
 // -----------------------------------------------------------------------------
 string Stringutil::formatUnixTime(const char *formatstring, time_t value)
-    throw ()
 {
     char buffer[BUFSIZ];
 
@@ -187,14 +177,12 @@ string Stringutil::formatUnixTime(const char *formatstring, time_t value)
 
 // -----------------------------------------------------------------------------
 string Stringutil::formatCurrentTime(const char *formatstring)
-    throw ()
 {
     return formatUnixTime(formatstring, time(NULL));
 }
 
 // -----------------------------------------------------------------------------
 int Stringutil::hex2int(char c)
-    throw (KError)
 {
     if (c >= '0' && c <= '9')
 	return c - '0';
@@ -210,7 +198,6 @@ int Stringutil::hex2int(char c)
 
 // -----------------------------------------------------------------------------
 bool KString::isNumber()
-    throw ()
 {
     iterator it = begin();
 
@@ -229,7 +216,6 @@ bool KString::isNumber()
 
 // -----------------------------------------------------------------------------
 bool KString::isHexNumber()
-    throw ()
 {
     iterator it = begin();
 
@@ -244,14 +230,12 @@ bool KString::isHexNumber()
 
 // -----------------------------------------------------------------------------
 KString& KString::trim(const char *chars)
-    throw ()
 {
     return rtrim(chars).ltrim(chars);
 }
 
 // -----------------------------------------------------------------------------
 KString& KString::ltrim(const char *chars)
-    throw ()
 {
     erase(0, find_first_not_of(chars));
     return *this;
@@ -259,7 +243,6 @@ KString& KString::ltrim(const char *chars)
 
 // -----------------------------------------------------------------------------
 KString& KString::rtrim(const char *chars)
-    throw ()
 {
     erase(find_last_not_of(chars) + 1);
     return *this;
@@ -267,14 +250,12 @@ KString& KString::rtrim(const char *chars)
 
 // -----------------------------------------------------------------------------
 bool KString::startsWith(const string &part) const
-    throw ()
 {
     return compare(0, part.length(), part) == 0;
 }
 
 // -----------------------------------------------------------------------------
 bool KString::endsWith(const string &part) const
-    throw ()
 {
     return length() >= part.length()
         ? compare(length() - part.length(), part.length(), part) == 0
@@ -283,7 +264,6 @@ bool KString::endsWith(const string &part) const
 
 // -----------------------------------------------------------------------------
 KString &KString::decodeURL(bool formenc)
-    throw()
 {
     iterator src, dst;
     for (src = dst = begin(); src != end(); ++src) {

@@ -77,8 +77,7 @@ class SubProcess {
 	 * @param[in] File descriptor in child.
 	 * @exception out_of_range if the file descriptor is not piped.
 	 */
-	int getPipeFD(int fd)
-	throw (std::out_of_range);
+	int getPipeFD(int fd);
 
 	/**
 	 * Set up redirection from an open file descriptor.
@@ -114,7 +113,6 @@ class SubProcess {
 	 * @returns system PID, or -1 if none.
 	 */
 	int getChildPID(void)
-	throw ()
 	{ return m_pid; }
 
 	/**
@@ -123,14 +121,12 @@ class SubProcess {
 	 * @param[in] The signal to kill the child.
 	 */
 	void setKillSignal(int sig)
-	throw ()
 	{ m_killSignal = sig; }
 
 	/**
 	 * Get the default kill signal.
 	 */
 	int getKillSignal(void)
-	throw ()
 	{ return m_killSignal; }
 
 	/**
@@ -139,14 +135,12 @@ class SubProcess {
 	 * @param[in] The signal to be sent, see kill(2).
 	 * @exception KError if kill(2) fails.
 	 */
-	void kill(int sig)
-	throw (KError);
+	void kill(int sig);
 
 	/**
 	 * Send the default kill signal to the child process.
 	 */
 	void kill(void)
-	throw(KError)
 	{ kill(m_killSignal); }
 
 	/**
@@ -154,8 +148,7 @@ class SubProcess {
 	 *
 	 * @return Child exit status, see wait(2).
 	 */
-	int wait(void)
-	throw(KError);
+	int wait(void);
 
     protected:
 
@@ -164,8 +157,7 @@ class SubProcess {
 	 *
 	 * @exception KError if there is no child process.
 	 */
-	void checkSpawned(void)
-	throw(KError);
+	void checkSpawned(void);
 
 	pid_t m_pid;
 	int m_killSignal;
@@ -181,7 +173,6 @@ class SubProcess {
 	     * Initialize the info
 	     */
 	    PipeInfo(enum PipeDirection adir)
-	    throw ()
 	    : dir(adir), parentfd(-1), childfd(-1)
 	    { }
 
@@ -189,26 +180,22 @@ class SubProcess {
 	     * Destructor.
 	     */
 	    ~PipeInfo()
-	    throw ()
 	    { close(); }
 
 	    /**
 	     * Close all open file descriptors
 	     */
-	    void close(void)
-	    throw ();
+	    void close(void);
 
 	    /**
 	     * Close parent file descriptor, if open
 	     */
-	    void closeParent(void)
-	    throw ();
+	    void closeParent(void);
 
 	    /**
 	     * Close child file descriptor, if open
 	     */
-	    void closeChild(void)
-	    throw ();
+	    void closeChild(void);
 	};
 	std::map<int, struct PipeInfo> m_pipes;
 
@@ -228,8 +215,7 @@ class MultiplexIO {
 	/**
 	 * Trivial constructor.
 	 */
-	MultiplexIO(void)
-	throw ();
+	MultiplexIO(void);
 
 	/**
 	 * Add a file descriptor to monitor.
@@ -243,8 +229,7 @@ class MultiplexIO {
 	/**
 	 * Get a reference to a pollfd.
 	 */
-	struct pollfd &operator[](int idx)
-	throw(std::out_of_range);
+	struct pollfd &operator[](int idx);
 
 	/**
 	 * Remove a monitored file descriptor.
@@ -257,7 +242,6 @@ class MultiplexIO {
 	 * Get the number of active file descriptors.
 	 */
 	int active() const
-	throw ()
 	{ return m_active; }
 
 	/**
@@ -266,8 +250,7 @@ class MultiplexIO {
 	 * @param[in] timeout max time to wait (in milliseconds)
 	 * @returns the number of events
 	 */
-	int monitor(int timeout = -1)
-	throw (KSystemError);
+	int monitor(int timeout = -1);
 
     private:
 	std::vector<struct pollfd> m_fds;
@@ -292,8 +275,7 @@ class ProcessFilter {
 	/**
 	 * Destructor.
 	 */
-	~ProcessFilter()
-	throw ();
+	~ProcessFilter();
 
         /**
          * Runs the process, redirecting input/output.
@@ -306,8 +288,7 @@ class ProcessFilter {
          * @return the numeric return value (between 0 and 255) of the process
          *         that has been executed
          */
-        uint8_t execute(const std::string &name, const StringVector &args)
-        throw (KError);
+        uint8_t execute(const std::string &name, const StringVector &args);
 
 	/**
 	 * Set Input/Output handling.
@@ -361,7 +342,6 @@ class ProcessFilter::IO {
 	 * @param[in] fd desired file descriptor in the child.
 	 */
 	IO(int fd)
-	throw ()
 	: m_fd(fd)
 	{ }
 
@@ -369,21 +349,18 @@ class ProcessFilter::IO {
 	 * Virtual destructor is needed to destroy virtual classes.
 	 */
 	virtual ~IO()
-	throw ()
 	{ }
 
 	/**
 	 * Get the associated file descriptor.
 	 */
 	int getFD(void) const
-	throw ()
 	{ return m_fd; }
 
 	/**
 	 * Prepare a SubProcess instance (before spawning a child).
 	 */
-	virtual void setupSubProcess(SubProcess &p)
-	throw () = 0;
+	virtual void setupSubProcess(SubProcess &p) = 0;
 
 	/**
 	 * Set up I/O multiplexing.

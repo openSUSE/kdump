@@ -98,7 +98,6 @@ const static unsigned char magic_end[] = MAGIC_END;
 
 // -----------------------------------------------------------------------------
 KernelTool::KernelTool(const std::string &image)
-    throw (KError)
     : m_kernel(image), m_fd(-1)
 {
     Debug::debug()->trace("KernelTool::KernelTool(%s)", image.c_str());
@@ -119,7 +118,6 @@ KernelTool::~KernelTool()
 
 // -----------------------------------------------------------------------------
 list<string> KernelTool::imageNames(const std::string &arch)
-    throw ()
 {
     list<string> ret;
 
@@ -142,7 +140,6 @@ list<string> KernelTool::imageNames(const std::string &arch)
 // -----------------------------------------------------------------------------
 bool KernelTool::stripImageName(const FilePath &kernelImage, string &directory,
                                 string &rest)
-    throw (KError)
 {
     directory = kernelImage.dirName();
     KString kernel = kernelImage.baseName();
@@ -166,7 +163,6 @@ bool KernelTool::stripImageName(const FilePath &kernelImage, string &directory,
 
 // -----------------------------------------------------------------------------
 KernelTool::KernelType KernelTool::getKernelType() const
-    throw (KError)
 {
     if (Util::isElfFile(m_fd)) {
         if (Util::isGzipFile(m_fd))
@@ -194,7 +190,6 @@ KernelTool::KernelType KernelTool::getKernelType() const
 
 // -----------------------------------------------------------------------------
 bool KernelTool::isRelocatable() const
-    throw (KError)
 {
     switch (getKernelType()) {
         case KernelTool::KT_ELF:
@@ -219,7 +214,6 @@ bool KernelTool::isRelocatable() const
 
 // -----------------------------------------------------------------------------
 bool KernelTool::isX86Kernel() const
-    throw (KError)
 {
     unsigned char buffer[BUFSIZ];
 
@@ -241,7 +235,6 @@ bool KernelTool::isX86Kernel() const
 
 // -----------------------------------------------------------------------------
 bool KernelTool::isS390Kernel() const
-    throw (KError)
 {
     unsigned char buffer[sizeof(S390_HEADER)];
 
@@ -268,7 +261,6 @@ bool KernelTool::isS390Kernel() const
 
 // -----------------------------------------------------------------------------
 bool KernelTool::isAarch64Kernel() const
-    throw (KError)
 {
     struct {
         uint32_t code0;         /* Executable code */
@@ -301,7 +293,6 @@ bool KernelTool::isAarch64Kernel() const
 
 // -----------------------------------------------------------------------------
 bool KernelTool::x86isRelocatable() const
-    throw (KError)
 {
     unsigned char buffer[BUFSIZ];
 
@@ -358,7 +349,6 @@ bool KernelTool::x86isRelocatable() const
 
 // -----------------------------------------------------------------------------
 bool KernelTool::elfIsRelocatable() const
-    throw (KError)
 {
     unsigned char e_ident[EI_NIDENT];
 
@@ -431,21 +421,18 @@ bool KernelTool::elfIsRelocatable() const
 
 // -----------------------------------------------------------------------------
 bool KernelTool::isArchAlwaysRelocatable(const string &machine) const
-    throw ()
 {
     return machine == "ia64" || machine == "aarch64";
 }
 
 // -----------------------------------------------------------------------------
 bool KernelTool::hasConfigRelocatable(const string &machine) const
-    throw ()
 {
     return Util::isX86(machine) || machine == "ppc64" || machine == "ppc";
 }
 
 // -----------------------------------------------------------------------------
 bool KernelTool::isConfigRelocatable() const
-    throw (KError)
 {
     try {
     Kconfig *kconfig = retrieveKernelConfig();
@@ -460,7 +447,6 @@ bool KernelTool::isConfigRelocatable() const
 
 // -----------------------------------------------------------------------------
 string KernelTool::archFromElfMachine(unsigned long long et_machine) const
-    throw ()
 {
     switch (et_machine) {
         case EM_386:    return "i386";
@@ -476,7 +462,6 @@ string KernelTool::archFromElfMachine(unsigned long long et_machine) const
 
 // -----------------------------------------------------------------------------
 Kconfig *KernelTool::retrieveKernelConfig() const
-    throw (KError)
 {
     Kconfig *kconfig = new Kconfig();
 
@@ -509,7 +494,6 @@ Kconfig *KernelTool::retrieveKernelConfig() const
 // -----------------------------------------------------------------------------
 string KernelTool::extractFromIKconfigBuffer(const char *buffer, size_t buflen)
     const
-    throw (KError)
 {
     Debug::debug()->trace("Kconfig::extractFromIKconfigBuffer(%p, %d)",
         buffer, buflen);
@@ -553,7 +537,6 @@ string KernelTool::extractFromIKconfigBuffer(const char *buffer, size_t buflen)
 
 // -----------------------------------------------------------------------------
 string KernelTool::extractKernelConfigELF() const
-    throw (KError)
 {
     Debug::debug()->trace("Kconfig::extractKernelConfigELF()");
 
@@ -619,7 +602,6 @@ string KernelTool::extractKernelConfigELF() const
 
 // -----------------------------------------------------------------------------
 string KernelTool::extractKernelConfigbzImage() const
-    throw (KError)
 {
     Debug::debug()->trace("Kconfig::extractKernelConfigbzImage()");
 
@@ -717,7 +699,6 @@ string KernelTool::extractKernelConfigbzImage() const
 
 // -----------------------------------------------------------------------------
 string KernelTool::extractKernelConfig() const
-    throw (KError)
 {
     Debug::debug()->trace("Kconfig::extractKernelConfig()");
 
@@ -738,7 +719,6 @@ string KernelTool::extractKernelConfig() const
 
 // -----------------------------------------------------------------------------
 std::string KernelTool::toString() const
-    throw ()
 {
     return "[KernelTool] " + m_kernel;
 }

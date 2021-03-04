@@ -43,12 +43,10 @@ class Routable {
 	bool check(int timeout);
 
         const std::string& prefsrc(void) const
-        throw ()
         { return m_prefsrc; }
 
     protected:
-	bool resolve(void)
-	throw (KError);
+	bool resolve(void);
 
 	bool hasRoute(void);
 

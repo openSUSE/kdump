@@ -70,8 +70,7 @@ class Socket {
          * @param[in] family protocol family (IPv4, IPv6, or both)
          */
         Socket(const std::string &address, const std::string &service,
-               SocketType socketType, Family family = SF_ANY)
-        throw ();
+               SocketType socketType, Family family = SF_ANY);
 
         /**
          * Creates a new socket.
@@ -82,14 +81,12 @@ class Socket {
          * @param[in] family protocol family (IPv4, IPv6, or both)
          */
         Socket(const std::string &address, int port,
-               SocketType socketType, Family family = SF_ANY)
-        throw ();
+               SocketType socketType, Family family = SF_ANY);
 
         /**
          * Destructor. Closes the connection.
          */
-        virtual ~Socket()
-        throw ();
+        virtual ~Socket();
 
         /**
          * Establishes the connection and returns the file descriptor.
@@ -98,8 +95,7 @@ class Socket {
          *         write(), recv() and send().
          * @exception KError if the parsing of that URL fails
          */
-        int connect()
-        throw (KError);
+        int connect();
 
         /**
          * Returns the current file descriptor (form the last Socket::connect()
@@ -107,14 +103,12 @@ class Socket {
          *
          * @return the file descriptor
          */
-        int getCurrentFd() const
-        throw ();
+        int getCurrentFd() const;
 
         /**
          * Closes the connection.
          */
-        void close()
-        throw ();
+        void close();
 
     private:
         int m_currentFd;
@@ -123,8 +117,7 @@ class Socket {
         SocketType m_socketType;
         Family m_family;
 
-        void setHostname(const std::string &address)
-        throw();
+        void setHostname(const std::string &address);
 };
 
 //}}}

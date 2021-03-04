@@ -32,29 +32,25 @@ class ReadVmcoreinfo : public Subcommand {
         /**
          * Creates a new ReadVmcoreinfo object.
          */
-        ReadVmcoreinfo()
-        throw ();
+        ReadVmcoreinfo();
 
     public:
         /**
          * Returns the name of the subcommand (identify_kernel).
          */
-        const char *getName() const
-        throw ();
+        const char *getName() const;
 
         /**
          * Parses the non-option arguments from the command line.
          */
-        virtual void parseArgs(const StringVector &args)
-        throw (KError);
+        virtual void parseArgs(const StringVector &args);
 
         /**
          * Executes the function.
          *
          * @throw KError on any error. No exception indicates success.
          */
-        void execute()
-        throw (KError);
+        void execute();
 
     private:
         std::string m_file;

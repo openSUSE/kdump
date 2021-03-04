@@ -34,29 +34,26 @@ class DeleteDumps : public Subcommand {
         /**
          * Deletes old dumps from disk.
          */
-        DeleteDumps()
-        throw ();
+        DeleteDumps();
 
         /**
          * Deletes a DeleteDumps object.
          */
         ~DeleteDumps()
-        throw () {}
+        { }
 
     public:
         /**
          * Returns the name of the subcommand (delete_dumps).
          */
-        const char *getName() const
-        throw ();
+        const char *getName() const;
 
         /**
          * Executes the function.
          *
          * @throw KError on any error. No exception indicates success.
          */
-        void execute()
-        throw (KError);
+        void execute();
 
     private:
         std::string m_rootdir;
@@ -67,8 +64,7 @@ class DeleteDumps : public Subcommand {
 	 *
 	 * @throw KError on any error. No exception indicates success.
 	 */
-	void delete_one(const RootDirURL &url, int oldDumps)
-	throw (KError);
+	void delete_one(const RootDirURL &url, int oldDumps);
 };
 
 //}}}

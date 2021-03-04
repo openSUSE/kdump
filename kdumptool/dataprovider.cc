@@ -41,27 +41,23 @@ using std::string;
 
 // -----------------------------------------------------------------------------
 AbstractDataProvider::AbstractDataProvider()
-    throw ()
     : m_progress(NULL), m_error(false)
 {}
 
 // -----------------------------------------------------------------------------
 bool AbstractDataProvider::canSaveToFile() const
-    throw ()
 {
     return false;
 }
 
 // -----------------------------------------------------------------------------
 void AbstractDataProvider::saveToFile(const StringVector &targets)
-    throw (KError)
 {
     throw KError("That DataProvider cannot save to a file.");
 }
 
 // -----------------------------------------------------------------------------
 void AbstractDataProvider::prepare()
-    throw (KError)
 {
     Debug::debug()->trace("AbstractDataProvider::prepare");
     if (m_progress)
@@ -70,7 +66,6 @@ void AbstractDataProvider::prepare()
 
 // -----------------------------------------------------------------------------
 void AbstractDataProvider::finish()
-    throw (KError)
 {
     Debug::debug()->trace("AbstractDataProvider::finish");
     if (m_progress)
@@ -79,7 +74,6 @@ void AbstractDataProvider::finish()
 
 // -----------------------------------------------------------------------------
 void AbstractDataProvider::setProgress(Progress *progress)
-    throw ()
 {
     Debug::debug()->trace("AbstractDataProvider::setProgress, p=%p", progress);
     m_progress = progress;
@@ -87,21 +81,18 @@ void AbstractDataProvider::setProgress(Progress *progress)
 
 // -----------------------------------------------------------------------------
 Progress *AbstractDataProvider::getProgress() const
-    throw ()
 {
     return m_progress;
 }
 
 // -----------------------------------------------------------------------------
 void AbstractDataProvider::setError(bool error)
-    throw ()
 {
     m_error = error;
 }
 
 // -----------------------------------------------------------------------------
 bool AbstractDataProvider::getError() const
-    throw ()
 {
     return m_error;
 }
@@ -111,7 +102,6 @@ bool AbstractDataProvider::getError() const
 
 // -----------------------------------------------------------------------------
 FileDataProvider::FileDataProvider(const char *filename)
-    throw ()
     : m_filename(filename)
     , m_file(NULL)
     , m_currentPos(0)
@@ -119,7 +109,6 @@ FileDataProvider::FileDataProvider(const char *filename)
 
 // -----------------------------------------------------------------------------
 void FileDataProvider::prepare()
-    throw (KError)
 {
     Debug::debug()->trace("FileDataProvider::prepare");
 
@@ -147,7 +136,6 @@ void FileDataProvider::prepare()
 
 // -----------------------------------------------------------------------------
 size_t FileDataProvider::getData(char *buffer, size_t maxread)
-    throw (KError)
 {
     if (!m_file)
         throw KError("File " + m_filename + " not opened.");
@@ -171,7 +159,6 @@ size_t FileDataProvider::getData(char *buffer, size_t maxread)
 
 // -----------------------------------------------------------------------------
 void FileDataProvider::finish()
-    throw (KError)
 {
     Debug::debug()->trace("FileDataProvider::finish");
 
@@ -187,13 +174,11 @@ void FileDataProvider::finish()
 
 // -----------------------------------------------------------------------------
 BufferDataProvider::BufferDataProvider(const ByteVector &data)
-    throw ()
     : m_data(data), m_currentPos(0)
 {}
 
 // -----------------------------------------------------------------------------
 size_t BufferDataProvider::getData(char *buffer, size_t maxread)
-    throw (KError)
 {
     size_t size = min((unsigned long long)maxread,
                       m_data.size() - m_currentPos);
@@ -216,7 +201,6 @@ size_t BufferDataProvider::getData(char *buffer, size_t maxread)
 // -----------------------------------------------------------------------------
 ProcessDataProvider::ProcessDataProvider(const char *pipe_cmdline,
                                          const char *direct_cmdline)
-    throw ()
     : m_pipeCmdline(pipe_cmdline), m_directCmdline(direct_cmdline),
       m_processFile(NULL)
 {
@@ -226,7 +210,6 @@ ProcessDataProvider::ProcessDataProvider(const char *pipe_cmdline,
 
 // -----------------------------------------------------------------------------
 void ProcessDataProvider::prepare()
-    throw (KError)
 {
     Debug::debug()->trace("ProcessDataProvider::prepare");
 
@@ -237,7 +220,6 @@ void ProcessDataProvider::prepare()
 
 // -----------------------------------------------------------------------------
 size_t ProcessDataProvider::getData(char *buffer, size_t maxread)
-    throw (KError)
 {
     if (!m_processFile)
         throw KError("Process " + m_pipeCmdline + " not started.");
@@ -254,7 +236,6 @@ size_t ProcessDataProvider::getData(char *buffer, size_t maxread)
 
 // -----------------------------------------------------------------------------
 void ProcessDataProvider::finish()
-    throw (KError)
 {
     Debug::debug()->trace("ProcessDataProvider::finish");
 
@@ -268,14 +249,12 @@ void ProcessDataProvider::finish()
 
 // -----------------------------------------------------------------------------
 bool ProcessDataProvider::canSaveToFile() const
-    throw ()
 {
     return true;
 }
 
 // -----------------------------------------------------------------------------
 void ProcessDataProvider::saveToFile(const StringVector &targets)
-    throw (KError)
 {
     Debug::debug()->trace("ProcessDataProvider::saveToFile([ \"%s\"%s ])",
 	targets.front().c_str(), targets.size() > 1 ? ", ...": "");

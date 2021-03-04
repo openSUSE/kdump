@@ -35,7 +35,6 @@ using std::stringstream;
 
 // -----------------------------------------------------------------------------
 void ConfigParser::addVariable(const string &name, const string &defvalue)
-    throw ()
 {
     Debug::debug()->trace("ConfigParser: Adding %s to variable list"
 	" (default: '%s')", name.c_str(), defvalue.c_str());
@@ -46,7 +45,6 @@ void ConfigParser::addVariable(const string &name, const string &defvalue)
 
 // -----------------------------------------------------------------------------
 string ConfigParser::getValue(const std::string &name) const
-    throw (KError)
 {
     StringStringMap::const_iterator loc = m_variables.find(name);
 
@@ -62,13 +60,11 @@ string ConfigParser::getValue(const std::string &name) const
 
 // -----------------------------------------------------------------------------
 ShellConfigParser::ShellConfigParser(const string &filename)
-    throw ()
     : ConfigParser(filename)
 {}
 
 // -----------------------------------------------------------------------------
 void ShellConfigParser::parse()
-    throw (KError)
 {
     // check if the configuration file does exist
     ifstream fin(m_configFile.c_str());
@@ -140,13 +136,11 @@ static bool is_kernel_space(const char c)
 
 // -----------------------------------------------------------------------------
 KernelConfigParser::KernelConfigParser(const string &filename)
-    throw ()
     : ConfigParser(filename)
 {}
 
 // -----------------------------------------------------------------------------
 void KernelConfigParser::parse()
-    throw (KError)
 {
     // check if the configuration file does exist
     ifstream fin(m_configFile.c_str());

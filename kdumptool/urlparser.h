@@ -56,8 +56,7 @@ class URLParser {
          * @param[in] url the URL to parse
          * @exception KError if the parsing of that URL fails
          */
-        URLParser(const std::string &url)
-        throw (KError);
+        URLParser(const std::string &url);
 
         /**
          * Desctructor.
@@ -70,8 +69,7 @@ class URLParser {
          *
          * @return the protocol
          */
-        Protocol getProtocol() const
-        throw ();
+        Protocol getProtocol() const;
 
         /**
          * Returns the protocol as string.
@@ -79,8 +77,7 @@ class URLParser {
          * @return the protocol as string, i.e. @c file, @c ftp, @c sftp,
          * @c nfs or @c cifs.
          */
-        std::string getProtocolAsString() const
-        throw ();
+        std::string getProtocolAsString() const;
 
         /**
          * Returns the username as string. Returns an empty string if
@@ -88,8 +85,7 @@ class URLParser {
          *
          * @return the username
          */
-        std::string getUsername() const
-        throw ();
+        std::string getUsername() const;
 
         /**
          * Returns the password as string. Returns an empty string if
@@ -97,8 +93,7 @@ class URLParser {
          *
          * @return the password
          */
-        std::string getPassword() const
-        throw ();
+        std::string getPassword() const;
 
         /**
          * Returns the hostname. Returns an empty string if no hostname
@@ -106,8 +101,7 @@ class URLParser {
          *
          * @return the hostname as string
          */
-        std::string getHostname() const
-        throw ();
+        std::string getHostname() const;
 
         /**
          * Returns the port or -1 if the port is not applicable for that
@@ -115,8 +109,7 @@ class URLParser {
          *
          * @return the port
          */
-        int getPort() const
-        throw ();
+        int getPort() const;
 
         /**
          * Returns the path. For CIFS, it returns the path without the "share"
@@ -124,16 +117,14 @@ class URLParser {
          *
          * @return the path
          */
-        std::string getPath() const
-        throw ();
+        std::string getPath() const;
 
         /**
          * Returns the URL.
          *
          * @return the URL as string
          */
-        std::string getURL() const
-        throw ();
+        std::string getURL() const;
 
     public:
 
@@ -145,8 +136,7 @@ class URLParser {
          *
          * @exception KError if the protocol does not exist
          */
-        static Protocol string2protocol(const std::string &protocol)
-        throw (KError);
+        static Protocol string2protocol(const std::string &protocol);
 
         /**
          * Convers a protocol constant to a readable string.
@@ -156,8 +146,7 @@ class URLParser {
          *
          * @exception KError if the protocol constant is invalid
          */
-        static std::string protocol2string(Protocol protocol)
-        throw (KError);
+        static std::string protocol2string(Protocol protocol);
 
     private:
 	std::string m_url;

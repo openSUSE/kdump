@@ -32,7 +32,6 @@ using std::cout;
 
 // -----------------------------------------------------------------------------
 MultipathConf::MultipathConf(std::istream &input)
-    throw ()
     : m_input(input)
 { }
 
@@ -125,8 +124,7 @@ class AddBlacklistHandler : public MultipathConf::Handler
 {
     public:
         AddBlacklistHandler(std::ostream &output,
-			    const StringVector &exceptions)
-        throw ();
+			    const StringVector &exceptions);
         ~AddBlacklistHandler();
 
         virtual void process(const std::string &raw, StringVector &tokens);
@@ -154,7 +152,6 @@ class AddBlacklistHandler : public MultipathConf::Handler
 // -----------------------------------------------------------------------------
 AddBlacklistHandler::AddBlacklistHandler(std::ostream &output,
                                          const StringVector &exceptions)
-    throw ()
     : m_output(output), m_exceptions(exceptions),
       m_blacklist_done(false), m_exceptions_done(false)
 { }
@@ -222,27 +219,23 @@ void AddBlacklistHandler::doExceptions(lineHandler handler)
 
 // -----------------------------------------------------------------------------
 Multipath::Multipath()
-    throw ()
     : m_parser(cin)
 { }
 
 // -----------------------------------------------------------------------------
 const char *Multipath::getName() const
-    throw ()
 {
     return "multipath";
 }
 
 // -----------------------------------------------------------------------------
 bool Multipath::needsConfigfile() const
-    throw ()
 {
     return false;
 }
 
 // -----------------------------------------------------------------------------
 void Multipath::parseArgs(const StringVector &args)
-    throw (KError)
 {
     Debug::debug()->trace(__FUNCTION__);
 
@@ -251,7 +244,6 @@ void Multipath::parseArgs(const StringVector &args)
 
 // -----------------------------------------------------------------------------
 void Multipath::execute()
-    throw (KError)
 {
     Debug::debug()->trace("Multipath::execute()");
     AddBlacklistHandler handler(cout, m_exceptions);

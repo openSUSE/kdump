@@ -42,8 +42,7 @@ class Stringutil {
          * @return the string
          */
         template <typename numeric_type>
-        static std::string number2string(numeric_type number)
-        throw ();
+        static std::string number2string(numeric_type number);
 
         /**
          * Transforms a numberic string value into a string in hex format
@@ -53,8 +52,7 @@ class Stringutil {
          * @return the string, e.g. <tt>0x1234</tt>
          */
         template <typename numeric_type>
-        static std::string number2hex(numeric_type number)
-        throw ();
+        static std::string number2hex(numeric_type number);
 
         /**
          * Parses a number.
@@ -62,8 +60,7 @@ class Stringutil {
          * @param[in] string string that should be parsed
          * @return the number
          */
-        static int string2number(const std::string &string)
-        throw ();
+        static int string2number(const std::string &string);
 
         /**
          * Parses a number.
@@ -71,8 +68,7 @@ class Stringutil {
          * @param[in] string string that should be parsed
          * @return the number
          */
-        static long long string2llong(const std::string &string)
-        throw ();
+        static long long string2llong(const std::string &string);
 
         /**
          * Converts an C++ string vector to an C string array (dynamically
@@ -84,8 +80,7 @@ class Stringutil {
          *
          * @throw KError if memory allocation failed
          */
-        static char ** stringv2charv(const StringVector &strv)
-        throw (KError);
+        static char ** stringv2charv(const StringVector &strv);
 
         /**
          * Converts a string to a byte vector.
@@ -93,8 +88,7 @@ class Stringutil {
          * @param[in] string the string
          * @return the byte vector
          */
-        static ByteVector str2bytes(const std::string &string)
-        throw ();
+        static ByteVector str2bytes(const std::string &string);
 
         /**
          * Converts a byte vector to a string.
@@ -102,8 +96,7 @@ class Stringutil {
          * @param[in] bytes the byte vector
          * @return the string
          */
-        static std::string bytes2str(const ByteVector &bytes)
-        throw ();
+        static std::string bytes2str(const ByteVector &bytes);
 
         /**
          * Converts a string vector to a string.
@@ -114,8 +107,7 @@ class Stringutil {
          * @return the string
          */
         static std::string vector2string(const StringVector &vector,
-                                         const char *delimiter = " ")
-        throw ();
+                                         const char *delimiter = " ");
 
         /**
          * Splits lines.
@@ -123,8 +115,7 @@ class Stringutil {
          * @param[in] string a multiline string
          * @return the lines (with "\n" removed)
          */
-        static StringVector splitlines(const std::string &string)
-        throw ();
+        static StringVector splitlines(const std::string &string);
 
         /**
          * Splits a string.
@@ -134,9 +125,8 @@ class Stringutil {
          * @param[in] split the split character
          * @return the vector of split strings
          */
-        static StringVector split(const std::string &string, char split)
-        throw ();
-        
+        static StringVector split(const std::string &string, char split);
+
         /**
          * Joins a string vector into a string.
          *
@@ -145,9 +135,7 @@ class Stringutil {
          * @return the resulting string
          */
         static std::string join(const StringVector &stringvector,
-                                char joinchar)
-        throw ();
-         
+                                char joinchar);
 
         /**
          * Formats the current time as specified in @p formatstring.
@@ -155,8 +143,7 @@ class Stringutil {
          * @param[in] formatstring strftime(3)-like format string
          * @return the formatted output
          */
-        static std::string formatCurrentTime(const char *formatstring)
-        throw ();
+        static std::string formatCurrentTime(const char *formatstring);
 
         /**
          * Formats the given Unix time as specified in @p formatstring.
@@ -166,11 +153,9 @@ class Stringutil {
          * @return the formatted output
          */
         static std::string formatUnixTime(const char *formatstring,
-                                          time_t value)
-        throw ();
+                                          time_t value);
 
-	static int hex2int(char c)
-	throw (KError);
+	static int hex2int(char c);
 };
 
 //}}}
@@ -212,16 +197,14 @@ class KString : public std::string {
          *
          * @return true if it's an number, false otherwise
          */
-        bool isNumber()
-        throw ();
+        bool isNumber();
 
         /**
          * Checks if the string is a hexadecimal number (no leading '0x').
          *
          * @return true if it's a hex number, false otherwise
          */
-        bool isHexNumber()
-        throw ();
+        bool isHexNumber();
 
         /**
          * Remove trailing or leading stuff.
@@ -229,8 +212,7 @@ class KString : public std::string {
          * @param[in] chars the characters to remove (default: white space)
          * @return reference to this instance
          */
-        KString& trim(const char *chars = " \t\n")
-        throw ();
+        KString& trim(const char *chars = " \t\n");
 
         /**
          * Removes trailing stuff. (Left trim.)
@@ -238,8 +220,7 @@ class KString : public std::string {
          * @param[in] chars the characters to remove (default: white space)
          * @return reference to this instance
          */
-        KString& ltrim(const char *chars = " \t\n")
-        throw();
+        KString& ltrim(const char *chars = " \t\n");
 
         /**
          * Removes leading stuff. (Left trim.)
@@ -247,8 +228,7 @@ class KString : public std::string {
          * @param[in] chars the characters to remove (default: white space)
          * @return the trimmed string
          */
-        KString& rtrim(const char *chars = " \t\n")
-        throw();
+        KString& rtrim(const char *chars = " \t\n");
 
         /**
          * Checks if the string starts with @p part.
@@ -256,8 +236,7 @@ class KString : public std::string {
          * @param[in] part the string part
          * @return @c true if string starts with @p part, @c false otherwise
          */
-        bool startsWith(const std::string &part) const
-        throw ();
+        bool startsWith(const std::string &part) const;
 
         /**
          * Checks if the string ends with @p part.
@@ -265,8 +244,7 @@ class KString : public std::string {
          * @param[in] part the string part
          * @return @c true if string ends with @p part, @c false otherwise
          */
-        bool endsWith(const std::string &part) const
-        throw ();
+        bool endsWith(const std::string &part) const;
 
 	/**
 	 * Perform URL decoding on the string.
@@ -274,8 +252,7 @@ class KString : public std::string {
 	 * @param[in] formenc if @c true, translate '+' into spaces
 	 * @return reference to this object (after decoding)
 	 */
-	KString &decodeURL(bool formenc = false)
-	throw();
+	KString &decodeURL(bool formenc = false);
 };
 
 //}}}
@@ -284,7 +261,6 @@ class KString : public std::string {
 // -----------------------------------------------------------------------------
 template <typename numeric_type>
 std::string Stringutil::number2string(numeric_type number)
-    throw ()
 {
     std::stringstream ss;
     ss << number;
@@ -294,7 +270,6 @@ std::string Stringutil::number2string(numeric_type number)
 // -----------------------------------------------------------------------------
 template <typename numeric_type>
 std::string Stringutil::number2hex(numeric_type number)
-    throw ()
 {
     std::stringstream ss;
     ss << "0x";

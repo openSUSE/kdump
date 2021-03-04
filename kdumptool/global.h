@@ -63,11 +63,9 @@ class KErrorCode {
             : m_code(code)
         {}
 
-        virtual std::string message(void) const
-        throw () = 0;
+        virtual std::string message(void) const = 0;
 
         int getCode(void) const
-        throw ()
         { return m_code; }
 
     private:
@@ -126,8 +124,7 @@ class KSystemErrorCode : public KErrorCode {
             : KErrorCode(code)
         {}
 
-        virtual std::string message(void) const
-        throw ();
+        virtual std::string message(void) const;
 };
 
 //}}}
@@ -142,8 +139,7 @@ class KGaiErrorCode : public KErrorCode {
             : KErrorCode(code)
         {}
 
-        virtual std::string message(void) const
-        throw ();
+        virtual std::string message(void) const;
 };
 
 //}}}
@@ -158,8 +154,7 @@ class KELFErrorCode : public KErrorCode {
             : KErrorCode(code)
         {}
 
-        virtual std::string message(void) const
-	throw ();
+        virtual std::string message(void) const;
 };
 
 //}}}

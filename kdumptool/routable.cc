@@ -48,11 +48,9 @@ class NetLink {
 	~NetLink();
 
 	void setTimeout(int timeout)
-	throw ()
 	{ m_timeout = timeout; }
 
 	int getTimeout(void) const
-	throw ()
 	{ return m_timeout; }
 
 	int checkRoute(const struct addrinfo *ai);
@@ -60,7 +58,6 @@ class NetLink {
 	int waitRouteChange(void);
 
         const char *prefSrc(void) const
-        throw ()
         { return m_prefsrc; }
 
     protected:
@@ -91,7 +88,6 @@ class NetLink {
 	int talk(struct nlmsghdr *req, unsigned peer, unsigned groups);
 
 	struct nlmsghdr *message(void) const
-	throw ()
 	{ return m_message; }
 
         int parseAttrs(const struct rtattr *rta, size_t len);
@@ -456,7 +452,6 @@ bool Routable::hasRoute(void)
 
 // -----------------------------------------------------------------------------
 bool Routable::resolve(void)
-    throw (KError)
 {
     struct addrinfo hints;
     int res;

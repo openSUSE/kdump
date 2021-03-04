@@ -46,7 +46,7 @@ class Transfer {
          * Destructor.
          */
         virtual ~Transfer()
-        throw () {}
+        { }
 
         /**
          * Performs the actual transfer. This means that
@@ -66,8 +66,7 @@ class Transfer {
          */
         virtual void perform(DataProvider *dataprovider,
                              const StringVector &target_files,
-                             bool *directSave=NULL)
-        throw (KError) = 0;
+                             bool *directSave=NULL) = 0;
 
 	/**
 	 * Shorthand version of perform() if there is only one file
@@ -79,8 +78,7 @@ class Transfer {
 	 */
 	void perform(DataProvider *dataprovider,
 		     const std::string &target_file,
-		     bool *directSave=NULL)
-	throw (KError);
+		     bool *directSave=NULL);
 };
 
 //}}}
@@ -97,7 +95,7 @@ class URLTransfer : public Transfer {
          * Destructor.
          */
         virtual ~URLTransfer()
-        throw () {}
+        { }
 
         /**
          * Creates a new URLTransfer object.
@@ -105,8 +103,7 @@ class URLTransfer : public Transfer {
          * @param[in] urlv target URLs
          * @throw KError if parsing the URL failed
          */
-        URLTransfer(const RootDirURLVector &urlv)
-        throw (KError);
+        URLTransfer(const RootDirURLVector &urlv);
 
         /**
          * Returns the URL parser.
@@ -114,7 +111,6 @@ class URLTransfer : public Transfer {
          * @return reference to the URL vector.
          */
         RootDirURLVector &getURLVector()
-        throw ()
 	{ return m_urlVector; }
 
     private:
@@ -137,14 +133,12 @@ class FileTransfer : public URLTransfer {
          * @param[in] urlv target directories
          * @throw KError if parsing the URL or creating the directory failed
          */
-        FileTransfer(const RootDirURLVector &urlv)
-        throw (KError);
+        FileTransfer(const RootDirURLVector &urlv);
 
         /**
          * Destroys a FileTransfer object.
          */
-        ~FileTransfer()
-        throw ();
+        ~FileTransfer();
 
         /**
          * Transfers the file.
@@ -153,24 +147,19 @@ class FileTransfer : public URLTransfer {
          */
         void perform(DataProvider *dataprovider,
                      const StringVector &target_files,
-                     bool *directSave)
-        throw (KError);
+                     bool *directSave);
 
     protected:
 
         void performFile(DataProvider *dataprovider,
-			 const StringVector &target_files)
-        throw (KError);
+			 const StringVector &target_files);
 
         void performPipe(DataProvider *dataprovider,
-			 const StringVector &target_files)
-        throw (KError);
+			 const StringVector &target_files);
 
-        FILE *open(const std::string &target_file)
-        throw (KError);
+        FILE *open(const std::string &target_file);
 
-        void close(FILE *fp)
-        throw ();
+        void close(FILE *fp);
 
     private:
         size_t m_bufferSize;
@@ -192,14 +181,12 @@ class FTPTransfer : public URLTransfer {
          *
          * @exception KError when initialising the underlying library fails
          */
-        FTPTransfer(const RootDirURLVector &urlv)
-        throw (KError);
+        FTPTransfer(const RootDirURLVector &urlv);
 
         /**
          * Destroys a FTPTransfer object.
          */
-        ~FTPTransfer()
-        throw ();
+        ~FTPTransfer();
 
         /**
          * Transfers the file.
@@ -208,14 +195,12 @@ class FTPTransfer : public URLTransfer {
          */
         void perform(DataProvider *dataprovider,
                      const StringVector &target_files,
-                     bool *directSave)
-        throw (KError);
+                     bool *directSave);
 
     protected:
 
         void open(DataProvider *dataprovider,
-		  const std::string &target_file)
-        throw (KError);
+		  const std::string &target_file);
 
     private:
         char m_curlError[CURL_ERROR_SIZE];
@@ -238,14 +223,12 @@ class NFSTransfer : public URLTransfer {
          *
          * @exception KError when mounting the share failes
          */
-        NFSTransfer(const RootDirURLVector &urlv)
-        throw (KError);
+        NFSTransfer(const RootDirURLVector &urlv);
 
         /**
          * Destroys a SFTPTransfer object.
          */
-        ~NFSTransfer()
-        throw ();
+        ~NFSTransfer();
 
         /**
          * Transfers the file.
@@ -254,20 +237,17 @@ class NFSTransfer : public URLTransfer {
          */
         void perform(DataProvider *dataprovider,
                      const StringVector &target_files,
-                     bool *directSave)
-        throw (KError);
+                     bool *directSave);
 
     protected:
-        void close()
-        throw (KError);
+        void close();
 
         /**
 	 * Translate a NFS URL into a file URL
 	 *
 	 * @return RootDirurl
 	 */
-	RootDirURL translate(const RootDirURL &url)
-	throw (KError);
+	RootDirURL translate(const RootDirURL &url);
 
 
     private:
@@ -290,14 +270,12 @@ class CIFSTransfer : public URLTransfer {
          *
          * @exception KError when mounting the share failes
          */
-        CIFSTransfer(const RootDirURLVector &urlv)
-        throw (KError);
+        CIFSTransfer(const RootDirURLVector &urlv);
 
         /**
          * Destroys a CIFSTransfer object.
          */
-        ~CIFSTransfer()
-        throw ();
+        ~CIFSTransfer();
 
         /**
          * Transfers the file.
@@ -306,20 +284,17 @@ class CIFSTransfer : public URLTransfer {
          */
         void perform(DataProvider *dataprovider,
                      const StringVector &target_files,
-                     bool *directSave)
-        throw (KError);
+                     bool *directSave);
 
     protected:
-        void close()
-        throw (KError);
+        void close();
 
         /**
 	 * Translate a CIFS URL into a file URL
 	 *
 	 * @return RootDirurl
 	 */
-	RootDirURL translate(const RootDirURL &url)
-	throw (KError);
+	RootDirURL translate(const RootDirURL &url);
 
     private:
         std::string m_mountpoint;

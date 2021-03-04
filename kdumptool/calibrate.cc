@@ -400,7 +400,6 @@ class Framebuffer {
 	 * @param[in] fbpath Framebuffer sysfs directory path
 	 */
 	Framebuffer(const char *fbpath)
-	throw ()
 	: m_dir(fbpath)
 	{}
 
@@ -466,7 +465,6 @@ class Framebuffers {
 	 * @param[in] sysdir Mount point for sysfs
 	 */
 	Framebuffers(const char *sysdir = "/sys")
-	throw ()
 	: m_fbdir(FilePath(sysdir).appendPath("class/graphics"))
 	{}
 
@@ -549,39 +547,30 @@ class SlabInfo {
 
     public:
 	bool isComment(void) const
-	throw ()
 	{ return m_comment; }
 
 	const KString &name(void) const
-	throw ()
 	{ return m_name; }
 
 	unsigned long activeObjs(void) const
-	throw ()
 	{ return m_active_objs; }
 
 	unsigned long numObjs(void) const
-	throw ()
 	{ return m_num_objs; }
 
 	unsigned long objSize(void) const
-	throw ()
 	{ return m_obj_size; }
 
 	unsigned long objPerSlab(void) const
-	throw ()
 	{ return m_obj_per_slab; }
 
 	unsigned long pagesPerSlab(void) const
-	throw ()
 	{ return m_pages_per_slab; }
 
 	unsigned long activeSlabs(void) const
-	throw ()
 	{ return m_active_slabs; }
 
 	unsigned long numSlabs(void) const
-	throw ()
 	{ return m_num_slabs; }
 };
 
@@ -634,7 +623,6 @@ class SlabInfos {
 	 * @param[in] procdir Mount point for procfs
 	 */
 	SlabInfos(const char *procdir = "/proc")
-	throw ()
 	: m_path(FilePath(procdir).appendPath("slabinfo"))
 	{}
 
@@ -656,8 +644,7 @@ class SlabInfos {
 	/**
 	 * Destroy SlabInfo objects in m_info.
 	 */
-	void destroyInfo(void)
-	throw();
+	void destroyInfo(void);
 
     public:
         /**
@@ -668,7 +655,6 @@ class SlabInfos {
 
 // -----------------------------------------------------------------------------
 void SlabInfos::destroyInfo(void)
-    throw()
 {
     Map::iterator it;
     for (it = m_info.begin(); it != m_info.end(); ++it)
@@ -734,7 +720,6 @@ class MemRange {
 	 * @param[in] end   Last address within the range
 	 */
 	MemRange(Addr start, Addr end)
-	throw ()
 	: m_start(start), m_end(end)
 	{}
 
@@ -742,14 +727,12 @@ class MemRange {
 	 * Get first address in range.
 	 */
 	Addr start(void) const
-	throw ()
 	{ return m_start; }
 
 	/**
 	 * Get last address in range.
 	 */
 	Addr end(void) const
-	throw ()
 	{ return m_end; }
 
 	/**
@@ -758,7 +741,6 @@ class MemRange {
 	 * @return number of bytes in the range
 	 */
 	Addr length() const
-	throw ()
 	{ return m_end - m_start + 1; }
 
     protected:
@@ -788,8 +770,7 @@ class MemMap {
 	/**
 	 * Get the total System RAM (in bytes).
 	 */
-	unsigned long long total(void) const
-	throw ();
+	unsigned long long total(void) const;
 
 	/**
 	 * Get the size (in bytes) of the largest block up to
@@ -797,21 +778,18 @@ class MemMap {
 	 *
 	 * @param[in] limit  maximum address to be considered
 	 */
-	unsigned long long largest(unsigned long long limit) const
-	throw ();
+	unsigned long long largest(unsigned long long limit) const;
 
 	/**
 	 * Get the size (in bytes) of the largest block.
 	 */
 	unsigned long long largest(void) const
-	throw ()
 	{ return largest(std::numeric_limits<unsigned long long>::max()); }
 
 	/**
 	 * Try to allocate a block.
 	 */
-	unsigned long long find(unsigned long size, unsigned long align) const
-	throw ();
+	unsigned long long find(unsigned long size, unsigned long align) const;
 
     private:
 
@@ -820,8 +798,7 @@ class MemMap {
 	/**
 	 * Destroy MemRange objects in m_ranges.
 	 */
-	void destroyRanges(void)
-	throw();
+	void destroyRanges(void);
 };
 
 MemMap::MemMap(const char *procdir)
@@ -865,7 +842,6 @@ MemMap::MemMap(const char *procdir)
 
 // -----------------------------------------------------------------------------
 void MemMap::destroyRanges(void)
-    throw()
 {
     List::iterator it;
     for (it = m_ranges.begin(); it != m_ranges.end(); ++it)
@@ -875,7 +851,6 @@ void MemMap::destroyRanges(void)
 
 // -----------------------------------------------------------------------------
 unsigned long long MemMap::total(void) const
-    throw ()
 {
     List::const_iterator it;
     unsigned long long ret = 0;
@@ -888,7 +863,6 @@ unsigned long long MemMap::total(void) const
 
 // -----------------------------------------------------------------------------
 unsigned long long MemMap::largest(unsigned long long limit) const
-    throw ()
 {
     List::const_iterator it;
     unsigned long long ret = 0;
@@ -911,7 +885,6 @@ unsigned long long MemMap::largest(unsigned long long limit) const
 
 // -----------------------------------------------------------------------------
 unsigned long long MemMap::find(unsigned long size, unsigned long align) const
-    throw ()
 {
     List::const_reverse_iterator it;
 
@@ -998,19 +971,16 @@ CryptInfo::CryptInfo(std::string const& device)
 
 // -----------------------------------------------------------------------------
 Calibrate::Calibrate()
-    throw ()
 {}
 
 // -----------------------------------------------------------------------------
 const char *Calibrate::getName() const
-    throw ()
 {
     return "calibrate";
 }
 
 // -----------------------------------------------------------------------------
 void Calibrate::execute()
-    throw (KError)
 {
     Debug::debug()->trace("Calibrate::execute()");
 

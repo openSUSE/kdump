@@ -41,8 +41,7 @@ class Subcommand {
         /**
          * Creates a new subcommand. This is for initialisation.
          */
-        Subcommand()
-        throw ();
+        Subcommand();
 
         /**
          * Empty destructor.
@@ -55,8 +54,7 @@ class Subcommand {
          * @return the name (string is static, you must copy it if you want
          *         to modify it)
          */
-        virtual const char *getName() const
-        throw () = 0;
+        virtual const char *getName() const = 0;
 
         /**
          * Returns a list of options that command understands. This is for
@@ -64,7 +62,6 @@ class Subcommand {
          * returns an empty OptionList.
          */
         const OptionList& getOptions() const
-        throw ()
         { return m_options; }
 
         /**
@@ -74,8 +71,7 @@ class Subcommand {
          * @return @c true if the configuration file must be read,
          *         @c false otherwise.
          */
-        virtual bool needsConfigfile() const
-        throw ();
+        virtual bool needsConfigfile() const;
 
         /**
          * Parses the non-option arguments from the command line. This
@@ -83,16 +79,14 @@ class Subcommand {
          *
          * The default implementation just does nothing.
          */
-        virtual void parseArgs(const StringVector &args)
-        throw (KError);
+        virtual void parseArgs(const StringVector &args);
 
         /**
          * Executes the function.
          *
          * @throw KError on any error. No exception indicates success.
          */
-        virtual void execute()
-        throw (KError)  = 0;
+        virtual void execute() = 0;
 
         /**
          * Sets an error code. As default, -1 (255) is used when an exception
@@ -100,8 +94,7 @@ class Subcommand {
          *
          * @param errorcode the error code that should be used
          */
-        void setErrorCode(int errorcode)
-        throw ();
+        void setErrorCode(int errorcode);
 
         /**
          * Returns the error code.
@@ -111,8 +104,7 @@ class Subcommand {
          *         exception has occurred, and if that case, transform the
          *         0 to 255.
          */
-        int getErrorCode() const
-        throw ();
+        int getErrorCode() const;
 
     protected:
         /**

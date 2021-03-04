@@ -34,23 +34,20 @@ class FindKernel : public Subcommand {
         /**
          * Creates a new FindKernel object.
          */
-        FindKernel()
-        throw ();
+        FindKernel();
 
     public:
         /**
          * Returns the name of the subcommand (find_kernel).
          */
-        const char *getName() const
-        throw ();
+        const char *getName() const;
 
         /**
          * Executes the function.
          *
          * @throw KError on any error. No exception indicates success.
          */
-        void execute()
-        throw (KError);
+        void execute();
 
     protected:
         
@@ -68,9 +65,8 @@ class FindKernel : public Subcommand {
          * @exception KError if opening of @p kernelImage fails or reading
          *            of the kernel configuration of @p kernelImage fails
          */
-        bool suitableForKdump(const std::string &kernelImage, bool strict)
-        throw (KError);
-        
+        bool suitableForKdump(const std::string &kernelImage, bool strict);
+
         /**
          * Checks if the given kernel image is a kdump kernel. Currently
          * only name matching is done.
@@ -79,8 +75,7 @@ class FindKernel : public Subcommand {
          * @return @c true if the image is a kernel image, @c false otherwise
          * @exception KError on any error
          */
-        bool isKdumpKernel(const KString &kernelimage)
-        throw (KError);
+        bool isKdumpKernel(const KString &kernelimage);
 
         /**
          * Finds a kernel image that fits to the specified kernel version.
@@ -91,9 +86,8 @@ class FindKernel : public Subcommand {
          *         image
          * @exception KError on any error
          */
-        std::string findForVersion(const std::string &kernelver)
-        throw (KError);
-        
+        std::string findForVersion(const std::string &kernelver);
+
         /**
          * Automatically finds a suitable kdump kernel. See kdump(5) for
          * documentation which kernel is taken.
@@ -101,17 +95,15 @@ class FindKernel : public Subcommand {
          * @return the full path to the kernel image
          * @exception KError on any error
          */
-        std::string findKernelAuto()
-        throw (KError);
-        
+        std::string findKernelAuto();
+
         /**
          * Finds an initrd for the given kernel image.
          *
          * @param[in] kernelPath a full path to a kernel image
          * @return the initrd or an empty string if there's no initrd
          */
-        std::string findInitrd(const FilePath &kernelPath)
-        throw ();
+        std::string findInitrd(const FilePath &kernelPath);
 
     private:
         bool m_checkRelocatable;

@@ -36,7 +36,6 @@ using std::memcpy;
 
 Socket::Socket(const std::string &address, const std::string &service,
                Socket::SocketType socketType, Socket::Family family)
-    throw ()
     : m_currentFd(-1), m_service(service),
       m_socketType(socketType), m_family(family)
 {
@@ -49,7 +48,6 @@ Socket::Socket(const std::string &address, const std::string &service,
 // -----------------------------------------------------------------------------
 Socket::Socket(const std::string &address, int port,
                Socket::SocketType socketType, Socket::Family family)
-    throw ()
     : m_currentFd(-1), m_socketType(socketType), m_family(family)
 {
     Debug::debug()->trace("Socket(%s, %d, %d, %d)",
@@ -64,7 +62,6 @@ Socket::Socket(const std::string &address, int port,
 
 // -----------------------------------------------------------------------------
 Socket::~Socket()
-    throw ()
 {
     Debug::debug()->trace("Socket::~Socket()");
     close();
@@ -72,7 +69,6 @@ Socket::~Socket()
 
 // -----------------------------------------------------------------------------
 void Socket::setHostname(const std::string &address)
-    throw ()
 {
     // Handle literal IPv6 addresses enclosed in brackets
     std::string::size_type addrlen = address.length();
@@ -113,7 +109,6 @@ static int systemSocketType(enum Socket::SocketType socketType)
 
 // -----------------------------------------------------------------------------
 int Socket::connect()
-    throw (KError)
 {
     struct addrinfo hints, *res, *aip;
     int n;
@@ -157,7 +152,6 @@ int Socket::connect()
 
 // -----------------------------------------------------------------------------
 void Socket::close()
-    throw ()
 {
     Debug::debug()->trace("Socket::close(): m_currentFd=%d", m_currentFd);
 
@@ -169,7 +163,6 @@ void Socket::close()
 
 /* -------------------------------------------------------------------------- */
 int Socket::getCurrentFd() const
-    throw ()
 {
     return m_currentFd;
 }

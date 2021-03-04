@@ -35,8 +35,7 @@ class Util {
         /**
          * Returns the architecture.
          */
-        static std::string getArch()
-        throw (KError);
+        static std::string getArch();
 
         /**
          * Returns the kernel release number (uname -r) of the kernel that
@@ -44,14 +43,12 @@ class Util {
          *
          * @return the kernel release
          */
-        static std::string getKernelRelease()
-        throw (KError);
+        static std::string getKernelRelease();
 
         /**
          * Checks if the given architecture is x86.
          */
-        static bool isX86(const std::string &arch)
-        throw ();
+        static bool isX86(const std::string &arch);
 
         /**
          * Checks if the specified file is a gzip compressed file.
@@ -60,8 +57,7 @@ class Util {
          * @return @c true if the file has the gzip header, @c false otherwise
          * @exception KError if opening the file failed
          */
-        static bool isGzipFile(int fd)
-        throw (KError);
+        static bool isGzipFile(int fd);
 
         /**
          * Checks if the specified file is a gzip compressed file.
@@ -70,8 +66,7 @@ class Util {
          * @return @c true if the file has the gzip header, @c false otherwise
          * @exception KError if opening the file failed
          */
-        static bool isGzipFile(const std::string &file)
-        throw (KError);
+        static bool isGzipFile(const std::string &file);
 
         /**
          * Checks if @p filename is an ELF file.
@@ -80,8 +75,7 @@ class Util {
          * @return @c true if it's an ELF file, @c false otherwise
          * @exception KError if opening the file failed
          */
-        static bool isElfFile(const std::string &filename)
-        throw (KError);
+        static bool isElfFile(const std::string &filename);
 
         /**
          * Checks if @p filename is an ELF file.
@@ -90,8 +84,7 @@ class Util {
          * @return @c true if it's an ELF file, @c false otherwise
          * @exception KError if opening the file failed
          */
-        static bool isElfFile(int fd)
-        throw (KError);
+        static bool isElfFile(int fd);
 
         /**
          * Checks if @p filename is a Xen core dump.
@@ -100,8 +93,7 @@ class Util {
          * @return @c true if it's a Xen core dump, @c false otherwise
          * @exception KError if opening the file failed
          */
-        static bool isXenCoreDump(const std::string &filename)
-        throw (KError);
+        static bool isXenCoreDump(const std::string &filename);
 
         /**
          * Checks if @p filename is a Xen core dump.
@@ -110,23 +102,20 @@ class Util {
          * @return @c true if it's a Xen core dump, @c false otherwise
          * @exception KError if opening the file failed
          */
-        static bool isXenCoreDump(int fd)
-        throw (KError);
+        static bool isXenCoreDump(int fd);
 
         /**
          * Frees a vector.
          */
         template <typename T>
-        static void freev(T **vector)
-        throw ();
+        static void freev(T **vector);
 
         /**
          * Makes the current process a daemon running in the background.
          *
          * @exception KError if something goes wrong
          */
-        static void daemonize()
-        throw (KError);
+        static void daemonize();
 
         /**
          * Checks if the buffer is entirely zero.
@@ -135,8 +124,7 @@ class Util {
          * @param[in] size the size of the buffer
          * @return @c true if all bytes are zero, @c false if not
          */
-        static bool isZero(const char *buffer, size_t size)
-        throw ();
+        static bool isZero(const char *buffer, size_t size);
 
         /**
          * Returns the system hostname and domainname in the form
@@ -145,8 +133,7 @@ class Util {
          * @return the hostname.domainname pair
          * @exception KError if providing the hostname and domainname failed
          */
-        static std::string getHostDomain()
-        throw (KError);
+        static std::string getHostDomain();
 
         /**
          * Finds a byte sequence in another byte sequence.
@@ -161,8 +148,7 @@ class Util {
         static ssize_t findBytes(const unsigned char *haystack,
 				 size_t haystack_len,
 				 const unsigned char *needle,
-				 size_t needle_len)
-        throw ();
+				 size_t needle_len);
 
         /**
          * Retrieves the environment variables @p env.
@@ -178,15 +164,13 @@ class Util {
          */
         static std::string getenv(const std::string &env,
                                   const std::string &defaultValue,
-                                  bool *isDefault = NULL)
-        throw ();
+                                  bool *isDefault = NULL);
 };
 
 //}}}
 //{{{ Template implementations -------------------------------------------------
 template <typename T>
 void Util::freev(T **vector)
-    throw ()
 {
     T **p = vector;
 

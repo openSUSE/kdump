@@ -41,7 +41,6 @@ using std::endl;
 
 /* -------------------------------------------------------------------------- */
 SSHTransfer::SSHTransfer(const RootDirURLVector &urlv)
-    throw (KError)
     : URLTransfer(urlv)
 {
     if (urlv.size() > 1)
@@ -70,7 +69,6 @@ SSHTransfer::SSHTransfer(const RootDirURLVector &urlv)
 
 /* -------------------------------------------------------------------------- */
 SSHTransfer::~SSHTransfer()
-    throw ()
 {
     Debug::debug()->trace("SSHTransfer::~SSHTransfer()");
 }
@@ -79,7 +77,6 @@ SSHTransfer::~SSHTransfer()
 void SSHTransfer::perform(DataProvider *dataprovider,
 			  const StringVector &target_files,
 			  bool *directSave)
-    throw (KError)
 {
     Debug::debug()->trace("SSHTransfer::perform(%p, [ \"%s\"%s ])",
 	dataprovider, target_files.front().c_str(),
@@ -170,7 +167,6 @@ StringVector SSHTransfer::makeArgs(std::string const &remote)
 
 /* -------------------------------------------------------------------------- */
 string KSFTPErrorCode::message(void) const
-    throw ()
 {
     const char *msg;
 
@@ -355,7 +351,6 @@ ByteVector const &SFTPPacket::update(void)
 
 /* -------------------------------------------------------------------------- */
 SFTPTransfer::SFTPTransfer(const RootDirURLVector &urlv)
-    throw (KError)
     : URLTransfer(urlv)
 {
     if (urlv.size() > 1)
@@ -395,7 +390,6 @@ SFTPTransfer::SFTPTransfer(const RootDirURLVector &urlv)
 
 /* -------------------------------------------------------------------------- */
 SFTPTransfer::~SFTPTransfer()
-    throw ()
 {
     Debug::debug()->trace("SFTPTransfer::~SFTPTransfer()");
 
@@ -414,7 +408,6 @@ SFTPTransfer::~SFTPTransfer()
 void SFTPTransfer::perform(DataProvider *dataprovider,
                            const StringVector &target_files,
                            bool *directSave)
-    throw (KError)
 {
     Debug::debug()->trace("SFTPTransfer::perform(%p, [ \"%s\"%s ])",
 	dataprovider, target_files.front().c_str(),

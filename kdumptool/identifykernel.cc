@@ -35,7 +35,6 @@ using std::endl;
 
 // -----------------------------------------------------------------------------
 IdentifyKernel::IdentifyKernel()
-    throw ()
     : m_checkRelocatable(false), m_checkType(false)
 {
     m_options.push_back(new FlagOption("relocatable", 'r', &m_checkRelocatable,
@@ -46,14 +45,12 @@ IdentifyKernel::IdentifyKernel()
 
 // -----------------------------------------------------------------------------
 const char *IdentifyKernel::getName() const
-    throw ()
 {
     return "identify_kernel";
 }
 
 // -----------------------------------------------------------------------------
 void IdentifyKernel::parseArgs(const StringVector &args)
-    throw (KError)
 {
     Debug::debug()->trace(__FUNCTION__);
 
@@ -71,7 +68,6 @@ void IdentifyKernel::parseArgs(const StringVector &args)
 
 // -----------------------------------------------------------------------------
 void IdentifyKernel::execute()
-    throw (KError)
 {
     Debug::debug()->trace(__FUNCTION__);
 

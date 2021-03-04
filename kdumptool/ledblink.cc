@@ -63,7 +63,6 @@ void led_exit_handler(int signo, void *data)
 
 // -----------------------------------------------------------------------------
 LedBlink::LedBlink()
-    throw ()
     : m_interval(500)
 {
     m_options.push_back(new IntOption("interval", 'i', &m_interval,
@@ -72,14 +71,12 @@ LedBlink::LedBlink()
 
 // -----------------------------------------------------------------------------
 const char *LedBlink::getName() const
-    throw ()
 {
     return "ledblink";
 }
 
 // -----------------------------------------------------------------------------
 void LedBlink::execute()
-    throw (KError)
 {
     Debug::debug()->trace(__FUNCTION__);
     Debug::debug()->dbg("interval=%d", m_interval);
