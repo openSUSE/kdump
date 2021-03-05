@@ -30,6 +30,44 @@ using std::cout;
 using std::endl;
 using std::string;
 
+//{{{ TestRun -----------------------------------------------------------------
+
+class TestRun {
+    int m_result;
+
+public:
+    TestRun()
+        : m_result(EXIT_SUCCESS)
+    { }
+
+    int result(void)
+    { return m_result; }
+
+    template<typename check_fn>
+    void check(const char *what, check_fn fn);
+};
+
+// -----------------------------------------------------------------------------
+template<typename check_fn>
+void TestRun::check(const char *what, check_fn fn)
+{
+    cout << what << ": ";
+    try {
+        if (fn()) {
+            cout << "OK";
+        } else {
+            cout << "FAILED";
+            m_result = EXIT_FAILURE;
+        }
+        cout << endl;
+    } catch (KError &e) {
+        cout << "EXCEPTION" << endl;
+        cerr << e.what() << endl;
+        m_result = EXIT_FAILURE;
+    }
+}
+//}}}
+
 // -----------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
@@ -37,83 +75,90 @@ int main(int argc, char *argv[])
 
     Debug::debug()->setStderrLevel(Debug::DL_TRACE);
     try {
-        KString empty;
-        KString s("prefixed and suffixed");
-        KString s_copy(s);
+        TestRun test;
+
+        // prepare string constants
+        KString const empty;
+        KString const s("prefixed and suffixed");
+        KString const s_copy(s);
         KString s_append(s);
         s_append.append(" and something");
         KString s_prepend(s);
         s_prepend.insert(0, "something and ");
 
-        if (!empty.startsWith("")) {
-            cerr << "Empty string does not start with an empty string" << endl;
-            result = EXIT_FAILURE;
-        }
+        // KString::endsWith()
+        test.check("Empty string starts with an empty string",
+                   [&empty]() {
+                       return empty.startsWith("");
+                   });
 
-        if (empty.startsWith("bogus")) {
-            cerr << "Empty string starts with a bogus string" << endl;
-            result = EXIT_FAILURE;
-        }
+        test.check("Empty string does not start with a bogus string",
+                   [&empty]() {
+                       return !empty.startsWith("bogus");
+                   });
 
-        if (!s.startsWith("prefix")) {
-            cerr << "Prefix not recognized" << endl;
-            result = EXIT_FAILURE;
-        }
+        test.check("Prefix string matches",
+                   [&s]() {
+                       return s.startsWith("prefix");
+                   });
 
-        if (s.startsWith("bogus")) {
-            cerr << "Prefix matched incorrectly" << endl;
-            result = EXIT_FAILURE;
-        }
+        test.check("Bogus prefix does not match",
+                   [&s]() {
+                       return !s.startsWith("bogus");
+                   });
 
-        if (!s.startsWith(empty)) {
-            cerr << "Empty string is not a prefix" << endl;
-            result = EXIT_FAILURE;
-        }
+        test.check("Empty string is a prefix",
+                   [&s, &empty]() {
+                       return s.startsWith(empty);
+                   });
 
-        if (!s.startsWith(s_copy)) {
-            cerr << "Full match failed as prefix" << endl;
-            result = EXIT_FAILURE;
-        }
+        test.check("Identical string is a prefix",
+                   [&s, &s_copy]() {
+                       return s.startsWith(s_copy);
+                   });
 
-        if (s.startsWith(s_append)) {
-            cerr << "Shorter string starts with longer string" << endl;
-            result = EXIT_FAILURE;
-        }
+        test.check("String does not start with a longer string",
+                   [&s, &s_append]() {
+                       return !s.startsWith(s_append);
+                   });
 
-        if (!empty.endsWith("")) {
-            cerr << "Empty string does not end with an empty string" << endl;
-            result = EXIT_FAILURE;
-        }
+        // KString::endsWith()
+        test.check("Empty string ends with an empty string",
+                   [&empty]() {
+                       return empty.endsWith("");
+                   });
 
-        if (empty.endsWith("bogus")) {
-            cerr << "Empty string starts with a bogus string" << endl;
-            result = EXIT_FAILURE;
-        }
+        test.check("Empty string does not end with a bogus string",
+                   [&empty]() {
+                       return !empty.endsWith("bogus");
+                   });
 
-        if (!s.endsWith("suffixed")) {
-            cerr << "Suffix not recognized" << endl;
-            result = EXIT_FAILURE;
-        }
+        test.check("Suffix string matches",
+                   [&s]() {
+                       return s.endsWith("suffixed");
+                   });
 
-        if (s.endsWith("bogus")) {
-            cerr << "Suffix matched incorrectly" << endl;
-            result = EXIT_FAILURE;
-        }
+        test.check("Bogus suffix does not match",
+                   [&s]() {
+                       return !s.endsWith("bogus");
+                   });
 
-        if (!s.endsWith(empty)) {
-            cerr << "Empty string is not a suffix" << endl;
-            result = EXIT_FAILURE;
-        }
+        test.check("Empty string is a suffix",
+                   [&s, &empty]() {
+                       return s.endsWith(empty);
+                   });
 
-        if (!s.endsWith(s_copy)) {
-            cerr << "Full match failed as suffix" << endl;
-            result = EXIT_FAILURE;
-        }
+        test.check("Identical string is a prefix",
+                   [&s, &s_copy]() {
+                       return s.endsWith(s_copy);
+                   });
 
-        if (s.endsWith(s_prepend)) {
-            cerr << "Shorter string ends with longer string" << endl;
-            result = EXIT_FAILURE;
-        }
+        test.check("String does not end with a longer string",
+                   [&s, &s_prepend]() {
+                       return !s.endsWith(s_prepend);
+                   });
+
+        result = test.result();
 
     } catch (const std::exception &ex) {
         cerr << "Fatal exception: " << ex.what() << endl;
