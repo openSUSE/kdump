@@ -80,14 +80,6 @@ class Stringutil {
         static ByteVector str2bytes(const std::string &string);
 
         /**
-         * Splits lines.
-         *
-         * @param[in] string a multiline string
-         * @return the lines (with "\n" removed)
-         */
-        static StringVector splitlines(const std::string &string);
-
-        /**
          * Formats the current time as specified in @p formatstring.
          *
          * @param[in] formatstring strftime(3)-like format string

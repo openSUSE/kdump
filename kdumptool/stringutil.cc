@@ -64,20 +64,6 @@ ByteVector Stringutil::str2bytes(const string &string)
 }
 
 // -----------------------------------------------------------------------------
-StringVector Stringutil::splitlines(const string &str)
-{
-    StringVector ret;
-    stringstream ss;
-    ss << str;
-
-    string s;
-    while (getline(ss, s))
-        ret.push_back(s);
-
-    return ret;
-}
-
-// -----------------------------------------------------------------------------
 string Stringutil::formatUnixTime(const char *formatstring, time_t value)
 {
     char buffer[BUFSIZ];
