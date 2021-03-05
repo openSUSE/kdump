@@ -80,14 +80,6 @@ class Stringutil {
         static ByteVector str2bytes(const std::string &string);
 
         /**
-         * Converts a byte vector to a string.
-         *
-         * @param[in] bytes the byte vector
-         * @return the string
-         */
-        static std::string bytes2str(const ByteVector &bytes);
-
-        /**
          * Splits lines.
          *
          * @param[in] string a multiline string
@@ -149,6 +141,15 @@ class KString : public std::string {
             KString(InputIterator first, InputIterator last)
         : std::string(first, last)
         {}
+
+        /**
+         * Construct a KString from a byte vector
+         *
+         * @param[in] bytes the byte vector
+         */
+        KString(const ByteVector& bytes)
+            : std::string(bytes.begin(), bytes.end())
+        { }
 
         /**
          * Checks if the string is an integer number ('+' or '-' is allowed).

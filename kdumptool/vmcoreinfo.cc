@@ -70,10 +70,7 @@ void Vmcoreinfo::readFromELF(const char *elf_file)
 {
     Debug::debug()->trace("Vmcoreinfo::readFromELF(%s)", elf_file);
 
-    ByteVector vmcoreinfo = readElfNote(elf_file);
-
-    StringVector lines = Stringutil::splitlines(
-        Stringutil::bytes2str(vmcoreinfo));
+    StringVector lines = KString(readElfNote(elf_file)).split('\n');
 
     for (StringVector::const_iterator it = lines.begin();
             it != lines.end(); ++it) {

@@ -63,12 +63,6 @@ ByteVector Stringutil::str2bytes(const string &string)
     return ret;
 }
 
-/* -------------------------------------------------------------------------- */
-string Stringutil::bytes2str(const ByteVector &bytes)
-{
-    return string(bytes.begin(), bytes.end());
-}
-
 // -----------------------------------------------------------------------------
 StringVector Stringutil::splitlines(const string &str)
 {
