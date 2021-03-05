@@ -48,7 +48,6 @@ using std::list;
 using std::cout;
 using std::cerr;
 using std::endl;
-using std::auto_ptr;
 using std::istringstream;
 using std::ostringstream;
 using std::ifstream;

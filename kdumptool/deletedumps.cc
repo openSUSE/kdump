@@ -41,7 +41,6 @@
 using std::string;
 using std::cout;
 using std::endl;
-using std::auto_ptr;
 using std::stringstream;
 using std::cerr;
 using std::back_inserter;

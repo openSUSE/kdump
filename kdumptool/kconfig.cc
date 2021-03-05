@@ -43,7 +43,6 @@ using std::ifstream;
 using std::stringstream;
 using std::ostream;
 using std::memset;
-using std::auto_ptr;
 using std::memmove;
 
 //{{{ KconfigValue -------------------------------------------------------------

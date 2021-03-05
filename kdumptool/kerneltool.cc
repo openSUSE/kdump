@@ -42,7 +42,7 @@
 
 using std::string;
 using std::memset;
-using std::auto_ptr;
+using std::unique_ptr;
 using std::stringstream;
 using std::list;
 
@@ -499,7 +499,7 @@ string KernelTool::extractFromIKconfigBuffer(const char *buffer, size_t buflen)
         buffer, buflen);
 
     ssize_t uncompressed_len = buflen * 20;
-    auto_ptr<Bytef> uncompressed(new Bytef[uncompressed_len]);
+    unique_ptr<Bytef[]> uncompressed(new Bytef[uncompressed_len]);
 
     z_stream stream;
     stream.next_in = (Bytef *)buffer;
@@ -589,7 +589,7 @@ string KernelTool::extractKernelConfigELF() const
         throw KError("gzseek() failed.");
     }
     ssize_t kernelconfig_len = end_offset - begin_offset;
-    auto_ptr<char> kernelconfig(new char[kernelconfig_len]);
+    unique_ptr<char[]> kernelconfig(new char[kernelconfig_len]);
 
     chars_read = gzread(fp, kernelconfig.get(), kernelconfig_len);
     gzclose(fp);
@@ -686,7 +686,7 @@ string KernelTool::extractKernelConfigbzImage() const
         throw KError("gzseek() failed.");
     }
     ssize_t kernelconfig_len = end_offset - begin_offset;
-    auto_ptr<char> kernelconfig(new char[kernelconfig_len]);
+    unique_ptr<char[]> kernelconfig(new char[kernelconfig_len]);
 
     chars_read = gzread(fp, kernelconfig.get(), kernelconfig_len);
     gzclose(fp);
