@@ -24,6 +24,7 @@
 #include <iomanip>
 
 #include "global.h"
+#include "stringvector.h"
 
 #define ISO_DATETIME "%Y-%m-%d-%H:%M"
 

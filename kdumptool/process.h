@@ -25,6 +25,7 @@
 #include "global.h"
 #include "optionparser.h"
 #include "subcommand.h"
+#include "stringvector.h"
 
 //{{{ SubProcess ---------------------------------------------------------------
 

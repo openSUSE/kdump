@@ -28,6 +28,7 @@
 #include "stringutil.h"
 #include "fileutil.h"
 #include "rootdirurl.h"
+#include "stringvector.h"
 
 class DataProvider;
 

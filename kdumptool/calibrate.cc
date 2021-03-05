@@ -34,6 +34,7 @@
 #include "mounts.h"
 #include "process.h"
 #include "rootdirurl.h"
+#include "stringvector.h"
 
 // All calculations are in KiB
 

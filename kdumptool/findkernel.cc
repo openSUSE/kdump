@@ -33,6 +33,7 @@
 #include "fileutil.h"
 #include "stringutil.h"
 #include "kconfig.h"
+#include "stringvector.h"
 
 using std::string;
 using std::cout;

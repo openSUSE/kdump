@@ -40,6 +40,7 @@
 #include "progress.h"
 #include "vmcoreinfo.h"
 #include "stringutil.h"
+#include "stringvector.h"
 
 using std::string;
 using std::cout;

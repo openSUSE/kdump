@@ -26,6 +26,7 @@
 #include "stringutil.h"
 #include "process.h"
 #include "quotedstring.h"
+#include "stringvector.h"
 
 using std::string;
 using std::ifstream;

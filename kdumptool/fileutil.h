@@ -21,6 +21,7 @@
 
 #include "global.h"
 #include "stringutil.h"
+#include "stringvector.h"
 
 //{{{ FileUtil -----------------------------------------------------------------
 

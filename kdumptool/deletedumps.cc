@@ -37,6 +37,7 @@
 #include "stringutil.h"
 #include "vmcoreinfo.h"
 #include "deletedumps.h"
+#include "stringvector.h"
 
 using std::string;
 using std::cout;

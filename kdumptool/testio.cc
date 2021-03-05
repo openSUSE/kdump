@@ -29,6 +29,7 @@
 #include "stringutil.h"
 #include "process.h"
 #include "debug.h"
+#include "stringvector.h"
 
 using std::cerr;
 using std::cout;

@@ -24,6 +24,7 @@
 
 #include "global.h"
 #include "rootdirurl.h"
+#include "stringvector.h"
 
 class Progress;
 

@@ -22,7 +22,7 @@
 #include <vector>
 #include <memory>
 
-#include "global.h"
+#include "stringvector.h"
 
 //{{{ CharV --------------------------------------------------------------------
 

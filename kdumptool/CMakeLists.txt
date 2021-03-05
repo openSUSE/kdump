@@ -40,6 +40,7 @@ SET(COMMON_SRC
     charv.cc
     stringutil.h
     stringutil.cc
+    stringvector.h
     global.cc
     global.h
     debug.cc

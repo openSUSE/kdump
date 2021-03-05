@@ -42,6 +42,7 @@
 #include "email.h"
 #include "routable.h"
 #include "calibrate.h"
+#include "stringvector.h"
 
 using std::string;
 using std::list;

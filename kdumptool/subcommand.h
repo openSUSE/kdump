@@ -21,6 +21,7 @@
 
 #include "global.h"
 #include "option.h"
+#include "stringvector.h"
 
 //{{{ Subcommand ---------------------------------------------------------------
 

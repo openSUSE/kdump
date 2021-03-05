@@ -24,6 +24,7 @@
 #endif // HAVE_LIBESMTP
 
 #include "global.h"
+#include "stringvector.h"
 
 #if HAVE_LIBESMTP
 

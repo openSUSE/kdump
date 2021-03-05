@@ -24,6 +24,7 @@
 #include "kdumptool.h"
 #include "process.h"
 #include "debug.h"
+#include "stringvector.h"
 
 using std::cout;
 using std::cerr;

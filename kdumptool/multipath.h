@@ -20,6 +20,7 @@
 #define MULTIPATH_H
 
 #include "subcommand.h"
+#include "stringvector.h"
 
 //{{{ MultipathConf -----------------------------------------------------------
 

@@ -45,6 +45,7 @@
 #include "debug.h"
 #include "mounts.h"
 #include "process.h"
+#include "stringvector.h"
 
 using std::string;
 using std::ifstream;
