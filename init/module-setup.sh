@@ -175,8 +175,23 @@ kdump_cmdline_zfcp() {
     } | sort -u
 }
 
+kdump_ip_set_explicitly() {
+    local _opt
+    for _opt in $KDUMP_COMMANDLINE $KDUMP_COMMANDLINE_APPEND
+    do
+        if [ "${_opt%%=*}" = "ip" -a \
+             "${_opt#*=}" != "$_opt" ]
+        then
+            return 0
+        fi
+    done
+    return 1
+}
+
 kdump_cmdline_ip() {
     [ "$kdump_neednet" = y ] || return 0
+
+    kdump_ip_set_explicitly && return 0
 
     local _cfg="${KDUMP_NETCONFIG%:force}"
     if [ "$_cfg" = "auto" ] ; then

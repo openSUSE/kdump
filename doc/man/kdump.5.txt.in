@@ -580,8 +580,12 @@ Auto-detection cannot be used to set up dual-stack (IPv4 and IPv6) hosts
 because of limitations in the implementation of the _ip=_ initrd command line
 option.
 
-You can set KDUMP_NETCONFIG to "" if you want no network in initrd, i.e. you use
-disk dumping.
+*Note:* If an _ip=_ option is found in KDUMP_COMMANDLINE or
+KDUMP_COMMANDLINE_APPEND, kdump does not add any other _ip=_ or _ifname=_
+options. In other words, the value of KDUMP_NETCONFIG is effectively ignored.
+
+Setting KDUMP_NETCONFIG to "" disables network completely. In this case, kdump
+does not even add the _network_ dracut module to the initrd.
 
 Default: "auto"
 
