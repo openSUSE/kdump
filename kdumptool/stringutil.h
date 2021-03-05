@@ -71,18 +71,6 @@ class Stringutil {
         static long long string2llong(const std::string &string);
 
         /**
-         * Converts an C++ string vector to an C string array (dynamically
-         * allocated)
-         *
-         * @param[in] the string vector
-         * @return an dynamically allocated string, which should be freed
-         *         with Util::freev()
-         *
-         * @throw KError if memory allocation failed
-         */
-        static char ** stringv2charv(const StringVector &strv);
-
-        /**
          * Converts a string to a byte vector.
          *
          * @param[in] string the string

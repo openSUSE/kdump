@@ -29,6 +29,7 @@
 #include "process.h"
 #include "global.h"
 #include "stringutil.h"
+#include "charv.h"
 #include "util.h"
 #include "debug.h"
 
@@ -223,13 +224,11 @@ void SubProcess::spawn(const string &name, const StringVector &args)
 	}
 
 	// child code, execute the process
-	StringVector fullV = args;
+	CharV fullV = args;
 	fullV.insert(fullV.begin(), name);
-	char **vector = Stringutil::stringv2charv(fullV);
+	char **vector = fullV.data();
 
 	int ret = execvp(name.c_str(), vector);
-	Util::freev(vector);
-
 	if (ret < 0)
 	    throw KSystemError("Execution of '" + name + "' failed.", errno);
     }

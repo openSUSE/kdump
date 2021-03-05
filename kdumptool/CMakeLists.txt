@@ -36,6 +36,8 @@ SET(COMMON_SRC
     process.cc
     util.h
     util.cc
+    charv.h
+    charv.cc
     stringutil.h
     stringutil.cc
     global.cc

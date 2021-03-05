@@ -105,12 +105,6 @@ class Util {
         static bool isXenCoreDump(int fd);
 
         /**
-         * Frees a vector.
-         */
-        template <typename T>
-        static void freev(T **vector);
-
-        /**
          * Makes the current process a daemon running in the background.
          *
          * @exception KError if something goes wrong
@@ -166,21 +160,6 @@ class Util {
                                   const std::string &defaultValue,
                                   bool *isDefault = NULL);
 };
-
-//}}}
-//{{{ Template implementations -------------------------------------------------
-template <typename T>
-void Util::freev(T **vector)
-{
-    T **p = vector;
-
-    while (*p) {
-        delete[] *p;
-        p++;
-    }
-
-    delete[] vector;
-}
 
 //}}}
 

@@ -19,7 +19,6 @@
 #include <string>
 #include <sstream>
 #include <cerrno>
-#include <cstring>
 #include <sstream>
 #include <iomanip>
 #include <ctime>
@@ -30,7 +29,6 @@
 
 using std::string;
 using std::stringstream;
-using std::strcpy;
 
 //{{{ Stringutil ---------------------------------------------------------------
 
@@ -51,31 +49,6 @@ long long Stringutil::string2llong(const std::string &string)
     stringstream ss;
     ss << string;
     ss >> ret;
-    return ret;
-}
-
-// -----------------------------------------------------------------------------
-char ** Stringutil::stringv2charv(const StringVector &strv)
-{
-    char **ret;
-
-    // allocate the outer array
-    ret = new char *[strv.size() + 1];
-    if (!ret)
-        throw KSystemError("Memory allocation failed", errno);
-    ret[strv.size()] = NULL;
-
-    // fill the inner stuff
-    int i = 0;
-    for (StringVector::const_iterator it = strv.begin();
-            it != strv.end();
-            ++it) {
-        // don't use strdup() to avoid mixing of new and malloc
-        ret[i] = new char[(*it).size() + 1];
-        strcpy(ret[i], (*it).c_str());
-        i++;
-    }
-
     return ret;
 }
 
