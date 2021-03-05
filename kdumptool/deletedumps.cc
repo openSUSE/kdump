@@ -119,7 +119,7 @@ void DeleteDumps::delete_one(const RootDirURL &url, int oldDumps)
     Debug::debug()->dbg("Deleting the oldest %d entries.", deleteItems);
 
     StringVector toDelete;
-    __gnu_cxx::copy_n(contents.begin(), deleteItems, back_inserter(toDelete));
+    std::copy_n(contents.begin(), deleteItems, back_inserter(toDelete));
 
     for (StringVector::const_iterator it = toDelete.begin();
             it != toDelete.end(); ++it) {
