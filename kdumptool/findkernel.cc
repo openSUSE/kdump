@@ -219,7 +219,7 @@ string FindKernel::findKernelAuto()
     // 1. Use BASEVERSION-kdump
     StringVector elements = Stringutil::split(runningkernel, '-');
     elements[elements.size()-1] = "kdump";
-    string testkernel = Stringutil::join(elements, '-');
+    string testkernel = elements.join('-');
     Debug::debug()->dbg("---------------");
     Debug::debug()->dbg("findKernelAuto: Trying %s", testkernel.c_str());
     string testkernelimage = findForVersion(testkernel);
@@ -248,7 +248,7 @@ string FindKernel::findKernelAuto()
     // 4. Use BASEVERSION-default
     elements = Stringutil::split(runningkernel, '-');
     elements[elements.size()-1] = "default";
-    testkernel = Stringutil::join(elements, '-');
+    testkernel = elements.join('-');
     Debug::debug()->dbg("---------------");
     Debug::debug()->dbg("findKernelAuto: Trying %s", testkernel.c_str());
     testkernelimage = findForVersion(testkernel);
@@ -277,7 +277,7 @@ string FindKernel::findKernelAuto()
     // 7. Use BASEVERSION-default unstrict
     elements = Stringutil::split(runningkernel, '-');
     elements[elements.size()-1] = "default";
-    testkernel = Stringutil::join(elements, '-');
+    testkernel = elements.join('-');
     Debug::debug()->dbg("---------------");
     Debug::debug()->dbg("findKernelAuto: Trying %s", testkernel.c_str());
     testkernelimage = findForVersion(testkernel);

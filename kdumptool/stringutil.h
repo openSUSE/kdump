@@ -117,16 +117,6 @@ class Stringutil {
         static StringVector split(const std::string &string, char split);
 
         /**
-         * Joins a string vector into a string.
-         *
-         * @param[in] stringvector a vector of strings
-         * @param[in] joinchar the character between the elements
-         * @return the resulting string
-         */
-        static std::string join(const StringVector &stringvector,
-                                char joinchar);
-
-        /**
          * Formats the current time as specified in @p formatstring.
          *
          * @param[in] formatstring strftime(3)-like format string

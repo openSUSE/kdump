@@ -119,25 +119,6 @@ StringVector Stringutil::split(const string &string, char split)
 }
 
 // -----------------------------------------------------------------------------
-string Stringutil::join(const StringVector &stringvector, char joinchar)
-{
-    string result;
-
-    if (stringvector.size() == 0) {
-        return "";
-    }
-
-    for (size_t i = 0; i < stringvector.size(); ++i) {
-        if (i != 0) {
-            result += joinchar;
-        }
-        result += stringvector[i];
-    }
-
-    return result;
-}
-
-// -----------------------------------------------------------------------------
 string Stringutil::formatUnixTime(const char *formatstring, time_t value)
 {
     char buffer[BUFSIZ];

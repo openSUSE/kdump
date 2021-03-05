@@ -79,7 +79,37 @@ class StringVector : public std::vector<std::string>
                      const allocator_type& alloc)
                 :  std::vector<std::string>(il, alloc)
         { }
+
+        /**
+         * Join elements into a single string.
+         *
+         * @param[in] joiner element separator
+         * @return the resulting string
+         */
+        template <typename T>
+            std::string join(T joiner) const;
 };
+
+//}}}
+//{{{ StringVector implementation ----------------------------------------------
+
+// -----------------------------------------------------------------------------
+template <typename T>
+std::string StringVector::join(T joiner) const
+{
+    std::string result;
+    const_iterator it = begin();
+
+    if (it != end()) {
+        result = *it;
+        while (++it != end()) {
+            result += joiner;
+            result += *it;
+        }
+    }
+
+    return result;
+}
 
 //}}}
 
