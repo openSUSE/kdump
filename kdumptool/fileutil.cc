@@ -56,7 +56,7 @@ void FileUtil::nfsmount(const string &host,
 {
     Debug::debug()->trace("FileUtil::nfsmount(%s, %s, %s, %s)",
         host.c_str(), dir.c_str(), mountpoint.c_str(),
-        Stringutil::vector2string(options).c_str());
+        options.join(' ').c_str());
 
     mount(host + ":" + dir, mountpoint, "nfs", options);
 
@@ -70,7 +70,7 @@ void FileUtil::mount(const std::string &device, const std::string &mountpoint,
 
     Debug::debug()->trace("FileUtil::mount(%s %s, %s, %s)",
         device.c_str(), mountpoint.c_str(), fs.c_str(),
-        Stringutil::vector2string(options).c_str());
+        options.join(' ').c_str());
 
     for (StringVector::const_iterator it = options.begin();
             it != options.end(); ++it) {

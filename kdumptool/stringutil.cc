@@ -70,21 +70,6 @@ string Stringutil::bytes2str(const ByteVector &bytes)
 }
 
 // -----------------------------------------------------------------------------
-string Stringutil::vector2string(const StringVector &vector,
-                                 const char *delimiter)
-{
-    string ret;
-
-    for (size_t i = 0; i < vector.size(); i++) {
-        ret += vector[i];
-        if (i != vector.size() - 1)
-            ret += delimiter;
-    }
-
-    return ret;
-}
-
-// -----------------------------------------------------------------------------
 StringVector Stringutil::splitlines(const string &str)
 {
     StringVector ret;

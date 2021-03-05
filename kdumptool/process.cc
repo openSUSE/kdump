@@ -158,7 +158,7 @@ void SubProcess::_closeChildFDs(void)
 void SubProcess::spawn(const string &name, const StringVector &args)
 {
     Debug::debug()->trace("SubProcess::spawn(%s, %s)",
-        name.c_str(), Stringutil::vector2string(args, ":").c_str());
+        name.c_str(), args.join(':').c_str());
 
     //
     // setup pipes
@@ -511,7 +511,7 @@ void ProcessFilter::setStderr(std::ostream *stream)
 uint8_t ProcessFilter::execute(const string &name, const StringVector &args)
 {
     Debug::debug()->trace("ProcessFilter::execute(%s, %s)",
-        name.c_str(), Stringutil::vector2string(args, ":").c_str());
+        name.c_str(), args.join(':').c_str());
 
     std::map<int, IO*>::const_iterator it;
 

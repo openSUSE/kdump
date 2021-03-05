@@ -88,17 +88,6 @@ class Stringutil {
         static std::string bytes2str(const ByteVector &bytes);
 
         /**
-         * Converts a string vector to a string.
-         *
-         * @param[in] begin start of the sequence
-         * @param[in] end end of the sequence
-         *
-         * @return the string
-         */
-        static std::string vector2string(const StringVector &vector,
-                                         const char *delimiter = " ");
-
-        /**
          * Splits lines.
          *
          * @param[in] string a multiline string
