@@ -84,26 +84,6 @@ StringVector Stringutil::splitlines(const string &str)
 }
 
 // -----------------------------------------------------------------------------
-StringVector Stringutil::split(const string &string, char split)
-{
-    string::size_type currentstart = 0;
-    string::size_type next;
-    StringVector ret;
-
-    next = string.find(split);
-    while (next != string::npos) {
-        ret.push_back(string.substr(currentstart, next-currentstart));
-        currentstart = next+1;
-        next = string.find(split, currentstart);
-    }
-
-    // rest
-    ret.push_back(string.substr(currentstart));
-
-    return ret;
-}
-
-// -----------------------------------------------------------------------------
 string Stringutil::formatUnixTime(const char *formatstring, time_t value)
 {
     char buffer[BUFSIZ];
@@ -199,6 +179,25 @@ bool KString::endsWith(const string &part) const
     return length() >= part.length()
         ? compare(length() - part.length(), part.length(), part) == 0
         : false;
+}
+
+// -----------------------------------------------------------------------------
+StringVector KString::split(char split)
+{
+    StringVector ret;
+
+    size_type start = 0;
+    size_type next = find(split);
+    while (next != npos) {
+        ret.emplace_back(*this, start, next - start);
+        start = next + 1;
+        next = find(split, start);
+    }
+
+    // rest
+    ret.emplace_back(*this, start);
+
+    return ret;
 }
 
 // -----------------------------------------------------------------------------

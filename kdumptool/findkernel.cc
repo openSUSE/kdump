@@ -210,14 +210,14 @@ string FindKernel::findKernelAuto()
 {
     Debug::debug()->trace("FindKernel::findKernelAuto()");
 
-    string runningkernel = Util::getKernelRelease();
+    KString runningkernel = Util::getKernelRelease();
     Debug::debug()->trace("Running kernel: %s", runningkernel.c_str());
     
     // $(uname -r) == KERNELVERSION
     // KERNELVERSION := BASEVERSION + '-' + FLAVOUR
 
     // 1. Use BASEVERSION-kdump
-    StringVector elements = Stringutil::split(runningkernel, '-');
+    StringVector elements = runningkernel.split('-');
     elements[elements.size()-1] = "kdump";
     string testkernel = elements.join('-');
     Debug::debug()->dbg("---------------");
@@ -246,7 +246,7 @@ string FindKernel::findKernelAuto()
     }
 
     // 4. Use BASEVERSION-default
-    elements = Stringutil::split(runningkernel, '-');
+    elements = runningkernel.split('-');
     elements[elements.size()-1] = "default";
     testkernel = elements.join('-');
     Debug::debug()->dbg("---------------");
@@ -275,7 +275,7 @@ string FindKernel::findKernelAuto()
     }
 
     // 7. Use BASEVERSION-default unstrict
-    elements = Stringutil::split(runningkernel, '-');
+    elements = runningkernel.split('-');
     elements[elements.size()-1] = "default";
     testkernel = elements.join('-');
     Debug::debug()->dbg("---------------");

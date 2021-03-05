@@ -96,16 +96,6 @@ class Stringutil {
         static StringVector splitlines(const std::string &string);
 
         /**
-         * Splits a string.
-         *
-         * @param[in] string a string that may contain or may contain not
-         *            the split character
-         * @param[in] split the split character
-         * @return the vector of split strings
-         */
-        static StringVector split(const std::string &string, char split);
-
-        /**
          * Formats the current time as specified in @p formatstring.
          *
          * @param[in] formatstring strftime(3)-like format string
@@ -213,6 +203,14 @@ class KString : public std::string {
          * @return @c true if string ends with @p part, @c false otherwise
          */
         bool endsWith(const std::string &part) const;
+
+        /**
+         * Splits the string.
+         *
+         * @param[in] split the split character
+         * @return the vector of split strings
+         */
+        StringVector split(char split);
 
 	/**
 	 * Perform URL decoding on the string.
