@@ -36,6 +36,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+// for ioctl()
+#include <sys/ioctl.h>
+
 #include <linux/btrfs.h>
 
 #include "global.h"
