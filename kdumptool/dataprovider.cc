@@ -18,6 +18,7 @@
  */
 #include <cstdio>
 #include <cstdarg>
+#include <cstring>
 #include <cerrno>
 #include <algorithm>
 #include <sys/types.h>
@@ -173,24 +174,22 @@ void FileDataProvider::finish()
 //{{{ BufferDataProvider -------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-BufferDataProvider::BufferDataProvider(const ByteVector &data)
-    : m_data(data), m_currentPos(0)
+BufferDataProvider::BufferDataProvider(const char *data, size_t size)
+    : m_data(data), m_size(size)
 {}
 
 // -----------------------------------------------------------------------------
 size_t BufferDataProvider::getData(char *buffer, size_t maxread)
 {
-    size_t size = min((unsigned long long)maxread,
-                      m_data.size() - m_currentPos);
+    size_t size = min(maxread, m_size);
 
     // end
     if (size <= 0)
         return 0;
 
-    for (unsigned int i = 0; i < size; i++)
-        buffer[i] = m_data[i+m_currentPos];
-
-    m_currentPos += size;
+    std::memcpy(buffer, m_data, size);
+    m_data += size;
+    m_size -= size;
 
     return size;
 }

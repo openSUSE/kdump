@@ -250,7 +250,7 @@ class BufferDataProvider : public AbstractDataProvider {
          *
          * @param[in] data the buffer
          */
-        BufferDataProvider(const ByteVector &data);
+        BufferDataProvider(const char *data, size_t size);
 
         /**
          * Provides the data.
@@ -260,8 +260,8 @@ class BufferDataProvider : public AbstractDataProvider {
         size_t getData(char *buffer, size_t maxread);
 
     private:
-        ByteVector m_data;
-        unsigned long long m_currentPos;
+        const char *m_data;
+        size_t m_size;
 };
 
 //}}}

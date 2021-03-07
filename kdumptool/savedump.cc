@@ -446,8 +446,7 @@ void SaveDump::generateRearrange()
       "# EOF" "\n";
 
     TerminalProgress progress2("Generating rearrange script");
-    ByteVector bv(script, script + sizeof(script) - 1);
-    BufferDataProvider provider2(bv);
+    BufferDataProvider provider2(script, sizeof(script) - 1);
     if (config->KDUMP_VERBOSE.value()
 	& Configuration::VERB_PROGRESS)
         provider2.setProgress(&progress2);
@@ -519,8 +518,8 @@ void SaveDump::generateInfo()
 
 
     TerminalProgress progress("Generating README");
-    ByteVector bv = Stringutil::str2bytes(ss.str());
-    BufferDataProvider provider(bv);
+    string s = ss.str();
+    BufferDataProvider provider(s.c_str(), s.size());
     if (config->KDUMP_VERBOSE.value()
 	& Configuration::VERB_PROGRESS)
         provider.setProgress(&progress);
