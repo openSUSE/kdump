@@ -73,17 +73,15 @@ void PrintTarget::execute()
 // -----------------------------------------------------------------------------
 void PrintTarget::print_one(RootDirURL &parser)
 {
-    string port;
-
-    if (parser.getPort() != -1)
-        port = StringUtil::number2string(parser.getPort());
-
     cout << "Protocol:   " << parser.getProtocolAsString() << endl;
     cout << "URL:        " << parser.getURL() << endl;
     cout << "Username:   " << parser.getUsername() << endl;
     cout << "Password:   " << parser.getPassword() << endl;
     cout << "Host:       " << parser.getHostname() << endl;
-    cout << "Port:       " << port << endl;
+    cout << "Port:       ";
+    if (parser.getPort() != -1)
+        cout << parser.getPort();
+    cout << endl;
     cout << "Path:       " << parser.getPath() << endl;
     cout << "Realpath:   " << parser.getRealPath() << endl;
 }
