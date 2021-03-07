@@ -72,14 +72,6 @@ class Stringutil {
         static long long string2llong(const std::string &string);
 
         /**
-         * Converts a string to a byte vector.
-         *
-         * @param[in] string the string
-         * @return the byte vector
-         */
-        static ByteVector str2bytes(const std::string &string);
-
-        /**
          * Formats the current time as specified in @p formatstring.
          *
          * @param[in] formatstring strftime(3)-like format string

@@ -52,17 +52,6 @@ long long Stringutil::string2llong(const std::string &string)
     return ret;
 }
 
-/* -------------------------------------------------------------------------- */
-ByteVector Stringutil::str2bytes(const string &string)
-{
-    ByteVector ret;
-    const char *cstr = string.c_str();
-
-    ret.insert(ret.begin(), cstr, cstr + string.size());
-
-    return ret;
-}
-
 // -----------------------------------------------------------------------------
 string Stringutil::formatUnixTime(const char *formatstring, time_t value)
 {
