@@ -521,9 +521,8 @@ void SaveDump::generateInfo()
            << endl;
     }
 
-
     TerminalProgress progress("Generating README");
-    string s = ss.str();
+    string const& s = ss.str();
     BufferDataProvider provider(s.c_str(), s.size());
     if (config->KDUMP_VERBOSE.value()
 	& Configuration::VERB_PROGRESS)
