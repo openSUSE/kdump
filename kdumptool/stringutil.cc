@@ -30,10 +30,10 @@
 using std::istringstream;
 using std::string;
 
-//{{{ Stringutil ---------------------------------------------------------------
+//{{{ StringUtil ---------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-string Stringutil::formatUnixTime(const char *formatstring, time_t value)
+string StringUtil::formatUnixTime(const char *formatstring, time_t value)
 {
     char buffer[BUFSIZ];
 
@@ -44,7 +44,7 @@ string Stringutil::formatUnixTime(const char *formatstring, time_t value)
 }
 
 // -----------------------------------------------------------------------------
-int Stringutil::hex2int(char c)
+int StringUtil::hex2int(char c)
 {
     if (c >= '0' && c <= '9')
 	return c - '0';
@@ -52,7 +52,7 @@ int Stringutil::hex2int(char c)
 	return c - 'a' + 10;
     if (c >= 'A' && c <= 'F')
 	return c - 'A' + 10;
-    throw KError(string("Stringutil::hex2int: '") + c + "' is not a hex digit");
+    throw KError(string("StringUtil::hex2int: '") + c + "' is not a hex digit");
 }
 
 //}}}
@@ -169,8 +169,8 @@ KString &KString::decodeURL(bool formenc)
 	char c1, c2;
 	if (*src == '%' && end() - src >= 2 &&
 	    isxdigit(c1 = src[1]) && isxdigit(c2 = src[2])) {
-	    *dst++ = (Stringutil::hex2int(c1) << 4) |
-		Stringutil::hex2int(c2);
+	    *dst++ = (StringUtil::hex2int(c1) << 4) |
+		StringUtil::hex2int(c2);
 	    src += 2;
 	} else if (formenc && *src == '+')
 	    *dst++ = ' ';

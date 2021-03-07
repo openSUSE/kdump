@@ -525,7 +525,7 @@ string KernelTool::extractFromIKconfigBuffer(const char *buffer, size_t buflen)
     ret = inflateEnd(&stream);
     if (ret != Z_OK) {
         throw KError("Failed to uncompress the kernel configuration ("
-            + Stringutil::number2string(ret) + ").");
+            + StringUtil::number2string(ret) + ").");
     }
 
     uncompressed_len = stream.total_out;

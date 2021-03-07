@@ -123,7 +123,7 @@ int SubProcess::getPipeFD(int fd)
     ret = m_pipes.find(fd);
     if (ret == m_pipes.end())
 	throw std::out_of_range("SubProcess::getPipeFD(): Unknown fd "
-				+ Stringutil::number2string(fd));
+				+ StringUtil::number2string(fd));
     return ret->second.parentfd;
 }
 
@@ -172,13 +172,13 @@ void SubProcess::spawn(const string &name, const StringVector &args)
 		it->second.dir != ChildToParent)
 		throw KError("SubProcess::spawn(): "
 			     "invalid pipe direction for fd "
-			     + Stringutil::number2string(it->first) + ": "
-			     + Stringutil::number2string(it->second.dir));
+			     + StringUtil::number2string(it->first) + ": "
+			     + StringUtil::number2string(it->second.dir));
 
 	    if (pipe2(pipefd, O_CLOEXEC) < 0)
 		throw KSystemError("SubProcess::spawn(): "
 				   "cannot create pipe for fd "
-				   + Stringutil::number2string(it->first),
+				   + StringUtil::number2string(it->first),
 				   errno);
 
 	    if(it->second.dir == ParentToChild) {
@@ -245,7 +245,7 @@ void SubProcess::kill(int sig)
 
     if (::kill(m_pid, sig))
 	throw KSystemError("SubProcess::kill(): cannot send signal"
-			   + Stringutil::number2string(sig), errno);
+			   + StringUtil::number2string(sig), errno);
 }
 
 // -----------------------------------------------------------------------------
@@ -260,12 +260,12 @@ int SubProcess::wait(void)
 
     if (ret == -1)
 	throw KSystemError("SubProcess::wait(): cannot get state of PID "
-			   + Stringutil::number2string(m_pid), errno);
+			   + StringUtil::number2string(m_pid), errno);
 
     if (ret != m_pid)
 	throw KError("SubProcess::wait(): spawned PID "
-		     + Stringutil::number2string(m_pid) + " but PID "
-		     + Stringutil::number2string(ret) + " exited.");
+		     + StringUtil::number2string(m_pid) + " but PID "
+		     + StringUtil::number2string(ret) + " exited.");
 
     Debug::debug()->dbg("PID %d exited with status 0x%04x", m_pid, status);
 

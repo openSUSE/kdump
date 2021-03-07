@@ -328,7 +328,7 @@ void Email::send()
         }
 
         throw KError("Sending mail failed: " + statustext +
-            ". (" + Stringutil::number2string(statuscode) + ")");
+            ". (" + StringUtil::number2string(statuscode) + ")");
     }
 
     smtp_destroy_session(session);

@@ -196,7 +196,7 @@ ByteVector Vmcoreinfo::readElfNote(const char *file)
         ssize_t bytes_read = read(fd, buffer, size);
         if (bytes_read != ssize_t(size))
             throw KSystemError("Vmcoreinfo: Unable to read " +
-                Stringutil::number2string(size) +
+                StringUtil::number2string(size) +
                 " bytes.", errno);
     } catch (...) {
         if (map != MAP_FAILED)

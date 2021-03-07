@@ -64,7 +64,7 @@ SSHTransfer::SSHTransfer(const RootDirURLVector &urlv)
     int status = p.wait();
     if (status != 0)
 	throw KError("SSHTransfer::SSHTransfer: ssh command failed"
-		     " with status " + Stringutil::number2string(status));
+		     " with status " + StringUtil::number2string(status));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -136,7 +136,7 @@ void SSHTransfer::perform(DataProvider *dataprovider,
     int status = p.wait();
     if (status != 0)
 	throw KError("SSHTransfer::perform: ssh command failed"
-		     " with status " + Stringutil::number2string(status));
+		     " with status " + StringUtil::number2string(status));
 }
 
 StringVector SSHTransfer::makeArgs(std::string const &remote)
@@ -153,7 +153,7 @@ StringVector SSHTransfer::makeArgs(std::string const &remote)
     int port = target.getPort();
     if (port != -1) {
 	ret.push_back("-p");
-	ret.push_back(Stringutil::number2string(port));
+	ret.push_back(StringUtil::number2string(port));
     }
 
     ret.push_back(target.getHostname());
@@ -381,7 +381,7 @@ SFTPTransfer::SFTPTransfer(const RootDirURLVector &urlv)
     unsigned char type = initpkt.getByte();
     if (type != SSH_FXP_VERSION)
 	throw KError(KString("Invalid response to SSH_FXP_INIT: type ") +
-		     Stringutil::number2string(unsigned(type)));
+		     StringUtil::number2string(unsigned(type)));
     m_proto_ver = initpkt.getInt32();
     Debug::debug()->dbg("Remote SFTP version %lu", m_proto_ver);
 
@@ -400,7 +400,7 @@ SFTPTransfer::~SFTPTransfer()
 	int status = m_process.wait();
 	if (status != 0)
 	    throw KError("SFTPTransfer::~SFTPTransfer: ssh command failed"
-			 " with status " + Stringutil::number2string(status));
+			 " with status " + StringUtil::number2string(status));
     }
 }
 
@@ -476,7 +476,7 @@ bool SFTPTransfer::exists(const string &file)
 
     if (type != SSH_FXP_STATUS)
 	throw KError("Invalid response to SSH_FXP_LSTAT: type " +
-		     Stringutil::number2string(unsigned(type)));
+		     StringUtil::number2string(unsigned(type)));
 
     unsigned long errcode = pkt.getInt32();
     if (errcode != SSH_FX_NO_SUCH_FILE)
@@ -514,7 +514,7 @@ void SFTPTransfer::mkpath(const std::string &path)
 
 	if (type != SSH_FXP_STATUS)
 	    throw KError("Invalid response to SSH_FXP_MKDIR: type " +
-			 Stringutil::number2string(unsigned(type)));
+			 StringUtil::number2string(unsigned(type)));
 
 	unsigned long errcode = pkt.getInt32();
 	if (errcode != SSH_FX_OK)
@@ -546,7 +546,7 @@ std::string SFTPTransfer::createfile(const std::string &file)
 
     if (type != SSH_FXP_STATUS)
 	throw KError("Invalid response to SSH_FXP_OPEN: type " +
-		     Stringutil::number2string(unsigned(type)));
+		     StringUtil::number2string(unsigned(type)));
 
     unsigned long errcode = pkt.getInt32();
     throw KSFTPError("open failed on " + file, errcode);
@@ -571,7 +571,7 @@ void SFTPTransfer::closefile(const std::string &handle)
 
     if (type != SSH_FXP_STATUS)
 	throw KError("Invalid response to SSH_FXP_OPEN: type " +
-		     Stringutil::number2string(unsigned(type)));
+		     StringUtil::number2string(unsigned(type)));
 
     unsigned long errcode = pkt.getInt32();
     if (errcode != SSH_FX_OK)
@@ -599,7 +599,7 @@ void SFTPTransfer::writefile(const std::string &handle, off_t off,
 
     if (type != SSH_FXP_STATUS)
 	throw KError("Invalid response to SSH_FXP_WRITE: type " +
-		     Stringutil::number2string(unsigned(type)));
+		     StringUtil::number2string(unsigned(type)));
 
     unsigned long errcode = pkt.getInt32();
     if (errcode != SSH_FX_OK)
@@ -621,7 +621,7 @@ StringVector SFTPTransfer::makeArgs(void)
     int port = target.getPort();
     if (port != -1) {
 	ret.push_back("-p");
-	ret.push_back(Stringutil::number2string(port));
+	ret.push_back(StringUtil::number2string(port));
     }
 
     ret.push_back("-s");

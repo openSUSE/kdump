@@ -193,7 +193,7 @@ void FileTransfer::performPipe(DataProvider *dataprovider,
                 size_t ret = fwrite(m_buffer, 1, read_data, fp);
                 if (ret != read_data)
                     throw KSystemError("FileTransfer::perform: fwrite() failed"
-                        " with " + Stringutil::number2string(ret) +  ".", errno);
+                        " with " + StringUtil::number2string(ret) +  ".", errno);
                 last_was_sparse = false;
             }
         }
@@ -530,7 +530,7 @@ RootDirURL CIFSTransfer::translate(const RootDirURL &parser)
             options.push_back("password=" + parser.getPassword());
     }
     if (parser.getPort() != -1) {
-        options.push_back("port=" + Stringutil::number2string(parser.getPort()));
+        options.push_back("port=" + StringUtil::number2string(parser.getPort()));
     }
 
     FileUtil::mount("//" + parser.getHostname() + "/" + share,

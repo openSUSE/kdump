@@ -76,7 +76,7 @@ void PrintTarget::print_one(RootDirURL &parser)
     string port;
 
     if (parser.getPort() != -1)
-        port = Stringutil::number2string(parser.getPort());
+        port = StringUtil::number2string(parser.getPort());
 
     cout << "Protocol:   " << parser.getProtocolAsString() << endl;
     cout << "URL:        " << parser.getURL() << endl;

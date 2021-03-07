@@ -79,7 +79,7 @@ string URLParser::protocol2string(URLParser::Protocol protocol)
             return "cifs";
         default:
             throw KError("Invalid protocol constant: " +
-                Stringutil::number2string(protocol) + ".");
+                StringUtil::number2string(protocol) + ".");
     }
 }
 

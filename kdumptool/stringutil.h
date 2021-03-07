@@ -28,12 +28,12 @@
 
 #define ISO_DATETIME "%Y-%m-%d-%H:%M"
 
-//{{{ Stringutil ---------------------------------------------------------------
+//{{{ StringUtil ---------------------------------------------------------------
 
 /**
  * String helper functions.
  */
-class Stringutil {
+class StringUtil {
 
     public:
         /**
@@ -197,11 +197,11 @@ class KString : public std::string {
 };
 
 //}}}
-//{{{ Stringutil implementation ------------------------------------------------
+//{{{ StringUtil implementation ------------------------------------------------
 
 // -----------------------------------------------------------------------------
 template <typename numeric_type>
-std::string Stringutil::number2string(numeric_type number)
+std::string StringUtil::number2string(numeric_type number)
 {
     std::ostringstream ss;
     ss << number;
@@ -210,7 +210,7 @@ std::string Stringutil::number2string(numeric_type number)
 
 // -----------------------------------------------------------------------------
 template <typename numeric_type>
-std::string Stringutil::number2hex(numeric_type number)
+std::string StringUtil::number2hex(numeric_type number)
 {
     std::ostringstream ss;
     ss << "0x" << std::hex << number;

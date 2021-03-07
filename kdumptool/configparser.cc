@@ -112,7 +112,7 @@ void ShellConfigParser::parse()
         string::size_type loc = s.find('=');
         if (loc == string::npos)
             throw KError("Parsing line number " +
-                Stringutil::number2string(no) + " failed.");
+                StringUtil::number2string(no) + " failed.");
 
         string name = s.substr(0, loc);
         string value = s.substr(loc+1);

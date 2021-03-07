@@ -57,7 +57,7 @@ parseval(const char *str, unsigned maxdigits)
 	if (!str[i])
 	    break;
 	ret <<= 4;
-	ret |= Stringutil::hex2int(str[i]);
+	ret |= StringUtil::hex2int(str[i]);
     }
     if (str[i])
 	throw KError(KString("Number too big: '") + str + "'");
@@ -73,10 +73,10 @@ parsevec(const char *str)
 
     while(*str) {
 	unsigned char byte;
-	byte = Stringutil::hex2int(*str++);
+	byte = StringUtil::hex2int(*str++);
 	if (*str) {
 	    byte <<= 4;
-	    byte |= Stringutil::hex2int(*str++);
+	    byte |= StringUtil::hex2int(*str++);
 	}
 	ret.push_back(byte);
     }

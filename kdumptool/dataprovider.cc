@@ -146,7 +146,7 @@ size_t FileDataProvider::getData(char *buffer, size_t maxread)
     if (ret == 0 && errno != 0) {
         setError(true);
         throw KSystemError("Error reading from " + m_filename + " at " +
-            Stringutil::number2hex(m_currentPos), errno);
+            StringUtil::number2hex(m_currentPos), errno);
     }
 
     Progress *p = getProgress();
@@ -243,7 +243,7 @@ void ProcessDataProvider::finish()
 
     if (WEXITSTATUS(err) != 0)
         throw KError(m_pipeCmdline + " failed (" +
-            Stringutil::number2string(WEXITSTATUS(err)) +").");
+            StringUtil::number2string(WEXITSTATUS(err)) +").");
 }
 
 // -----------------------------------------------------------------------------
@@ -270,7 +270,7 @@ void ProcessDataProvider::saveToFile(const StringVector &targets)
     int err = system(cmdline.c_str());
     if (WEXITSTATUS(err) != 0)
         throw KError("Running " + m_directCmdline + " failed (" +
-            Stringutil::number2string(WEXITSTATUS(err)) +").");
+            StringUtil::number2string(WEXITSTATUS(err)) +").");
 }
 
 //}}}

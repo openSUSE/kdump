@@ -114,7 +114,7 @@ void SaveDump::execute()
 
     // build the transfer object
     // prepend a time stamp to the save dir
-    string subdir = Stringutil::formatUnixTime(ISO_DATETIME, m_crashtime);
+    string subdir = StringUtil::formatUnixTime(ISO_DATETIME, m_crashtime);
     RootDirURLVector urlv;
     std::istringstream iss(config->KDUMP_SAVEDIR.value());
     FilePath elem;
@@ -503,7 +503,7 @@ void SaveDump::generateInfo()
         m_hostname = Util::getHostDomain();
 
     infoLine(ss, "Crash time",
-             Stringutil::formatUnixTime("%Y-%m-%d %H:%M (%z)", m_crashtime));
+             StringUtil::formatUnixTime("%Y-%m-%d %H:%M (%z)", m_crashtime));
 
     if (m_crashrelease.size() > 0)
         infoLine(ss, "Kernel version", m_crashrelease);

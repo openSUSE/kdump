@@ -44,7 +44,7 @@ void StringConfigOption::update(const string &value)
 //{{{ IntConfigOption ----------------------------------------------------------
 string IntConfigOption::valueAsString() const
 {
-    return Stringutil::number2string(m_value);
+    return StringUtil::number2string(m_value);
 }
 
 // -----------------------------------------------------------------------------
