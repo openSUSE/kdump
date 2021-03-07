@@ -424,30 +424,29 @@ void SaveDump::generateRearrange()
     Configuration *config = Configuration::config();
 
     // and also generate a "rearrange" script
-    ostringstream ss;
-
-    ss << "#!/bin/sh" << endl;
-    ss << endl;
-    ss << "# rename the flattened vmcore" << endl;
-    ss << "mv vmcore vmcore.flattened || exit 1" << endl;
-    ss << endl;
-    ss << "# unflatten" << endl;
-    ss << "perl makedumpfile-R.pl vmcore < vmcore.flattened || exit 1 " << endl;
-    ss << endl;
-    ss << "# delete the original dump" << endl;
-    ss << "rm vmcore.flattened || exit 1 " << endl;
-    ss << endl;
-    ss << "# delete the perl script" << endl;
-    ss << "rm makedumpfile-R.pl || exit 1 " << endl;
-    ss << endl;
-    ss << "# delete myself" << endl;
-    ss << "rm \"$0\" || exit 1 " << endl;
-    ss << endl;
-    ss << "exit 0" << endl;
-    ss << "# EOF" << endl;
+    static const char script[] =
+      "#!/bin/sh" "\n"
+      "\n"
+      "# rename the flattened vmcore" "\n"
+      "mv vmcore vmcore.flattened || exit 1" "\n"
+      "\n"
+      "# unflatten" "\n"
+      "perl makedumpfile-R.pl vmcore < vmcore.flattened || exit 1 " "\n"
+      "\n"
+      "# delete the original dump" "\n"
+      "rm vmcore.flattened || exit 1 " "\n"
+      "\n"
+      "# delete the perl script" "\n"
+      "rm makedumpfile-R.pl || exit 1 " "\n"
+      "\n"
+      "# delete myself" "\n"
+      "rm \"$0\" || exit 1 " "\n"
+      "\n"
+      "exit 0" "\n"
+      "# EOF" "\n";
 
     TerminalProgress progress2("Generating rearrange script");
-    ByteVector bv = Stringutil::str2bytes(ss.str());
+    ByteVector bv(script, script + sizeof(script) - 1);
     BufferDataProvider provider2(bv);
     if (config->KDUMP_VERBOSE.value()
 	& Configuration::VERB_PROGRESS)
