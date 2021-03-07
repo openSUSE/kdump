@@ -481,6 +481,13 @@ void SaveDump::fillVmcoreinfo()
 }
 
 // -----------------------------------------------------------------------------
+template<typename T>
+static void infoLine(ostringstream &ss, const char *key, T const& val)
+{
+    ss << std::left << std::setw(15) << key << ": " << val << endl;
+}
+
+// -----------------------------------------------------------------------------
 void SaveDump::generateInfo()
 {
     Debug::debug()->trace("SaveDump::generateInfo");
@@ -495,19 +502,17 @@ void SaveDump::generateInfo()
     if (m_hostname.size() == 0)
         m_hostname = Util::getHostDomain();
 
-    ss << "Crash time     : "
-       << Stringutil::formatUnixTime("%Y-%m-%d %H:%M (%z)", m_crashtime)
-       << endl;
-    if (m_crashrelease.size() > 0)
-        ss << "Kernel version : " << m_crashrelease << endl;
-    ss << "Host           : " << m_hostname << endl;
-    ss << "Dump level     : "
-       << Stringutil::number2string(config->KDUMP_DUMPLEVEL.value()) << endl;
-    ss << "Dump format    : " << config->KDUMP_DUMPFORMAT.value() << endl;
-    if (m_split && m_usedDirectSave)
-        ss << "Split parts    : " << m_split << endl;
-    ss << endl;
+    infoLine(ss, "Crash time",
+             Stringutil::formatUnixTime("%Y-%m-%d %H:%M (%z)", m_crashtime));
 
+    if (m_crashrelease.size() > 0)
+        infoLine(ss, "Kernel version", m_crashrelease);
+    infoLine(ss, "Host", m_hostname);
+    infoLine(ss, "Dump level", config->KDUMP_DUMPLEVEL.value());
+    infoLine(ss, "Dump format", config->KDUMP_DUMPFORMAT.value());
+    if (m_split && m_usedDirectSave)
+        infoLine(ss, "Split parts", m_split);
+    ss << endl;
 
     if (m_useMakedumpfile && !m_usedDirectSave) {
         ss << "NOTE:" << endl;
