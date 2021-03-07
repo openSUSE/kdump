@@ -72,14 +72,6 @@ class Stringutil {
         static long long string2llong(const std::string &string);
 
         /**
-         * Formats the current time as specified in @p formatstring.
-         *
-         * @param[in] formatstring strftime(3)-like format string
-         * @return the formatted output
-         */
-        static std::string formatCurrentTime(const char *formatstring);
-
-        /**
          * Formats the given Unix time as specified in @p formatstring.
          *
          * @param[in] formatstring strftime(3)-like format string

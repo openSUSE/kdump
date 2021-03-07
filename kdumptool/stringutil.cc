@@ -64,12 +64,6 @@ string Stringutil::formatUnixTime(const char *formatstring, time_t value)
 }
 
 // -----------------------------------------------------------------------------
-string Stringutil::formatCurrentTime(const char *formatstring)
-{
-    return formatUnixTime(formatstring, time(NULL));
-}
-
-// -----------------------------------------------------------------------------
 int Stringutil::hex2int(char c)
 {
     if (c >= '0' && c <= '9')
