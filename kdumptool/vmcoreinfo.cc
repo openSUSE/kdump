@@ -303,7 +303,7 @@ ByteVector Vmcoreinfo::readVmcoreinfoFromNotes(const char *buffer, size_t size,
 }
 
 // -----------------------------------------------------------------------------
-string Vmcoreinfo::getStringValue(const char *key) const
+KString Vmcoreinfo::getStringValue(const char *key) const
 {
     StringStringMap::const_iterator pos = m_map.find(string(key));
     if (pos == m_map.end())
@@ -315,7 +315,7 @@ string Vmcoreinfo::getStringValue(const char *key) const
 // -----------------------------------------------------------------------------
 int Vmcoreinfo::getIntValue(const char *key) const
 {
-    return Stringutil::string2number(getStringValue(key));
+    return getStringValue(key).asInt();
 }
 
 // -----------------------------------------------------------------------------

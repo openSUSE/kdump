@@ -122,7 +122,7 @@ KconfigValue KconfigValue::fromString(const string &line, string &name)
 
     if (value.isNumber()) {
         ret.m_type = T_INTEGER;
-        ret.m_integer = Stringutil::string2number(value);
+        ret.m_integer = value.asInt();
         return ret;
     } else {
         ret.m_type = T_STRING;

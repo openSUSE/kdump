@@ -151,11 +151,11 @@ URLParser::URLParser(const std::string &url)
     while (it != authority.begin() && isdigit(it[-1]))
 	--it;
     if (it != authority.begin() && it[-1] == ':') {
-	string port(it, authority.end());
+	KString port(it, authority.end());
 	authority.resize(it - authority.begin() - 1);
 
         if (port.size() > 0)
-            m_port = Stringutil::string2number(port);
+            m_port = port.asInt();
     }
 
     // look for userinfo

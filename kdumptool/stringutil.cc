@@ -27,20 +27,11 @@
 #include "global.h"
 #include "debug.h"
 
+using std::istringstream;
 using std::string;
 using std::stringstream;
 
 //{{{ Stringutil ---------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-int Stringutil::string2number(const std::string &string)
-{
-    int ret;
-    stringstream ss;
-    ss << string;
-    ss >> ret;
-    return ret;
-}
 
 // -----------------------------------------------------------------------------
 long long Stringutil::string2llong(const std::string &string)
@@ -94,6 +85,15 @@ bool KString::isNumber()
             return false;
     } while (++it != end());
     return true;
+}
+
+// -----------------------------------------------------------------------------
+int KString::asInt()
+{
+    istringstream ss(*this);
+    int ret;
+    ss >> ret;
+    return ret;
 }
 
 // -----------------------------------------------------------------------------

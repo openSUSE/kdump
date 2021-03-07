@@ -23,6 +23,7 @@
 #include <ctime>
 
 #include "global.h"
+#include "stringutil.h"
 
 //{{{ Vmcoreinfo ---------------------------------------------------------------
 
@@ -68,7 +69,7 @@ class Vmcoreinfo {
          * @return the value for @p key
          * @exception KError if the value has not been found
          */
-        std::string getStringValue(const char *key) const;
+        KString getStringValue(const char *key) const;
 
         /**
          * Returns an integer value.

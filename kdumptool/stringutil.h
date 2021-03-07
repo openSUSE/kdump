@@ -61,14 +61,6 @@ class Stringutil {
          * @param[in] string string that should be parsed
          * @return the number
          */
-        static int string2number(const std::string &string);
-
-        /**
-         * Parses a number.
-         *
-         * @param[in] string string that should be parsed
-         * @return the number
-         */
         static long long string2llong(const std::string &string);
 
         /**
@@ -133,6 +125,13 @@ class KString : public std::string {
          * @return true if it's an number, false otherwise
          */
         bool isNumber();
+
+        /**
+         * Get the string's value as @c int.
+         *
+         * @return parsed number
+         */
+        int asInt();
 
         /**
          * Checks if the string is a hexadecimal number (no leading '0x').
