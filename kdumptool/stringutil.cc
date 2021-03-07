@@ -29,19 +29,8 @@
 
 using std::istringstream;
 using std::string;
-using std::stringstream;
 
 //{{{ Stringutil ---------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-long long Stringutil::string2llong(const std::string &string)
-{
-    long long ret;
-    stringstream ss;
-    ss << string;
-    ss >> ret;
-    return ret;
-}
 
 // -----------------------------------------------------------------------------
 string Stringutil::formatUnixTime(const char *formatstring, time_t value)
@@ -92,6 +81,15 @@ int KString::asInt()
 {
     istringstream ss(*this);
     int ret;
+    ss >> ret;
+    return ret;
+}
+
+// -----------------------------------------------------------------------------
+long long KString::asLongLong()
+{
+    istringstream ss(*this);
+    long long ret;
     ss >> ret;
     return ret;
 }

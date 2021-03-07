@@ -956,7 +956,7 @@ CryptInfo::CryptInfo(std::string const& device)
             KString key = out.substr(pos, sep - pos);
             if (key.trim() == "Memory") {
                 KString val = out.substr(sep + 1, end - sep - 1);
-                unsigned long memory = Stringutil::string2llong(val.trim());
+                unsigned long memory = val.trim().asLongLong();
                 Debug::debug()->dbg("Crypto device %s needs %lu KiB",
                                     device.c_str(), memory);
                 if (memory > m_memory)

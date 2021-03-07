@@ -56,14 +56,6 @@ class Stringutil {
         static std::string number2hex(numeric_type number);
 
         /**
-         * Parses a number.
-         *
-         * @param[in] string string that should be parsed
-         * @return the number
-         */
-        static long long string2llong(const std::string &string);
-
-        /**
          * Formats the given Unix time as specified in @p formatstring.
          *
          * @param[in] formatstring strftime(3)-like format string
@@ -132,6 +124,13 @@ class KString : public std::string {
          * @return parsed number
          */
         int asInt();
+
+        /**
+         * Get the string's value as @c long long.
+         *
+         * @return parsed number
+         */
+        long long asLongLong();
 
         /**
          * Checks if the string is a hexadecimal number (no leading '0x').

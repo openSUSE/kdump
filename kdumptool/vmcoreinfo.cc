@@ -321,7 +321,7 @@ int Vmcoreinfo::getIntValue(const char *key) const
 // -----------------------------------------------------------------------------
 int Vmcoreinfo::getLLongValue(const char *key) const
 {
-    return Stringutil::string2llong(getStringValue(key));
+    return getStringValue(key).asLongLong();
 }
 
 // -----------------------------------------------------------------------------
