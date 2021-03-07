@@ -203,7 +203,7 @@ class KString : public std::string {
 template <typename numeric_type>
 std::string Stringutil::number2string(numeric_type number)
 {
-    std::stringstream ss;
+    std::ostringstream ss;
     ss << number;
     return ss.str();
 }
@@ -212,9 +212,8 @@ std::string Stringutil::number2string(numeric_type number)
 template <typename numeric_type>
 std::string Stringutil::number2hex(numeric_type number)
 {
-    std::stringstream ss;
-    ss << "0x";
-    ss << std::hex << number;
+    std::ostringstream ss;
+    ss << "0x" << std::hex << number;
     return ss.str();
 }
 
