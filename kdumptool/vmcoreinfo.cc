@@ -16,36 +16,26 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  * 02110-1301, USA.
  */
-#include <iostream>
+
 #include <string>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include <cerrno>
 #include <sys/mman.h>
 #include <cstring>
 
-#include <libelf.h>
 #include <gelf.h>
 
 #include "global.h"
-#include "subcommand.h"
 #include "debug.h"
 #include "elf.h"
-#include "savedump.h"
-#include "util.h"
-#include "fileutil.h"
-#include "transfer.h"
-#include "configuration.h"
-#include "dataprovider.h"
-#include "progress.h"
 #include "vmcoreinfo.h"
 #include "stringutil.h"
 #include "stringvector.h"
 
 using std::string;
-using std::cout;
-using std::endl;
 using std::min;
 
 #define VMCOREINFO_NOTE_NAME           "VMCOREINFO"
