@@ -19,21 +19,17 @@
 #include <iostream>
 #include <string>
 
-#include "fileutil.h"
-#include "subcommand.h"
 #include "debug.h"
 #include "print_target.h"
-#include "util.h"
 #include "configuration.h"
 #include "rootdirurl.h"
-#include "stringutil.h"
 
 using std::string;
+using std::istringstream;
 using std::cout;
-using std::cerr;
 using std::endl;
 
-//{{{ PrintTarget --------------------------------------------------------------------
+//{{{ PrintTarget --------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
 PrintTarget::PrintTarget()
@@ -57,7 +53,7 @@ void PrintTarget::execute()
 
     Configuration *config = Configuration::config();
 
-    std::istringstream iss(config->KDUMP_SAVEDIR.value());
+    istringstream iss(config->KDUMP_SAVEDIR.value());
     string elem;
     bool first = true;
     while (iss >> elem) {
