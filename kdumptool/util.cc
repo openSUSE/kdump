@@ -32,6 +32,7 @@
 #include <gelf.h>
 
 #include "global.h"
+#include "elf.h"
 #include "util.h"
 #include "debug.h"
 

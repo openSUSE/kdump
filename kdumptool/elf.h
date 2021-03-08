@@ -1,5 +1,5 @@
 /*
- * (c) 2008, Bernhard Walle <bwalle@suse.de>, SUSE LINUX Products GmbH
+ * (c) 2021, Petr Tesarik <ptesarik@suse.de>, SUSE Linux Software Solutions GmbH
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,34 +16,29 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  * 02110-1301, USA.
  */
-
-#include <cstring>
-#include <cerrno>
-#include <sys/socket.h>
-#include <netdb.h>
+#ifndef ELF_H
+#define ELF_H
 
 #include "global.h"
 
-using std::strerror;
-using std::string;
+//{{{ KELFErrorCode ------------------------------------------------------------
 
-//{{{ KSystemErrorCode ---------------------------------------------------------
+/**
+ * Class for libelf errors.
+ */
+class KELFErrorCode : public KErrorCode {
+    public:
+        KELFErrorCode(int code)
+            : KErrorCode(code)
+        {}
 
-// -----------------------------------------------------------------------------
-string KSystemErrorCode::message(void) const
-{
-    return string(strerror(getCode()));
-}
+        virtual std::string message(void) const;
+};
 
-//}}}
-//{{{ KGaiErrorCode ------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-string KGaiErrorCode::message(void) const
-{
-    return string(gai_strerror(getCode()));
-}
+typedef KCodeError<KELFErrorCode> KELFError;
 
 //}}}
+
+#endif /* ELF_H */
 
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

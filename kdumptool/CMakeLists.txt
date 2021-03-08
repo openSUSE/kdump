@@ -46,6 +46,8 @@ SET(COMMON_SRC
     global.h
     debug.cc
     debug.h
+    elf.cc
+    elf.h
     urlparser.cc
     urlparser.h
     rootdirurl.cc

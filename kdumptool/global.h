@@ -142,26 +142,10 @@ class KGaiErrorCode : public KErrorCode {
 };
 
 //}}}
-//{{{ KELFErrorCode ------------------------------------------------------------
-
-/**
- * Class for libelf errors.
- */
-class KELFErrorCode : public KErrorCode {
-    public:
-        KELFErrorCode(int code)
-            : KErrorCode(code)
-        {}
-
-        virtual std::string message(void) const;
-};
-
-//}}}
 //{{{ Pre-defined error classes ------------------------------------------------
 
 typedef KCodeError<KSystemErrorCode> KSystemError;
 typedef KCodeError<KGaiErrorCode> KGaiError;
-typedef KCodeError<KELFErrorCode> KELFError;
 
 //}}}
 

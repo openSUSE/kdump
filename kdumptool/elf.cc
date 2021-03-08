@@ -1,5 +1,5 @@
 /*
- * (c) 2008, Bernhard Walle <bwalle@suse.de>, SUSE LINUX Products GmbH
+ * (c) 2021, Petr Tesarik <ptesarik@suse.de>, SUSE Linux Software Solutions GmbH
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,31 +17,20 @@
  * 02110-1301, USA.
  */
 
-#include <cstring>
-#include <cerrno>
-#include <sys/socket.h>
-#include <netdb.h>
+#include <string>
 
-#include "global.h"
+#include <gelf.h>
 
-using std::strerror;
+#include "elf.h"
+
 using std::string;
 
-//{{{ KSystemErrorCode ---------------------------------------------------------
+//{{{ KELFErrorCode ------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-string KSystemErrorCode::message(void) const
+string KELFErrorCode::message(void) const
 {
-    return string(strerror(getCode()));
-}
-
-//}}}
-//{{{ KGaiErrorCode ------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-string KGaiErrorCode::message(void) const
-{
-    return string(gai_strerror(getCode()));
+    return elf_errmsg(getCode());
 }
 
 //}}}

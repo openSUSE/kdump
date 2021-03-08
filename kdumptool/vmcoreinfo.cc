@@ -31,6 +31,7 @@
 #include "global.h"
 #include "subcommand.h"
 #include "debug.h"
+#include "elf.h"
 #include "savedump.h"
 #include "util.h"
 #include "fileutil.h"
