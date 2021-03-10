@@ -83,50 +83,6 @@ shared_ptr<SubProcessFD> SubProcess::getChildFD(int fd)
 }
 
 // -----------------------------------------------------------------------------
-void SubProcess::setPipeDirection(int fd, enum PipeDirection dir)
-{
-    if (dir == ParentToChild)
-        setChildFD(fd, make_shared<ParentToChildPipe>());
-    else if (dir == ChildToParent)
-        setChildFD(fd, make_shared<ChildToParentPipe>());
-    else
-        setChildFD(fd, nullptr);
-}
-
-// -----------------------------------------------------------------------------
-enum SubProcess::PipeDirection SubProcess::getPipeDirection(int fd)
-{
-    enum SubProcess::PipeDirection ret = None;
-    auto ptr = getChildFD(fd);
-    if (ptr) {
-        if (typeid(*ptr) == typeid(ParentToChildPipe))
-            ret = ParentToChild;
-        else if (typeid(*ptr) == typeid(ChildToParentPipe))
-            ret = ChildToParent;
-    }
-    return ret;
-}
-
-// -----------------------------------------------------------------------------
-int SubProcess::getPipeFD(int fd)
-{
-    auto it = m_fdmap.find(fd);
-    if (it == m_fdmap.end())
-	throw std::out_of_range("SubProcess::getPipeFD(): Unknown fd "
-				+ StringUtil::number2string(fd));
-    return it->second->parentFD();
-}
-
-// -----------------------------------------------------------------------------
-void SubProcess::setRedirection(int fd, int srcfd)
-{
-    if (srcfd >= 0)
-        setChildFD(fd, make_shared<SubProcessRedirect>(srcfd));
-    else
-        setChildFD(fd, nullptr);
-}
-
-// -----------------------------------------------------------------------------
 void SubProcess::spawn(const string &name, const StringVector &args)
 {
     Debug::debug()->trace("SubProcess::spawn(%s, %s)",

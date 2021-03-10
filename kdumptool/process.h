@@ -151,12 +151,6 @@ class SubProcess {
 
     public:
 
-	enum PipeDirection {
-		None = -1,
-		ParentToChild,
-		ChildToParent
-	};
-
 	/**
 	 * Prepare a new subprocess.
 	 */
@@ -182,51 +176,6 @@ class SubProcess {
 	 * @return pointer to the setup class, or nullptr
 	 */
 	std::shared_ptr<SubProcessFD> getChildFD(int fd);
-
-	/**
-	 * Specify how a file descriptor should be redirected.
-	 *
-	 * @param[in] File descriptor in child.
-	 * @param[in] Pipe direction.
-	 *
-	 * Note that pipes and redirections are mutually exclusive, so
-	 * if you set up a pipe, any respective redirection for the same
-	 * file descriptor will be removed.
-	 */
-	void setPipeDirection(int fd, enum PipeDirection dir);
-
-	/**
-	 * Check how a file descriptor should be redirected.
-	 *
-	 * @param[in] File descriptor in child.
-	 */
-	enum PipeDirection getPipeDirection(int fd);
-
-	/**
-	 * Get the file descriptor of the other end of a pipe redirected
-	 * in the child.
-	 *
-	 * @param[in] File descriptor in child.
-	 * @exception out_of_range if the file descriptor is not piped.
-	 */
-        int getPipeFD(int fd);
-
-	/**
-	 * Set up redirection from an open file descriptor.
-	 *
-	 * @param[in] fd File descriptor in child.
-	 * @param[in] srcfd File descriptor in parent.
-	 *            Use -1 to remove a redirection.
-	 *
-	 * The source file descriptor is not closed in child. You can
-	 * use the O_CLOEXEC flag to control which file descriptors are
-	 * preserved across exec.
-	 *
-	 * Note that pipes and redirections are mutually exclusive, so
-	 * if you set a redirection, any respective pipe setup for the
-	 * same file descriptor will be removed.
-	 */
-	void setRedirection(int fd, int srcfd);
 
 	/**
 	 * Spawns a subprocess.
