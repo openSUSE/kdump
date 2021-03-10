@@ -30,6 +30,7 @@
 using std::cout;
 using std::cerr;
 using std::endl;
+using std::shared_ptr;
 using std::make_shared;
 
 // -----------------------------------------------------------------------------
@@ -45,45 +46,40 @@ int main(int argc, char *argv[])
 
     Debug::debug()->setStderrLevel(Debug::DL_TRACE);
     try {
-	try {
-	    // This must throw an out_of_range exception
-	    cout << "Pipe 0 fd: " << p.getPipeFD(0) << endl;
-	    ++errors;
-	} catch(std::out_of_range e) {
-	    cout << "OK, pipe 0 not yet initialized" << endl;
-	}
+        shared_ptr<SubProcessFD> temp;
+        auto found = p.getChildFD(0);
+        if (found) {
+            cerr << "Uninitialized pipe is a "
+                 << typeid(*found).name() << endl;
+            ++errors;
+        } else
+            cout << "Uninitialized pipe is nullptr" << endl;
 
-	SubProcess::PipeDirection dir;
+        cout << "Checking ParentToChildPipe" << endl;
+        temp.reset(new ParentToChildPipe());
+	p.setChildFD(0, temp);
+        found = p.getChildFD(0);
+        if (typeid(*found) != typeid(ParentToChildPipe)) {
+            cerr << "Unexpected type " << typeid(*found).name() << endl;
+            ++errors;
+        }
 
-	dir = p.getPipeDirection(0);
-	cout << "Pipe 0 direction: " << dir << endl;
+        cout << "Checking ChildToParentPipe" << endl;
+        temp.reset(new ChildToParentPipe());
+	p.setChildFD(0, temp);
+        found = p.getChildFD(0);
+        if (typeid(*found) != typeid(ChildToParentPipe)) {
+            cerr << "Unexpected type " << typeid(*found).name() << endl;
+            ++errors;
+        }
 
-	p.setPipeDirection(0, SubProcess::ParentToChild);
-	dir = p.getPipeDirection(0);
-	cout << "Pipe 0 fd: " << p.getPipeFD(0)
-	     << ", direction: " << dir << endl;
-	if (dir != SubProcess::ParentToChild) {
-	    cerr << "  but expected " << SubProcess::ParentToChild << endl;
-	    ++errors;
-	}
-
-	p.setPipeDirection(0, SubProcess::ChildToParent);
-	dir = p.getPipeDirection(0);
-	cout << "Pipe 0 fd: " << p.getPipeFD(0)
-	     << ", direction: " << dir << endl;
-	if (dir != SubProcess::ChildToParent) {
-	    cerr << "  but expected " << SubProcess::ChildToParent << endl;
-	    ++errors;
-	}
-
-	p.setPipeDirection(0, SubProcess::None);
-	try {
-	    // This must throw an out_of_range exception
-	    cout << "Pipe 0 fd: " << p.getPipeFD(0) << endl;
-	    ++errors;
-	} catch(const std::out_of_range &e) {
-	    cout << "OK, pipe 0 de-initialized again" << endl;
-	}
+        cout << "Checking no pipe" << endl;
+	p.setChildFD(0, nullptr);
+        found = p.getChildFD(0);
+        if (found) {
+            cerr << "Pipe is still a " << typeid(*found).name() << endl;
+            ++errors;
+        }
 
 	StringVector v;
 	p.spawn("true", v);

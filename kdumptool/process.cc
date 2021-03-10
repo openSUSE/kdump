@@ -341,7 +341,7 @@ class Input : public ProcessFilter::IO {
 // -----------------------------------------------------------------------------
 void Input::setupSubProcess(SubProcess &p)
 {
-    p.setPipeDirection(m_fd, SubProcess::ParentToChild);
+    p.setChildFD(m_fd, make_shared<ParentToChildPipe>());
 }
 
 //}}}
@@ -388,7 +388,7 @@ void IStream::handleEvents(MultiplexIO &io, SubProcess &p)
 	bufptr += cnt;
 
 	if (m_input->eof()) {
-	    p.setPipeDirection(m_fd, SubProcess::None);
+	    p.setChildFD(m_fd, nullptr);
 	    io.deactivate(pollidx);
 	}
     }
@@ -409,7 +409,7 @@ class Output : public ProcessFilter::IO {
 // -----------------------------------------------------------------------------
 void Output::setupSubProcess(SubProcess &p)
 {
-    p.setPipeDirection(m_fd, SubProcess::ChildToParent);
+    p.setChildFD(m_fd, make_shared<ChildToParentPipe>());
 }
 
 //}}}
@@ -451,7 +451,7 @@ void OStream::handleEvents(MultiplexIO &io, SubProcess &p)
 	    cnt = 0;
 
 	if (!cnt) {
-	    p.setPipeDirection(m_fd, SubProcess::None);
+	    p.setChildFD(m_fd, nullptr);
 	    io.deactivate(pollidx);
 	}
 	m_output->write(buf, cnt);

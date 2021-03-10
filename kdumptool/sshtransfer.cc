@@ -20,6 +20,8 @@
 #include <string>
 #include <cstdlib>
 #include <cerrno>
+#include <memory>
+
 #include <stdint.h>
 #include <unistd.h>
 
@@ -36,6 +38,7 @@
 using std::string;
 using std::cerr;
 using std::endl;
+using std::make_shared;
 
 //{{{ SSHTransfer -------------------------------------------------------------
 
@@ -98,10 +101,11 @@ void SSHTransfer::perform(DataProvider *dataprovider,
     Debug::debug()->dbg("Remote command: %s", remote.c_str());
 
     SubProcess p;
-    p.setPipeDirection(STDIN_FILENO, SubProcess::ParentToChild);
+    auto pipe = make_shared<ParentToChildPipe>();
+    p.setChildFD(STDIN_FILENO, pipe);
     p.spawn("ssh", makeArgs(remote));
 
-    int fd = p.getPipeFD(STDIN_FILENO);
+    int fd = pipe->parentFD();
     try {
         dataprovider->prepare();
         prepared = true;
@@ -125,12 +129,10 @@ void SSHTransfer::perform(DataProvider *dataprovider,
 	    }
         }
     } catch (...) {
-	close(fd);
         if (prepared)
             dataprovider->finish();
         throw;
     }
-    close(fd);
 
     dataprovider->finish();
     int status = p.wait();
@@ -366,12 +368,13 @@ SFTPTransfer::SFTPTransfer(const RootDirURLVector &urlv)
     Debug::debug()->trace("SFTPTransfer::SFTPTransfer(%s)",
 			  parser.getURL().c_str());
 
-    m_process.setPipeDirection(STDIN_FILENO, SubProcess::ParentToChild);
-    m_process.setPipeDirection(STDOUT_FILENO, SubProcess::ChildToParent);
-    m_process.spawn("ssh", makeArgs());
+    m_req = make_shared<ParentToChildPipe>();
+    m_process.setChildFD(STDIN_FILENO, m_req);
 
-    m_fdreq = m_process.getPipeFD(STDIN_FILENO);
-    m_fdresp = m_process.getPipeFD(STDOUT_FILENO);
+    m_resp = make_shared<ChildToParentPipe>();
+    m_process.setChildFD(STDOUT_FILENO, m_resp);
+
+    m_process.spawn("ssh", makeArgs());
 
     SFTPPacket initpkt;
     initpkt.addByte(SSH_FXP_INIT);
@@ -394,8 +397,8 @@ SFTPTransfer::~SFTPTransfer()
     Debug::debug()->trace("SFTPTransfer::~SFTPTransfer()");
 
     if (m_process.getChildPID() != -1) {
-	close(m_fdreq);
-	close(m_fdresp);
+        m_req->close();
+	m_resp->close();
 
 	int status = m_process.wait();
 	if (status != 0)
@@ -640,7 +643,7 @@ void SFTPTransfer::sendPacket(SFTPPacket &pkt)
     size_t buflen = bv.size();
 
     while (buflen) {
-	ssize_t len = write(m_fdreq, bufp, buflen);
+	ssize_t len = write(m_req->parentFD(), bufp, buflen);
 	if (len < 0)
 	    throw KSystemError("SFTPTransfer::sendPacket: write failed",
 			       errno);
@@ -653,7 +656,7 @@ void SFTPTransfer::sendPacket(SFTPPacket &pkt)
 void SFTPTransfer::recvBuffer(unsigned char *bufp, size_t buflen)
 {
     while (buflen) {
-	ssize_t len = read(m_fdresp, bufp, buflen);
+	ssize_t len = read(m_resp->parentFD(), bufp, buflen);
 	if (len < 0)
 	    throw KSystemError("SFTPTransfer::recvPacket: read failed",
 			       errno);

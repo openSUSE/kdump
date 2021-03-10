@@ -19,12 +19,12 @@
 #ifndef SSHTRANSFER_H
 #define SSHTRANSFER_H
 
+#include <memory>
+
 #include "global.h"
 #include "stringutil.h"
-#include "fileutil.h"
 #include "rootdirurl.h"
 #include "process.h"
-#include "socket.h"
 #include "transfer.h"
 
 //{{{ SSHTransfer --------------------------------------------------------------
@@ -228,7 +228,7 @@ class SFTPTransfer : public URLTransfer {
 
     private:
 	SubProcess m_process;
-	int m_fdreq, m_fdresp;
+        std::shared_ptr<SubProcessPipe> m_req, m_resp;
 	unsigned long m_proto_ver; // remote SFTP protocol version
 	unsigned long m_lastid;
 
