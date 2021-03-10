@@ -168,6 +168,22 @@ class SubProcess {
 	virtual ~SubProcess();
 
 	/**
+	 * Set up a file descriptor in the child.
+	 *
+	 * @param[in] fd file descriptor in the child
+	 * @param[in] setup file descriptor setup class
+	 */
+	void setChildFD(int fd, std::shared_ptr<SubProcessFD> setup);
+
+	/**
+	 * Get child file descriptor setup.
+	 *
+	 * @param[in] fd file descriptor in the child
+	 * @return pointer to the setup class, or nullptr
+	 */
+	std::shared_ptr<SubProcessFD> getChildFD(int fd);
+
+	/**
 	 * Specify how a file descriptor should be redirected.
 	 *
 	 * @param[in] File descriptor in child.
@@ -280,7 +296,7 @@ class SubProcess {
 
     private:
 
-	std::map<int, std::unique_ptr<SubProcessFD>> m_fdmap;
+	std::map<int, std::shared_ptr<SubProcessFD>> m_fdmap;
 };
 
 //}}}

@@ -39,7 +39,8 @@ using std::istream;
 using std::ostream;
 using std::min;
 using std::max;
-using std::unique_ptr;
+using std::make_shared;
+using std::shared_ptr;
 
 //{{{ SubProcess ---------------------------------------------------------------
 
@@ -65,24 +66,42 @@ void SubProcess::checkSpawned(void)
 }
 
 // -----------------------------------------------------------------------------
-void SubProcess::setPipeDirection(int fd, enum PipeDirection dir)
+void SubProcess::setChildFD(int fd, shared_ptr<SubProcessFD> setup)
 {
     m_fdmap.erase(fd);
+    if (setup)
+        m_fdmap.emplace(fd, setup);
+}
+
+// -----------------------------------------------------------------------------
+shared_ptr<SubProcessFD> SubProcess::getChildFD(int fd)
+{
+    auto it = m_fdmap.find(fd);
+    return it != m_fdmap.end()
+        ? it->second
+        : shared_ptr<SubProcessFD>(nullptr);
+}
+
+// -----------------------------------------------------------------------------
+void SubProcess::setPipeDirection(int fd, enum PipeDirection dir)
+{
     if (dir == ParentToChild)
-        m_fdmap.emplace(fd, new ParentToChildPipe());
+        setChildFD(fd, make_shared<ParentToChildPipe>());
     else if (dir == ChildToParent)
-        m_fdmap.emplace(fd, new ChildToParentPipe());
+        setChildFD(fd, make_shared<ChildToParentPipe>());
+    else
+        setChildFD(fd, nullptr);
 }
 
 // -----------------------------------------------------------------------------
 enum SubProcess::PipeDirection SubProcess::getPipeDirection(int fd)
 {
     enum SubProcess::PipeDirection ret = None;
-    auto it = m_fdmap.find(fd);
-    if (it != m_fdmap.end()) {
-        if (typeid(*it->second) == typeid(ParentToChildPipe))
+    auto ptr = getChildFD(fd);
+    if (ptr) {
+        if (typeid(*ptr) == typeid(ParentToChildPipe))
             ret = ParentToChild;
-        else if (typeid(*it->second) == typeid(ChildToParentPipe))
+        else if (typeid(*ptr) == typeid(ChildToParentPipe))
             ret = ChildToParent;
     }
     return ret;
@@ -101,9 +120,10 @@ int SubProcess::getPipeFD(int fd)
 // -----------------------------------------------------------------------------
 void SubProcess::setRedirection(int fd, int srcfd)
 {
-    m_fdmap.erase(fd);
     if (srcfd >= 0)
-	m_fdmap.emplace(fd, new SubProcessRedirect(srcfd));
+        setChildFD(fd, make_shared<SubProcessRedirect>(srcfd));
+    else
+        setChildFD(fd, nullptr);
 }
 
 // -----------------------------------------------------------------------------
