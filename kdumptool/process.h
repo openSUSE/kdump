@@ -382,9 +382,10 @@ class ProcessFilter::IO {
 	 * Prepare a new IO object.
 	 *
 	 * @param[in] fd desired file descriptor in the child.
+         * @param[in] pipe subprocess pipe.
 	 */
-	IO(int fd)
-	: m_fd(fd)
+        IO(int fd, std::shared_ptr<SubProcessPipe> pipe)
+            : m_fd(fd), m_pipe(pipe)
 	{ }
 
 	/**
@@ -402,32 +403,36 @@ class ProcessFilter::IO {
 	/**
 	 * Prepare a SubProcess instance (before spawning a child).
 	 */
-	virtual void setupSubProcess(SubProcess &p) = 0;
+        void setupSubProcess(SubProcess &p)
+        { p.setChildFD(m_fd, m_pipe); }
 
 	/**
 	 * Set up I/O multiplexing.
 	 *
 	 * @param[in,out] io IO multiplexer instance
-	 * @param[in,out] p SubProcess instance
 	 *
 	 * This method is called after the subprocess has already started,
 	 * so you can get pipe file descriptors, etc.
 	 */
-	virtual void setupIO(MultiplexIO &io, SubProcess &p) = 0;
+        virtual void setupIO(MultiplexIO &io) = 0;
 
 	/**
 	 * Handle I/O events.
 	 *
 	 * @param[in,out] io IO multiplexer instance
-	 * @param[in,out] p SubProcess instance
 	 */
-	virtual void handleEvents(MultiplexIO &io, SubProcess &p) = 0;
+        virtual void handleEvents(MultiplexIO &io) = 0;
 
     protected:
 	/**
 	 * Desired file descriptor in the child.
 	 */
 	int m_fd;
+
+        /**
+         * Pipe setup for the child.
+         */
+        std::shared_ptr<SubProcessPipe> m_pipe;
 };
 
 //}}}

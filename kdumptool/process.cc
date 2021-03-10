@@ -332,17 +332,9 @@ class Input : public ProcessFilter::IO {
     public:
 
 	Input(int fd)
-	: ProcessFilter::IO(fd)
+            : ProcessFilter::IO(fd, make_shared<ParentToChildPipe>())
 	{ }
-
-	virtual void setupSubProcess(SubProcess &p);
 };
-
-// -----------------------------------------------------------------------------
-void Input::setupSubProcess(SubProcess &p)
-{
-    p.setChildFD(m_fd, make_shared<ParentToChildPipe>());
-}
 
 //}}}
 //{{{ IStream ------------------------------------------------------------------
@@ -352,8 +344,8 @@ class IStream : public Input {
 	: Input(fd), m_input(input), bufptr(NULL), bufend(NULL)
 	{ }
 
-	virtual void setupIO(MultiplexIO &io, SubProcess &p);
-	virtual void handleEvents(MultiplexIO &io, SubProcess &p);
+        virtual void setupIO(MultiplexIO &io);
+        virtual void handleEvents(MultiplexIO &io);
 
     private:
 	std::istream *m_input;
@@ -362,13 +354,13 @@ class IStream : public Input {
 };
 
 // -----------------------------------------------------------------------------
-void IStream::setupIO(MultiplexIO &io, SubProcess &p)
+void IStream::setupIO(MultiplexIO &io)
 {
-    pollidx = io.add(p.getPipeFD(m_fd), POLLOUT);
+    pollidx = io.add(m_pipe->parentFD(), POLLOUT);
 }
 
 // -----------------------------------------------------------------------------
-void IStream::handleEvents(MultiplexIO &io, SubProcess &p)
+void IStream::handleEvents(MultiplexIO &io)
 {
     ssize_t cnt;
     const struct pollfd *poll = &io[pollidx];
@@ -388,7 +380,7 @@ void IStream::handleEvents(MultiplexIO &io, SubProcess &p)
 	bufptr += cnt;
 
 	if (m_input->eof()) {
-	    p.setChildFD(m_fd, nullptr);
+            m_pipe->close();
 	    io.deactivate(pollidx);
 	}
     }
@@ -400,17 +392,9 @@ void IStream::handleEvents(MultiplexIO &io, SubProcess &p)
 class Output : public ProcessFilter::IO {
     public:
 	Output(int fd)
-	: ProcessFilter::IO(fd)
+            : ProcessFilter::IO(fd, make_shared<ChildToParentPipe>())
 	{ }
-
-	virtual void setupSubProcess(SubProcess &p);
 };
-
-// -----------------------------------------------------------------------------
-void Output::setupSubProcess(SubProcess &p)
-{
-    p.setChildFD(m_fd, make_shared<ChildToParentPipe>());
-}
 
 //}}}
 //{{{ OStream ------------------------------------------------------------------
@@ -421,8 +405,8 @@ class OStream : public Output {
 	: Output(fd), m_output(output)
 	{ }
 
-	virtual void setupIO(MultiplexIO &io, SubProcess &p);
-	virtual void handleEvents(MultiplexIO &io, SubProcess &p);
+        virtual void setupIO(MultiplexIO &io);
+        virtual void handleEvents(MultiplexIO &io);
 
     private:
 	std::ostream *m_output;
@@ -431,13 +415,13 @@ class OStream : public Output {
 };
 
 // -----------------------------------------------------------------------------
-void OStream::setupIO(MultiplexIO &io, SubProcess &p)
+void OStream::setupIO(MultiplexIO &io)
 {
-    pollidx = io.add(p.getPipeFD(m_fd), POLLIN);
+    pollidx = io.add(m_pipe->parentFD(), POLLIN);
 }
 
 // -----------------------------------------------------------------------------
-void OStream::handleEvents(MultiplexIO &io, SubProcess &p)
+void OStream::handleEvents(MultiplexIO &io)
 {
     ssize_t cnt;
     const struct pollfd *poll = &io[pollidx];
@@ -451,7 +435,7 @@ void OStream::handleEvents(MultiplexIO &io, SubProcess &p)
 	    cnt = 0;
 
 	if (!cnt) {
-	    p.setChildFD(m_fd, nullptr);
+            m_pipe->close();
 	    io.deactivate(pollidx);
 	}
 	m_output->write(buf, cnt);
@@ -525,12 +509,12 @@ uint8_t ProcessFilter::execute(const string &name, const StringVector &args)
     // initialize multiplex IO
     MultiplexIO io;
     for (it = m_iomap.begin(); it != m_iomap.end(); ++it)
-	it->second->setupIO(io, p);
+        it->second->setupIO(io);
 
     while (io.active() > 0) {
 	io.monitor();
 	for (it = m_iomap.begin(); it != m_iomap.end(); ++it)
-	    it->second->handleEvents(io, p);
+            it->second->handleEvents(io);
     }
 
     int status = p.wait();
