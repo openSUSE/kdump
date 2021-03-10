@@ -274,57 +274,6 @@ int SubProcess::wait(void)
 }
 
 //}}}
-//{{{ MultiplexIO --------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-MultiplexIO::MultiplexIO(void)
-    : m_active(0)
-{}
-
-// -----------------------------------------------------------------------------
-int MultiplexIO::add(int fd, short events)
-{
-    if (fd >= 0)
-	++m_active;
-
-    struct pollfd poll;
-    poll.fd = fd;
-    poll.events = events;
-    m_fds.push_back(poll);
-
-    return m_fds.size() - 1;
-}
-
-// -----------------------------------------------------------------------------
-struct pollfd &MultiplexIO::operator[](int idx)
-{
-    return m_fds.at(idx);
-}
-
-// -----------------------------------------------------------------------------
-void MultiplexIO::deactivate(int idx)
-{
-    if (m_fds[idx].fd >= 0)
-	--m_active;
-    m_fds[idx].fd = -1;
-}
-
-// -----------------------------------------------------------------------------
-int MultiplexIO::monitor(int timeout)
-{
-    int ret;
-
-    do {
-	ret = poll(m_fds.data(), m_fds.size(), timeout);
-    } while (ret < 0 && errno == EINTR);
-
-    if (ret < 0)
-	throw KSystemError("poll() failed", errno);
-
-    return ret;
-}
-
-//}}}
 //{{{ Input --------------------------------------------------------------------
 class Input : public ProcessFilter::IO {
     public:

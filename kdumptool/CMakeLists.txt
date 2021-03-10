@@ -32,6 +32,8 @@ SET(COMMON_SRC
     configuration.cc
     configparser.h
     configparser.cc
+    multiplexio.cc
+    multiplexio.h
     process.h
     process.cc
     util.h

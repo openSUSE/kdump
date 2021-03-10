@@ -26,6 +26,7 @@
 #include "optionparser.h"
 #include "subcommand.h"
 #include "stringvector.h"
+#include "multiplexio.h"
 
 //{{{ SubProcess ---------------------------------------------------------------
 
@@ -204,58 +205,6 @@ class SubProcess {
 
 	void _closeParentFDs(void);
 	void _closeChildFDs(void);
-};
-
-//}}}
-//{{{ MultiplexIO --------------------------------------------------------------
-
-struct pollfd;
-
-class MultiplexIO {
-    public:
-	/**
-	 * Trivial constructor.
-	 */
-	MultiplexIO(void);
-
-	/**
-	 * Add a file descriptor to monitor.
-	 *
-	 * @param[in] fd file descriptor
-	 * @param[in] events to be watched, see poll(2)
-	 * @returns corresponding index in the poll vector
-	 */
-	int add(int fd, short events);
-
-	/**
-	 * Get a reference to a pollfd.
-	 */
-	struct pollfd &operator[](int idx);
-
-	/**
-	 * Remove a monitored file descriptor.
-	 *
-	 * @param[in] idx index in the poll vector
-	 */
-	void deactivate(int idx);
-
-	/**
-	 * Get the number of active file descriptors.
-	 */
-	int active() const
-	{ return m_active; }
-
-	/**
-	 * Wait for a monitored event.
-	 *
-	 * @param[in] timeout max time to wait (in milliseconds)
-	 * @returns the number of events
-	 */
-	int monitor(int timeout = -1);
-
-    private:
-	std::vector<struct pollfd> m_fds;
-	int m_active;
 };
 
 //}}}
