@@ -25,6 +25,7 @@
 #include <cerrno>
 #include <unistd.h>
 #include <poll.h>
+#include <typeinfo>
 
 #include "process.h"
 #include "global.h"
@@ -38,33 +39,9 @@ using std::istream;
 using std::ostream;
 using std::min;
 using std::max;
+using std::unique_ptr;
 
 //{{{ SubProcess ---------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-void SubProcess::PipeInfo::close(void)
-{
-    closeParent();
-    closeChild();
-}
-
-// -----------------------------------------------------------------------------
-void SubProcess::PipeInfo::closeParent(void)
-{
-    if (parentfd >= 0) {
-	::close(parentfd);
-	parentfd = -1;
-    }
-}
-
-// -----------------------------------------------------------------------------
-void SubProcess::PipeInfo::closeChild(void)
-{
-    if (childfd >= 0) {
-	::close(childfd);
-	childfd = -1;
-    }
-}
 
 // -----------------------------------------------------------------------------
 SubProcess::SubProcess()
@@ -74,7 +51,6 @@ SubProcess::SubProcess()
 // -----------------------------------------------------------------------------
 SubProcess::~SubProcess()
 {
-    _closeParentFDs();
     if (m_pid != -1) {
 	kill();
 	wait();
@@ -91,67 +67,43 @@ void SubProcess::checkSpawned(void)
 // -----------------------------------------------------------------------------
 void SubProcess::setPipeDirection(int fd, enum PipeDirection dir)
 {
-    m_redirs.erase(fd);
-
-    if (dir == None)
-	m_pipes.erase(fd);
-    else {
-	std::pair<int, struct PipeInfo> val(fd, PipeInfo(dir));
-	std::pair<std::map<int, struct PipeInfo>::iterator, bool> ret;
-	ret = m_pipes.insert(val);
-	if (ret.second == false) {
-	    ret.first->second.close();
-	    ret.first->second.dir = dir;
-	}
-    }
+    m_fdmap.erase(fd);
+    if (dir == ParentToChild)
+        m_fdmap.emplace(fd, new ParentToChildPipe());
+    else if (dir == ChildToParent)
+        m_fdmap.emplace(fd, new ChildToParentPipe());
 }
 
 // -----------------------------------------------------------------------------
 enum SubProcess::PipeDirection SubProcess::getPipeDirection(int fd)
 {
-    std::map<int, struct PipeInfo>::iterator ret;
-    ret = m_pipes.find(fd);
-    return (ret == m_pipes.end())
-	? None
-	: ret->second.dir;
+    enum SubProcess::PipeDirection ret = None;
+    auto it = m_fdmap.find(fd);
+    if (it != m_fdmap.end()) {
+        if (typeid(*it->second) == typeid(ParentToChildPipe))
+            ret = ParentToChild;
+        else if (typeid(*it->second) == typeid(ChildToParentPipe))
+            ret = ChildToParent;
+    }
+    return ret;
 }
 
 // -----------------------------------------------------------------------------
 int SubProcess::getPipeFD(int fd)
 {
-    std::map<int, struct PipeInfo>::iterator ret;
-    ret = m_pipes.find(fd);
-    if (ret == m_pipes.end())
+    auto it = m_fdmap.find(fd);
+    if (it == m_fdmap.end())
 	throw std::out_of_range("SubProcess::getPipeFD(): Unknown fd "
 				+ StringUtil::number2string(fd));
-    return ret->second.parentfd;
+    return it->second->parentFD();
 }
 
 // -----------------------------------------------------------------------------
 void SubProcess::setRedirection(int fd, int srcfd)
 {
-    m_pipes.erase(fd);
-
-    if (srcfd < 0)
-	m_redirs.erase(fd);
-    else
-	m_redirs[fd] = srcfd;
-}
-
-// -----------------------------------------------------------------------------
-void SubProcess::_closeParentFDs(void)
-{
-    std::map<int, struct PipeInfo>::iterator it;
-    for (it = m_pipes.begin(); it != m_pipes.end(); ++it)
-	it->second.closeParent();
-}
-
-// -----------------------------------------------------------------------------
-void SubProcess::_closeChildFDs(void)
-{
-    std::map<int, struct PipeInfo>::iterator it;
-    for (it = m_pipes.begin(); it != m_pipes.end(); ++it)
-	it->second.closeChild();
+    m_fdmap.erase(fd);
+    if (srcfd >= 0)
+	m_fdmap.emplace(fd, new SubProcessRedirect(srcfd));
 }
 
 // -----------------------------------------------------------------------------
@@ -163,37 +115,8 @@ void SubProcess::spawn(const string &name, const StringVector &args)
     //
     // setup pipes
     //
-    try {
-	std::map<int, struct PipeInfo>::iterator it;
-	for (it = m_pipes.begin(); it != m_pipes.end(); ++it) {
-	    int pipefd[2];
-
-	    if (it->second.dir != ParentToChild &&
-		it->second.dir != ChildToParent)
-		throw KError("SubProcess::spawn(): "
-			     "invalid pipe direction for fd "
-			     + StringUtil::number2string(it->first) + ": "
-			     + StringUtil::number2string(it->second.dir));
-
-	    if (pipe2(pipefd, O_CLOEXEC) < 0)
-		throw KSystemError("SubProcess::spawn(): "
-				   "cannot create pipe for fd "
-				   + StringUtil::number2string(it->first),
-				   errno);
-
-	    if(it->second.dir == ParentToChild) {
-		it->second.parentfd = pipefd[1];
-		it->second.childfd = pipefd[0];
-	    } else {		// ChildToParent
-		it->second.parentfd = pipefd[0];
-		it->second.childfd = pipefd[1];
-	    }
-	}
-    } catch(...) {
-	_closeParentFDs();
-	_closeChildFDs();
-	throw;
-    }
+    for (auto &elem : m_fdmap)
+        elem.second->prepare();
 
     //
     // execute the child
@@ -203,27 +126,14 @@ void SubProcess::spawn(const string &name, const StringVector &args)
     if (child > 0) {		// parent code
 	m_pid = child;
 
-	_closeChildFDs();
+        for (auto &elem : m_fdmap)
+            elem.second->finalizeParent();
 
-    } else {
-	_closeParentFDs();
+    } else if (child == 0) {	// child code
+        for (auto &elem : m_fdmap)
+            elem.second->finalizeChild(elem.first);
 
-        if (child == 0) {	// child code
-	    std::map<int, struct PipeInfo>::iterator it;
-	    for (it = m_pipes.begin(); it != m_pipes.end(); ++it)
-		dup2(it->second.childfd, it->first);
-
-	    std::map<int, int>::iterator redir;
-	    for (redir = m_redirs.begin(); redir != m_redirs.end(); ++redir)
-		dup2(redir->second, redir->first);
-        }
-
-        if (child != 0) {	// parent code failure
-	    _closeChildFDs();
-            throw KSystemError("SubProcess::spawn(): fork failed", errno);
-	}
-
-	// child code, execute the process
+    	// execute the process
 	CharV fullV = args;
 	fullV.insert(fullV.begin(), name);
 	char **vector = fullV.data();
@@ -231,6 +141,9 @@ void SubProcess::spawn(const string &name, const StringVector &args)
 	int ret = execvp(name.c_str(), vector);
 	if (ret < 0)
 	    throw KSystemError("Execution of '" + name + "' failed.", errno);
+
+    } else {                    // parent code failure
+        throw KSystemError("SubProcess::spawn(): fork failed", errno);
     }
 
     Debug::debug()->dbg("Forked child PID %d", m_pid);
@@ -271,6 +184,126 @@ int SubProcess::wait(void)
 
     m_pid = -1;
     return status;
+}
+
+//}}}
+//{{{ SubProcessFD -------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+SubProcessFD::~SubProcessFD()
+{
+}
+
+// -----------------------------------------------------------------------------
+void SubProcessFD::_move_fd(int& oldfd, int newfd)
+{
+    if (dup2(oldfd, newfd) < 0)
+        throw KSystemError("Cannot duplicate fd "
+                           + StringUtil::number2string(oldfd)
+                           + " to fd " + StringUtil::number2string(newfd),
+                           errno);
+    close(oldfd);
+    oldfd = -1;
+}
+
+//}}}
+//{{{ SubProcessRedirect -------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+void SubProcessRedirect::prepare()
+{
+}
+
+// -----------------------------------------------------------------------------
+void SubProcessRedirect::finalizeParent()
+{
+}
+
+// -----------------------------------------------------------------------------
+void SubProcessRedirect::finalizeChild(int fd)
+{
+    _move_fd(m_fd, fd);
+}
+
+// -----------------------------------------------------------------------------
+int SubProcessRedirect::parentFD()
+{
+    return -1;
+}
+
+//}}}
+//{{{ SubProcessPipe -----------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+SubProcessPipe::~SubProcessPipe()
+{
+    close();
+}
+
+// -----------------------------------------------------------------------------
+void SubProcessPipe::prepare()
+{
+    close();
+    if (pipe2(m_pipefd, O_CLOEXEC) < 0)
+        throw KSystemError("Cannot create subprocess pipe", errno);
+}
+
+// -----------------------------------------------------------------------------
+void SubProcessPipe::close()
+{
+    if (m_pipefd[0] >= 0)
+        ::close(m_pipefd[0]);
+    if (m_pipefd[1] >= 0)
+        ::close(m_pipefd[1]);
+    m_pipefd[0] = m_pipefd[1] = -1;
+}
+
+//}}}
+//{{{ ParentToChildPipe --------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+void ParentToChildPipe::finalizeParent()
+{
+    ::close(m_pipefd[0]);
+    m_pipefd[0] = -1;
+}
+
+// -----------------------------------------------------------------------------
+void ParentToChildPipe::finalizeChild(int fd)
+{
+    ::close(m_pipefd[1]);
+    m_pipefd[1] = -1;
+    _move_fd(m_pipefd[0], fd);
+}
+
+// -----------------------------------------------------------------------------
+int ParentToChildPipe::parentFD()
+{
+    return m_pipefd[1];
+}
+
+//}}}
+//{{{ ChildToParentPipe --------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+void ChildToParentPipe::finalizeParent()
+{
+    ::close(m_pipefd[1]);
+    m_pipefd[1] = -1;
+}
+
+// -----------------------------------------------------------------------------
+void ChildToParentPipe::finalizeChild(int fd)
+{
+    ::close(m_pipefd[0]);
+    m_pipefd[0] = -1;
+    _move_fd(m_pipefd[1], fd);
+}
+
+// -----------------------------------------------------------------------------
+int ChildToParentPipe::parentFD()
+{
+    return m_pipefd[0];
 }
 
 //}}}

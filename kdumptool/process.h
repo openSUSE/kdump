@@ -21,6 +21,7 @@
 
 #include <stdint.h>
 #include <map>
+#include <memory>
 
 #include "global.h"
 #include "optionparser.h"
@@ -28,6 +29,119 @@
 #include "stringvector.h"
 #include "multiplexio.h"
 
+//{{{ SubProcessFD -------------------------------------------------------------
+
+/**
+ * Abstract base class for file descriptor setup.
+ */
+class SubProcessFD {
+
+    public:
+
+        virtual ~SubProcessFD();
+
+        /**
+         * Do all necessary preparations before forking.
+         */
+        virtual void prepare() = 0;
+
+        /**
+         * Finalize the file descriptor in parent.
+         */
+        virtual void finalizeParent() = 0;
+
+        /**
+         * Finalize the file descriptor in child.
+         *
+         * @param[in] fd file descriptor in child
+         */
+        virtual void finalizeChild(int fd) = 0;
+
+	/**
+	 * Get the file descriptor in the parent process.
+	 *
+	 * @return the file descriptor of a pipe, or -1 if none
+	 */
+        virtual int parentFD() = 0;
+
+    protected:
+
+        void _move_fd(int& oldfd, int newfd);
+};
+
+//}}}
+//{{{ SubProcessRedirect -------------------------------------------------------
+
+class SubProcessRedirect : public SubProcessFD {
+
+        int m_fd;
+
+    public:
+
+        SubProcessRedirect(int fd)
+            : m_fd(fd)
+        { }
+
+        void prepare();
+        void finalizeParent();
+        void finalizeChild(int fd);
+        int parentFD();
+};
+
+//}}}
+//{{{ ChildPipe ----------------------------------------------------------------
+
+class SubProcessPipe : public SubProcessFD {
+
+    protected:
+
+        int m_pipefd[2];
+
+    public:
+
+        SubProcessPipe()
+        { m_pipefd[0] = m_pipefd[1] = -1; }
+
+        ~SubProcessPipe();
+        void prepare();
+
+        /**
+         * Explicitly close the pipe.
+         */
+        void close();
+};
+
+//}}}
+//{{{ ParentToChildPipe --------------------------------------------------------
+
+/**
+ * Pipe for data written from parent to child.
+ */
+class ParentToChildPipe : public SubProcessPipe {
+
+    public:
+
+        void finalizeParent();
+        void finalizeChild(int fd);
+        int parentFD();
+};
+
+//}}}
+//{{{ ChildToParentPipe --------------------------------------------------------
+
+/**
+ * Pipe for data written from parent to child.
+ */
+class ChildToParentPipe : public SubProcessPipe {
+
+    public:
+
+        void finalizeParent();
+        void finalizeChild(int fd);
+        int parentFD();
+};
+
+//}}}
 //{{{ SubProcess ---------------------------------------------------------------
 
 /**
@@ -79,7 +193,7 @@ class SubProcess {
 	 * @param[in] File descriptor in child.
 	 * @exception out_of_range if the file descriptor is not piped.
 	 */
-	int getPipeFD(int fd);
+        int getPipeFD(int fd);
 
 	/**
 	 * Set up redirection from an open file descriptor.
@@ -166,45 +280,7 @@ class SubProcess {
 
     private:
 
-	struct PipeInfo {
-	    enum PipeDirection dir;
-	    int parentfd;	/* fd in parent */
-	    int childfd;	/* fd for child (during init) */
-
-	    /**
-	     * Initialize the info
-	     */
-	    PipeInfo(enum PipeDirection adir)
-	    : dir(adir), parentfd(-1), childfd(-1)
-	    { }
-
-	    /**
-	     * Destructor.
-	     */
-	    ~PipeInfo()
-	    { close(); }
-
-	    /**
-	     * Close all open file descriptors
-	     */
-	    void close(void);
-
-	    /**
-	     * Close parent file descriptor, if open
-	     */
-	    void closeParent(void);
-
-	    /**
-	     * Close child file descriptor, if open
-	     */
-	    void closeChild(void);
-	};
-	std::map<int, struct PipeInfo> m_pipes;
-
-	std::map<int, int> m_redirs;
-
-	void _closeParentFDs(void);
-	void _closeChildFDs(void);
+	std::map<int, std::unique_ptr<SubProcessFD>> m_fdmap;
 };
 
 //}}}
