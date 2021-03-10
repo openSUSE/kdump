@@ -17,6 +17,7 @@
  * 02110-1301, USA.
  */
 #include <iostream>
+#include <memory>
 
 #include <unistd.h>
 
@@ -29,6 +30,7 @@
 using std::cout;
 using std::cerr;
 using std::endl;
+using std::make_shared;
 
 // -----------------------------------------------------------------------------
 int main(int argc, char *argv[])
@@ -90,35 +92,37 @@ int main(int argc, char *argv[])
 	status = p.wait();
 	Debug::debug()->info("Child exited with status %d", status);
 
-	p.setPipeDirection(0, SubProcess::ParentToChild);
+        auto pipe = make_shared<ParentToChildPipe>();
+	p.setChildFD(0, pipe);
 	p.spawn("cat", v);
 	Debug::debug()->info("Spawned process 'cat' with PID %d",
 			     p.getChildPID());
-	fd = p.getPipeFD(0);
+	fd = pipe->parentFD();
 	int res = write(fd, hello_world, sizeof(hello_world) - 1);
 	if (res != sizeof(hello_world) - 1) {
 	    cerr << "Partial write to 'cat': " << res << " bytes" << endl;
 	    ++errors;
 	}
-	close(fd);
+	pipe->close();
 	status = p.wait();
 	Debug::debug()->info("Child exited with status %d", status);
 
 	// Redirect the output from one command to another
 	SubProcess p2;
-	p.setPipeDirection(1, SubProcess::ChildToParent);
+        auto pipe2 = make_shared<ChildToParentPipe>();
+        p.setChildFD(1, pipe2);
 	p.spawn("cat", v);
 	Debug::debug()->info("Spawned process 'cat' with PID %d",
 			     p.getChildPID());
-	fd = p.getPipeFD(1);
-	p2.setRedirection(0, fd);
+        auto redir = make_shared<SubProcessRedirect>(pipe2->parentFD());
+	p2.setChildFD(0, redir);
 	v.push_back("^Hello");
 	p2.spawn("grep", v);
 	Debug::debug()->info("Spawned process 'grep' with PID %d",
 			     p2.getChildPID());
-	close(fd);
+	pipe2->close();
 
-	fd = p.getPipeFD(0);
+	fd = pipe->parentFD();
 	res = write(fd, another_line, sizeof(another_line) - 1);
 	if (res != sizeof(another_line) - 1) {
 	    cerr << "Partial write to 'cat': " << res << " bytes" << endl;
@@ -129,7 +133,7 @@ int main(int argc, char *argv[])
 	    cerr << "Partial write to 'cat': " << res << " bytes" << endl;
 	    ++errors;
 	}
-	close(fd);
+	pipe->close();
 
 	status = p.wait();
 	Debug::debug()->info("'cat' exited with status %d", status);
