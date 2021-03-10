@@ -40,7 +40,7 @@ int MultiplexIO::add(int fd, short events)
 }
 
 // -----------------------------------------------------------------------------
-struct pollfd &MultiplexIO::operator[](int idx)
+const struct pollfd &MultiplexIO::operator[](int idx) const
 {
     return m_fds.at(idx);
 }

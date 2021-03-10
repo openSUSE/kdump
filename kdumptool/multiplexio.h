@@ -51,7 +51,7 @@ class MultiplexIO {
 	/**
 	 * Get a reference to a pollfd.
 	 */
-	struct pollfd &operator[](int idx);
+	const struct pollfd &operator[](int idx) const;
 
 	/**
 	 * Remove a monitored file descriptor.
