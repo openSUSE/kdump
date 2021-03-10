@@ -201,12 +201,6 @@ void SubProcessRedirect::finalizeChild(int fd)
     _move_fd(m_fd, fd);
 }
 
-// -----------------------------------------------------------------------------
-int SubProcessRedirect::parentFD()
-{
-    return -1;
-}
-
 //}}}
 //{{{ SubProcessPipe -----------------------------------------------------------
 
@@ -252,12 +246,6 @@ void ParentToChildPipe::finalizeChild(int fd)
     _move_fd(m_pipefd[0], fd);
 }
 
-// -----------------------------------------------------------------------------
-int ParentToChildPipe::parentFD()
-{
-    return m_pipefd[1];
-}
-
 //}}}
 //{{{ ChildToParentPipe --------------------------------------------------------
 
@@ -274,12 +262,6 @@ void ChildToParentPipe::finalizeChild(int fd)
     ::close(m_pipefd[0]);
     m_pipefd[0] = -1;
     _move_fd(m_pipefd[1], fd);
-}
-
-// -----------------------------------------------------------------------------
-int ChildToParentPipe::parentFD()
-{
-    return m_pipefd[0];
 }
 
 //}}}
@@ -312,7 +294,7 @@ class IStream : public Input {
 // -----------------------------------------------------------------------------
 void IStream::setupIO(MultiplexIO &io)
 {
-    pollidx = io.add(m_pipe->parentFD(), POLLOUT);
+    pollidx = io.add(m_pipe->writeEnd(), POLLOUT);
 }
 
 // -----------------------------------------------------------------------------
@@ -373,7 +355,7 @@ class OStream : public Output {
 // -----------------------------------------------------------------------------
 void OStream::setupIO(MultiplexIO &io)
 {
-    pollidx = io.add(m_pipe->parentFD(), POLLIN);
+    pollidx = io.add(m_pipe->readEnd(), POLLIN);
 }
 
 // -----------------------------------------------------------------------------

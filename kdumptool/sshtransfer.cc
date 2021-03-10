@@ -105,7 +105,7 @@ void SSHTransfer::perform(DataProvider *dataprovider,
     p.setChildFD(STDIN_FILENO, pipe);
     p.spawn("ssh", makeArgs(remote));
 
-    int fd = pipe->parentFD();
+    int fd = pipe->writeEnd();
     try {
         dataprovider->prepare();
         prepared = true;
@@ -643,7 +643,7 @@ void SFTPTransfer::sendPacket(SFTPPacket &pkt)
     size_t buflen = bv.size();
 
     while (buflen) {
-	ssize_t len = write(m_req->parentFD(), bufp, buflen);
+        ssize_t len = write(m_req->writeEnd(), bufp, buflen);
 	if (len < 0)
 	    throw KSystemError("SFTPTransfer::sendPacket: write failed",
 			       errno);
@@ -656,7 +656,7 @@ void SFTPTransfer::sendPacket(SFTPPacket &pkt)
 void SFTPTransfer::recvBuffer(unsigned char *bufp, size_t buflen)
 {
     while (buflen) {
-	ssize_t len = read(m_resp->parentFD(), bufp, buflen);
+        ssize_t len = read(m_resp->readEnd(), bufp, buflen);
 	if (len < 0)
 	    throw KSystemError("SFTPTransfer::recvPacket: read failed",
 			       errno);

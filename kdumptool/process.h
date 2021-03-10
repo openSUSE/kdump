@@ -57,13 +57,6 @@ class SubProcessFD {
          */
         virtual void finalizeChild(int fd) = 0;
 
-	/**
-	 * Get the file descriptor in the parent process.
-	 *
-	 * @return the file descriptor of a pipe, or -1 if none
-	 */
-        virtual int parentFD() = 0;
-
     protected:
 
         void _move_fd(int& oldfd, int newfd);
@@ -85,7 +78,6 @@ class SubProcessRedirect : public SubProcessFD {
         void prepare();
         void finalizeParent();
         void finalizeChild(int fd);
-        int parentFD();
 };
 
 //}}}
@@ -106,6 +98,22 @@ class SubProcessPipe : public SubProcessFD {
         void prepare();
 
         /**
+         * Get the read end of the pipe.
+         *
+         * @return file descriptor of the read end.
+         */
+        int readEnd()
+        { return m_pipefd[0]; }
+
+        /**
+         * Get the write end of the pipe.
+         *
+         * @return file descriptor of the write end.
+         */
+        int writeEnd()
+        { return m_pipefd[1]; }
+
+        /**
          * Explicitly close the pipe.
          */
         void close();
@@ -123,7 +131,6 @@ class ParentToChildPipe : public SubProcessPipe {
 
         void finalizeParent();
         void finalizeChild(int fd);
-        int parentFD();
 };
 
 //}}}
@@ -138,7 +145,6 @@ class ChildToParentPipe : public SubProcessPipe {
 
         void finalizeParent();
         void finalizeChild(int fd);
-        int parentFD();
 };
 
 //}}}

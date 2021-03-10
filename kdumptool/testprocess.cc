@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
 	p.spawn("cat", v);
 	Debug::debug()->info("Spawned process 'cat' with PID %d",
 			     p.getChildPID());
-	fd = pipe->parentFD();
+        fd = pipe->writeEnd();
 	int res = write(fd, hello_world, sizeof(hello_world) - 1);
 	if (res != sizeof(hello_world) - 1) {
 	    cerr << "Partial write to 'cat': " << res << " bytes" << endl;
@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
 	p.spawn("cat", v);
 	Debug::debug()->info("Spawned process 'cat' with PID %d",
 			     p.getChildPID());
-        auto redir = make_shared<SubProcessRedirect>(pipe2->parentFD());
+        auto redir = make_shared<SubProcessRedirect>(pipe2->readEnd());
 	p2.setChildFD(0, redir);
 	v.push_back("^Hello");
 	p2.spawn("grep", v);
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
 			     p2.getChildPID());
 	pipe2->close();
 
-	fd = pipe->parentFD();
+        fd = pipe->writeEnd();
 	res = write(fd, another_line, sizeof(another_line) - 1);
 	if (res != sizeof(another_line) - 1) {
 	    cerr << "Partial write to 'cat': " << res << " bytes" << endl;
