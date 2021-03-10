@@ -41,6 +41,7 @@ using std::min;
 using std::max;
 using std::make_shared;
 using std::shared_ptr;
+using std::unique_ptr;
 
 //{{{ SubProcess ---------------------------------------------------------------
 
@@ -384,33 +385,23 @@ void OStream::handleEvents(MultiplexIO &io)
 //{{{ ProcessFilter ------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-ProcessFilter::~ProcessFilter()
+void ProcessFilter::setIO(unique_ptr<IO> &io)
 {
-    std::map<int, IO*>::const_iterator it;
-    for (it = m_iomap.begin(); it != m_iomap.end(); ++it)
-	delete it->second;
-}
-
-void ProcessFilter::setIO(IO *io)
-{
-    std::pair<std::map<int, IO*>::iterator, bool> ret;
-    ret = m_iomap.insert(std::make_pair(io->getFD(), io));
-    if (ret.second == false) {
-	delete ret.first->second;
-	ret.first->second = io;
-    }
+    m_iomap[io->getFD()] = std::move(io);
 }
 
 // -----------------------------------------------------------------------------
 void ProcessFilter::setInput(int fd, istream *stream)
 {
-    setIO(new IStream(fd, stream));
+    unique_ptr<IO> io(new IStream(fd, stream));
+    setIO(io);
 }
 
 // -----------------------------------------------------------------------------
 void ProcessFilter::setOutput(int fd, ostream *stream)
 {
-    setIO(new OStream(fd, stream));
+    unique_ptr<IO> io(new OStream(fd, stream));
+    setIO(io);
 }
 
 // -----------------------------------------------------------------------------
@@ -440,19 +431,19 @@ uint8_t ProcessFilter::execute(const string &name, const StringVector &args)
     std::map<int, IO*>::const_iterator it;
 
     SubProcess p;
-    for (it = m_iomap.begin(); it != m_iomap.end(); ++it)
-	it->second->setupSubProcess(p);
+    for (auto &elem : m_iomap)
+        elem.second->setupSubProcess(p);
     p.spawn(name, args);
 
     // initialize multiplex IO
     MultiplexIO io;
-    for (it = m_iomap.begin(); it != m_iomap.end(); ++it)
-        it->second->setupIO(io);
+    for (auto &elem : m_iomap)
+        elem.second->setupIO(io);
 
     while (io.active() > 0) {
 	io.monitor();
-	for (it = m_iomap.begin(); it != m_iomap.end(); ++it)
-            it->second->handleEvents(io);
+        for (auto &elem : m_iomap)
+            elem.second->handleEvents(io);
     }
 
     int status = p.wait();

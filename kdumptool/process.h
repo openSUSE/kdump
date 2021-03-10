@@ -269,11 +269,6 @@ class ProcessFilter {
 	 */
 	class IO;
 
-	/**
-	 * Destructor.
-	 */
-	~ProcessFilter();
-
         /**
          * Runs the process, redirecting input/output.
          *
@@ -296,7 +291,7 @@ class ProcessFilter {
 	 * Note: The implementation uses io->getFD() to know which file
 	 * descriptor is modified.
 	 */
-	void setIO(IO *io);
+        void setIO(std::unique_ptr<IO> &io);
 
         /**
          * Redirect input in the subprocess from a std::istream.
@@ -325,7 +320,7 @@ class ProcessFilter {
 
     private:
 
-	std::map<int, IO*> m_iomap;
+        std::map<int, std::unique_ptr<IO>> m_iomap;
 };
 
 //}}}
