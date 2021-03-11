@@ -337,7 +337,7 @@ class ProcessFilter::IO {
 	 * @param[in] fd desired file descriptor in the child.
          * @param[in] pipe subprocess pipe.
 	 */
-        IO(int fd, std::shared_ptr<SubProcessPipe> pipe)
+        IO(int fd, std::shared_ptr<SubProcessPipe> &&pipe)
             : m_fd(fd), m_pipe(pipe)
 	{ }
 
