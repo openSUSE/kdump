@@ -302,7 +302,7 @@ void IStream::setupIO(MultiplexIO &io)
 void IStream::handleEvents(MultiplexIO &io)
 {
     ssize_t cnt;
-    const struct pollfd *poll = &io[pollidx];
+    const struct pollfd *poll = &io.at(pollidx);
 
     if (poll->revents & POLLOUT) {
 	// Buffer underflow
@@ -363,7 +363,7 @@ void OStream::setupIO(MultiplexIO &io)
 void OStream::handleEvents(MultiplexIO &io)
 {
     ssize_t cnt;
-    const struct pollfd *poll = &io[pollidx];
+    const struct pollfd *poll = &io.at(pollidx);
 
     if (poll->revents & (POLLIN | POLLHUP)) {
 	if (poll->revents & POLLIN) {

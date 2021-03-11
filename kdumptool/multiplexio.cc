@@ -40,12 +40,6 @@ int MultiplexIO::add(int fd, short events)
 }
 
 // -----------------------------------------------------------------------------
-const struct pollfd &MultiplexIO::operator[](int idx) const
-{
-    return m_fds.at(idx);
-}
-
-// -----------------------------------------------------------------------------
 void MultiplexIO::deactivate(int idx)
 {
     if (m_fds[idx].fd >= 0)
