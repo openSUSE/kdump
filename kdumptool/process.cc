@@ -428,8 +428,6 @@ uint8_t ProcessFilter::execute(const string &name, const StringVector &args)
     Debug::debug()->trace("ProcessFilter::execute(%s, %s)",
         name.c_str(), args.join(':').c_str());
 
-    std::map<int, IO*>::const_iterator it;
-
     SubProcess p;
     for (auto &elem : m_iomap)
         elem.second->setupSubProcess(p);
