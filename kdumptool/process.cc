@@ -302,9 +302,9 @@ void IStream::setupIO(MultiplexIO &io)
 void IStream::handleEvents(MultiplexIO &io)
 {
     ssize_t cnt;
-    const struct pollfd *poll = &io.at(pollidx);
+    const struct pollfd &poll = io.at(pollidx);
 
-    if (poll->revents & POLLOUT) {
+    if (poll.revents & POLLOUT) {
 	// Buffer underflow
 	if (bufptr >= bufend) {
 	    m_input->clear();
@@ -313,7 +313,7 @@ void IStream::handleEvents(MultiplexIO &io)
 		throw KSystemError("Cannot get data for input pipe", errno);
 	    bufend = bufptr + m_input->gcount();
 	}
-	cnt = write(poll->fd, bufptr, bufend - bufptr);
+	cnt = write(poll.fd, bufptr, bufend - bufptr);
 	if (cnt < 0)
 	    throw KSystemError("Cannot send data to input pipe", errno);
 	bufptr += cnt;
@@ -363,11 +363,11 @@ void OStream::setupIO(MultiplexIO &io)
 void OStream::handleEvents(MultiplexIO &io)
 {
     ssize_t cnt;
-    const struct pollfd *poll = &io.at(pollidx);
+    const struct pollfd &poll = io.at(pollidx);
 
-    if (poll->revents & (POLLIN | POLLHUP)) {
-	if (poll->revents & POLLIN) {
-	    cnt = read(poll->fd, buf, sizeof buf);
+    if (poll.revents & (POLLIN | POLLHUP)) {
+        if (poll.revents & POLLIN) {
+            cnt = read(poll.fd, buf, sizeof buf);
 	    if (cnt < 0)
 		throw KSystemError("Cannot get data from output pipe", errno);
 	} else
