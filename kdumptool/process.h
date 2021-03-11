@@ -179,9 +179,12 @@ class SubProcess {
 	 * Get child file descriptor setup.
 	 *
 	 * @param[in] fd file descriptor in the child
-	 * @return pointer to the setup class, or nullptr
+         * @return reference to the setup class
+         *
+         * If the given descriptor is not set up, this method
+         * throws an out_of_range exception.
 	 */
-	std::shared_ptr<SubProcessFD> getChildFD(int fd);
+        SubProcessFD const& getChildFD(int fd) const;
 
 	/**
 	 * Spawns a subprocess.

@@ -46,39 +46,43 @@ int main(int argc, char *argv[])
 
     Debug::debug()->setStderrLevel(Debug::DL_TRACE);
     try {
-        shared_ptr<SubProcessFD> temp;
-        auto found = p.getChildFD(0);
-        if (found) {
-            cerr << "Uninitialized pipe is a "
-                 << typeid(*found).name() << endl;
+        try {
+            // This must throw an out_of_range exception
+            cout << "Child fd 0 is " << typeid(p.getChildFD(0)).name() << endl;
             ++errors;
-        } else
-            cout << "Uninitialized pipe is nullptr" << endl;
+        } catch(std::out_of_range e) {
+            cout << "not yet initialized." << endl;
+        }
+
+        shared_ptr<SubProcessFD> temp;
 
         cout << "Checking ParentToChildPipe" << endl;
         temp.reset(new ParentToChildPipe());
 	p.setChildFD(0, temp);
-        found = p.getChildFD(0);
-        if (typeid(*found) != typeid(ParentToChildPipe)) {
-            cerr << "Unexpected type " << typeid(*found).name() << endl;
+        SubProcessFD const &found = p.getChildFD(0);
+        if (typeid(found) != typeid(ParentToChildPipe)) {
+            cerr << "Unexpected type " << typeid(found).name() << endl;
             ++errors;
         }
 
         cout << "Checking ChildToParentPipe" << endl;
         temp.reset(new ChildToParentPipe());
 	p.setChildFD(0, temp);
-        found = p.getChildFD(0);
-        if (typeid(*found) != typeid(ChildToParentPipe)) {
-            cerr << "Unexpected type " << typeid(*found).name() << endl;
+        SubProcessFD const &found2 = p.getChildFD(0);
+        if (typeid(found2) != typeid(ChildToParentPipe)) {
+            cerr << "Unexpected type " << typeid(found2).name() << endl;
             ++errors;
         }
 
         cout << "Checking no pipe" << endl;
 	p.setChildFD(0, nullptr);
-        found = p.getChildFD(0);
-        if (found) {
-            cerr << "Pipe is still a " << typeid(*found).name() << endl;
+        try {
+            // This must throw an out_of_range exception
+            SubProcessFD const &found3 = p.getChildFD(0);
+            cout << "Child fd 0 is " << typeid(found3).name() << endl;
             ++errors;
+        } catch(const std::out_of_range &e) {
+            cout << "OK, pipe 0 de-initialized again" << endl;
         }
 
 	StringVector v;

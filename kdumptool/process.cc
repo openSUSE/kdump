@@ -75,12 +75,9 @@ void SubProcess::setChildFD(int fd, shared_ptr<SubProcessFD> setup)
 }
 
 // -----------------------------------------------------------------------------
-shared_ptr<SubProcessFD> SubProcess::getChildFD(int fd)
+SubProcessFD const& SubProcess::getChildFD(int fd) const
 {
-    auto it = m_fdmap.find(fd);
-    return it != m_fdmap.end()
-        ? it->second
-        : shared_ptr<SubProcessFD>(nullptr);
+    return *m_fdmap.at(fd);
 }
 
 // -----------------------------------------------------------------------------
