@@ -30,7 +30,6 @@
 using std::cout;
 using std::cerr;
 using std::endl;
-using std::shared_ptr;
 using std::make_shared;
 
 // -----------------------------------------------------------------------------
@@ -54,11 +53,8 @@ int main(int argc, char *argv[])
             cout << "not yet initialized." << endl;
         }
 
-        shared_ptr<SubProcessFD> temp;
-
         cout << "Checking ParentToChildPipe" << endl;
-        temp.reset(new ParentToChildPipe());
-	p.setChildFD(0, temp);
+        p.setChildFD(0, make_shared<ParentToChildPipe>());
         SubProcessFD const &found = p.getChildFD(0);
         if (typeid(found) != typeid(ParentToChildPipe)) {
             cerr << "Unexpected type " << typeid(found).name() << endl;
@@ -66,8 +62,7 @@ int main(int argc, char *argv[])
         }
 
         cout << "Checking ChildToParentPipe" << endl;
-        temp.reset(new ChildToParentPipe());
-	p.setChildFD(0, temp);
+        p.setChildFD(0, make_shared<ChildToParentPipe>());
         SubProcessFD const &found2 = p.getChildFD(0);
         if (typeid(found2) != typeid(ChildToParentPipe)) {
             cerr << "Unexpected type " << typeid(found2).name() << endl;

@@ -173,7 +173,7 @@ class SubProcess {
 	 * @param[in] fd file descriptor in the child
 	 * @param[in] setup file descriptor setup class
 	 */
-	void setChildFD(int fd, std::shared_ptr<SubProcessFD> setup);
+        void setChildFD(int fd, std::shared_ptr<SubProcessFD> &&setup);
 
 	/**
 	 * Get child file descriptor setup.

@@ -67,7 +67,7 @@ void SubProcess::checkSpawned(void)
 }
 
 // -----------------------------------------------------------------------------
-void SubProcess::setChildFD(int fd, shared_ptr<SubProcessFD> setup)
+void SubProcess::setChildFD(int fd, shared_ptr<SubProcessFD> &&setup)
 {
     m_fdmap.erase(fd);
     if (setup)
