@@ -32,22 +32,26 @@ KernelPath::KernelPath(FilePath const &path)
 
     FilePath canonical = path.getCanonicalPath();
     m_directory = canonical.dirName();
-    KString kernel = canonical.baseName();
+    m_name = canonical.baseName();
 
     const StringList imageNames = KernelTool::imageNames(Util::getArch());
     for (auto const pfx : imageNames) {
-        if (kernel.startsWith(pfx)) {
-            if (kernel.length() == pfx.length())
+        if (m_name.startsWith(pfx)) {
+            if (m_name.length() == pfx.length()) {
+                m_name = pfx;
                 break;
-            if (kernel[pfx.length()] == '-') {
-                m_version.assign(kernel, pfx.length() + 1);
+            }
+            if (m_name[pfx.length()] == '-') {
+                m_version.assign(m_name, pfx.length() + 1);
+                m_name = pfx;
                 break;
             }
         }
     }
 
-    Debug::debug()->trace("directory=%s, version=%s",
-                          m_directory.c_str(), m_version.c_str());
+    Debug::debug()->trace("directory=%s, name=%s, version=%s",
+                          m_directory.c_str(), m_name.c_str(),
+                          m_version.c_str());
 }
 
 // -----------------------------------------------------------------------------
