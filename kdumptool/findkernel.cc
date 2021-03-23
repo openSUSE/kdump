@@ -74,7 +74,7 @@ void FindKernel::execute()
     const string &kernelver = Configuration::config()->KDUMP_KERNELVER.value();
 
     // user has specified a specific kernel, check that first
-    string kernelimage;
+    FilePath kernelimage;
     if (kernelver.size() > 0) {
         kernelimage = findForVersion(kernelver);
         if (kernelimage.size() == 0) {
@@ -186,7 +186,7 @@ bool FindKernel::suitableForKdump(const string &kernelImage, bool strict)
 }
 
 // -----------------------------------------------------------------------------
-string FindKernel::findForVersion(const string &kernelver)
+FilePath FindKernel::findForVersion(const string &kernelver)
 {
     Debug::debug()->trace("FindKernel::findForVersion(%s)", kernelver.c_str());
 
@@ -209,7 +209,7 @@ string FindKernel::findForVersion(const string &kernelver)
 }
 
 // -----------------------------------------------------------------------------
-string FindKernel::findKernelAuto()
+FilePath FindKernel::findKernelAuto()
 {
     Debug::debug()->trace("FindKernel::findKernelAuto()");
 
@@ -225,7 +225,7 @@ string FindKernel::findKernelAuto()
     string testkernel = elements.join('-');
     Debug::debug()->dbg("---------------");
     Debug::debug()->dbg("findKernelAuto: Trying %s", testkernel.c_str());
-    string testkernelimage = findForVersion(testkernel);
+    FilePath testkernelimage = findForVersion(testkernel);
     if (testkernelimage.size() > 0 && suitableForKdump(testkernelimage, true)) {
         return testkernelimage;
     }

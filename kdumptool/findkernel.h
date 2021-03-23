@@ -86,7 +86,7 @@ class FindKernel : public Subcommand {
          *         image
          * @exception KError on any error
          */
-        std::string findForVersion(const std::string &kernelver);
+        FilePath findForVersion(const std::string &kernelver);
 
         /**
          * Automatically finds a suitable kdump kernel. See kdump(5) for
@@ -95,7 +95,7 @@ class FindKernel : public Subcommand {
          * @return the full path to the kernel image
          * @exception KError on any error
          */
-        std::string findKernelAuto();
+        FilePath findKernelAuto();
 
     private:
         bool m_checkRelocatable;
