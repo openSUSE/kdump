@@ -39,6 +39,7 @@
 #include "stringutil.h"
 #include "fileutil.h"
 #include "kconfig.h"
+#include "kernelpath.h"
 
 using std::string;
 using std::memset;
@@ -468,12 +469,9 @@ Kconfig *KernelTool::retrieveKernelConfig() const
     // delete the object if we throw an exception
     try {
         // at first, search for the config on disk
-        string dir, stripped;
-
-        if (KernelTool::stripImageName(
-                m_kernel.getCanonicalPath(), dir, stripped)) {
-            FilePath config = dir;
-            config.appendPath("config-" + stripped);
+        KernelPath kpath(m_kernel);
+        if (!kpath.version().empty()) {
+            FilePath config = kpath.configPath();
             Debug::debug()->dbg("Trying %s for config", config.c_str());
             if (config.exists()) {
                 kconfig->readFromConfig(config);
