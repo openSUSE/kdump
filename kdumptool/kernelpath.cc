@@ -64,6 +64,20 @@ bool KernelPath::isKdump()
 }
 
 // -----------------------------------------------------------------------------
+FilePath KernelPath::configPath()
+{
+    FilePath ret(m_directory);
+    ret.appendPath("config");
+    if (!m_version.empty()) {
+        ret.push_back('-');
+        ret.append(m_version);
+    }
+
+    Debug::debug()->trace("KernelPath::configPath(): %s", ret.c_str());
+    return ret;
+}
+
+// -----------------------------------------------------------------------------
 FilePath KernelPath::initrdPath(bool fadump)
 {
     FilePath ret(m_directory);

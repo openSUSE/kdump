@@ -62,6 +62,13 @@ class KernelPath {
         { return m_version; }
 
         /**
+         * Constructs the corresponding config file path.
+         *
+         * @return path to the config (may not exist)
+         */
+        FilePath configPath();
+
+        /**
          * Constructs the corresponding initrd path.
          *
          * @param[in] fadump are we making initrd for FADUMP?
