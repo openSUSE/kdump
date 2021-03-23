@@ -97,14 +97,6 @@ class FindKernel : public Subcommand {
          */
         std::string findKernelAuto();
 
-        /**
-         * Finds an initrd for the given kernel image.
-         *
-         * @param[in] kernelPath a full path to a kernel image
-         * @return the initrd or an empty string if there's no initrd
-         */
-        std::string findInitrd(const FilePath &kernelPath);
-
     private:
         bool m_checkRelocatable;
         bool m_checkType;

@@ -84,6 +84,8 @@ SET(COMMON_SRC
     deletedumps.cc
     kconfig.h
     kconfig.cc
+    kernelpath.h
+    kernelpath.cc
     kerneltool.h
     kerneltool.cc
     read_ikconfig.h

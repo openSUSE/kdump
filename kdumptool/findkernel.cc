@@ -34,6 +34,7 @@
 #include "stringutil.h"
 #include "kconfig.h"
 #include "stringvector.h"
+#include "kernelpath.h"
 
 using std::string;
 using std::cout;
@@ -102,10 +103,16 @@ void FindKernel::execute()
     }
 
     // found!
-    string initrd = findInitrd(kernelimage);
+    KernelPath kpath(kernelimage);
+#if HAVE_FADUMP
+    const bool use_fadump =
+        Configuration::config()->KDUMP_FADUMP.value();
+#else
+    const bool use_fadump = false;
+#endif
 
     cout << "Kernel:\t" << kernelimage << endl;
-    cout << "Initrd:\t" << initrd << endl;
+    cout << "Initrd:\t" << kpath.initrdPath(use_fadump) << endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -305,39 +312,6 @@ bool FindKernel::isKdumpKernel(const KString &kernelimage)
         kernelimage.c_str(), ret ? "true" : "false");
     return ret;
 }
-
-// -----------------------------------------------------------------------------
-string FindKernel::findInitrd(const FilePath &kernelPath)
-{
-    Debug::debug()->trace("FindKernel::findInitrd(%s)", kernelPath.c_str());
-
-    // use the resolved name, not the symlink to generate the initrd
-    FilePath dir;
-    string stripped;
-    KernelTool::stripImageName(
-        kernelPath.getCanonicalPath(), dir, stripped
-    );
-
-    string dash;
-    if (stripped.size() > 0) {
-        dash = "-";
-    }
-
-#if HAVE_FADUMP
-    const bool use_fadump =
-        Configuration::config()->KDUMP_FADUMP.value();
-#else
-    const bool use_fadump = false;
-#endif
-
-    if (isKdumpKernel(stripped) || use_fadump)
-        dir.appendPath("initrd" + dash + stripped);
-    else {
-        dir.appendPath("initrd" + dash + stripped + "-kdump");
-    }
-    return dir;
-}
-
 
 //}}}
 
