@@ -67,39 +67,34 @@ const char *FindKernel::getName() const
 }
 
 // -----------------------------------------------------------------------------
-void FindKernel::execute()
+bool FindKernel::getPaths(FilePath &kernelimage, FilePath &initrd)
 {
-    Debug::debug()->trace("FindKernel::execute()");
+    Debug::debug()->trace("FindKernel::getPaths()");
 
     const string &kernelver = Configuration::config()->KDUMP_KERNELVER.value();
 
     // user has specified a specific kernel, check that first
-    FilePath kernelimage;
     if (kernelver.size() > 0) {
         kernelimage = findForVersion(kernelver);
-        if (kernelimage.size() == 0) {
-            cerr << "KDUMP_KERNELVER set to '" << kernelver << "' "
-                 << "but no such kernel exists." << endl;
-            setErrorCode(-1);
-            return;
+        if (kernelimage.empty()) {
+            Debug::debug()->info(
+                "KDUMP_KERNELVER is set to '%s', but no such kernel exists.",
+                kernelver.c_str());
+            return false;
         }
 
         // suitable?
         if (!suitableForKdump(kernelimage, false)) {
-            cerr << "Kernel '" << kernelimage << "' is not suitable for kdump."
-                 << endl;
-            cerr << "Please change KDUMP_KERNELVER in /etc/sysconfig/kdump."
-                 << endl;
-            setErrorCode(-1);
-            return;
+            Debug::debug()->info(
+                "Kernel '%s' is not suitable for kdump.",
+                kernelimage.c_str());
+            Debug::debug()->info("Please change KDUMP_KERNELVER.");
+            return false;
         }
     } else {
         kernelimage = findKernelAuto();
-        if (kernelimage.size() == 0) {
-            cerr << "No suitable kdump kernel found." << endl;
-            setErrorCode(-1);
-            return;
-        }
+        if (kernelimage.empty())
+            return false;
     }
 
     // found!
@@ -111,8 +106,27 @@ void FindKernel::execute()
     const bool use_fadump = false;
 #endif
 
+    initrd = kpath.initrdPath(use_fadump);
+
+    Debug::debug()->trace("FindKernel::getPaths(): kernel=%s, initrd=%s",
+                          kernelimage.c_str(), initrd.c_str());
+    return true;
+}
+
+// -----------------------------------------------------------------------------
+void FindKernel::execute()
+{
+    Debug::debug()->trace("FindKernel::execute()");
+
+    FilePath kernelimage, initrd;
+    if (!getPaths(kernelimage, initrd)) {
+        cerr << "No suitable kdump kernel found." << endl;
+        setErrorCode(-1);
+        return;
+    }
+
     cout << "Kernel:\t" << kernelimage << endl;
-    cout << "Initrd:\t" << kpath.initrdPath(use_fadump) << endl;
+    cout << "Initrd:\t" << initrd << endl;
 }
 
 // -----------------------------------------------------------------------------

@@ -49,12 +49,21 @@ class FindKernel : public Subcommand {
          */
         void execute();
 
+        /**
+         * Get the kernel and initrd paths.
+         *
+         * @param[out] kernel path to the kernel
+         * @param[out] initrd path to the corresponding kdump initrd
+         * @return @c true if a suitable kernel was found
+         */
+        bool getPaths(FilePath &kernel, FilePath &initrd);
+
     protected:
-        
+
         /**
          * Checks if a given kernel image is suitable for kdump.
          *
-         * @param[in] kernelImage ful path to the kernel image
+         * @param[in] kernelImage full path to the kernel image
          * @param[in] strict if that parameter is set to @c true, then
          *            we consider kernels that are not well suited as
          *            capture kernel (such as RT or huge number of CPUs
