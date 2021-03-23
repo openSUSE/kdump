@@ -139,30 +139,6 @@ list<string> KernelTool::imageNames(const std::string &arch)
 }
 
 // -----------------------------------------------------------------------------
-bool KernelTool::stripImageName(const FilePath &kernelImage, string &directory,
-                                string &rest)
-{
-    directory = kernelImage.dirName();
-    KString kernel = kernelImage.baseName();
-
-    list<string> imageNames = KernelTool::imageNames(Util::getArch());
-    for (list<string>::const_iterator it = imageNames.begin();
-            it != imageNames.end(); ++it) {
-        if (kernel == *it) {
-            rest = "";
-            return true;
-        }
-        const string pfx = *it + "-";
-        if (kernel.startsWith(pfx)) {
-          rest = kernel.substr(pfx.size());
-          return true;
-        }
-    }
-
-    return false;
-}
-
-// -----------------------------------------------------------------------------
 KernelTool::KernelType KernelTool::getKernelType() const
 {
     if (Util::isElfFile(m_fd)) {

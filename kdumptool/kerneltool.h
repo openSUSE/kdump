@@ -71,22 +71,6 @@ class KernelTool {
         static std::list<std::string> imageNames(const std::string &arch);
 
         /**
-         * Uses KernelTool::imageNames() and strips off the image names
-         * from kernelImage. For example, pass /boot/vmlinuz-2.6.27-rc1,
-         * then you get "/boot" as @p directory and "2.6.27-rc1" as @p rest.
-         *
-         * @param[in] kernelImage the full path to the kernel image
-         * @param[out] directory the directory where @p kernelImage was in
-         * @param[out] rest the rest, see the description above
-         * @return @c true if something has been stripped off, @c false
-         *         otherwise. The result is valid in any case.
-         * @exception KError if something went wrong
-         */
-        static bool stripImageName(const FilePath &kernelImage,
-                                   std::string &directory,
-                                   std::string &rest);
-
-        /**
          * Returns the type for the kernel image specified in the constructor.
          *
          * @exception KError if opening of the kernel image fails
