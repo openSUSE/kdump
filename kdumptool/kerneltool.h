@@ -62,15 +62,6 @@ class KernelTool {
         virtual ~KernelTool();
 
         /**
-         * Returns possible image names for the specific architecture
-         * in the order we should try them.
-         *
-         * @param[in] arch the architecture name such as "i386"
-         * @return a list of suitable image names like ("vmlinuz", "vmlinux")
-         */
-        static std::list<std::string> imageNames(const std::string &arch);
-
-        /**
          * Returns the type for the kernel image specified in the constructor.
          *
          * @exception KError if opening of the kernel image fails

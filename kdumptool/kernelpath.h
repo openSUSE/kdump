@@ -20,6 +20,8 @@
 #ifndef KERNELPATH_H
 #define KERNELPATH_H
 
+#include <string>
+
 #include "fileutil.h"
 #include "stringutil.h"
 
@@ -42,6 +44,15 @@ class KernelPath {
 
     public:
         KernelPath(FilePath const &path);
+
+        /**
+         * Returns possible image names for the specific architecture
+         * in the order they should be tried.
+         *
+         * @param[in] arch the architecture name such as "i386"
+         * @return a list of suitable image names like ("vmlinuz", "vmlinux")
+         */
+        static StringList imageNames(const std::string &arch);
 
         /**
          * @return path to the kernel directory

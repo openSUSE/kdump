@@ -116,28 +116,6 @@ KernelTool::~KernelTool()
     m_fd = -1;
 }
 
-
-// -----------------------------------------------------------------------------
-list<string> KernelTool::imageNames(const std::string &arch)
-{
-    list<string> ret;
-
-    if (arch == "i386" || arch == "x86_64") {
-        ret.push_back("vmlinuz");
-        ret.push_back("vmlinux");
-    } else if (arch == "ia64") {
-        ret.push_back("vmlinuz");
-    } else if (arch == "s390x") {
-        ret.push_back("image");
-    } else if (arch == "aarch64") {
-        ret.push_back("Image");
-    } else {
-        ret.push_back("vmlinux");
-    }
-
-    return ret;
-}
-
 // -----------------------------------------------------------------------------
 KernelTool::KernelType KernelTool::getKernelType() const
 {

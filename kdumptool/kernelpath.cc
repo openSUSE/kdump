@@ -17,13 +17,36 @@
  * 02110-1301, USA.
  */
 
+#include <string>
+
+#include "global.h"
 #include "kernelpath.h"
 #include "stringutil.h"
-#include "kerneltool.h"
 #include "util.h"
 #include "debug.h"
 
-//{{{ KernelPath --------------------------------------------------------------
+//{{{ KernelPath ---------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+StringList KernelPath::imageNames(const std::string &arch)
+{
+    StringList ret;
+
+    if (arch == "i386" || arch == "x86_64") {
+        ret.emplace_back("vmlinuz");
+        ret.emplace_back("vmlinux");
+    } else if (arch == "ia64") {
+        ret.emplace_back("vmlinuz");
+    } else if (arch == "s390x") {
+        ret.emplace_back("image");
+    } else if (arch == "aarch64") {
+        ret.emplace_back("Image");
+    } else {
+        ret.emplace_back("vmlinux");
+    }
+
+    return ret;
+}
 
 // -----------------------------------------------------------------------------
 KernelPath::KernelPath(FilePath const &path)
@@ -34,8 +57,7 @@ KernelPath::KernelPath(FilePath const &path)
     m_directory = canonical.dirName();
     m_name = canonical.baseName();
 
-    const StringList imageNames = KernelTool::imageNames(Util::getArch());
-    for (auto const pfx : imageNames) {
+    for (auto const pfx : imageNames(Util::getArch())) {
         if (m_name.startsWith(pfx)) {
             if (m_name.length() == pfx.length()) {
                 m_name = pfx;

@@ -190,11 +190,7 @@ string FindKernel::findForVersion(const string &kernelver)
 {
     Debug::debug()->trace("FindKernel::findForVersion(%s)", kernelver.c_str());
 
-    list<string> imageNames = KernelTool::imageNames(Util::getArch());
-
-    for (list<string>::const_iterator it = imageNames.begin();
-            it != imageNames.end(); ++it) {
-        string imagename = *it;
+    for (auto imagename : KernelPath::imageNames(Util::getArch())) {
         FilePath kernel = BOOTDIR;
         if (kernelver.size() == 0) {
             kernel.appendPath(imagename);
