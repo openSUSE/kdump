@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
             // This must throw an out_of_range exception
             cout << "Child fd 0 is " << typeid(p.getChildFD(0)).name() << endl;
             ++errors;
-        } catch(std::out_of_range e) {
+        } catch(std::out_of_range &e) {
             cout << "not yet initialized." << endl;
         }
 
