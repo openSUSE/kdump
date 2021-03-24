@@ -286,7 +286,7 @@ unsigned long SystemCPU::count(const char *name)
 	if (!fin.eof())
 	    throw KError(path + ": wrong number format");
 	fin.close();
-    } catch (ifstream::failure e) {
+    } catch (ifstream::failure &e) {
 	throw KSystemError("Cannot read " + path, errno);
     }
 
@@ -1031,7 +1031,7 @@ void Calibrate::execute()
 	try {
 	    Framebuffers fb;
 	    required += 2 * fb.size() / 1024UL;
-	} catch(KError e) {
+	} catch(KError &e) {
 	    Debug::debug()->dbg("Cannot get framebuffer size: %s", e.what());
 	    required += 2 * DEF_FRAMEBUFFER_KB;
 	}
@@ -1043,7 +1043,7 @@ void Calibrate::execute()
             if (config->KDUMP_COPY_KERNEL.value()) {
                 try {
                     map.addPath("/boot");
-                } catch (KError) {
+                } catch (KError&) {
                     // ignore device resolution failures
                 }
             }
@@ -1055,7 +1055,7 @@ void Calibrate::execute()
                 if (url.getProtocol() == RootDirURL::PROT_FILE) {
                     try {
                         map.addPath(url.getRealPath());
-                    } catch (KError) {
+                    } catch (KError&) {
                         // ignore device resolution failures
                     }
                 }
@@ -1076,7 +1076,7 @@ void Calibrate::execute()
 
             Debug::debug()->dbg("Adding %lu KiB for crypto devices",
                                 crypto_mem);
-        } catch (KError e) {
+        } catch (KError &e) {
 	    Debug::debug()->dbg("Cannot check encrypted volumes: %s", e.what());
             // Fall back to no allocation
         }
@@ -1097,7 +1097,7 @@ void Calibrate::execute()
 					slabsize, it->second->name().c_str());
 		}
 	    }
-	} catch (KError e) {
+	} catch (KError &e) {
 	    Debug::debug()->dbg("Cannot get slab sizes: %s", e.what());
 	}
 
@@ -1174,7 +1174,7 @@ void Calibrate::execute()
 	if (required < bootsize)
 	    required = bootsize;
 
-    } catch(KError e) {
+    } catch(KError &e) {
 	Debug::debug()->info(e.what());
 	required = DEF_RESERVE_KB;
     }
