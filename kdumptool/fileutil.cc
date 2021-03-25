@@ -172,9 +172,7 @@ FilePath& FilePath::appendPath(const string &p)
 // -----------------------------------------------------------------------------
 bool FilePath::exists() const
 {
-    struct stat mystat;
-    int ret = stat(c_str(), &mystat);
-    return ret == 0;
+    return access(c_str(), F_OK) == 0;
 }
 
 // -----------------------------------------------------------------------------
