@@ -46,6 +46,25 @@ using std::strcpy;
 using std::free;
 
 
+//{{{ FileDescriptor -----------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+FileDescriptor::FileDescriptor(const char *path, int flags)
+    : m_fd(-1)
+{
+    m_fd = open(path, flags);
+    if (m_fd < 0)
+        throw KSystemError(string("Cannot open ") + path, errno);
+}
+
+// -----------------------------------------------------------------------------
+FileDescriptor::~FileDescriptor()
+{
+    if (m_fd >= 0)
+        close(m_fd);
+}
+
+//}}}
 //{{{ FileUtil -----------------------------------------------------------------
 
 // -----------------------------------------------------------------------------

@@ -23,6 +23,24 @@
 #include "stringutil.h"
 #include "stringvector.h"
 
+//{{{ FileDescriptor -----------------------------------------------------------
+
+class FileDescriptor {
+	int m_fd;
+
+    public:
+        FileDescriptor(const char *path, int flags);
+        FileDescriptor(std::string const& path, int flags)
+	    : FileDescriptor(path.c_str(), flags)
+        { }
+
+	~FileDescriptor();
+
+	operator int() const
+	{ return m_fd; }
+};
+
+//}}}
 //{{{ FileUtil -----------------------------------------------------------------
 
 /**
