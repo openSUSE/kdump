@@ -378,15 +378,10 @@ FilePath PathResolver::resolve(string const& spec)
 
 class Btrfs {
 protected:
-    int m_fd;
+    FileDescriptor m_fd;
 
 public:
     Btrfs(string const& path);
-    ~Btrfs()
-    { close(m_fd); }
-
-    int fd(void) const
-    { return m_fd; }
 
     void getFsInfo(struct btrfs_ioctl_fs_info_args *info);
     bool getDevInfo(struct btrfs_ioctl_dev_info_args *info,
@@ -396,12 +391,9 @@ public:
 
 // -----------------------------------------------------------------------------
 Btrfs::Btrfs(string const& path)
+    : m_fd(path, O_RDONLY)
 {
     Debug::debug()->trace("Btrfs::Btrfs(%s)", path.c_str());
-
-    m_fd = open(path.c_str(), O_RDONLY);
-    if (m_fd < 0)
-        throw KSystemError("Cannot open " + path, errno);
 }
 
 // -----------------------------------------------------------------------------

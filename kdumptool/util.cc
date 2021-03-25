@@ -35,6 +35,7 @@
 #include "elf.h"
 #include "util.h"
 #include "debug.h"
+#include "fileutil.h"
 
 using std::string;
 using std::strerror;
@@ -93,20 +94,7 @@ bool Util::isGzipFile(int fd)
 // -----------------------------------------------------------------------------
 bool Util::isGzipFile(const string &file)
 {
-    int fd = open(file.c_str(), O_RDONLY);
-    if (fd < 0) {
-        throw KSystemError("Opening of " + file + " failed.", errno);
-    }
-
-    bool ret;
-    try {
-         ret = isGzipFile(fd);
-    } catch (...) {
-        close(fd);
-        throw;
-    }
-
-    return ret;
+    return isGzipFile(FileDescriptor(file, O_RDONLY));
 }
 
 // -----------------------------------------------------------------------------
@@ -147,20 +135,7 @@ bool Util::isElfFile(int fd)
 // -----------------------------------------------------------------------------
 bool Util::isElfFile(const string &file)
 {
-    int fd = open(file.c_str(), O_RDONLY);
-    if (fd < 0) {
-        throw KSystemError("Opening of " + file + " failed.", errno);
-    }
-
-    bool ret;
-    try {
-         ret = isElfFile(fd);
-    } catch (...) {
-        close(fd);
-        throw;
-    }
-
-    return ret;
+    return isElfFile(FileDescriptor(file, O_RDONLY));
 }
 
 // -----------------------------------------------------------------------------

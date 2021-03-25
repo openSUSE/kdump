@@ -34,6 +34,7 @@
 #include "vmcoreinfo.h"
 #include "stringutil.h"
 #include "stringvector.h"
+#include "fileutil.h"
 
 using std::string;
 using std::min;
@@ -93,7 +94,7 @@ void Vmcoreinfo::readFromELF(const char *elf_file)
 ByteVector Vmcoreinfo::readElfNote(const char *file)
 {
     Elf *elf = NULL;
-    int fd = -1;
+    FileDescriptor fd(file, O_RDONLY);
     GElf_Off offset = 0;
     GElf_Xword size = 0;
     char *buffer = NULL;
@@ -102,12 +103,6 @@ ByteVector Vmcoreinfo::readElfNote(const char *file)
     char map_copy[ELF_HEADER_MAPSIZE];
 
     try {
-        // open the file
-        fd = open(file, O_RDONLY);
-        if (fd < 0)
-            throw KSystemError("Vmcoreinfo: Cannot open " +
-                string(file) + ".", errno);
-
         // memory-map by hand because the default implementation maps the
         // whole file which fails for dumps on 32 bit systems because they
         // can be larger then the address space
@@ -194,8 +189,6 @@ ByteVector Vmcoreinfo::readElfNote(const char *file)
             munmap(map, ELF_HEADER_MAPSIZE);
         if (elf)
             elf_end(elf);
-        if (fd > 0)
-            ::close(fd);
         if (buffer)
             delete[] buffer;
 
@@ -206,8 +199,6 @@ ByteVector Vmcoreinfo::readElfNote(const char *file)
         munmap(map, ELF_HEADER_MAPSIZE);
     if (elf)
         elf_end(elf);
-    if (fd > 0)
-        ::close(fd);
 
     ByteVector ret;
     try {
