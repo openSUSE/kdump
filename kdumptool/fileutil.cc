@@ -201,7 +201,7 @@ bool FilePath::isSymlink() const
 
     int ret = lstat(c_str(), &mystat);
     if (ret < 0) {
-        throw KSystemError("Stat failed", errno);
+        throw KSystemError("Stat failed on " + *this, errno);
     }
 
     return S_ISLNK(mystat.st_mode);
@@ -277,7 +277,7 @@ FilePath FilePath::getCanonicalPath(const string &root) const
                 if (errno == ENOENT)
                     ;           // non-existent elements will be created
                 else
-                    throw KSystemError("Stat failed", errno);
+                    throw KSystemError("Stat failed on " + ret, errno);
             } else if (S_ISLNK(st.st_mode)) {
                 if (rpath == &extra) {
                     extra.replace(0, p - extra.begin(), ret.readLink());
