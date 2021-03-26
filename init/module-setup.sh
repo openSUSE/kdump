@@ -307,7 +307,15 @@ install() {
 
     inst_multiple makedumpfile makedumpfile-R.pl kdumptool \
 	$KDUMP_REQUIRED_PROGRAMS
-    inst_simple /etc/resolv.conf
+
+    # Install /etc/resolv.conf to provide initial DNS configuration. The file
+    # is resolved first to install directly the target file if it is a symlink.
+    # The real resolv.conf could be in a location that gets hidden by a mount
+    # done in the kdump environment, for instance, /etc/resolv.conf ->
+    # /run/netconfig/resolv.conf with tmpfs getting mounted on /run.
+    local resolv=$(realpath /etc/resolv.conf)
+    inst_simple "$resolv" /etc/resolv.conf
+
     inst_simple /usr/share/zoneinfo/UTC
     inst_simple /etc/localtime
 }

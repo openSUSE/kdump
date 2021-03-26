@@ -17,6 +17,7 @@
  * 02110-1301, USA.
  */
 
+#include <algorithm>
 #include <string.h>
 
 #include <unistd.h>
@@ -35,6 +36,8 @@
 #include "routable.h"
 #include "stringutil.h"
 #include "debug.h"
+
+using std::min;
 
 //{{{ NetLink ------------------------------------------------------------------
 
@@ -470,9 +473,7 @@ bool Routable::resolve(void)
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_RAW;
-    do {
-	res = getaddrinfo(raw_host.c_str(), NULL, &hints, &m_ai);
-    } while (res == EAI_AGAIN);
+    res = getaddrinfo(raw_host.c_str(), NULL, &hints, &m_ai);
 
     if (res == 0)
 	return true;
@@ -480,7 +481,8 @@ bool Routable::resolve(void)
     if (res == EAI_SYSTEM)
 	throw KSystemError("Name resolution failed", errno);
 
-    if (res != EAI_NONAME && res != EAI_FAIL && res != EAI_NODATA)
+    if (res != EAI_NONAME && res != EAI_FAIL && res != EAI_NODATA &&
+        res != EAI_AGAIN)
 	throw KGaiError("Name resolution failed", res);
 
     return false;
@@ -489,12 +491,32 @@ bool Routable::resolve(void)
 // -----------------------------------------------------------------------------
 bool Routable::check(int timeout)
 {
+    // Resolve the target hostname. An attempt is made regularly until the
+    // hostname can be resolved or a specified timeout for network operations
+    // is reached.
+    struct timespec tstop;
+    clock_gettime(CLOCK_MONOTONIC, &tstop);
+    tstop.tv_sec += timeout;
+
+    while (!resolve()) {
+        struct timespec tsnow;
+        clock_gettime(CLOCK_MONOTONIC, &tsnow);
+        int interval = (tstop.tv_sec - tsnow.tv_sec) * 1000;
+        interval += (tstop.tv_nsec - tsnow.tv_nsec) / 1000000L;
+        if (interval <= 0)
+            return false;
+
+        // Sleep, at most for 1 second.
+        struct timespec wait_period;
+        interval = min(interval, 1000);
+        wait_period.tv_sec = interval / 1000;
+        wait_period.tv_nsec = (interval % 1000) * 1000 * 1000;
+        nanosleep(&wait_period, NULL);
+    }
+
+    // Check there is an existing route.
     NetLink nl(RTMGRP_IPV4_ROUTE | RTMGRP_IPV6_ROUTE);
     nl.setTimeout(timeout);
-
-    while (!resolve())
-	if (nl.waitRouteChange() != 0)
-	    return false;
 
     while (!hasRoute())
 	if (nl.waitRouteChange() != 0)
