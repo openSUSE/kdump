@@ -213,7 +213,7 @@ function kdump_ifkind()							   # {{{
 
     # fall back to reading the current state via netlink
     else
-	ip -d link show "$1" | sed -n '3{s/^ *\([^ ]*\).*/\1/;s/.*_slave$//;p}'
+	ip -d link show "$1" | sed -n '3{s/^ *\([^ ]*\).*/\1/;s/\(.*_slave$\|altname\)//;p}'
     fi
 }									   # }}}
 
