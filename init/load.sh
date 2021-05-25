@@ -320,7 +320,8 @@ function load_kdump_fadump()
 # Find the desired kernel and initrd
 function find_kernel()
 {
-    local output=$($KDUMPTOOL find_kernel)
+    local output
+    output=$($KDUMPTOOL find_kernel)
     test $? -eq 0 || return 1
 
     kdump_kernel=$(echo "$output" | grep ^Kernel | cut -f 2)
@@ -333,7 +334,8 @@ function find_kernel()
 # Rebuild the kdump initramfs if necessary
 function rebuild_kdumprd()
 {
-    local output=$(mkdumprd -K "$kdump_kernel" -I "$kdump_initrd" 2>&1)
+    local output
+    output=$(mkdumprd -K "$kdump_kernel" -I "$kdump_initrd" 2>&1)
     if [ $? -ne 0 ] ; then
 	echo "$output"
 	return 1
