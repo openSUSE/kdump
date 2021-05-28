@@ -117,7 +117,7 @@ string URLParser::extractAuthority(string::iterator &it,
 
     it += 2;
     string::iterator const start = it;
-    while (*it != '/' && *it != '?' && *it != '#')
+    while (it != end && *it != '/' && *it != '?' && *it != '#')
 	++it;
 
     return string(start, it);
