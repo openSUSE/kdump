@@ -106,6 +106,10 @@ void DEBUG(const char *msg, ...)
 # define DEF_RESERVE_KB		MB(192)
 # define CAN_REDUCE_CPUS	1
 
+#elif defined(__riscv)
+# define DEF_RESERVE_KB		MB(192)
+# define CAN_REDUCE_CPUS	1
+
 #else
 # error "No default crashkernel reservation for your architecture!"
 #endif

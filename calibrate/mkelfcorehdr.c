@@ -46,6 +46,8 @@
 # define ELF_MACHINE	EM_ARM
 #elif defined(__alpha__)
 # define ELF_MACHINE	EM_ALPHA
+#elif defined(__riscv)
+# define ELF_MACHINE	EM_RISCV
 #else
 # error "Unimplemented architecture!"
 #endif

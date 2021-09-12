@@ -43,7 +43,11 @@
 %ifarch %power64
 %define qemu qemu-ppc
 %else
+%ifarch riscv64
+%define qemu qemu-extra
+%else
 %define qemu qemu-%{_target_cpu}
+%endif
 %endif
 %endif
 %endif

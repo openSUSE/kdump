@@ -34,7 +34,7 @@ if arch == "i386" or arch == "i586" or arch == "i686" or arch == "x86_64":
     image="vmlinuz"
 elif arch.startswith("s390"):
     image="image"
-elif arch == "aarch64":
+elif arch == "aarch64" or arch == "riscv64":
     image="Image"
 else:
     image="vmlinux"
@@ -48,6 +48,9 @@ params['KERNEL'] = "/boot/" + image
 if params['ARCH'] == 'aarch64':
     # QEMU defines all RAM at 1G physical for AArch64
     ADDR_ELFCOREHDR = (1024 * 1024 * 1024) + (256 * 1024 * 1024)
+elif params['ARCH'] == 'riscv64':
+    # QEMU defines all RAM at 2G physical for RISC-V
+    ADDR_ELFCOREHDR = 0x80000000 + (256 * 1024 * 1024)
 else:
     # For other platforms, the region at 768M should be reasonably safe,
     # because it is high enough to avoid conflicts with special-purpose
@@ -197,6 +200,13 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
             '-chardev', 'file,path={},id=hvc0'.format(params['TRACKRSS_LOG']),
             '-device', 'virtconsole,nr=0,chardev=hvc0',
             )
+    elif arch == 'riscv64':
+        console_args = (
+            '-serial', 'null',  # one serial port is hardcoded in the virt machine
+            '-chardev', 'file,path={},id=ttyS0'.format(params['MESSAGES_LOG']),
+            '-chardev', 'file,path={},id=ttyS1'.format(params['TRACKRSS_LOG']),
+            '-device', 'pci-serial-2x,chardev1=ttyS0,chardev2=ttyS1',
+            )
     else:
         console_args = (
             '-serial', 'file:' + params['MESSAGES_LOG'],
@@ -244,6 +254,10 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
             '-machine', 'virt',
             '-cpu', 'max',
             '-bios', '/usr/share/qemu/qemu-uefi-aarch64.bin',
+        ))
+    if arch == 'riscv64':
+        extra_qemu_args.extend((
+            '-machine', 'virt',
         ))
     kernel_args = (
         'panic=1',
