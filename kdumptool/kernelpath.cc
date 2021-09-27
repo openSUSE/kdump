@@ -53,9 +53,8 @@ KernelPath::KernelPath(FilePath const &path)
 {
     Debug::debug()->trace("KernelPath::KernelPath(%s)", path.c_str());
 
-    FilePath canonical = path.getCanonicalPath();
-    m_directory = canonical.dirName();
-    m_name = canonical.baseName();
+    m_directory = path.dirName();
+    m_name = path.baseName();
 
     for (auto const pfx : imageNames(Util::getArch())) {
         if (m_name.startsWith(pfx)) {
