@@ -91,7 +91,7 @@ function build_fadumprd()
 
     DRACUT_ARGS="--force --add zz-fadumpinit --omit kdump"
 
-    REBUILD_PARAMS="$(lsinitrd $TARGET_INITRD /lib/dracut/build-parameter.txt)"
+    REBUILD_PARAMS="$(cat $BACKUP_INITRD_PARAMS)"
     if ! grep -q "fadumproot" <<< "$REBUILD_PARAMS" ; then
         DRACUT_ARGS="$REBUILD_PARAMS $DRACUT_ARGS"
     fi
@@ -100,10 +100,38 @@ function build_fadumprd()
 }                                                                          # }}}
 
 #
+# Return 0 if $INITRD is already dump capture capable                        {{{
+function is_initrd_dump_capturable()
+{
+    if [ -n "$(lsinitrd $INITRD /lib/dracut/modules.txt | grep ^zz-fadumpinit)" ]; then
+        return 0
+    fi
+
+    return 1
+}                                                                          # }}}
+
+#
+# Backup $INITRD params to $BACKUP_INITRD_PARAMS file                        {{{
+function backup_default_initrd_params()
+{
+    DEFAULT_INITRD=$(basename $INITRD)
+    INITRD_DIR=$(dirname $INITRD)
+    BACKUP_INITRD_PARAMS="$INITRD_DIR/.$DEFAULT_INITRD.params"
+
+    if [ -f $BACKUP_INITRD_PARAMS ] && is_initrd_dump_capturable; then
+        return
+    fi
+
+    echo "Backing up '$INITRD' build parameters before rebuilding it with dump capture support."
+    lsinitrd $INITRD /lib/dracut/build-parameter.txt > $BACKUP_INITRD_PARAMS
+}                                                                          # }}}
+
+#
 # Build $INITRD with dump capture support using dracut                       {{{
 function build_initrd()
 {
     if [ "$KDUMP_FADUMP" = "yes" ] ; then
+        backup_default_initrd_params
         build_fadumprd
     else
         run_dracut
