@@ -30,7 +30,7 @@ function usage()
 {
     echo "mkdumprd - Create an initrd for kdump"
     echo ""
-    echo "This script uses mkinitrd(8) internally. Options:"
+    echo "This script uses dracut(8) internally. Options:"
     echo ""
     echo "   -k <version>     Kernel to create the initrd for."
     echo "                    Defaults to the running kernel."
@@ -52,25 +52,6 @@ function status_message()
 }                                                                          # }}}
 
 #
-# Create a new fadump initrd using mkinitrd                                  {{{
-function run_mkinitrd_fadump()
-{
-    # With fadump, we have no control over which kernel will be booted
-    # to save the dump, so do not add any versions here.
-    MKINITRD_ARGS=""
-
-    #
-    # if -q is specified, don't print mkinitrd output
-    if (( $QUIET )) ; then
-	MKINITRD_ARGS="$MKINITRD_ARGS &>/dev/null"
-    fi
-
-    status_message "Calling mkinitrd $MKINITRD_ARGS"
-    echo "Regenerating initrd ..." >&2
-    eval "bash -$- /sbin/mkinitrd $MKINITRD_ARGS"
-}                                                                          # }}}
-
-#
 # Create a new initrd using dracut                                           {{{
 function run_dracut()
 {
@@ -85,6 +66,76 @@ function run_dracut()
     DRACUT_ARGS="$DRACUT_ARGS --add 'kdump' $INITRD $KERNELVERSION"
     echo "Regenerating kdump initrd ..." >&2
     eval "bash -$- $DRACUT $DRACUT_ARGS"
+}                                                                          # }}}
+
+#
+# Build $INITRD for fadump with dump capture support using dracut            {{{
+function build_fadumprd()
+{
+    readonly FADUMP_TMPDIR="$(mktemp -d -t fadump.XXXXXX)"
+    readonly FADUMPRD_TMPDIR="$FADUMP_TMPDIR/fadumproot"
+    readonly TARGET_INITRD="$INITRD"
+
+    INITRD="$FADUMP_TMPDIR/fadump.img"
+    run_dracut
+    ret=$?
+    if [ $ret -ne 0 ]; then
+        exit $ret
+    fi
+
+    mkdir $FADUMPRD_TMPDIR
+    if ! (pushd "$FADUMPRD_TMPDIR" > /dev/null && lsinitrd --unpack $INITRD && popd > /dev/null); then
+        echo "Failed to unpack dump capture scripts."
+        exit 1
+    fi
+
+    DRACUT_ARGS="--force --add zz-fadumpinit --omit kdump"
+
+    REBUILD_PARAMS="$(cat $BACKUP_INITRD_PARAMS)"
+    if ! grep -q "fadumproot" <<< "$REBUILD_PARAMS" ; then
+        DRACUT_ARGS="$REBUILD_PARAMS $DRACUT_ARGS"
+    fi
+
+    eval "bash -$- $DRACUT $DRACUT_ARGS -i $FADUMPRD_TMPDIR /fadumproot $TARGET_INITRD"
+}                                                                          # }}}
+
+#
+# Return 0 if $INITRD is already dump capture capable                        {{{
+function is_initrd_dump_capturable()
+{
+    if [ -n "$(lsinitrd $INITRD /lib/dracut/modules.txt | grep ^zz-fadumpinit)" ]; then
+        return 0
+    fi
+
+    return 1
+}                                                                          # }}}
+
+#
+# Backup $INITRD params to $BACKUP_INITRD_PARAMS file                        {{{
+function backup_default_initrd_params()
+{
+    DEFAULT_INITRD=$(basename $INITRD)
+    INITRD_DIR=$(dirname $INITRD)
+    BACKUP_INITRD_PARAMS="$INITRD_DIR/.$DEFAULT_INITRD.params"
+
+    if [ -f $BACKUP_INITRD_PARAMS ] && is_initrd_dump_capturable; then
+        return
+    fi
+
+    echo "Backing up '$INITRD' build parameters before rebuilding it with dump capture support."
+    lsinitrd $INITRD /lib/dracut/build-parameter.txt > $BACKUP_INITRD_PARAMS
+}                                                                          # }}}
+
+#
+# Build $INITRD with dump capture support using dracut                       {{{
+function build_initrd()
+{
+    if [ "$KDUMP_FADUMP" = "yes" ] ; then
+        backup_default_initrd_params
+        build_fadumprd
+    else
+        run_dracut
+    fi
 }                                                                          # }}}
 
 
@@ -165,12 +216,8 @@ if (( ! $FORCE )) ; then
     fi
 fi
 
-if [ "$KDUMP_FADUMP" = "yes" ] ; then
-    run_mkinitrd_fadump
-else
-    run_dracut
-fi
+build_initrd
 
-exit $ret
+exit $?
 
 # vim: set ts=4 sw=4 et fdm=marker: :collapseFolds=1:
