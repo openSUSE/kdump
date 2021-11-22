@@ -25,6 +25,10 @@ TARGET_INCLUDE_DIRECTORIES(device-timeout-generator
 TARGET_LINK_LIBRARIES(device-timeout-generator
     ${BLKID_LIBRARIES})
 
+ADD_EXECUTABLE(init-fadump
+    init-fadump.c
+)
+
 INSTALL(
     FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/boot.kdump
@@ -131,8 +135,8 @@ INSTALL(
 )
 
 INSTALL(
-    FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/init-fadump.sh
+    TARGETS
+        init-fadump
     DESTINATION
         /usr/lib/dracut/modules.d/99zz-fadumpinit
     PERMISSIONS

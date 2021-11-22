@@ -10,7 +10,7 @@ depends() {
 
 install() {
     mv -f "$initdir/init" "$initdir/init.dracut"
-    inst_script "$moddir/init-fadump.sh" /init
+    inst_script "$moddir/init-fadump" /init
     chmod a+x "$initdir/init"
 
     # Install required binaries for the init script (init-fadump.sh)
