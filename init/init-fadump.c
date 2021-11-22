@@ -295,8 +295,14 @@ static int check_initramfs(const char *path)
 
 static int exec_next_init(int argc, char *const *argv)
 {
-	if (check_fadump())
-		return execute(DRACUT_INIT, argv);
+	if (check_fadump()) {
+                if (rename(DRACUT_INIT, argv[0])) {
+                        fprintf(stderr, "Cannot rename %s to %s: %s\n",
+                                DRACUT_INIT, argv[0], strerror(errno));
+                        return execute(DRACUT_INIT, argv);
+                }
+                return execute(argv[0], argv);
+        }
 
 	if (mkdir(NEWROOT_DIR, 0777)) {
 		fprintf(stderr, "Cannot create %s: %s\n",
