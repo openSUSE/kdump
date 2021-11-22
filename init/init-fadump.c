@@ -67,14 +67,20 @@ static int chdir_failure(const char *path)
 
 static int check_fadump(void)
 {
+	int err;
+
 	if (mount(PROC, PROC_DIR, PROC,
 		  MS_NOSUID|MS_NOEXEC|MS_NODEV, NULL))
 		return mount_failure(PROC);
 
-	if (access(PROC_VMCORE, F_OK) != 0)
-		return -1;
+	err = access(PROC_VMCORE, F_OK);
 
-	return 0;
+	/* give a warning, but ignore errors */
+	if (umount(PROC_DIR))
+		fprintf(stderr, "Cannot unmount %s: %s\n",
+			PROC_DIR, strerror(errno));
+
+	return err;
 }
 
 static int execute(const char *prog, char *const *argv)
