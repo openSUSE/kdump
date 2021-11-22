@@ -39,8 +39,7 @@
 
 #define FADUMP_DIR	"/fadumproot"
 
-#define RTAS_DT_NODE	"/proc/device-tree/rtas/ibm,kernel-dump"
-#define OPAL_DT_NODE	"/proc/device-tree/ibm,opal/dump/mpipl-boot"
+#define PROC_VMCORE	"/proc/vmcore"
 
 #define BIN_MV		"/bin/mv"
 
@@ -72,8 +71,7 @@ static int check_fadump(void)
 		  MS_NOSUID|MS_NOEXEC|MS_NODEV, NULL))
 		return mount_failure(PROC);
 
-	if (access(RTAS_DT_NODE, F_OK) != 0 &&
-	    access(OPAL_DT_NODE, F_OK) != 0)
+	if (access(PROC_VMCORE, F_OK) != 0)
 		return -1;
 
 	return 0;
