@@ -29,19 +29,13 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/vfs.h>
-#include <sys/wait.h>
 
 #define PROC		"proc"
 #define PROC_DIR	"/proc"
 
-#define RAMFS		"ramfs"
-#define NEWROOT_DIR	"/newroot/"
-
 #define FADUMP_DIR	"/fadumproot"
 
 #define PROC_VMCORE	"/proc/vmcore"
-
-#define BIN_MV		"/bin/mv"
 
 #define DRACUT_INIT	"/init.dracut"
 
@@ -91,41 +85,6 @@ static int execute(const char *prog, char *const *argv)
 	return -1;
 }
 
-static int execute_child(const char *prog, char *const *argv)
-{
-	int status;
-	pid_t pid;
-
-	pid = vfork();
-	if (pid < 0) {
-		fprintf(stderr, "Cannot fork child: %s\n",
-			strerror(errno));
-		return -1;
-	} else if (pid == 0)
-		_exit(!!execute(prog, argv));
-
-	pid = waitpid(pid, &status, 0);
-	if (pid < 0) {
-		fprintf(stderr, "Cannot get exit status of %s: %s\n",
-			prog, strerror(errno));
-		return -1;
-	}
-
-	if (WIFEXITED(status)) {
-		if (WEXITSTATUS(status) == 0)
-			return 0;
-		fprintf(stderr, "%s exited with status %d\n",
-			prog, WEXITSTATUS(status));
-	} else if (WIFSIGNALED(status)) {
-		fprintf(stderr, "%s terminated by signal %d\n",
-			prog, WTERMSIG(status));
-	} else {
-		fprintf(stderr, "%s exit status %d\n", prog, status);
-	}
-
-	return -1;
-}
-
 static int almost_all(const struct dirent *entry)
 {
 	const char *p = entry->d_name;
@@ -134,48 +93,10 @@ static int almost_all(const struct dirent *entry)
 	return 1;
 }
 
-static int move_cwd(char *newpath)
-{
-	struct dirent **entries;
-	char **args, **p;
-	int nfiles;
-	int err;
-	int i;
+static int remove_subdirectory(dev_t dev, ino_t skip_ino,
+			       int fd, const char *path);
 
-	nfiles = scandir(".", &entries, almost_all, NULL);
-	if (nfiles < 0) {
-		fprintf(stderr, "Cannot read directory: %s\n",
-			strerror(errno));
-		return -1;
-	} else if (nfiles == 0) {
-		free(entries);
-		return 0;
-	}
-
-	args = malloc((nfiles + 3) * sizeof(*args));
-	if (args == NULL) {
-		fprintf(stderr, "Cannot allocate %d arguments\n", nfiles + 3);
-		return -1;
-	}
-
-	p = args;
-	*p++ = "mv";
-	for (i = 0; i < nfiles; ++i)
-		*p++ = entries[i]->d_name;
-	*p++ = newpath;
-	*p++ = NULL;
-
-	err = execute_child(BIN_MV, args);
-
-	free(args);
-	free(entries);
-
-	return err;
-}
-
-static int remove_subdirectory(dev_t dev, int fd, const char *path);
-
-static int remove_directory(dev_t dev, DIR *dir)
+static int remove_directory(dev_t dev, ino_t skip_ino, DIR *dir)
 {
 	struct dirent *entry;
 	struct stat st;
@@ -207,8 +128,10 @@ static int remove_directory(dev_t dev, DIR *dir)
 		}
 		if (st.st_dev != dev)
 			continue;
+		if (st.st_ino == skip_ino)
+			continue;
 
-		remove_subdirectory(dev, fd, entry->d_name);
+		remove_subdirectory(dev, skip_ino, fd, entry->d_name);
 		if (unlinkat(fd, entry->d_name, AT_REMOVEDIR))
 			unlink_failure(entry->d_name);
 	}
@@ -222,7 +145,8 @@ static int remove_directory(dev_t dev, DIR *dir)
 	return 0;
 }
 
-static int remove_subdirectory(dev_t dev, int dirfd, const char *path)
+static int remove_subdirectory(dev_t dev, ino_t skip_ino,
+			       int dirfd, const char *path)
 {
 	DIR *subdir;
 	int subfd;
@@ -243,16 +167,24 @@ static int remove_subdirectory(dev_t dev, int dirfd, const char *path)
 		return -1;
 	}
 
-	err = remove_directory(dev, subdir);
+	err = remove_directory(dev, skip_ino, subdir);
 	closedir(subdir);
 	return err;
 }
 
-static int remove_subtree(const char *path)
+static int remove_subtree(const char *path, const char *skip)
 {
 	struct stat st;
+	ino_t skip_ino;
 	DIR *dir;
 	int err;
+
+	if (stat(skip, &st)) {
+		fprintf(stderr, "Cannot stat %s: %s\n",
+			skip, strerror(errno));
+		return -1;
+	}
+	skip_ino = st.st_ino;
 
 	dir = opendir(path);
 	if (!dir) {
@@ -266,7 +198,7 @@ static int remove_subtree(const char *path)
 		fprintf(stderr, "Cannot stat directory %s: %s\n",
 			path, strerror(errno));
 	} else {
-		err = remove_directory(st.st_dev, dir);
+		err = remove_directory(st.st_dev, skip_ino, dir);
 	}
 	closedir(dir);
 
@@ -304,31 +236,20 @@ static int exec_next_init(int argc, char *const *argv)
                 return execute(argv[0], argv);
         }
 
-	if (mkdir(NEWROOT_DIR, 0777)) {
-		fprintf(stderr, "Cannot create %s: %s\n",
-			NEWROOT_DIR, strerror(errno));
-		return -1;
-	}
-
-	if (mount(RAMFS, NEWROOT_DIR, RAMFS, 0, NULL))
-		return mount_failure(RAMFS);
-
-	if (chdir(FADUMP_DIR))
-		return chdir_failure(FADUMP_DIR);
-	if (move_cwd(NEWROOT_DIR))
-		return -1;
-
-	if (chdir(NEWROOT_DIR))
-		return chdir_failure(NEWROOT_DIR);
-
 	if (check_initramfs("/"))
 		return -1;
 
 	/* ignore errors */
-	remove_subtree("/");
+	remove_subtree("/", FADUMP_DIR);
 
-	if (mount(NEWROOT_DIR, "/", NULL, MS_MOVE, NULL))
-		return mount_failure(NEWROOT_DIR " over /");
+	if (mount(FADUMP_DIR, FADUMP_DIR, NULL, MS_BIND, NULL))
+		return mount_failure(FADUMP_DIR " over itself");
+
+	if (chdir(FADUMP_DIR))
+		return chdir_failure(FADUMP_DIR);
+
+	if (mount(FADUMP_DIR, "/", NULL, MS_MOVE, NULL))
+		return mount_failure(FADUMP_DIR " over /");
 
 	if (chroot(".")) {
 		fprintf(stderr, "Cannot change root: %s\n",
