@@ -34,9 +34,6 @@
 #define PROC		"proc"
 #define PROC_DIR	"/proc"
 
-#define SYSFS		"sysfs"
-#define SYSFS_DIR	"/sys"
-
 #define RAMFS		"ramfs"
 #define NEWROOT_DIR	"/newroot/"
 
@@ -71,10 +68,6 @@ static int chdir_failure(const char *path)
 
 static int check_fadump(void)
 {
-	if (mount(SYSFS, SYSFS_DIR, SYSFS,
-		  MS_NOSUID|MS_NOEXEC|MS_NODEV, NULL))
-		return mount_failure(SYSFS);
-
 	if (mount(PROC, PROC_DIR, PROC,
 		  MS_NOSUID|MS_NOEXEC|MS_NODEV, NULL))
 		return mount_failure(PROC);
