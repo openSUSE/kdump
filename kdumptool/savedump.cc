@@ -52,6 +52,7 @@ using std::endl;
 using std::istringstream;
 using std::ostringstream;
 using std::ifstream;
+using std::getenv;
 
 #define KERNELCOMMANDLINE "/proc/cmdline"
 
@@ -382,23 +383,20 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
 // -----------------------------------------------------------------------------
 void SaveDump::copyMakedumpfile()
 {
-    list<FilePath> paths;
     Configuration *config = Configuration::config();
-
-    paths.push_back("/bin/makedumpfile-R.pl");
-    paths.push_back("/sbin/makedumpfile-R.pl");
-    paths.push_back("/usr/bin/makedumpfile-R.pl");
-    paths.push_back("/usr/sbin/makedumpfile-R.pl");
-    paths.push_back("/usr/local/bin/makedumpfile-R.pl");
-    paths.push_back("/usr/local/sbin/makedumpfile-R.pl");
-    paths.push_back("/root/bin/makedumpfile-R.pl");
-
     string makedumpfile_binary;
+    const char *env_path;
 
-    for (list<FilePath>::const_iterator it = paths.begin();
-            it != paths.end(); ++it) {
-        if (it->exists()) {
-            makedumpfile_binary = *it;
+    env_path = getenv("PATH");
+    if (!env_path)
+        env_path = "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/root/bin";
+
+    istringstream ss(env_path);
+    FilePath fp;
+    while (std::getline(ss, fp, ':')) {
+        fp.appendPath("makedumpfile-R.pl");
+        if (fp.exists()) {
+            makedumpfile_binary = fp;
             break;
         }
     }
