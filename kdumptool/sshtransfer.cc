@@ -133,6 +133,7 @@ void SSHTransfer::perform(DataProvider *dataprovider,
             dataprovider->finish();
         throw;
     }
+    pipe->close();
 
     dataprovider->finish();
     int status = p.wait();
