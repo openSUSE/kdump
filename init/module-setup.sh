@@ -132,6 +132,8 @@ depends() {
     _modules[drm]=
 
     [ "$kdump_neednet" = y ] && _modules[network]=
+    
+    _modules[watchdog-modules]=
 
     for protocol in "${kdump_Protocol[@]}" ; do
 	if [ "$protocol" = "nfs" ]; then
