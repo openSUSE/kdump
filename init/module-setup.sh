@@ -308,8 +308,10 @@ install() {
 	inst_hook pre-pivot 90 /usr/lib/kdump/save_dump.sh
     fi
 
-    inst_multiple makedumpfile makedumpfile-R.pl kdumptool \
+    inst_multiple makedumpfile kdumptool \
 	$KDUMP_REQUIRED_PROGRAMS
+    inst_simple $(type -p makedumpfile-R.pl) /kdump/makedumpfile-R.pl
+    chmod -x "$initdir/kdump/makedumpfile-R.pl"
 
     # Install /etc/resolv.conf to provide initial DNS configuration. The file
     # is resolved first to install directly the target file if it is a symlink.

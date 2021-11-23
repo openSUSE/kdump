@@ -392,14 +392,14 @@ void SaveDump::copyMakedumpfile()
         env_path = "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/root/bin";
 
     istringstream ss(env_path);
-    FilePath fp;
-    while (std::getline(ss, fp, ':')) {
+    FilePath fp("/kdump");
+    do {
         fp.appendPath("makedumpfile-R.pl");
         if (fp.exists()) {
             makedumpfile_binary = fp;
             break;
         }
-    }
+    } while (std::getline(ss, fp, ':'));
 
     if (makedumpfile_binary.size() == 0)
         throw KError("makedumpfile-R.pl not found.");
