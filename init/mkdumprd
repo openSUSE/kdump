@@ -123,8 +123,7 @@ function unpack_initrd()
 # Create a new initrd using dracut                                           {{{
 function run_dracut()
 {
-    DRACUT_ARGS="--force --hostonly --omit 'plymouth resume usrmount'"
-    DRACUT_ARGS="$DRACUT_ARGS --compress='xz -0 --check=crc32'"
+    DRACUT_ARGS="--force --hostonly --omit 'plymouth resume usrmount' $@"
 
     if [ -z "$KERNELVERSION" ]
     then
@@ -145,7 +144,7 @@ function build_fadumprd()
     readonly TARGET_INITRD="$INITRD"
 
     INITRD="$FADUMP_TMPDIR/fadump.img"
-    run_dracut
+    run_dracut --no-compress
     ret=$?
     if [ $ret -ne 0 ]; then
         exit $ret
@@ -202,7 +201,7 @@ function build_initrd()
         backup_default_initrd_params
         build_fadumprd
     else
-        run_dracut
+        run_dracut --compress='xz -0 --check=crc32'
     fi
 }                                                                          # }}}
 
