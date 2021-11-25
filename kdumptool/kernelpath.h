@@ -39,7 +39,6 @@
 class KernelPath {
     private:
         FilePath m_directory;
-        KString m_name;
         KString m_version;
 
     public:
@@ -59,12 +58,6 @@ class KernelPath {
          */
         const FilePath& directory()
         { return m_directory; }
-
-        /**
-         * @return kernel image name
-         */
-        const KString& name()
-        { return m_name; }
 
         /**
          * @return kernel version (may be empty)

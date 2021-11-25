@@ -55,25 +55,19 @@ KernelPath::KernelPath(FilePath const &path)
 
     FilePath canonical = path.getCanonicalPath();
     m_directory = canonical.dirName();
-    m_name = canonical.baseName();
+    KString name = canonical.baseName();
 
     for (auto const pfx : imageNames(Util::getArch())) {
-        if (m_name.startsWith(pfx)) {
-            if (m_name.length() == pfx.length()) {
-                m_name = pfx;
-                break;
+        if (name.startsWith(pfx)) {
+            if (name[pfx.length()] == '-') {
+                m_version.assign(name, pfx.length() + 1);
             }
-            if (m_name[pfx.length()] == '-') {
-                m_version.assign(m_name, pfx.length() + 1);
-                m_name = pfx;
-                break;
-            }
+            break;
         }
     }
 
-    Debug::debug()->trace("directory=%s, name=%s, version=%s",
-                          m_directory.c_str(), m_name.c_str(),
-                          m_version.c_str());
+    Debug::debug()->trace("directory=%s, version=%s",
+                          m_directory.c_str(), m_version.c_str());
 }
 
 // -----------------------------------------------------------------------------
