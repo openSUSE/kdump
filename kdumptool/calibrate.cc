@@ -1003,6 +1003,7 @@ void Calibrate::execute()
 
     MemMap mm;
     unsigned long required, prev;
+    unsigned long minlow = MINLOW_KB;
     unsigned long pagesize = sysconf(_SC_PAGESIZE);
     unsigned long memtotal = shr_round_up(mm.total(), 10);
     unsigned long bootsize = DEF_BOOTSIZE;
@@ -1174,6 +1175,35 @@ void Calibrate::execute()
 	if (required < bootsize)
 	    required = bootsize;
 
+#if HAVE_FADUMP
+        // The kernel enforces minimum reservation size for FADUMP
+        if (config->KDUMP_FADUMP.value()) {
+            static const char rtas_fname[] =
+                "/proc/device-tree/rtas/ibm,configure-kernel-dump";
+            static const char opal_fname[] =
+                "/proc/device-tree/ibm,opal/dump";
+
+            unsigned long fadump_min = 0;
+            if (FilePath(rtas_fname).exists()) {
+                // RTAS_FADUMP_MIN_BOOT_MEM
+                // see arch/powerpc/platforms/pseries/rtas-fadump.h
+                fadump_min = MB(320);
+            } else if (FilePath(opal_fname).exists()) {
+                // OPAL_FADUMP_MIN_BOOT_MEM
+                // see arch/powerpc/platforms/powernv/opal-fadump.h
+                fadump_min = MB(768);
+            } else {
+                Debug::debug()->info("Unknown FADUMP implementation!");
+            }
+
+            if (fadump_min)
+                Debug::debug()->dbg("Minimum FADUMP size: %lu KiB", fadump_min);
+            if (minlow < fadump_min)
+                minlow = fadump_min;
+            if (required < minlow)
+                required = minlow;
+        }
+#endif
     } catch(KError &e) {
 	Debug::debug()->info(e.what());
 	required = DEF_RESERVE_KB;
@@ -1197,7 +1227,7 @@ void Calibrate::execute()
 	low = 0;
 	high = required;
     } else {
-	low = MINLOW_KB;
+	low = minlow;
 	high = (required > low ? required - low : 0);
 	if (high < bootsize)
 	    high = bootsize;
@@ -1211,7 +1241,7 @@ void Calibrate::execute()
 #else
     cout << "Low: " << shr_round_up(required, 10) << endl;
     cout << "High: 0" << endl;
-    cout << "MinLow: " << shr_round_up(MINLOW_KB, 10) << endl;
+    cout << "MinLow: " << shr_round_up(minlow, 10) << endl;
 # if defined(__i386__)
     cout << "MaxLow: " << (mm.largest(512ULL<<20) >> 20) << endl;
 # else
