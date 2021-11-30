@@ -184,6 +184,13 @@ class FilePath : public KString {
         bool exists() const;
 
         /**
+         * Checks if the specified write is writable.
+         *
+         * @returns @c true on success, @c fals otherwise
+         */
+        bool isWritable() const;
+
+        /**
          * Checks if the given path is a symbolic link.
          *
          * @throw KError on any error

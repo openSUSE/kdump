@@ -195,6 +195,12 @@ bool FilePath::exists() const
 }
 
 // -----------------------------------------------------------------------------
+bool FilePath::isWritable() const
+{
+    return access(c_str(), W_OK) == 0;
+}
+
+// -----------------------------------------------------------------------------
 bool FilePath::isSymlink() const
 {
     struct stat mystat;
