@@ -20,6 +20,7 @@
 #define DELETE_DUMP_H
 
 #include "subcommand.h"
+#include "rootdirurl.h"
 
 class Transfer;
 
