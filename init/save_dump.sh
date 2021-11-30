@@ -179,7 +179,7 @@ else
 
     #
     # delete old dumps
-    kdumptool delete_dumps --root=$ROOTDIR $KDUMPTOOL_OPTIONS
+    kdumptool delete_dumps --root=$ROOTDIR
     if ! continue_error $?;then
         return
     fi
@@ -188,7 +188,7 @@ else
     # save the dump (set HOME to find the public/private key)
     read hostname < /etc/hostname.kdump
     HOME=$ROOTDIR TMPDIR=$ROOTDIR/tmp kdumptool save_dump --root=$ROOTDIR \
-        --hostname=$hostname $KDUMPTOOL_OPTIONS
+        --hostname=$hostname
     if ! continue_error $?; then
         return
     fi
