@@ -155,6 +155,11 @@ class MountPoint {
 
         const char *fstype(void)
         { return mnt_fs_get_fstype(m_fs); }
+
+        const char *options(void)
+        { return mnt_fs_get_options(m_fs); }
+
+	bool hasOption(const char *name);
 };
 
 //}}}

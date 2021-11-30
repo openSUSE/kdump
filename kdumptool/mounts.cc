@@ -79,6 +79,15 @@ FilePath const& MountPoint::canonicalTarget(void)
     return m_ctarget;
 }
 
+// -----------------------------------------------------------------------------
+bool MountPoint::hasOption(const char *name)
+{
+    int rc = mnt_fs_get_option(m_fs, name, NULL, NULL);
+    if (rc < 0)
+        throw KSystemError("mnt_fs_get_option() failed", -rc);
+    return !rc;
+}
+
 //}}}
 //{{{ MountTable ---------------------------------------------------------------
 
