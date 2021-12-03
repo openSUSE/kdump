@@ -257,13 +257,9 @@ function fadump_bootloader()
     # check if the old configuration is still valid
     boot_opts=$(kdump-bootloader.pl --get)
     nofadump_opts=$(echo "$boot_opts" | remove_from_commandline 'fadump')
-    old_opts=$($KDUMPTOOL -F /dev/null -C <(echo "$boot_opts") \
-		dump_config --usage dump --format kernel --nodefault)
     if [ "$newstate" = on ] ; then
-	curr_opts=$($KDUMPTOOL dump_config --usage dump --format kernel --nodefault)
-	if [ "$old_opts" != "$curr_opts" -o \
-            "$boot_opts" = "$nofadump_opts" ] ; then
-	    kdump-bootloader.pl --update fadump=on "$curr_opts"
+	if [ "$boot_opts" = "$nofadump_opts" ] ; then
+	    kdump-bootloader.pl --update fadump=on
 	fi
     elif [ "$boot_opts" != "$nofadump_opts" ] ; then
 	kdump-bootloader.pl --update
