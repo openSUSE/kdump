@@ -79,17 +79,6 @@ INSTALL(
 )
 
 INSTALL(
-    FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/save_dump.sh
-    DESTINATION
-        /usr/lib/kdump
-    PERMISSIONS
-        OWNER_READ OWNER_WRITE OWNER_EXECUTE
-        GROUP_READ GROUP_EXECUTE
-        WORLD_READ WORLD_EXECUTE
-)
-
-INSTALL(
     TARGETS
         device-timeout-generator
     DESTINATION

@@ -24,6 +24,7 @@ Testing/
 init/device-timeout-generator
 init/init-fadump
 kdumptool/kdumptool
+kdumptool/kdump-save
 kdumptool/testcanonical
 kdumptool/testconfig
 kdumptool/testio

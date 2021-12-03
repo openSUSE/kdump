@@ -275,7 +275,7 @@ install() {
 	inst_binary "$moddir/device-timeout-generator" \
 	    "$systemdutildir"/system-generators/kdump-device-timeout-generator
 
-	inst_simple /usr/lib/kdump/save_dump.sh /kdump/save_dump.sh
+	inst_simple /usr/lib/kdump/kdump-save /kdump/kdump-save
 	awk -v mountpoints="${kdump_mnt[*]}" '{
 		gsub(/@KDUMP_MOUNTPOINTS@/, mountpoints)
 		print
@@ -305,10 +305,10 @@ install() {
 	[ "$KDUMP_FADUMP" != yes ] && \
 	    inst_hook mount 30 "$moddir/mount-kdump.sh"
 
-	inst_hook pre-pivot 90 /usr/lib/kdump/save_dump.sh
+	inst_hook pre-pivot 90 /usr/lib/kdump/kdump-save
     fi
 
-    inst_multiple makedumpfile kdumptool \
+    inst_multiple makedumpfile \
 	$KDUMP_REQUIRED_PROGRAMS
     inst_simple $(type -p makedumpfile-R.pl) /kdump/makedumpfile-R.pl
     chmod -x "$initdir/kdump/makedumpfile-R.pl"
