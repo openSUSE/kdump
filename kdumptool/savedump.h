@@ -28,34 +28,44 @@ class Transfer;
 
 //{{{ SaveDump -----------------------------------------------------------------
 
-/**
- * Subcommand to save the dump.
- */
-class SaveDump : public Subcommand {
+class SaveDump {
+    protected:
+        FilePath m_dump;
+        std::string m_crashrelease;
+        std::string m_rootdir;
+        std::string m_hostname;
+        bool m_nomail;
 
     public:
-        /**
-         * Creates a new SaveDump object.
-         */
         SaveDump();
-
-        /**
-         * Deletes a SaveDump object.
-         */
         ~SaveDump();
 
-    public:
-        /**
-         * Returns the name of the subcommand (save_dump).
-         */
-        const char *getName() const;
+        int create();
 
-        /**
-         * Executes the function.
-         *
-         * @throw KError on any error. No exception indicates success.
-         */
-        void execute();
+        const FilePath& dumpPath() const
+        { return m_dump; }
+        void dumpPath(const FilePath& dumpPath)
+        { m_dump = dumpPath; }
+
+        const std::string& kernelVersion() const
+        { return m_crashrelease; }
+        void kernelVersion(const std::string& kernelversion)
+        { m_crashrelease = kernelversion; }
+
+        const std::string& rootDir() const
+        { return m_rootdir; }
+        void rootDir(const std::string& rootdir)
+        { m_rootdir = rootdir; }
+
+        const std::string& hostName() const
+        { return m_hostname; }
+        void hostName(const std::string& hostname)
+        { m_hostname = hostname; }
+
+        bool noMail() const
+        { return m_nomail; }
+        void noMail(bool nomail)
+        { m_nomail = nomail; }
 
     protected:
         void saveDump(const RootDirURLVector &urlv);
@@ -92,19 +102,42 @@ class SaveDump : public Subcommand {
 	Transfer *getTransfer(const RootDirURLVector &urlv);
 
     private:
-        FilePath m_dump;
+        unsigned long m_split;
         Transfer *m_transfer;
         bool m_usedDirectSave;
         bool m_useMakedumpfile;
-	unsigned long m_split;
-	unsigned long m_threads;
+        unsigned long m_threads;
         unsigned long long m_crashtime;
-        std::string m_crashrelease;
-        std::string m_rootdir;
-        std::string m_hostname;
-        bool m_nomail;
 
-        void check_one(const RootDirURL &parser);
+        void checkOne(const RootDirURL &parser);
+};
+
+//}}}
+//{{{ SaveDumpCommand ----------------------------------------------------------
+
+/**
+ * Subcommand to save the dump.
+ */
+class SaveDumpCommand : protected SaveDump, public Subcommand {
+
+    public:
+        /**
+         * Creates a new SaveDumpCommand object.
+         */
+        SaveDumpCommand();
+
+    public:
+        /**
+         * Returns the name of the subcommand (save_dump).
+         */
+        const char *getName() const;
+
+        /**
+         * Executes the function.
+         *
+         * @throw KError on any error. No exception indicates success.
+         */
+        void execute();
 };
 
 //}}}

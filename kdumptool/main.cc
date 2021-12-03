@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
         kdt.addSubcommand(new PrintTarget);
         kdt.addSubcommand(new ReadIKConfig);
         kdt.addSubcommand(new ReadVmcoreinfo);
-        kdt.addSubcommand(new SaveDump);
+        kdt.addSubcommand(new SaveDumpCommand);
         kdt.addSubcommand(new Calibrate);
 
         kdt.parseCommandline(argc, argv);

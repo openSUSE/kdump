@@ -60,22 +60,10 @@ using std::getenv;
 
 // -----------------------------------------------------------------------------
 SaveDump::SaveDump()
-    : m_dump(DEFAULT_DUMP), m_transfer(NULL), m_usedDirectSave(false),
-      m_useMakedumpfile(false), m_split(0), m_threads(0), m_crashtime(0),
-      m_nomail(false)
+    : m_dump(DEFAULT_DUMP), m_nomail(false),
+      m_split(0), m_transfer(nullptr), m_usedDirectSave(false),
+      m_useMakedumpfile(false), m_threads(0), m_crashtime(0)
 {
-    Debug::debug()->trace("SaveDump::SaveDump()");
-
-    m_options.push_back(new StringOption("dump", 'u', &m_dump,
-        "Use the specified dump instead of " DEFAULT_DUMP));
-    m_options.push_back(new StringOption("root", 'R', &m_rootdir,
-        "Use the specified root directory instead of /"));
-    m_options.push_back(new StringOption("kernelversion", 'k', &m_crashrelease,
-        "Use the specified kernel version instead of reading VMCOREINFO"));
-    m_options.push_back(new StringOption("hostname", 'H', &m_hostname,
-        "Use the specified hostname instead of uname()"));
-    m_options.push_back(new FlagOption("nomail", 'M', &m_nomail,
-        "Don't send notification email even if email has been configured"));
 }
 
 // -----------------------------------------------------------------------------
@@ -87,21 +75,10 @@ SaveDump::~SaveDump()
 }
 
 // -----------------------------------------------------------------------------
-const char *SaveDump::getName() const
+int SaveDump::create()
 {
-    return "save_dump";
-}
-
-// -----------------------------------------------------------------------------
-void SaveDump::execute()
-{
-    Debug::debug()->trace(__FUNCTION__);
-    Debug::debug()->dbg("dump: %s, root: %s, crashrelease: %s, "
-        "hostname: %s, nomail: %d",
-        m_dump.c_str(), m_rootdir.c_str(), m_crashrelease.c_str(),
-        m_hostname.c_str(), int(m_nomail));
-
     Configuration *config = Configuration::config();
+    int ret = 0;
 
     // check if the dump file actually exists
     if (!m_dump.exists())
@@ -139,7 +116,7 @@ void SaveDump::execute()
     try {
         saveDump(urlv);
     } catch (const KError &error) {
-        setErrorCode(1);
+        ret = 1;
 
         sendNotification(true, urlv);
 
@@ -165,7 +142,7 @@ void SaveDump::execute()
     try {
         checkAndDelete(urlv);
     } catch (const KError &error) {
-        setErrorCode(1);
+        ret = 1;
         if (config->KDUMP_CONTINUE_ON_ERROR.value())
             cout << error.what() << endl;
         else
@@ -177,7 +154,7 @@ void SaveDump::execute()
         if (!m_usedDirectSave && m_useMakedumpfile)
             copyMakedumpfile();
     } catch (const KError &error) {
-        setErrorCode(1);
+        ret = 1;
         if (config->KDUMP_CONTINUE_ON_ERROR.value())
             cout << error.what() << endl;
         else
@@ -199,7 +176,7 @@ void SaveDump::execute()
     try {
         generateInfo();
     } catch (const KError &error) {
-        setErrorCode(1);
+        ret = 1;
         if (config->KDUMP_CONTINUE_ON_ERROR.value())
             cout << error.what() << endl;
         else
@@ -212,7 +189,7 @@ void SaveDump::execute()
             if (config->KDUMP_COPY_KERNEL.value())
                 copyKernel();
         } catch (const KError &error) {
-            setErrorCode(1);
+            ret = 1;
             if (config->KDUMP_CONTINUE_ON_ERROR.value())
                 cout << error.what() << endl;
             else
@@ -222,6 +199,8 @@ void SaveDump::execute()
         Debug::debug()->info("Don't copy the kernel and System.map because of missing "
             "crash kernel release.");
     }
+
+    return ret;
 }
 
 // -----------------------------------------------------------------------------
@@ -642,13 +621,13 @@ void SaveDump::checkAndDelete(const RootDirURLVector &urlv)
 {
     RootDirURLVector::const_iterator it;
     for (it = urlv.begin(); it != urlv.end(); ++it)
-	check_one(*it);
+	checkOne(*it);
 }
 
 // -----------------------------------------------------------------------------
-void SaveDump::check_one(const RootDirURL &parser)
+void SaveDump::checkOne(const RootDirURL &parser)
 {
-    Debug::debug()->trace("SaveDump::check_one(\"%s\")",
+    Debug::debug()->trace("SaveDump::checkOne(\"%s\")",
 			  parser.getURL().c_str());
 
     // only do that check for local files
@@ -808,6 +787,45 @@ Transfer *SaveDump::getTransfer(const RootDirURLVector &urlv)
         default:
             throw KError("Unknown protocol.");
     }
+}
+
+//}}}
+//{{{ SaveDumpCommand ----------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+SaveDumpCommand::SaveDumpCommand()
+    : SaveDump()
+{
+    Debug::debug()->trace("SaveDumpCommand::SaveDumpCommand()");
+
+    m_options.push_back(new StringOption("dump", 'u', &m_dump,
+        "Use the specified dump instead of " DEFAULT_DUMP));
+    m_options.push_back(new StringOption("root", 'R', &m_rootdir,
+        "Use the specified root directory instead of /"));
+    m_options.push_back(new StringOption("kernelversion", 'k', &m_crashrelease,
+        "Use the specified kernel version instead of reading VMCOREINFO"));
+    m_options.push_back(new StringOption("hostname", 'H', &m_hostname,
+        "Use the specified hostname instead of uname()"));
+    m_options.push_back(new FlagOption("nomail", 'M', &m_nomail,
+        "Don't send notification email even if email has been configured"));
+}
+
+// -----------------------------------------------------------------------------
+const char *SaveDumpCommand::getName() const
+{
+    return "save_dump";
+}
+
+// -----------------------------------------------------------------------------
+void SaveDumpCommand::execute()
+{
+    Debug::debug()->trace(__FUNCTION__);
+    Debug::debug()->dbg("dump: %s, root: %s, crashrelease: %s, "
+        "hostname: %s, nomail: %d",
+        m_dump.c_str(), m_rootdir.c_str(), m_crashrelease.c_str(),
+        m_hostname.c_str(), int(m_nomail));
+
+    setErrorCode(create());
 }
 
 //}}}
