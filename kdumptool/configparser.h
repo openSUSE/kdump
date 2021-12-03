@@ -126,36 +126,6 @@ class ShellConfigParser : public ConfigParser {
 
 //}}}
 
-//{{{ KernelConfigParser -------------------------------------------------------
-
-/**
- * This configuration parser parses the kernel command line. It reads a file
- * (like /proc/cmdline) and applies a reimplementation of the algorithm used
- * by the Linux kernel.
- */
-class KernelConfigParser : public ConfigParser {
-
-    public:
-
-        /**
-         * Creates a new KernelConfigParser object with the specified file
-         * name as configuration file.
-         *
-         * @param[in] filename the file name of the configuration file
-         *            (here it is not checked if the file exists)
-         */
-        KernelConfigParser(const std::string &filename);
-
-        /**
-         * Parse the configuration file.
-         *
-         * @exception KError if opening of the file failed
-         */
-        virtual void parse();
-};
-
-//}}}
-
 #endif /* CONFIGPARSER_H */
 
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:
