@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     bool exception = false;
 
     try {
-        kdt.addSubcommand(new DeleteDumps);
+        kdt.addSubcommand(new DeleteDumpsCommand);
         kdt.addSubcommand(new DumpConfig);
         kdt.addSubcommand(new FindKernel);
         kdt.addSubcommand(new IdentifyKernel);

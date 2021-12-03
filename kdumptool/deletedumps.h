@@ -27,21 +27,50 @@ class Transfer;
 //{{{ DeleteDumps --------------------------------------------------------------
 
 /**
- * Subcommand to save the dump.
+ * Delete old dumps from disk.
  */
-class DeleteDumps : public Subcommand {
+class DeleteDumps {
+    protected:
+        std::string m_rootdir;
+        bool m_dryRun;
+
+    public:
+        DeleteDumps();
+
+        void deleteAll();
+
+        const std::string& rootDir() const
+        { return m_rootdir; }
+        void rootDir(const std::string& rootdir)
+        { m_rootdir = rootdir; }
+
+        bool dryRun() const
+        { return m_dryRun; }
+        void dryRun(bool dryRun)
+        { m_dryRun = dryRun; }
+
+    private:
+	/**
+	 * Helper function to delete one dump target directory.
+	 *
+	 * @throw KError on any error.
+	 */
+	void deleteOne(const RootDirURL &url, int oldDumps);
+};
+
+//}}}
+//{{{ DeleteDumpsCommand -------------------------------------------------------
+
+/**
+ * Subcommand to delete old dumps.
+ */
+class DeleteDumpsCommand : protected DeleteDumps, public Subcommand {
 
     public:
         /**
-         * Deletes old dumps from disk.
+         * Creates a new DeleteDumpsCommand object.
          */
-        DeleteDumps();
-
-        /**
-         * Deletes a DeleteDumps object.
-         */
-        ~DeleteDumps()
-        { }
+        DeleteDumpsCommand();
 
     public:
         /**
@@ -55,17 +84,6 @@ class DeleteDumps : public Subcommand {
          * @throw KError on any error. No exception indicates success.
          */
         void execute();
-
-    private:
-        std::string m_rootdir;
-        bool m_dryRun;
-
-	/**
-	 * Helper function to delete one dump file.
-	 *
-	 * @throw KError on any error. No exception indicates success.
-	 */
-	void delete_one(const RootDirURL &url, int oldDumps);
 };
 
 //}}}

@@ -53,26 +53,11 @@ DeleteDumps::DeleteDumps()
     : m_dryRun(false)
 {
     Debug::debug()->trace("DeleteDumps::DeleteDumps()");
-
-    m_options.push_back(new StringOption("root", 'R', &m_rootdir,
-        "Use the specified root directory instead of /"));
-    m_options.push_back(new FlagOption("dry-run", 'y', &m_dryRun,
-        "Don't delete, just print out what to delete"));
 }
 
 // -----------------------------------------------------------------------------
-const char *DeleteDumps::getName() const
+void DeleteDumps::deleteAll()
 {
-    return "delete_dumps";
-}
-
-// -----------------------------------------------------------------------------
-void DeleteDumps::execute()
-{
-    Debug::debug()->trace("DeleteDumps::execute()");
-    Debug::debug()->dbg("Using root dir %s, dry run: %d",
-        m_rootdir.c_str(), m_dryRun);
-
     Configuration *config = Configuration::config();
 
     int oldDumps = config->KDUMP_KEEP_OLD_DUMPS.value();
@@ -87,12 +72,12 @@ void DeleteDumps::execute()
     string elem;
     while (iss >> elem) {
         RootDirURL url(elem, m_rootdir);
-        delete_one(url, oldDumps);
+        deleteOne(url, oldDumps);
     }
 }
 
 // -----------------------------------------------------------------------------
-void DeleteDumps::delete_one(const RootDirURL &url, int oldDumps)
+void DeleteDumps::deleteOne(const RootDirURL &url, int oldDumps)
 {
     if (url.getProtocol() != URLParser::PROT_FILE) {
         cerr << "Deletion of old dump only on local disk." << endl;
@@ -131,6 +116,36 @@ void DeleteDumps::delete_one(const RootDirURL &url, int oldDumps)
             fp.rmdir(true);
         }
     }
+}
+
+//}}}
+//{{{ DeleteDumpsCommand -------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+DeleteDumpsCommand::DeleteDumpsCommand()
+{
+    Debug::debug()->trace("DeleteDumpsCommand::DeleteDumpsCommand()");
+
+    m_options.push_back(new StringOption("root", 'R', &m_rootdir,
+        "Use the specified root directory instead of /"));
+    m_options.push_back(new FlagOption("dry-run", 'y', &m_dryRun,
+        "Don't delete, just print out what to delete"));
+}
+
+// -----------------------------------------------------------------------------
+const char *DeleteDumpsCommand::getName() const
+{
+    return "delete_dumps";
+}
+
+// -----------------------------------------------------------------------------
+void DeleteDumpsCommand::execute()
+{
+    Debug::debug()->trace("DeleteDumpsCommand::execute()");
+    Debug::debug()->dbg("Using root dir %s, dry run: %d",
+        m_rootdir.c_str(), m_dryRun);
+
+    deleteAll();
 }
 
 //}}}
