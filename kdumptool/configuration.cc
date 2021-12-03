@@ -129,27 +129,6 @@ void Configuration::readFile(const string &filename)
     m_readConfig = true;
 }
 
-/* -------------------------------------------------------------------------- */
-void Configuration::readCmdLine(const string &filename)
-{
-    KernelConfigParser cp(filename);
-
-    std::vector<ConfigOption*>::iterator it;
-    for (it = m_options.begin(); it != m_options.end(); ++it) {
-        ConfigOption *opt = *it;
-        cp.addVariable(opt->name(), opt->valueAsString());
-    }
-
-    cp.parse();
-
-    for (it = m_options.begin(); it != m_options.end(); ++it) {
-        ConfigOption *opt = *it;
-        opt->update(cp.getValue(opt->name()));
-    }
-
-    m_readConfig = true;
-}
-
 // -----------------------------------------------------------------------------
 bool Configuration::kdumptoolContainsFlag(const std::string &flag)
 {

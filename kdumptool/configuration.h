@@ -278,14 +278,6 @@ class Configuration {
         void readFile(const std::string &filename);
 
         /**
-         * Reads a kernel command file.
-         *
-         * @param filename the file (e.g. /proc/cmdline)
-         * @exception if the @c filename was not found
-         */
-        void readCmdLine(const std::string &filename);
-
-        /**
 	 * Checks if KDUMPTOOL_FLAGS contains @p flag.
 	 *
 	 * @return @c true if KDUMPTOOL_FLAGS contains the flag and @c false
