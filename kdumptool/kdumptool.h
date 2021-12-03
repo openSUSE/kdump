@@ -85,7 +85,6 @@ class KdumpTool {
         int m_errorcode;
         bool m_background;
         std::string m_configfile;
-        std::string m_kernel_cmdline;
 };
 
 //}}}

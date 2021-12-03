@@ -58,7 +58,7 @@ static void close_file(int error, void *arg)
 // -----------------------------------------------------------------------------
 KdumpTool::KdumpTool()
     : m_subcommand(NULL), m_errorcode(false), m_background(false),
-      m_configfile(DEFAULT_CONFIG), m_kernel_cmdline()
+      m_configfile(DEFAULT_CONFIG)
 {}
 
 // -----------------------------------------------------------------------------
@@ -99,9 +99,6 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
     StringOption configFileOption(
         "configfile", 'F', &m_configfile,
         "Use the specified configuration file instead of " DEFAULT_CONFIG);
-    StringOption cmdlineOption(
-        "cmdline", 'C', &m_kernel_cmdline,
-        "Also parse kernel parameters from a given file (e.g. /proc/cmdline)");
 
     // add global options
     optionParser.addGlobalOption(&helpOption);
@@ -110,7 +107,6 @@ void KdumpTool::parseCommandline(int argc, char *argv[])
     optionParser.addGlobalOption(&debugOption);
     optionParser.addGlobalOption(&logFileOption);
     optionParser.addGlobalOption(&configFileOption);
-    optionParser.addGlobalOption(&cmdlineOption);
 
     optionParser.addSubcommands(m_subcommandList);
 
@@ -150,8 +146,6 @@ void KdumpTool::readConfiguration()
     if (m_subcommand->needsConfigfile()) {
         Configuration *config = Configuration::config();
         config->readFile(m_configfile);
-        if (!m_kernel_cmdline.empty())
-            config->readCmdLine(m_kernel_cmdline);
     }
 }
 

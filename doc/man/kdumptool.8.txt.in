@@ -103,12 +103,6 @@ follows all standard command line parsing rules.
 *-F* _filename_ | *--configfile* _filename_::
   Use a different configuration file instead of _/etc/sysconfig/kdump_.
 
-*-C* _filename_ | *--cmdline* _filename_::
-  Modify the configuration with options read from _filename_, which is
-  treated as a kernel-style command line (e.g. _/proc/cmdline_). This
-  file is read after the main configuration file, so file options can be
-  overridden on the kernel command line.
-
 IDENTIFYING A KERNEL
 --------------------
 
