@@ -107,46 +107,6 @@ class ShellQuotedString : public QuotedString {
 
 //}}}
 
-//{{{ KernelQuotedString -------------------------------------------------------
-
-class KernelQuotedString : public QuotedString {
-
-    public:
-        explicit KernelQuotedString()
-        : QuotedString()
-        { }
-
-        KernelQuotedString(const std::string& str)
-        : QuotedString(str)
-        { }
-
-        KernelQuotedString(const std::string& str,
-                           size_t pos, size_t len = npos)
-        : QuotedString(str, pos, len)
-        { }
-
-        KernelQuotedString(const char* s)
-        : QuotedString(s)
-        { }
-
-        KernelQuotedString(const char* s, size_t n)
-        : QuotedString(s, n)
-        { }
-
-        KernelQuotedString(size_t n, char c)
-        : QuotedString(n, c)
-        { }
-
-        template <class InputIterator>
-        KernelQuotedString(InputIterator first, InputIterator last)
-        : QuotedString(first, last)
-        { }
-
-        virtual std::string quoted(void) const;
-};
-
-//}}}
-
 #endif /* QUOTEDSTRING_H */
 
 // vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:

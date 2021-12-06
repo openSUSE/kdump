@@ -68,36 +68,3 @@ string ShellQuotedString::quoted(void) const
 }
 
 //}}}
-
-//{{{ KernelQuotedString -------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-static bool is_kernel_space(const char c)
-{
-    // follow the definition from lib/ctype.c in the Linux kernel tree
-    return (c >= 9 && c <= 13) || c == 32 || c == (char)160;
-}
-
-// -----------------------------------------------------------------------------
-string KernelQuotedString::quoted(void) const
-{
-    string ret;
-    bool quotes_needed = false;
-    for (const_iterator it = begin(); it != end(); ++it) {
-        if (is_kernel_space(*it))
-            quotes_needed = true;
-        if (*it == '\"')
-            ret.append("\\042");
-        else if (*it == '\\')
-            ret.append("\\\\");
-        else
-            ret.push_back(*it);
-    }
-    if (quotes_needed) {
-        ret.insert(0, "\"");
-        ret.push_back('\"');
-    }
-    return ret;
-}
-
-//}}}
