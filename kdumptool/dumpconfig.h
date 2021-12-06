@@ -55,7 +55,6 @@ class DumpConfig : public Subcommand {
     private:
 	enum Format {
 	    FMT_SHELL,
-	    FMT_KERNEL
 	};
 	enum Format m_format;
 	std::string m_formatString;

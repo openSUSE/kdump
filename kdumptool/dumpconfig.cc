@@ -30,7 +30,6 @@ using std::cout;
 
 const char *DumpConfig::format_names[] = {
     "shell",			// DumpConfig::FMT_SHELL
-    "kernel",			// DumpConfig::FMT_KERNEL
 };
 
 const char *DumpConfig::usage_names[] = {
@@ -142,10 +141,6 @@ void DumpConfig::execute()
     case FMT_SHELL:
         qs = new ShellQuotedString();
         delim = '\n';
-        break;
-    case FMT_KERNEL:
-        qs = new KernelQuotedString();
-        delim = ' ';
         break;
     default:
         throw KError("Invalid format: " + (int)m_format);

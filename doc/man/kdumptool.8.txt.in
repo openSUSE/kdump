@@ -312,8 +312,6 @@ Options
   Use the specified output format. It must be one of:
     *shell*;;
       The output can be read as a shell script. (default)
-    *kernel*;;
-      The output can be passed as a kernel parameter.
 
 *-u* _usage_ | *--usage* _usage_::
   Show only configuration variables that are used for a specific stage.
