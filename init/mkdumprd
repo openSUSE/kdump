@@ -56,25 +56,10 @@ function status_message()
 function unpack_initrd()
 {
     local image="$1"
-    local skipcpio decompress unpack
-    local bin is_early
+    local decompress unpack
+    local bin
 
     read -r -N 6 bin < "$image" || return 1
-    case "$bin" in
-        $'\x71\xc7'* | 070701)
-            is_early=$(cpio --list --quiet --to-stdout -- 'early_cpio' < "$image" 2> /dev/null)
-            if [ -n "$is_early" ]; then
-                skipcpio="/usr/lib/dracut/skipcpio"
-                test -d "$skipcpio" && skipcpio="$skipcpio/skipcpio"
-            fi
-            ;;
-    esac
-
-    if [ -n "$skipcpio" ]; then
-	read -r -N 6 bin < <($skipcpio "$image") || return 1
-    else
-        read -r -N 6 bin < "$image" || return 1
-    fi
     case $bin in
         $'\x1f\x8b'*)
             decompress="zcat --"
@@ -104,18 +89,10 @@ function unpack_initrd()
     esac
 
     unpack="cpio -id --preserve-modification-time --quiet"
-    if [ -n "$skipcpio" ]; then
-	if [ -n "$decompress" ]; then
-	    $skipcpio "$image" | $decompress | $unpack
-	else
-	    $skipcpio "$image" | $unpack
-	fi
+    if [ -n "$decompress" ]; then
+	$decompress "$image" | $unpack
     else
-	if [ -n "$decompress" ]; then
-	    $decompress "$image" | $unpack
-	else
-	    $unpack < "$image"
-	fi
+	$unpack < "$image"
     fi
 }                                                                          # }}}
 
@@ -144,7 +121,7 @@ function build_fadumprd()
     readonly TARGET_INITRD="$INITRD"
 
     INITRD="$FADUMP_TMPDIR/fadump.img"
-    run_dracut --no-compress
+    run_dracut --no-compress --no-early-microcode
     ret=$?
     if [ $ret -ne 0 ]; then
         exit $ret
