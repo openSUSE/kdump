@@ -156,7 +156,7 @@ function build_fadumprd()
         exit 1
     fi
 
-    DRACUT_ARGS="--force --add zz-fadumpinit --omit kdump"
+    DRACUT_ARGS="--force --add zz-fadumpinit"
 
     REBUILD_PARAMS="$(cat $BACKUP_INITRD_PARAMS)"
     if ! grep -q "fadumproot" <<< "$REBUILD_PARAMS" ; then

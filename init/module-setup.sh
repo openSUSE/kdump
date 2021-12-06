@@ -9,11 +9,6 @@ kdump_needed() {
         return 0
     fi
 
-    # Is FADUMP active?
-    if [ "$KDUMP_FADUMP" = "yes" ]; then
-        return 0
-    fi
-
     # Do not include kdump by default
     return 1
 }
