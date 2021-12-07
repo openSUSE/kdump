@@ -52,51 +52,6 @@ function status_message()
 }                                                                          # }}}
 
 #
-# Unpack initrd                                                              {{{
-function unpack_initrd()
-{
-    local image="$1"
-    local decompress unpack
-    local bin
-
-    read -r -N 6 bin < "$image" || return 1
-    case $bin in
-        $'\x1f\x8b'*)
-            decompress="zcat --"
-            ;;
-        BZh*)
-            decompress="bzcat --"
-            ;;
-        $'\x71\xc7'* | 070701)
-            decompress=
-            ;;
-        $'\x02\x21'*)
-            decompress="lz4 -d -c"
-            ;;
-        $'\x89'LZO$'\0'*)
-            decompress="lzop -d -c"
-            ;;
-        $'\x28\xB5\x2F\xFD'*)
-            decompress="zstd -d -c"
-            ;;
-        *)
-            if echo "test" | xz | xzcat --single-stream > /dev/null 2>&1; then
-                decompress="xzcat --single-stream --"
-            else
-                decompress="xzcat --"
-            fi
-        ;;
-    esac
-
-    unpack="cpio -id --preserve-modification-time --quiet"
-    if [ -n "$decompress" ]; then
-	$decompress "$image" | $unpack
-    else
-	$unpack < "$image"
-    fi
-}                                                                          # }}}
-
-#
 # Create a new initrd using dracut                                           {{{
 function run_dracut()
 {
@@ -128,7 +83,7 @@ function build_fadumprd()
     fi
 
     mkdir $FADUMPRD_TMPDIR
-    if ! (pushd "$FADUMPRD_TMPDIR" > /dev/null && unpack_initrd $INITRD && popd > /dev/null); then
+    if ! (pushd "$FADUMPRD_TMPDIR" > /dev/null && kdump_unpack_initrd $INITRD && popd > /dev/null); then
         echo "Failed to unpack dump capture scripts."
         exit 1
     fi
