@@ -1305,10 +1305,12 @@ function kdump_setup_files()						   # {{{
 #
 # Unpack initrd
 # Parameters:
-#   1) image: path to an initrd
+#   1) image:   path to an initrd
+#   2) destdir: (optional) destination path
 function kdump_unpack_initrd()						   # {{{
 {
     local _image="$1"
+    local _destdir="${2:-.}"
     local _decompress _unpack
     local _bin
 
@@ -1343,8 +1345,8 @@ function kdump_unpack_initrd()						   # {{{
 
     _unpack="cpio -id --preserve-modification-time --quiet"
     if [ -n "$_decompress" ]; then
-	$_decompress "$_image" | $_unpack
+	$_decompress "$_image" | $_unpack -D "$_destdir"
     else
-	$_unpack < "$_image"
+	$_unpack -D "$_destdir" < "$_image"
     fi
 }                                                                          # }}}

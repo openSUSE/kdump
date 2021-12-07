@@ -83,7 +83,7 @@ function build_fadumprd()
     fi
 
     mkdir $FADUMPRD_TMPDIR
-    if ! (pushd "$FADUMPRD_TMPDIR" > /dev/null && kdump_unpack_initrd $INITRD && popd > /dev/null); then
+    if ! (kdump_unpack_initrd $INITRD "$FADUMPRD_TMPDIR"); then
         echo "Failed to unpack dump capture scripts."
         exit 1
     fi
