@@ -68,46 +68,15 @@ function run_dracut()
 }                                                                          # }}}
 
 #
-# Build $INITRD for fadump with dump capture support using dracut            {{{
+# Rebuild all initrds                                                        {{{
 function build_fadumprd()
 {
-    readonly TARGET_INITRD="$INITRD"
-
-    DRACUT_ARGS="--force --add zz-fadumpinit"
-
-    REBUILD_PARAMS="$(cat $BACKUP_INITRD_PARAMS)"
-    if ! grep -q "fadumproot" <<< "$REBUILD_PARAMS" ; then
-        DRACUT_ARGS="$REBUILD_PARAMS $DRACUT_ARGS"
-    fi
-
-    eval "bash -$- $DRACUT $DRACUT_ARGS $TARGET_INITRD"
-}                                                                          # }}}
-
-#
-# Return 0 if $INITRD is already dump capture capable                        {{{
-function is_initrd_dump_capturable()
-{
-    if [ -n "$(lsinitrd $INITRD /lib/dracut/modules.txt | grep ^zz-fadumpinit)" ]; then
-        return 0
-    fi
-
-    return 1
-}                                                                          # }}}
-
-#
-# Backup $INITRD params to $BACKUP_INITRD_PARAMS file                        {{{
-function backup_default_initrd_params()
-{
-    DEFAULT_INITRD=$(basename $INITRD)
-    INITRD_DIR=$(dirname $INITRD)
-    BACKUP_INITRD_PARAMS="$INITRD_DIR/.$DEFAULT_INITRD.params"
-
-    if [ -f $BACKUP_INITRD_PARAMS ] && is_initrd_dump_capturable; then
-        return
-    fi
-
-    echo "Backing up '$INITRD' build parameters before rebuilding it with dump capture support."
-    lsinitrd $INITRD /lib/dracut/build-parameter.txt > $BACKUP_INITRD_PARAMS
+    # With fadump, this script has no control over which kernel will
+    # be booted after a crash, but any installed kernel can be used
+    # to save the dump. Consequently, let mkinitrd regenerate initrd
+    # for all installed kernels.
+    echo "Regenerating all initrds ..." >&2
+    eval "bash -$- /sbin/mkinitrd"
 }                                                                          # }}}
 
 #
@@ -115,7 +84,6 @@ function backup_default_initrd_params()
 function build_initrd()
 {
     if [ "$KDUMP_FADUMP" = "yes" ] ; then
-        backup_default_initrd_params
         build_fadumprd
     else
         run_dracut --compress='xz -0 --check=crc32'
