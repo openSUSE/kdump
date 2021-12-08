@@ -71,22 +71,7 @@ function run_dracut()
 # Build $INITRD for fadump with dump capture support using dracut            {{{
 function build_fadumprd()
 {
-    readonly FADUMP_TMPDIR="$(mktemp -d -t fadump.XXXXXX)"
-    readonly FADUMPRD_TMPDIR="$FADUMP_TMPDIR/fadumproot"
     readonly TARGET_INITRD="$INITRD"
-
-    INITRD="$FADUMP_TMPDIR/fadump.img"
-    run_dracut --no-compress --no-early-microcode
-    ret=$?
-    if [ $ret -ne 0 ]; then
-        exit $ret
-    fi
-
-    mkdir $FADUMPRD_TMPDIR
-    if ! (kdump_unpack_initrd $INITRD "$FADUMPRD_TMPDIR"); then
-        echo "Failed to unpack dump capture scripts."
-        exit 1
-    fi
 
     DRACUT_ARGS="--force --add zz-fadumpinit"
 
@@ -95,7 +80,7 @@ function build_fadumprd()
         DRACUT_ARGS="$REBUILD_PARAMS $DRACUT_ARGS"
     fi
 
-    eval "bash -$- $DRACUT $DRACUT_ARGS -i $FADUMPRD_TMPDIR /fadumproot $TARGET_INITRD"
+    eval "bash -$- $DRACUT $DRACUT_ARGS $TARGET_INITRD"
 }                                                                          # }}}
 
 #
