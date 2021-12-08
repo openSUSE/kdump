@@ -25,10 +25,6 @@ TARGET_INCLUDE_DIRECTORIES(device-timeout-generator
 TARGET_LINK_LIBRARIES(device-timeout-generator
     ${BLKID_LIBRARIES})
 
-ADD_EXECUTABLE(init-fadump
-    init-fadump.c
-)
-
 INSTALL(
     FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/boot.kdump
@@ -110,28 +106,35 @@ INSTALL(
         WORLD_READ
 )
 
-INSTALL(
-    FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/fadump-module-setup.sh
-    RENAME
-        module-setup.sh
-    DESTINATION
-        /usr/lib/dracut/modules.d/99zz-fadumpinit
-    PERMISSIONS
-        OWNER_READ OWNER_WRITE OWNER_EXECUTE
-        GROUP_READ GROUP_EXECUTE
-        WORLD_READ WORLD_EXECUTE
-)
+IF(${HAVE_FADUMP} STREQUAL "TRUE")
 
-INSTALL(
-    TARGETS
-        init-fadump
-    DESTINATION
-        /usr/lib/dracut/modules.d/99zz-fadumpinit
-    PERMISSIONS
-        OWNER_READ OWNER_WRITE OWNER_EXECUTE
-        GROUP_READ GROUP_EXECUTE
-        WORLD_READ WORLD_EXECUTE
-)
+    INSTALL(
+        FILES
+            ${CMAKE_CURRENT_SOURCE_DIR}/fadump-module-setup.sh
+        RENAME
+            module-setup.sh
+        DESTINATION
+            /usr/lib/dracut/modules.d/99zz-fadumpinit
+        PERMISSIONS
+            OWNER_READ OWNER_WRITE OWNER_EXECUTE
+            GROUP_READ GROUP_EXECUTE
+            WORLD_READ WORLD_EXECUTE
+    )
+
+    ADD_EXECUTABLE(init-fadump
+        init-fadump.c
+    )
+    INSTALL(
+        TARGETS
+            init-fadump
+        DESTINATION
+            /usr/lib/dracut/modules.d/99zz-fadumpinit
+        PERMISSIONS
+            OWNER_READ OWNER_WRITE OWNER_EXECUTE
+            GROUP_READ GROUP_EXECUTE
+            WORLD_READ WORLD_EXECUTE
+    )
+
+ENDIF()
 
 # vim: set sw=4 ts=4 et:
