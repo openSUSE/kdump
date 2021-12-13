@@ -53,9 +53,6 @@
 //    INIT_KB		basic initramfs size (unpacked)
 //    INIT_NET_KB	initramfs size increment when network is included
 //    SIZE_STRUCT_PAGE	sizeof(struct page)
-//    KDUMP_PHYS_LOAD   assumed physical load address of the kdump kernel;
-//                      if pages between 0 and the load address are not
-//                      counted into total memory, set this to ZERO
 //    PERCPU_KB         additional kernel memory for each online CPU
 //    CAN_REDUCE_CPUS   non-zero if the architecture can reduce kernel
 //                      memory requirements with nr_cpus=
@@ -68,7 +65,6 @@
 # define INIT_KB		MB(51)
 # define INIT_NET_KB		MB(3)
 # define SIZE_STRUCT_PAGE	64
-# define KDUMP_PHYS_LOAD	0
 # define CAN_REDUCE_CPUS	1
 # define PERCPU_KB		108
 
@@ -79,7 +75,6 @@
 # define INIT_KB		MB(44)
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	36
-# define KDUMP_PHYS_LOAD	0
 # define CAN_REDUCE_CPUS	1
 # define PERCPU_KB		56
 
@@ -90,7 +85,6 @@
 # define INIT_KB		MB(87)
 # define INIT_NET_KB		MB(4)
 # define SIZE_STRUCT_PAGE	64
-# define KDUMP_PHYS_LOAD	MB(128)
 # define CAN_REDUCE_CPUS	0
 # define PERCPU_KB		172	// FIXME: is it non-linear?
 
@@ -101,7 +95,6 @@
 # define INIT_KB		MB(51)
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	36
-# define KDUMP_PHYS_LOAD	MB(128)
 # define CAN_REDUCE_CPUS	0
 # define PERCPU_KB		0	// TODO !!!
 
@@ -112,7 +105,6 @@
 # define INIT_KB		MB(51)
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	64
-# define KDUMP_PHYS_LOAD	0
 # define CAN_REDUCE_CPUS	1
 # define PERCPU_KB		48
 
@@ -125,7 +117,6 @@
 # define INIT_KB		MB(44)
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	36
-# define KDUMP_PHYS_LOAD	0
 # define CAN_REDUCE_CPUS	1
 # define PERCPU_KB		0	// TODO !!!
 
@@ -138,7 +129,6 @@
 # define INIT_KB		MB(66)
 # define INIT_NET_KB		MB(4)
 # define SIZE_STRUCT_PAGE	64
-# define KDUMP_PHYS_LOAD	0
 # define CAN_REDUCE_CPUS	1
 # define PERCPU_KB		0	// TODO !!!
 
@@ -149,7 +139,6 @@
 # define INIT_KB		MB(51)
 # define INIT_NET_KB		MB(3)
 # define SIZE_STRUCT_PAGE	64
-# define KDUMP_PHYS_LOAD	0
 # define CAN_REDUCE_CPUS	1
 # define PERCPU_KB		0	// TODO !!!
 
@@ -160,7 +149,6 @@
 # define INIT_KB		MB(44)
 # define INIT_NET_KB		MB(2)
 # define SIZE_STRUCT_PAGE	36
-# define KDUMP_PHYS_LOAD	0
 # define CAN_REDUCE_CPUS	1
 # define PERCPU_KB		0	// TODO !!!
 
@@ -1150,10 +1138,6 @@ void Calibrate::execute()
         Debug::debug()->dbg("Dirty pagecache: %lu KiB", dirty);
         Debug::debug()->dbg("In-flight I/O: %lu KiB", required - prev - dirty);
 
-	// Account for memory between 0 and KDUMP_PHYS_LOAD
-	required += KDUMP_PHYS_LOAD;
-	Debug::debug()->dbg("Assumed load offset: %lu KiB", KDUMP_PHYS_LOAD);
-
 	// Account for "large hashes"
 	prev = required;
 	required = required * MB(1024) / (MB(1024) - KERNEL_HASH_PER_MB);
@@ -1165,10 +1149,6 @@ void Calibrate::execute()
 	unsigned long maxpfn = (required - prev) / SIZE_STRUCT_PAGE;
 	required = prev + align_memmap(maxpfn) * SIZE_STRUCT_PAGE;
         Debug::debug()->dbg("Maximum memmap size: %lu KiB", required - prev);
-
-        // Memory between 0 and KDUMP_PHYS_LOAD is not really allocated,
-        // so subtract it again after memmap has been sized.
-	required -= KDUMP_PHYS_LOAD;
 
 	// Make sure there is enough space at boot
 	Debug::debug()->dbg("Total run-time size: %lu KiB", required);
