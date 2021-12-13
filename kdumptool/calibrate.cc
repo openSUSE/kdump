@@ -1145,9 +1145,19 @@ void Calibrate::execute()
 
 	// Add space for memmap
 	prev = required;
-	required = required * pagesize / (pagesize - SIZE_STRUCT_PAGE);
-	unsigned long maxpfn = (required - prev) / SIZE_STRUCT_PAGE;
-	required = prev + align_memmap(maxpfn) * SIZE_STRUCT_PAGE;
+#if HAVE_FADUMP
+        if (config->KDUMP_FADUMP.value()) {
+            // FADUMP will map all memory
+            unsigned long maxpfn = memtotal / (pagesize / 1024);
+            required += shr_round_up(maxpfn * SIZE_STRUCT_PAGE, 10);
+        } else {
+#endif
+            required = required * pagesize / (pagesize - SIZE_STRUCT_PAGE);
+            unsigned long maxpfn = (required - prev) / SIZE_STRUCT_PAGE;
+            required = prev + align_memmap(maxpfn) * SIZE_STRUCT_PAGE;
+#if HAVE_FADUMP
+        }
+#endif
         Debug::debug()->dbg("Maximum memmap size: %lu KiB", required - prev);
 
 	// Make sure there is enough space at boot
