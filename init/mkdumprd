@@ -86,7 +86,7 @@ function build_initrd()
     if [ "$KDUMP_FADUMP" = "yes" ] ; then
         build_fadumprd
     else
-        run_dracut --compress='xz -0 --check=crc32'
+        run_dracut --compress \'xz -0 --check=crc32\'
     fi
 }                                                                          # }}}
 
