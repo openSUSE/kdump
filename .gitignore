@@ -21,6 +21,7 @@ Testing/
 *.a
 
 # resulting binaries
+calibrate/trackrss
 init/device-timeout-generator
 init/init-fadump
 kdumptool/kdumptool
