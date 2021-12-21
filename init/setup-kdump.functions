@@ -19,6 +19,22 @@ FENCE_KDUMP_SEND=/usr/lib/fence_kdump_send
 # Next network interface number
 kdump_ifnum=0
 
+#
+# Run kdumptool, possibly with a non-default configuration file
+# Input variables:
+#   KDUMP_CONFIGFILE  If non-empty, path to the configuration file
+# Exit status:
+#   Exit status of kdumptool.
+function kdump_run_kdumptool()
+{
+    if [ -n "$KDUMP_CONFIGFILE" ]
+    then
+	kdumptool -F "$KDUMP_CONFIGFILE" "$@"
+    else
+	kdumptool "$@"
+    fi
+}
+
 # Extract the device name from a route
 #
 # Input:
@@ -720,7 +736,7 @@ function kdump_get_targets()						   # {{{
 	kdump_max=$((kdump_max + 1))
     fi
 
-    eval "$( kdumptool print_target | \
+    eval "$( kdump_run_kdumptool print_target | \
         sed -e "s/'/'\\\\''/g" \
 	    -e 's/^$/max=$((kdump_max+1))'\''/' \
 	    -e 's/^/kdump_/' \
@@ -922,7 +938,7 @@ function kdump_get_mountpoints()					   # {{{
 #   non-zero if dump_config failed
 function kdump_get_config()						   # {{{
 {
-    local kdump_config=$( kdumptool dump_config --format=shell )
+    local kdump_config=$( kdump_run_kdumptool dump_config --format=shell  )
     if [ $? -ne 0 ] ; then
 	echo >&2 "kdump configuration failed"
 	return 1
@@ -1016,7 +1032,7 @@ EOF
     # dump the configuration file, modifying:
     #   KDUMP_SAVEDIR  -> resolved path
     #   KDUMP_HOST_KEY -> target host public key
-    kdumptool dump_config --format=shell | \
+    kdump_run_kdumptool dump_config --format=shell | \
 	KDUMP_SAVEDIR="$KDUMP_SAVEDIR" KDUMP_HOST_KEY="$KDUMP_HOST_KEY" \
 	awk -F= '{
     id = $1
@@ -1061,7 +1077,7 @@ function kdump_modify_multipath()					   # {{{
     eval wwids="($1)"
     local conf="/etc/multipath.conf"
     test -e "$conf" || conf="/dev/null"
-    kdumptool multipath "${wwids[@]}" \
+    kdump_run_kdumptool multipath "${wwids[@]}" \
 	< "$conf"
 }									   # }}}
 
