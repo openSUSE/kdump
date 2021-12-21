@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -63,6 +64,8 @@ struct connection {
 	struct sockaddr_nl addr;
 	struct header sendhdr;
 	struct header recvhdr;
+
+	struct timespec stamp;
 };
 
 typedef int attr_callback_t(void *data, struct nlattr *nla, void *payload);
@@ -168,6 +171,7 @@ static int conn_recv(struct connection *conn)
 		perror("Cannot receive netlink message");
 		return 1;
 	}
+	clock_gettime(CLOCK_MONOTONIC, &conn->stamp);
 	if (!NLMSG_OK(&conn->recvhdr.nlh, ret)) {
 		fprintf(stderr, "Netlink message too short: %zd bytes\n", ret);
 		return 1;
@@ -294,6 +298,8 @@ static int register_cpumask(struct connection *conn, const char *mask)
 
 static int taskstats_aggr_cb(void *data, struct nlattr *nla, void *payload)
 {
+	struct connection *conn = data;
+
 	if (nla->nla_type != TASKSTATS_TYPE_STATS)
 		return 0;
 
@@ -320,8 +326,9 @@ static int taskstats_aggr_cb(void *data, struct nlattr *nla, void *payload)
 		return 1;
 	}
 
-	printf("%lld %lld %lld %s[%d]\n",
-	       (unsigned long long) ts->ac_btime,
+	printf("%ld%06ld %lld %lld %s[%d]\n",
+	       (long) conn->stamp.tv_sec,
+	       (long) conn->stamp.tv_nsec / 1000,
 	       (unsigned long long) ts->ac_etime,
 	       (unsigned long long) ts->hiwater_rss,
 	       ts->ac_comm,

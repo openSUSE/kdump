@@ -21,8 +21,8 @@ events = {}
 try:
     while True:
         fields = input().split(maxsplit=3)
-        btime = int(fields[0])
-        etime = btime + int(fields[1]) // 1000000
+        etime = int(fields[0])
+        btime = etime - int(fields[1])
         rss = int(fields[2])
 
         procidx = len(processes)
