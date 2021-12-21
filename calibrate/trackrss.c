@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/mount.h>
 
 #include <linux/netlink.h>
 #include <linux/genetlink.h>
@@ -35,6 +36,9 @@
 #define LOG_CONSOLE	"/dev/ttyS1"
 
 #define SYSTEMD_PATH	"/usr/lib/systemd/systemd"
+
+#define SYSFS		"sysfs"
+#define SYSFS_DIR	"/sys"
 
 #define SYSFS_CPU_POSSIBLE	"/sys/devices/system/cpu/possible"
 
@@ -349,6 +353,21 @@ static int get_taskstats(struct connection *conn)
 	return conn_parse_attrs(conn, taskstats_cb);
 }
 
+static int mount_failure(const char *what)
+{
+	perror(what);
+	return 1;
+}
+
+static int init_mounts(void)
+{
+	if (mount(SYSFS, SYSFS_DIR, SYSFS,
+		  MS_NOSUID|MS_NOEXEC|MS_NODEV, NULL))
+		return mount_failure(SYSFS);
+
+	return 0;
+}
+
 static int start_systemd(char *argv[])
 {
 	pid_t pid;
@@ -396,6 +415,10 @@ int main(int argc, char *argv[])
 	struct connection conn;
 	char *cpumask = NULL;
 	int ret;
+
+	ret = init_mounts();
+	if (ret)
+		return ret;
 
 	ret = conn_init(&conn);
 	if (ret)
