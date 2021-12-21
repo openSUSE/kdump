@@ -17,11 +17,13 @@
 
 #include <stddef.h>
 #include <stdio.h>
+#include <errno.h>
 #include <string.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <time.h>
+#include <pthread.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -33,6 +35,8 @@
 
 /* There seems to be no canonical constant for this... */
 #define CTRL_GENL_VERSION	0x2
+
+#define RECV_QLEN	16
 
 #define LOG_CONSOLE	"/dev/ttyS1"
 
@@ -54,34 +58,68 @@ struct header {
 	nlmsg_aligned char payload[];
 };
 
-struct connection {
-	int fd;
+struct connection;
 
-	void *buf;
-	size_t buflen;
-	size_t bufalloc;
+struct recvdata {
+	struct connection *conn;
 
-	struct sockaddr_nl addr;
-	struct header sendhdr;
-	struct header recvhdr;
+	struct header hdr;
+	void *data;
+	ssize_t nbytes;
+	int err;
 
 	struct timespec stamp;
 };
 
+struct connection {
+	int fd;
+
+	void *buf;
+	size_t bufalloc;
+
+	struct sockaddr_nl addr;
+	struct header sendhdr;
+
+	unsigned qhead;
+	unsigned qtail;
+	int qoverflow;
+	struct recvdata *queue[RECV_QLEN+1];
+	struct recvdata queuedata[RECV_QLEN+1];
+
+	pthread_mutex_t mutex;
+	pthread_cond_t cond;
+	pthread_t recv_thread;
+};
+
 typedef int attr_callback_t(void *data, struct nlattr *nla, void *payload);
+
+static inline unsigned next_qslot(unsigned idx)
+{
+	return (idx + 1) % RECV_QLEN;
+}
 
 static int conn_init(struct connection *conn)
 {
 	struct sockaddr_nl sa;
 	socklen_t salen;
+	unsigned i;
 
 	memset(conn, 0, sizeof(*conn));
 
+	pthread_mutex_init(&conn->mutex, NULL);
+	pthread_cond_init(&conn->cond, NULL);
+
 	conn->bufalloc = sysconf(_SC_PAGESIZE);
-	conn->buf = malloc(conn->bufalloc);
+	conn->buf = malloc(conn->bufalloc * (RECV_QLEN + 1));
 	if (!conn->buf) {
 		perror("Cannot allocate receive buffer");
 		return 1;
+	}
+	for (i = 0; i <= RECV_QLEN; ++i) {
+		struct recvdata *recvdata = &conn->queuedata[i];
+		recvdata->conn = conn;
+		recvdata->data = conn->buf + i * conn->bufalloc;
+		conn->queue[i] = recvdata;
 	}
 
 	conn->fd = socket(AF_NETLINK, SOCK_RAW | SOCK_CLOEXEC, NETLINK_GENERIC);
@@ -151,42 +189,88 @@ static int conn_send(struct connection *conn, int cmd,
 	return 0;
 }
 
-static int conn_recv(struct connection *conn)
+static void conn_recv(struct connection *conn)
 {
 	struct iovec iov[2];
 	struct msghdr msg;
-	ssize_t ret;
+	struct recvdata *data = conn->queue[RECV_QLEN];
+	unsigned qhead;
 
-	iov[0].iov_base = (void*)&conn->recvhdr;
-	iov[0].iov_len = sizeof(conn->recvhdr);
-	iov[1].iov_base = conn->buf;
+	iov[0].iov_base = (void*)&data->hdr;
+	iov[0].iov_len = sizeof(data->hdr);
+	iov[1].iov_base = data->data;
 	iov[1].iov_len = conn->bufalloc;
 
 	memset(&msg, 0, sizeof(msg));
 	msg.msg_iov = iov;
 	msg.msg_iovlen = 2;
 
-	ret = recvmsg(conn->fd, &msg, 0);
-	if (ret < 0) {
-		perror("Cannot receive netlink message");
+	data->nbytes = recvmsg(conn->fd, &msg, 0);
+	data->err = errno;
+	clock_gettime(CLOCK_MONOTONIC, &data->stamp);
+
+	pthread_mutex_lock(&conn->mutex);
+	qhead = conn->qhead;
+	conn->qhead = next_qslot(conn->qhead);
+	if (conn->qhead != conn->qtail) {
+		conn->queue[RECV_QLEN] = conn->queue[qhead];
+		conn->queue[qhead] = data;
+	} else {
+		conn->qhead = qhead;
+		conn->qoverflow = 1;
+	}
+	pthread_cond_signal(&conn->cond);
+	pthread_mutex_unlock(&conn->mutex);
+}
+
+void *recv_thread_fn(void *arg)
+{
+	struct connection *conn = arg;
+
+	for (;;)
+		conn_recv(conn);
+
+	return NULL;
+}
+
+static int conn_start_recv(struct connection *conn)
+{
+	if (pthread_create(&conn->recv_thread, NULL, recv_thread_fn, conn)) {
+		perror("pthread_create");
 		return 1;
 	}
-	clock_gettime(CLOCK_MONOTONIC, &conn->stamp);
-	if (!NLMSG_OK(&conn->recvhdr.nlh, ret)) {
-		fprintf(stderr, "Netlink message too short: %zd bytes\n", ret);
+
+	return 0;
+}
+
+static int conn_recv_check(struct connection *conn, struct recvdata *data,
+			   const char *id, unsigned cmd)
+{
+	if (data->nbytes < 0) {
+		fprintf(stderr, "Cannot receive netlink message: %s\n",
+			strerror(data->err));
 		return 1;
 	}
-	if (conn->recvhdr.nlh.nlmsg_type == NLMSG_ERROR) {
+	if (!NLMSG_OK(&data->hdr.nlh, data->nbytes)) {
+		fprintf(stderr, "Netlink message too short: %zd bytes\n",
+			data->nbytes);
+		return 1;
+	}
+	if (data->hdr.nlh.nlmsg_type == NLMSG_ERROR) {
 		fprintf(stderr, "Netlink error %d\n",
-			((struct nlmsgerr*)conn->buf)->error);
+			((struct nlmsgerr*)data->data)->error);
 		return 1;
 	}
-	if (conn->recvhdr.nlh.nlmsg_type != conn->sendhdr.nlh.nlmsg_type) {
+	if (data->hdr.nlh.nlmsg_type != conn->sendhdr.nlh.nlmsg_type) {
 		fprintf(stderr, "Unexpected response family %u\n",
-			(unsigned)conn->recvhdr.nlh.nlmsg_type);
+			(unsigned)data->hdr.nlh.nlmsg_type);
 		return 1;
 	}
-	conn->buflen = ret - sizeof(conn->recvhdr);
+	if (data->hdr.genlh.cmd != cmd) {
+		fprintf(stderr, "Unexpected %s response command: 0x%x\n",
+			id, (unsigned)data->hdr.genlh.cmd);
+		return 1;
+	}
 
 	return 0;
 }
@@ -216,10 +300,10 @@ static int parse_attrs(void *buffer, size_t buflen,
 	return 0;
 }
 
-static int conn_parse_attrs(struct connection *conn, attr_callback_t *cb)
+static int recv_parse_attrs(struct recvdata *data, attr_callback_t *cb)
 {
-	size_t attrlen = conn->recvhdr.nlh.nlmsg_len - sizeof(struct header);
-	return parse_attrs(conn->buf, attrlen, cb, conn);
+	size_t attrlen = data->hdr.nlh.nlmsg_len - sizeof(struct header);
+	return parse_attrs(data->data, attrlen, cb, data);
 }
 
 static inline void conn_set_family_id(struct connection *conn,
@@ -232,9 +316,9 @@ static inline void conn_set_family_id(struct connection *conn,
 
 static int set_family_cb(void *data, struct nlattr *nla, void *payload)
 {
-	struct connection *conn = data;
+	struct recvdata *recv = data;
 	if (nla->nla_type == CTRL_ATTR_FAMILY_ID)
-		conn->sendhdr.nlh.nlmsg_type = *(__u16*)payload;
+		recv->conn->sendhdr.nlh.nlmsg_type = *(__u16*)payload;
 	return 0;
 }
 
@@ -245,6 +329,7 @@ static int conn_set_family_name(struct connection *conn,
 	size_t datalen = NLA_HDRLEN + NLA_ALIGN(namelen);
 	char data[datalen];
 	struct nlattr *nla = (struct nlattr*)data;
+	struct recvdata *recvdata;
 
 	conn_set_family_id(conn, GENL_ID_CTRL, CTRL_GENL_VERSION);
 
@@ -254,16 +339,14 @@ static int conn_set_family_name(struct connection *conn,
 	if (conn_send(conn, CTRL_CMD_GETFAMILY, data, datalen))
 		return 1;
 
-	if (conn_recv(conn))
+	conn_recv(conn);
+	recvdata = conn->queue[conn->qtail];
+	conn->qtail = next_qslot(conn->qtail);
+	if (conn_recv_check(conn, recvdata, "CTRL", CTRL_CMD_NEWFAMILY))
 		return 1;
 
-	if (conn->recvhdr.genlh.cmd != CTRL_CMD_NEWFAMILY) {
-		fprintf(stderr, "Unexpected %s response command: 0x%x\n",
-			"CTRL", (unsigned)conn->recvhdr.genlh.cmd);
-		return 1;
-	}
 	conn->sendhdr.genlh.version = version;
-	return conn_parse_attrs(conn, set_family_cb);
+	return recv_parse_attrs(recvdata, set_family_cb);
 }
 
 static int get_possible_cpus(char **mask)
@@ -298,7 +381,7 @@ static int register_cpumask(struct connection *conn, const char *mask)
 
 static int taskstats_aggr_cb(void *data, struct nlattr *nla, void *payload)
 {
-	struct connection *conn = data;
+	struct recvdata *recvdata = data;
 
 	if (nla->nla_type != TASKSTATS_TYPE_STATS)
 		return 0;
@@ -327,8 +410,8 @@ static int taskstats_aggr_cb(void *data, struct nlattr *nla, void *payload)
 	}
 
 	printf("%ld%06ld %lld %lld %s[%d]\n",
-	       (long) conn->stamp.tv_sec,
-	       (long) conn->stamp.tv_nsec / 1000,
+	       (long) recvdata->stamp.tv_sec,
+	       (long) recvdata->stamp.tv_nsec / 1000,
 	       (unsigned long long) ts->ac_etime,
 	       (unsigned long long) ts->hiwater_rss,
 	       ts->ac_comm,
@@ -347,17 +430,37 @@ static int taskstats_cb(void *data, struct nlattr *nla, void *payload)
 
 static int get_taskstats(struct connection *conn)
 {
-	if (conn_recv(conn))
-		return 1;
+	struct recvdata *recvdata;
+	int overflow;
 
-	if (conn->recvhdr.genlh.cmd != TASKSTATS_CMD_NEW) {
-		fprintf(stderr, "Unexpected %s response command: 0x%x\n",
-			TASKSTATS_GENL_NAME,
-			(unsigned)conn->recvhdr.genlh.cmd);
-		return 1;
+	pthread_mutex_lock(&conn->mutex);
+	if (conn->qtail == conn->qhead)
+		pthread_cond_wait(&conn->cond, &conn->mutex);
+
+	while (conn->qtail != conn->qhead) {
+		recvdata = conn->queue[conn->qtail];
+		conn->qtail = next_qslot(conn->qtail);
+		overflow = conn->qoverflow;
+		conn->qoverflow = 0;
+		pthread_mutex_unlock(&conn->mutex);
+
+		if (overflow)
+			fputs("WARNING: Netlink ringbuffer overflow!\n",
+			      stderr);
+
+		if (conn_recv_check(conn, recvdata,
+				    TASKSTATS_GENL_NAME, TASKSTATS_CMD_NEW))
+			return 1;
+
+		if (recv_parse_attrs(recvdata, taskstats_cb))
+			return 1;
+
+		pthread_mutex_lock(&conn->mutex);
 	}
 
-	return conn_parse_attrs(conn, taskstats_cb);
+	pthread_mutex_unlock(&conn->mutex);
+
+	return 0;
 }
 
 static int mount_failure(const char *what)
@@ -443,6 +546,9 @@ int main(int argc, char *argv[])
 
 	if (start_systemd(argv))
 		return 1;
+
+	if (!ret)
+		ret = conn_start_recv(&conn);
 
 	while (!ret) {
 		ret = get_taskstats(&conn);

@@ -18,3 +18,4 @@
 ADD_EXECUTABLE(trackrss
     trackrss.c
 )
+target_link_libraries(trackrss -lpthread)
