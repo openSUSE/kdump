@@ -226,6 +226,10 @@ static void conn_recv(struct connection *conn)
 void *recv_thread_fn(void *arg)
 {
 	struct connection *conn = arg;
+	struct sched_param param;
+
+	param.sched_priority = 99;
+	pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
 
 	for (;;)
 		conn_recv(conn);
