@@ -4,15 +4,16 @@ class rss_change:
     def __init__(self):
         self.added = list()
         self.removed = list()
-        self.amount = 0
+        self.addsize = 0
+        self.removesize = 0
 
     def add(self, name, amount):
         self.added.append(name)
-        self.amount += amount
+        self.addsize += amount
 
     def remove(self, name, amount):
         self.removed.append(name)
-        self.amount -= amount
+        self.removesize += amount
 
 processes = []
 events = {}
@@ -38,12 +39,13 @@ running = set()
 maxrunning = set()
 for t in sorted(events):
     change = events[t]
-    rss += change.amount
+    rss += change.addsize
     running.update(change.added)
-    running.difference_update(change.removed)
     if rss > maxrss:
         maxrss = rss
         maxrunning = set(running)
+    running.difference_update(change.removed)
+    rss -= change.removesize
 
 print(maxrss)
 for idx in maxrunning:
