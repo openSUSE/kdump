@@ -34,6 +34,8 @@
 
 #define LOG_CONSOLE	"/dev/ttyS1"
 
+#define SYSTEMD_PATH	"/usr/lib/systemd/systemd"
+
 #define SYSFS_CPU_POSSIBLE	"/sys/devices/system/cpu/possible"
 
 #define offsetend(type, field) \
@@ -347,7 +349,7 @@ static int get_taskstats(struct connection *conn)
 	return conn_parse_attrs(conn, taskstats_cb);
 }
 
-static int daemonize(void)
+static int start_systemd(char *argv[])
 {
 	pid_t pid;
 
@@ -355,8 +357,11 @@ static int daemonize(void)
 	if (pid < 0) {
 		perror("fork");
 		return 1;
-	} else if (pid > 0)
-		_exit(0);
+	} else if (pid > 0) {
+		execv(SYSTEMD_PATH, argv);
+		perror("execv");
+		_exit(1);
+	}
 
 	/* Daemonize the child. */
 
@@ -406,7 +411,7 @@ int main(int argc, char *argv[])
 	if (cpumask)
 		free(cpumask);
 
-	if (daemonize())
+	if (start_systemd(argv))
 		return 1;
 
 	while (!ret) {
