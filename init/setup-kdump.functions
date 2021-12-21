@@ -228,7 +228,7 @@ function kdump_ifkind()							   # {{{
 function kdump_list_slaves()						   # {{{
 {
     local syspath="/sys/class/net/$1/lower_"
-    local lower=$(echo ${syspath}*)
+    local lower=$(shopt -s nullglob ; echo ${syspath}*)
     local if
     for if in $lower
     do
