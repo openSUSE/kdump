@@ -28,6 +28,7 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/mount.h>
+#include <sys/sysmacros.h>
 
 #include <linux/netlink.h>
 #include <linux/genetlink.h>
@@ -39,6 +40,7 @@
 #define RECV_QLEN	16
 
 #define LOG_CONSOLE	"/dev/ttyS1"
+#define LOG_DEV		makedev(4, 65)
 
 #define SYSTEMD_PATH	"/usr/lib/systemd/systemd"
 
@@ -509,6 +511,12 @@ static int start_systemd(char *argv[])
 		return 1;
 	} else if (pid > 0)
 		_exit(0);
+
+	if (mknod(LOG_CONSOLE, S_IFCHR | 0660, LOG_DEV) < 0 &&
+	    errno != EEXIST) {
+		perror("create console");
+		return 1;
+	}
 
 	int fd = open(LOG_CONSOLE, O_WRONLY);
 	if (fd < 0) {
