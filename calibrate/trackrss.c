@@ -77,7 +77,7 @@ static int conn_init(struct connection *conn)
 		return 1;
 	}
 
-	conn->fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
+	conn->fd = socket(AF_NETLINK, SOCK_RAW | SOCK_CLOEXEC, NETLINK_GENERIC);
 	if (conn->fd < 0) {
 		perror("Cannot create netlink socket");
 		return 1;
