@@ -19,9 +19,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 
 #include <linux/netlink.h>
 #include <linux/genetlink.h>
@@ -29,6 +31,8 @@
 
 /* There seems to be no canonical constant for this... */
 #define CTRL_GENL_VERSION	0x2
+
+#define LOG_CONSOLE	"/dev/ttyS1"
 
 #define SYSFS_CPU_POSSIBLE	"/sys/devices/system/cpu/possible"
 
@@ -343,6 +347,45 @@ static int get_taskstats(struct connection *conn)
 	return conn_parse_attrs(conn, taskstats_cb);
 }
 
+static int daemonize(void)
+{
+	pid_t pid;
+
+	pid = fork();
+	if (pid < 0) {
+		perror("fork");
+		return 1;
+	} else if (pid > 0)
+		_exit(0);
+
+	/* Daemonize the child. */
+
+	if(setsid() < 0) {
+		perror("setsid");
+		return 1;
+	}
+
+	pid = fork();
+	if (pid < 0) {
+		perror("fork");
+		return 1;
+	} else if (pid > 0)
+		_exit(0);
+
+	int fd = open(LOG_CONSOLE, O_WRONLY);
+	if (fd < 0) {
+		perror("open console");
+		return 1;
+	}
+	if (dup2(fd, STDOUT_FILENO) < 0){
+		perror("dup2");
+		return 1;
+	}
+	close(fd);
+
+	return 0;
+}
+
 int main(int argc, char *argv[])
 {
 	struct connection conn;
@@ -362,6 +405,9 @@ int main(int argc, char *argv[])
 
 	if (cpumask)
 		free(cpumask);
+
+	if (daemonize())
+		return 1;
 
 	while (!ret) {
 		ret = get_taskstats(&conn);
