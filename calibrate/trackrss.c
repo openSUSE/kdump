@@ -415,7 +415,7 @@ static int taskstats_aggr_cb(void *data, struct nlattr *nla, void *payload)
 		return 1;
 	}
 
-	printf("%ld%06ld %lld %lld %s[%d]\n",
+	printf("taskstats:%ld%06ld %lld %lld %s[%d]\n",
 	       (long) recvdata->stamp.tv_sec,
 	       (long) recvdata->stamp.tv_nsec / 1000,
 	       (unsigned long long) ts->ac_etime,

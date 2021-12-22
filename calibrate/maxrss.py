@@ -1,5 +1,7 @@
 #! /usr/bin/python3
 
+import sys
+
 class rss_change:
     def __init__(self):
         self.added = list()
@@ -20,15 +22,22 @@ events = {}
 
 try:
     while True:
-        fields = input().split(maxsplit=3)
-        etime = int(fields[0])
-        btime = etime - int(fields[1])
-        rss = int(fields[2])
+        (category, data) = input().split(':', 1)
 
-        procidx = len(processes)
-        processes.append((fields[3], rss))
-        events.setdefault(btime, rss_change()).add(procidx, rss)
-        events.setdefault(etime, rss_change()).remove(procidx, rss)
+        if category == 'taskstats':
+            fields = data.split(maxsplit=3)
+            etime = int(fields[0])
+            btime = etime - int(fields[1])
+            rss = int(fields[2])
+
+            procidx = len(processes)
+            processes.append((fields[3], rss))
+            events.setdefault(btime, rss_change()).add(procidx, rss)
+            events.setdefault(etime, rss_change()).remove(procidx, rss)
+
+        else:
+            print('Unknown category: {}'.format(category),
+                  file=sys.stderr)
 
 except EOFError:
     pass
