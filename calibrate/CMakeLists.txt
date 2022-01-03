@@ -19,3 +19,7 @@ ADD_EXECUTABLE(trackrss
     trackrss.c
 )
 target_link_libraries(trackrss -lpthread)
+
+ADD_EXECUTABLE(mkelfcorehdr
+    mkelfcorehdr.c
+)

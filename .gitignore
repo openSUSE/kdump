@@ -21,6 +21,7 @@ Testing/
 *.a
 
 # resulting binaries
+calibrate/mkelfcorehdr
 calibrate/trackrss
 init/device-timeout-generator
 init/init-fadump
