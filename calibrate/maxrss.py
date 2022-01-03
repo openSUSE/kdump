@@ -27,6 +27,7 @@ processes = []
 events = {}
 
 memfree = None
+cached = None
 
 try:
     while True:
@@ -47,6 +48,8 @@ try:
             (key, value) = data.split(':')
             if key == 'MemFree':
                 memfree = int(value.split()[0])
+            elif key == 'Cached':
+                cached = int(value.split()[0])
 
         else:
             if cmdline.debug:
@@ -58,6 +61,10 @@ except EOFError:
 
 if memfree is None:
     print('Cannot determine MemFree', file=sys.stderr)
+    exit(1)
+
+if cached is None:
+    print('Cannot determine Cached', file=sys.stderr)
     exit(1)
 
 rss = 0
@@ -81,4 +88,5 @@ if cmdline.debug:
         print('-', p[1], p[0], file=sys.stderr)
 
 print('INIT_MEMFREE={:d}'.format(memfree))
+print('INIT_CACHED={:d}'.format(cached))
 print('USER_BASE={:d}'.format(maxrss))
