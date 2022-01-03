@@ -1,6 +1,7 @@
 #! /usr/bin/python3
 
 import sys
+import argparse
 
 class rss_change:
     def __init__(self):
@@ -16,6 +17,11 @@ class rss_change:
     def remove(self, name, amount):
         self.removed.append(name)
         self.removesize += amount
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-d', '--debug', action='store_true',
+                    help='print debugging messages on stderr')
+cmdline = parser.parse_args()
 
 processes = []
 events = {}
@@ -43,8 +49,9 @@ try:
                 memfree = int(value.split()[0])
 
         else:
-            print('Unknown category: {}'.format(category),
-                  file=sys.stderr)
+            if cmdline.debug:
+                print('Unknown category: {}'.format(category),
+                      file=sys.stderr)
 
 except EOFError:
     pass
@@ -68,6 +75,9 @@ for t in sorted(events):
     rss -= change.removesize
 
 print(maxrss)
-for idx in maxrunning:
-    p = processes[idx]
-    print(p[1], p[0])
+
+if cmdline.debug:
+    print('Max RSS processes:', file=sys.stderr)
+    for idx in maxrunning:
+        p = processes[idx]
+        print('-', p[1], p[0], file=sys.stderr)
