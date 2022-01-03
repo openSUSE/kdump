@@ -74,10 +74,11 @@ for t in sorted(events):
     running.difference_update(change.removed)
     rss -= change.removesize
 
-print(maxrss)
-
 if cmdline.debug:
     print('Max RSS processes:', file=sys.stderr)
     for idx in maxrunning:
         p = processes[idx]
         print('-', p[1], p[0], file=sys.stderr)
+
+print('INIT_MEMFREE={:d}'.format(memfree))
+print('USER_BASE={:d}'.format(maxrss))
