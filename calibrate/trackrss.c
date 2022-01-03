@@ -47,7 +47,13 @@
 #define SYSFS		"sysfs"
 #define SYSFS_DIR	"/sys"
 
+#define PROCFS		"proc"
+#define PROCFS_DIR	"/proc"
+
 #define SYSFS_CPU_POSSIBLE	"/sys/devices/system/cpu/possible"
+#define PROCFS_MEMINFO		"/proc/meminfo"
+
+#define MAX_MEMINFO_LINES	100
 
 #define offsetend(type, field) \
 	(offsetof(type, field) + sizeof(((type*)0)->field))
@@ -481,7 +487,69 @@ static int init_mounts(void)
 		  MS_NOSUID|MS_NOEXEC|MS_NODEV, NULL))
 		return mount_failure(SYSFS);
 
+	if (mount(PROCFS, PROCFS_DIR, PROCFS,
+		  MS_NOSUID|MS_NOEXEC|MS_NODEV, NULL))
+		return mount_failure(PROCFS);
+
 	return 0;
+}
+
+static int get_meminfo(char **info, int max)
+{
+	FILE *f;
+
+	f = fopen(PROCFS_MEMINFO, "r");
+	if (!f) {
+		perror(PROCFS_MEMINFO);
+		return 1;
+	}
+
+	int n = 0;
+	for (;;) {
+		char *line = NULL;
+		size_t alloc = 0;
+		errno = 0;
+		ssize_t len = getline(&line, &alloc, f);
+		if (len < 0) {
+			if (errno != 0) {
+				perror(PROCFS_MEMINFO);
+				free(line);
+				n = -1;
+			}
+			break;
+		}
+
+		char *p = line + len - 1;
+		while (p > line && (*p == '\r' || *p == '\n'))
+			*p-- = '\0';
+
+		if (n < max)
+			info[n] = line;
+		if (++n == max)
+			fprintf(stderr, "WARNING: Too many lines in %s\n",
+				PROCFS_MEMINFO);
+	}
+
+	fclose(f);
+	return n;
+}
+
+static void free_meminfo(char **info, int num)
+{
+	while (num > 0) {
+		free(*info);
+		++info;
+		--num;
+	}
+}
+
+static void print_meminfo(char **info, int num)
+{
+	while (num > 0) {
+		printf("%s:%s\n", "meminfo", *info);
+		++info;
+		--num;
+	}
 }
 
 static int start_systemd(char *argv[])
@@ -536,11 +604,17 @@ int main(int argc, char *argv[])
 {
 	struct connection conn;
 	char *cpumask = NULL;
+	char *meminfo[MAX_MEMINFO_LINES];
+	int infonum;
 	int ret;
 
 	ret = init_mounts();
 	if (ret)
 		return ret;
+
+	infonum = get_meminfo(meminfo, MAX_MEMINFO_LINES);
+	if (infonum < 0)
+		return 1;
 
 	ret = conn_init(&conn);
 	if (ret)
@@ -558,6 +632,9 @@ int main(int argc, char *argv[])
 
 	if (start_systemd(argv))
 		return 1;
+
+	print_meminfo(meminfo, infonum);
+	free_meminfo(meminfo, infonum);
 
 	if (!ret)
 		ret = conn_start_recv(&conn);

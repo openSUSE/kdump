@@ -20,6 +20,8 @@ class rss_change:
 processes = []
 events = {}
 
+memfree = None
+
 try:
     while True:
         (category, data) = input().split(':', 1)
@@ -35,12 +37,21 @@ try:
             events.setdefault(btime, rss_change()).add(procidx, rss)
             events.setdefault(etime, rss_change()).remove(procidx, rss)
 
+        elif category == 'meminfo':
+            (key, value) = data.split(':')
+            if key == 'MemFree':
+                memfree = int(value.split()[0])
+
         else:
             print('Unknown category: {}'.format(category),
                   file=sys.stderr)
 
 except EOFError:
     pass
+
+if memfree is None:
+    print('Cannot determine MemFree', file=sys.stderr)
+    exit(1)
 
 rss = 0
 maxrss = 0
