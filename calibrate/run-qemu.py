@@ -131,10 +131,14 @@ with tempfile.TemporaryDirectory() as tmpdir:
 kernel_base = params['TOTAL_RAM'] - params['INIT_MEMFREE']
 # The above also includes the unpacked initramfs, which should be separate
 kernel_base -= params['INIT_CACHED']
+params['KERNEL_BASE'] = kernel_base
 
-print('KERNEL_BASE={:d}'.format(kernel_base))
-print('KERNEL_INIT={:d}'.format(params['KERNEL_INIT']))
-print('INIT_CACHED={:d}'.format(params['INIT_CACHED']))
-print('PAGESIZE={:d}'.format(params['PAGESIZE']))
-print('SIZEOFPAGE={:d}'.format(params['SIZEOFPAGE']))
-print('USER_BASE={:d}'.format(params['USER_BASE']))
+keys = (
+    'KERNEL_BASE',
+    'KERNEL_INIT',
+    'INIT_CACHED',
+    'PAGESIZE',
+    'SIZEOFPAGE',
+    'USER_BASE')
+for key in keys:
+    print('{}={:d}'.format(key, params[key]))
