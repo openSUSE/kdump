@@ -131,6 +131,12 @@ with tempfile.TemporaryDirectory() as tmpdir:
 kernel_base = params['TOTAL_RAM'] - params['INIT_MEMFREE']
 # The above also includes the unpacked initramfs, which should be separate
 kernel_base -= params['INIT_CACHED']
+# It also should not include the MEMMAP array
+pagesize = params['PAGESIZE']
+pagesize_kb = pagesize // 1024
+numpages = (params['TOTAL_RAM'] + pagesize_kb - 1) // pagesize_kb
+memmap_pages = (numpages * params['SIZEOFPAGE'] + pagesize - 1) // pagesize
+kernel_base -= memmap_pages * pagesize_kb
 params['KERNEL_BASE'] = kernel_base
 
 keys = (
