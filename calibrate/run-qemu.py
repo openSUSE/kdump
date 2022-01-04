@@ -96,6 +96,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
 
         args = (
             'qemu-kvm',
+            '-smp', '2',
             '-m', '{:d}K'.format(params['TOTAL_RAM']),
             '-display', 'none',
             '-serial', 'file:' + MESSAGES_LOG,
