@@ -28,6 +28,8 @@ events = {}
 
 memfree = None
 cached = None
+pagesize = None
+sizeofpage = None
 
 try:
     while True:
@@ -51,6 +53,13 @@ try:
             elif key == 'Cached':
                 cached = int(value.split()[0])
 
+        elif category == 'vmcoreinfo':
+            (key, value) = data.split('=')
+            if key == 'PAGESIZE':
+                pagesize = int(value)
+            elif key == 'SIZE(page)':
+                sizeofpage = int(value)
+
         else:
             if cmdline.debug:
                 print('Unknown category: {}'.format(category),
@@ -66,6 +75,13 @@ if memfree is None:
 if cached is None:
     print('Cannot determine Cached', file=sys.stderr)
     exit(1)
+
+if pagesize is None:
+    print('Cannot determine page size', file=sys.stderr)
+    exit(1)
+
+if sizeofpage is None:
+    print('Cannot determine sizeof(struct page)', file=sys.stderr)
 
 rss = 0
 maxrss = 0
@@ -87,6 +103,8 @@ if cmdline.debug:
         p = processes[idx]
         print('-', p[1], p[0], file=sys.stderr)
 
+print('PAGESIZE={:d}'.format(pagesize))
+print('SIZEOFPAGE={:d}'.format(sizeofpage))
 print('INIT_MEMFREE={:d}'.format(memfree))
 print('INIT_CACHED={:d}'.format(cached))
 print('USER_BASE={:d}'.format(maxrss))

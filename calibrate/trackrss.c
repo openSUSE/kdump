@@ -17,6 +17,7 @@
 
 #include <stddef.h>
 #include <stdio.h>
+#include <elf.h>
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
@@ -54,6 +55,9 @@
 #define PROCFS_MEMINFO		"/proc/meminfo"
 
 #define MAX_MEMINFO_LINES	100
+
+#define KALLSYMS	"/proc/kallsyms"
+#define KCORE		"/proc/kcore"
 
 #define offsetend(type, field) \
 	(offsetof(type, field) + sizeof(((type*)0)->field))
@@ -494,6 +498,253 @@ static int init_mounts(void)
 	return 0;
 }
 
+struct syminfo;
+typedef int readfn(struct syminfo *info, void *buf,
+		   unsigned long addr, size_t len);
+
+struct syminfo {
+	FILE *f;
+	unsigned phnum;
+	union {
+		Elf32_Phdr *phdr32;
+		Elf64_Phdr *phdr64;
+	};
+	readfn *read;
+
+	unsigned long datasym;
+	unsigned long sizesym;
+};
+
+static int get_syms(struct syminfo *info)
+{
+	static const char name_data[] = "vmcoreinfo_data";
+	static const char name_size[] = "vmcoreinfo_size";
+	size_t alloc = 0;
+	char *line = NULL;
+	int have_name = 0;
+	int have_size = 0;
+	ssize_t rd;
+
+	while ((rd = getline(&line, &alloc, info->f)) > 0) {
+		char *p = line + rd - 1;
+		while (p != line && *p == '\n')
+			*p-- = 0;
+		if (p >= line + sizeof(name_data) &&
+		    !strcmp(p - sizeof(name_data) + 2, name_data))
+			have_name = sscanf(line, "%lx", &info->datasym);
+		else if (p >= line + sizeof(name_size) &&
+			 !strcmp(p - sizeof(name_size) + 2, name_size))
+			have_size = sscanf(line, "%lx", &info->sizesym);
+	}
+	free(line);
+
+	if (!have_name) {
+		fprintf(stderr, "%s symbol not found!\n", name_data);
+		return 1;
+	}
+	if (!have_size) {
+		fprintf(stderr, "%s symbol not found!\n", name_size);
+		return 1;
+	}
+
+	return 0;
+}
+
+static int read_common(struct syminfo *info, void *buf,
+		       off_t off, size_t len)
+{
+	if (fseek(info->f, off, SEEK_SET) < 0) {
+		perror("Seek to data");
+		return 1;
+	}
+
+	if (fread(buf, 1, len, info->f) != len) {
+		perror("Read data");
+		return 1;
+	}
+
+	return 0;
+}
+
+static int read_elf32(struct syminfo *info, void *buf,
+		      unsigned long addr, size_t len)
+{
+	unsigned i;
+
+	for (i = 0; i < info->phnum; ++i) {
+		Elf32_Phdr *phdr = info->phdr32 + i;
+		if (phdr->p_vaddr <= addr &&
+		    addr + len <= phdr->p_vaddr + phdr->p_filesz)
+			return read_common(info, buf, addr - phdr->p_vaddr + phdr->p_offset, len);
+	}
+
+	fprintf(stderr, "Address 0x%lx not found!\n", addr);
+	return 1;
+}
+
+static int read_elf64(struct syminfo *info, void *buf,
+		      unsigned long addr, size_t len)
+{
+	unsigned i;
+
+	for (i = 0; i < info->phnum; ++i) {
+		Elf64_Phdr *phdr = info->phdr64 + i;
+		if (phdr->p_vaddr <= addr &&
+		    addr + len <= phdr->p_vaddr + phdr->p_filesz)
+			return read_common(info, buf, addr - phdr->p_vaddr + phdr->p_offset, len);
+	}
+
+	fprintf(stderr, "Address 0x%lx not found!\n", addr);
+	return 1;
+}
+
+static int print_vmcoreinfo_common(struct syminfo *info)
+{
+	unsigned char *dataptr;
+	size_t size;
+	int ret;
+
+	if (info->read(info, &dataptr, info->datasym, sizeof(dataptr)))
+		return 1;
+
+	if (info->read(info, &size, info->sizesym, sizeof(size)))
+		return 1;
+
+	char *data = malloc(size);
+	if (!data) {
+		perror("Allocate vmcoreinfo data");
+		return 1;
+	}
+	ret = info->read(info, data, (uintptr_t)dataptr, size);
+	if (!ret) {
+		char *savep;
+		char *p = strtok_r(data, "\r\n", &savep);
+		while (p) {
+			printf("vmcoreinfo:%s\n", p);
+			p = strtok_r(NULL, "\r\n", &savep);
+		}
+	}
+	free(data);
+	return ret;
+}
+
+static int print_vmcoreinfo32(struct syminfo *info)
+{
+	Elf32_Ehdr ehdr;
+
+	if (fseek(info->f, 0, SEEK_SET) < 0) {
+		perror("Seek to ELF header");
+		return 1;
+	}
+	if (fread(&ehdr, sizeof(ehdr), 1, info->f) != 1) {
+		perror("ELF header");
+		return 1;
+	}
+	if (ehdr.e_phentsize != sizeof(Elf32_Phdr)) {
+		fprintf(stderr, "Invalid phentsize: %zu\n",
+			(size_t) ehdr.e_phentsize);
+		return 1;
+	}
+	info->phnum = ehdr.e_phnum;
+
+	if (fseek(info->f, ehdr.e_phoff, SEEK_SET) < 0) {
+		perror("Seek to program headers");
+		return 1;
+	}
+	info->phdr32 = malloc(info->phnum * sizeof(Elf32_Phdr));
+	if (!info->phdr32) {
+		perror("Alloc program headers");
+		return 1;
+	}
+	if (fread(info->phdr32, sizeof(Elf32_Phdr), info->phnum, info->f)
+	    != info->phnum) {
+		perror("Read program headers");
+		return 1;
+	}
+	info->read = read_elf32;
+	return print_vmcoreinfo_common(info);
+}
+
+static int print_vmcoreinfo64(struct syminfo *info)
+{
+	Elf64_Ehdr ehdr;
+
+	if (fseek(info->f, 0, SEEK_SET) < 0) {
+		perror("Seek to ELF header");
+		return 1;
+	}
+	if (fread(&ehdr, sizeof(ehdr), 1, info->f) != 1) {
+		perror("ELF header");
+		return 1;
+	}
+	if (ehdr.e_phentsize != sizeof(Elf64_Phdr)) {
+		fprintf(stderr, "Invalid phentsize: %zu\n",
+			(size_t) ehdr.e_phentsize);
+		return 1;
+	}
+	info->phnum = ehdr.e_phnum;
+
+	if (fseek(info->f, ehdr.e_phoff, SEEK_SET) < 0) {
+		perror("Seek to program headers");
+		return 1;
+	}
+	info->phdr64 = malloc(info->phnum * sizeof(Elf64_Phdr));
+	if (!info->phdr64) {
+		perror("Alloc program headers");
+		return 1;
+	}
+	if (fread(info->phdr64, sizeof(Elf64_Phdr), info->phnum, info->f)
+	    != info->phnum) {
+		perror("Read program headers");
+		return 1;
+	}
+	info->read = read_elf64;
+	return print_vmcoreinfo_common(info);
+}
+
+static int print_kcore_vmcoreinfo(struct syminfo *info)
+{
+	unsigned char ident[EI_NIDENT];
+
+	if (fread(ident, sizeof(ident), 1, info->f) != 1) {
+		perror("ELF ident");
+		return 1;
+	}
+
+	if (ident[EI_CLASS] == ELFCLASS32)
+		return print_vmcoreinfo32(info);
+	else if (ident[EI_CLASS] == ELFCLASS64)
+		return print_vmcoreinfo64(info);
+
+	fprintf(stderr, "Unimplemented ELF class: %u\n", (int)ident[EI_CLASS]);
+	return 1;
+}
+
+static int print_vmcoreinfo(void)
+{
+	struct syminfo syminfo;
+	int ret;
+
+	syminfo.f = fopen(KALLSYMS, "r");
+	if (!syminfo.f) {
+		perror(KALLSYMS);
+		return 1;
+	}
+	ret = get_syms(&syminfo);
+	fclose(syminfo.f);
+	if (ret)
+		return ret;
+
+	syminfo.f = fopen(KCORE, "r");
+	if (!syminfo.f) {
+		perror(KCORE);
+		return 1;
+	}
+	ret = print_kcore_vmcoreinfo(&syminfo);
+	fclose(syminfo.f);
+	return ret;
+}
+
 static int get_meminfo(char **info, int max)
 {
 	FILE *f;
@@ -631,6 +882,9 @@ int main(int argc, char *argv[])
 		free(cpumask);
 
 	if (start_systemd(argv))
+		return 1;
+
+	if (print_vmcoreinfo())
 		return 1;
 
 	print_meminfo(meminfo, infonum);

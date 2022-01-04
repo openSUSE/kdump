@@ -135,4 +135,6 @@ kernel_base -= params['INIT_CACHED']
 print('KERNEL_BASE={:d}'.format(kernel_base))
 print('KERNEL_INIT={:d}'.format(params['KERNEL_INIT']))
 print('INIT_CACHED={:d}'.format(params['INIT_CACHED']))
+print('PAGESIZE={:d}'.format(params['PAGESIZE']))
+print('SIZEOFPAGE={:d}'.format(params['SIZEOFPAGE']))
 print('USER_BASE={:d}'.format(params['USER_BASE']))
