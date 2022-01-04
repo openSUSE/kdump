@@ -28,6 +28,7 @@ events = {}
 
 memfree = None
 cached = None
+percpu = None
 pagesize = None
 sizeofpage = None
 
@@ -52,6 +53,8 @@ try:
                 memfree = int(value.split()[0])
             elif key == 'Cached':
                 cached = int(value.split()[0])
+            elif key == 'Percpu':
+                percpu = int(value.split()[0])
 
         elif category == 'vmcoreinfo':
             (key, value) = data.split('=')
@@ -74,6 +77,10 @@ if memfree is None:
 
 if cached is None:
     print('Cannot determine Cached', file=sys.stderr)
+    exit(1)
+
+if percpu is None:
+    print('Cannot determine Percpu', file=sys.stderr)
     exit(1)
 
 if pagesize is None:
@@ -107,4 +114,5 @@ print('PAGESIZE={:d}'.format(pagesize))
 print('SIZEOFPAGE={:d}'.format(sizeofpage))
 print('INIT_MEMFREE={:d}'.format(memfree))
 print('INIT_CACHED={:d}'.format(cached))
+print('PERCPU={:d}'.format(percpu))
 print('USER_BASE={:d}'.format(maxrss))

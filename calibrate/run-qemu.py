@@ -10,6 +10,9 @@ params = dict()
 # Total VM memory in KiB:
 params['TOTAL_RAM'] = 1024 * 1024
 
+# Number of CPUs for the VM
+NUMCPUS = 2
+
 # Physical address where elfcorehdr should be loaded.
 # This is tricky. The elfcorehdr memory range is removed from the kernel
 # memory map with a command line option, but the kernel boot code runs
@@ -96,7 +99,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
 
         args = (
             'qemu-kvm',
-            '-smp', '2',
+            '-smp', str(NUMCPUS),
             '-m', '{:d}K'.format(params['TOTAL_RAM']),
             '-display', 'none',
             '-serial', 'file:' + MESSAGES_LOG,
@@ -138,7 +141,9 @@ pagesize_kb = pagesize // 1024
 numpages = (params['TOTAL_RAM'] + pagesize_kb - 1) // pagesize_kb
 memmap_pages = (numpages * params['SIZEOFPAGE'] + pagesize - 1) // pagesize
 kernel_base -= memmap_pages * pagesize_kb
-params['KERNEL_BASE'] = kernel_base
+params['KERNEL_BASE'] = kernel_base - params['PERCPU']
+
+params['PERCPU'] = params['PERCPU'] // NUMCPUS
 
 keys = (
     'KERNEL_BASE',
@@ -146,6 +151,7 @@ keys = (
     'INIT_CACHED',
     'PAGESIZE',
     'SIZEOFPAGE',
+    'PERCPU',
     'USER_BASE')
 for key in keys:
     print('{}={:d}'.format(key, params[key]))
