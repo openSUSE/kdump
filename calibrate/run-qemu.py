@@ -34,7 +34,7 @@ INITRD = 'test-initrd'
 # elfcorehdr blob
 ELFCOREHDR = 'elfcorehdr.bin'
 
-def build_initrd(bindir, initrd):
+def build_initrd(bindir, initrd, kernelver):
     # First, create the base initrd using dracut:
     env = os.environ.copy()
     env['KDUMP_CONFIGFILE'] = os.path.join(bindir, 'dummy.conf')
@@ -50,7 +50,8 @@ def build_initrd(bindir, initrd):
         '--no-compress',
         '--no-early-microcode',
 
-        initrd
+        initrd,
+        kernelver
     )
     subprocess.call(args, env=env)
 
@@ -89,12 +90,16 @@ if kernel is None:
     print('Cannot determine target kernel', file=sys.stderr)
     exit(1)
 
+with subprocess.Popen(('get_kernel_version', kernel),
+                      stdout=subprocess.PIPE) as p:
+    kernelver = p.communicate()[0].decode().strip()
+
 with tempfile.TemporaryDirectory() as tmpdir:
     oldcwd = os.getcwd()
     try:
         os.chdir(tmpdir)
 
-        build_initrd(oldcwd, INITRD)
+        build_initrd(oldcwd, INITRD, kernelver)
         build_elfcorehdr(oldcwd, ELFCOREHDR, ADDR_ELFCOREHDR)
 
         args = (
