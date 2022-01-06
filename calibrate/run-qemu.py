@@ -63,7 +63,7 @@ class build_initrd(object):
             p.communicate(b'init')
 
         # Compress the result:
-        subprocess.call(('xz', '-0', '--check=crc32', path))
+        subprocess.call(('xz', '-f', '-0', '--check=crc32', path))
         self.path = path + os.path.extsep + 'xz'
 
 class build_elfcorehdr(object):
