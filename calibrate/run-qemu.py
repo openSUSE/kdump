@@ -29,10 +29,10 @@ params['TRACKRSS_LOG'] = 'trackrss.log'
 ADDR_ELFCOREHDR = 768 * 1024 * 1024
 
 class build_initrd(object):
-    def __init__(self, bindir, params, path='test-initrd'):
+    def __init__(self, bindir, params, config, path='test-initrd'):
         # First, create the base initrd using dracut:
         env = os.environ.copy()
-        env['KDUMP_CONFIGFILE'] = os.path.join(bindir, 'dummy.conf')
+        env['KDUMP_CONFIGFILE'] = os.path.join(bindir, config)
         args = (
             'dracut',
             '--hostonly',
@@ -146,7 +146,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
         os.chdir(tmpdir)
         elfcorehdr = build_elfcorehdr(oldcwd, ADDR_ELFCOREHDR)
 
-        initrd = build_initrd(oldcwd, params)
+        initrd = build_initrd(oldcwd, params, 'dummy.conf')
         results = run_qemu(oldcwd, params, initrd, elfcorehdr)
 
     finally:
