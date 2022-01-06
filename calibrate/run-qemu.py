@@ -97,6 +97,7 @@ with subprocess.Popen(('get_kernel_version', kernel),
                       stdout=subprocess.PIPE) as p:
     kernelver = p.communicate()[0].decode().strip()
 
+results = dict()
 with tempfile.TemporaryDirectory() as tmpdir:
     oldcwd = os.getcwd()
     try:
@@ -134,7 +135,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
                               stdout=subprocess.PIPE) as p:
             for line in p.communicate()[0].decode().splitlines():
                 (key, val) = line.strip().split('=')
-                params[key] = int(val)
+                results[key] = int(val)
 
         # Get user-space requirements
         script = os.path.join(oldcwd, 'maxrss.py')
@@ -143,23 +144,23 @@ with tempfile.TemporaryDirectory() as tmpdir:
                               stdout=subprocess.PIPE) as p:
             for line in p.communicate()[0].decode().splitlines():
                 (key, val) = line.strip().split('=')
-                params[key] = int(val)
+                results[key] = int(val)
 
     finally:
         os.chdir(oldcwd)
 
-kernel_base = params['TOTAL_RAM'] - params['INIT_MEMFREE']
+kernel_base = params['TOTAL_RAM'] - results['INIT_MEMFREE']
 # The above also includes the unpacked initramfs, which should be separate
-kernel_base -= params['INIT_CACHED']
+kernel_base -= results['INIT_CACHED']
 # It also should not include the MEMMAP array
-pagesize = params['PAGESIZE']
+pagesize = results['PAGESIZE']
 pagesize_kb = pagesize // 1024
 numpages = (params['TOTAL_RAM'] + pagesize_kb - 1) // pagesize_kb
-memmap_pages = (numpages * params['SIZEOFPAGE'] + pagesize - 1) // pagesize
+memmap_pages = (numpages * results['SIZEOFPAGE'] + pagesize - 1) // pagesize
 kernel_base -= memmap_pages * pagesize_kb
-params['KERNEL_BASE'] = kernel_base - params['PERCPU']
+results['KERNEL_BASE'] = kernel_base - results['PERCPU']
 
-params['PERCPU'] = params['PERCPU'] // params['NUMCPUS']
+results['PERCPU'] = results['PERCPU'] // params['NUMCPUS']
 
 keys = (
     'KERNEL_BASE',
@@ -170,4 +171,4 @@ keys = (
     'PERCPU',
     'USER_BASE')
 for key in keys:
-    print('{}={:d}'.format(key, params[key]))
+    print('{}={:d}'.format(key, results[key]))
