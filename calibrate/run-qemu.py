@@ -108,6 +108,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
             'elfcorehdr=0x{0:x} memmap={1:d}K$0x{0:x}'.format(
                 ADDR_ELFCOREHDR, elfcorehdr_size),
             'root=kdump',
+            'rootflags=bind',
         )
         args = (
             'qemu-kvm',
