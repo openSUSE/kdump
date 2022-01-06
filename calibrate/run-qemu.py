@@ -11,7 +11,16 @@ params = dict()
 params['TOTAL_RAM'] = 1024 * 1024
 
 # Number of CPUs for the VM
-NUMCPUS = 2
+params['NUMCPUS'] = 2
+
+# Where kernel messages should go
+params['MESSAGES_LOG'] = 'messages.log'
+
+# Where trackrss log should go
+params['TRACKRSS_LOG'] = 'trackrss.log'
+
+# initramfs name
+params['INITRD'] = 'test-initrd'
 
 # Physical address where elfcorehdr should be loaded.
 # This is tricky. The elfcorehdr memory range is removed from the kernel
@@ -21,15 +30,6 @@ NUMCPUS = 2
 # to avoid conflicts with special-purpose regions and low enough to avoid
 # conflicts with allocations at the end of RAM.
 ADDR_ELFCOREHDR = 768 * 1024 * 1024
-
-# Where kernel messages should go
-MESSAGES_LOG = 'messages.log'
-
-# Where trackrss log should go
-TRACKRSS_LOG = 'trackrss.log'
-
-# initramfs name
-INITRD = 'test-initrd'
 
 def build_initrd(bindir, initrd, kernelver):
     # First, create the base initrd using dracut:
@@ -103,7 +103,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
         os.chdir(tmpdir)
         elfcorehdr = build_elfcorehdr(oldcwd, ADDR_ELFCOREHDR)
 
-        build_initrd(oldcwd, INITRD, kernelver)
+        build_initrd(oldcwd, params['INITRD'], kernelver)
 
         kernel_args = (
             'console=ttyS0',
@@ -114,13 +114,13 @@ with tempfile.TemporaryDirectory() as tmpdir:
         )
         args = (
             'qemu-kvm',
-            '-smp', str(NUMCPUS),
+            '-smp', str(params['NUMCPUS']),
             '-m', '{:d}K'.format(params['TOTAL_RAM']),
             '-display', 'none',
-            '-serial', 'file:' + MESSAGES_LOG,
-            '-serial', 'file:' + TRACKRSS_LOG,
+            '-serial', 'file:' + params['MESSAGES_LOG'],
+            '-serial', 'file:' + params['TRACKRSS_LOG'],
             '-kernel', kernel,
-            '-initrd', INITRD + '.xz',
+            '-initrd', params['INITRD'] + '.xz',
             '-append', ' '.join(kernel_args),
             '-device', 'loader,file={},force-raw=on,addr=0x{:x}'.format(
                 elfcorehdr.path, elfcorehdr.address)
@@ -130,7 +130,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
         # Get kernel-space requirements
         script = os.path.join(oldcwd, 'kernel.py')
         with subprocess.Popen(script,
-                              stdin=open(MESSAGES_LOG),
+                              stdin=open(params['MESSAGES_LOG']),
                               stdout=subprocess.PIPE) as p:
             for line in p.communicate()[0].decode().splitlines():
                 (key, val) = line.strip().split('=')
@@ -139,7 +139,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
         # Get user-space requirements
         script = os.path.join(oldcwd, 'maxrss.py')
         with subprocess.Popen(script,
-                              stdin=open(TRACKRSS_LOG),
+                              stdin=open(params['TRACKRSS_LOG']),
                               stdout=subprocess.PIPE) as p:
             for line in p.communicate()[0].decode().splitlines():
                 (key, val) = line.strip().split('=')
@@ -159,7 +159,7 @@ memmap_pages = (numpages * params['SIZEOFPAGE'] + pagesize - 1) // pagesize
 kernel_base -= memmap_pages * pagesize_kb
 params['KERNEL_BASE'] = kernel_base - params['PERCPU']
 
-params['PERCPU'] = params['PERCPU'] // NUMCPUS
+params['PERCPU'] = params['PERCPU'] // params['NUMCPUS']
 
 keys = (
     'KERNEL_BASE',
