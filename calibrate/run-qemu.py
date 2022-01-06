@@ -162,8 +162,16 @@ with tempfile.TemporaryDirectory() as tmpdir:
         initrd = build_initrd(oldcwd, params, 'dummy.conf')
         results = run_qemu(oldcwd, params, initrd, elfcorehdr)
 
+        initrd = build_initrd(oldcwd, params, 'dummy-net.conf')
+        netresults = run_qemu(oldcwd, params, initrd, elfcorehdr)
+
     finally:
         os.chdir(oldcwd)
+
+results['INIT_NET'] = (
+    netresults['KERNEL_INIT'] - results['KERNEL_INIT'] +
+    netresults['INIT_CACHED'] - results['INIT_CACHED'])
+results['USER_NET'] = netresults['USER_BASE'] - results['USER_BASE']
 
 keys = (
     'KERNEL_BASE',
@@ -172,6 +180,9 @@ keys = (
     'PAGESIZE',
     'SIZEOFPAGE',
     'PERCPU',
-    'USER_BASE')
+    'USER_BASE',
+    'INIT_NET',
+    'USER_NET',
+)
 for key in keys:
     print('{}={:d}'.format(key, results[key]))
