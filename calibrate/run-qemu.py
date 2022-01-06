@@ -19,9 +19,6 @@ params['MESSAGES_LOG'] = 'messages.log'
 # Where trackrss log should go
 params['TRACKRSS_LOG'] = 'trackrss.log'
 
-# initramfs name
-params['INITRD'] = 'test-initrd'
-
 # Physical address where elfcorehdr should be loaded.
 # This is tricky. The elfcorehdr memory range is removed from the kernel
 # memory map with a command line option, but the kernel boot code runs
@@ -32,7 +29,7 @@ params['INITRD'] = 'test-initrd'
 ADDR_ELFCOREHDR = 768 * 1024 * 1024
 
 class build_initrd(object):
-    def __init__(self, bindir, params):
+    def __init__(self, bindir, params, path='test-initrd'):
         # First, create the base initrd using dracut:
         env = os.environ.copy()
         env['KDUMP_CONFIGFILE'] = os.path.join(bindir, 'dummy.conf')
@@ -48,7 +45,7 @@ class build_initrd(object):
             '--no-compress',
             '--no-early-microcode',
 
-            params['INITRD'],
+            path,
             params['KERNELVER'],
         )
         subprocess.call(args, env=env)
@@ -60,14 +57,14 @@ class build_initrd(object):
             'cpio', '-o',
             '-H', 'newc',
             '--owner=0:0',
-            '--append', '--file=' + params['INITRD'],
+            '--append', '--file=' + path,
         )
         with subprocess.Popen(args, stdin=subprocess.PIPE) as p:
             p.communicate(b'init')
 
         # Compress the result:
-        subprocess.call(('xz', '-0', '--check=crc32', params['INITRD']))
-        self.path = params['INITRD'] + '.xz'
+        subprocess.call(('xz', '-0', '--check=crc32', path))
+        self.path = path + os.path.extsep + 'xz'
 
 class build_elfcorehdr(object):
     def __init__(self, bindir, addr, path='elfcorehdr.bin'):
