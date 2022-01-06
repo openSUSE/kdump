@@ -31,9 +31,6 @@ TRACKRSS_LOG = 'trackrss.log'
 # initramfs name
 INITRD = 'test-initrd'
 
-# elfcorehdr blob
-ELFCOREHDR = 'elfcorehdr.bin'
-
 def build_initrd(bindir, initrd, kernelver):
     # First, create the base initrd using dracut:
     env = os.environ.copy()
@@ -70,14 +67,20 @@ def build_initrd(bindir, initrd, kernelver):
     # Compress the result:
     subprocess.call(('xz', '-0', '--check=crc32', initrd))
 
-def build_elfcorehdr(bindir, path, addr):
-    mkelfcorehdr = os.path.join(bindir, 'mkelfcorehdr')
-    args = (
-        mkelfcorehdr,
-        path,
-        str(addr),
-    )
-    subprocess.call(args)
+class build_elfcorehdr(object):
+    def __init__(self, bindir, addr, path='elfcorehdr.bin'):
+        self.address = addr
+        self.path = path
+
+        mkelfcorehdr = os.path.join(bindir, 'mkelfcorehdr')
+        args = (
+            mkelfcorehdr,
+            path,
+            str(addr),
+        )
+        subprocess.call(args)
+
+        self.size = (os.stat(self.path).st_size + 1023) // 1024
 
 kernel = None
 with subprocess.Popen(('../kdumptool/kdumptool', 'find_kernel'),
@@ -98,15 +101,14 @@ with tempfile.TemporaryDirectory() as tmpdir:
     oldcwd = os.getcwd()
     try:
         os.chdir(tmpdir)
+        elfcorehdr = build_elfcorehdr(oldcwd, ADDR_ELFCOREHDR)
 
         build_initrd(oldcwd, INITRD, kernelver)
-        build_elfcorehdr(oldcwd, ELFCOREHDR, ADDR_ELFCOREHDR)
-        elfcorehdr_size = (os.stat(ELFCOREHDR).st_size + 1023) // 1024
 
         kernel_args = (
             'console=ttyS0',
             'elfcorehdr=0x{0:x} memmap={1:d}K$0x{0:x}'.format(
-                ADDR_ELFCOREHDR, elfcorehdr_size),
+                elfcorehdr.address, elfcorehdr.size),
             'root=kdump',
             'rootflags=bind',
         )
@@ -120,7 +122,8 @@ with tempfile.TemporaryDirectory() as tmpdir:
             '-kernel', kernel,
             '-initrd', INITRD + '.xz',
             '-append', ' '.join(kernel_args),
-            '-device', 'loader,file={},force-raw=on,addr=0x{:x}'.format(ELFCOREHDR, ADDR_ELFCOREHDR)
+            '-device', 'loader,file={},force-raw=on,addr=0x{:x}'.format(
+                elfcorehdr.path, elfcorehdr.address)
         )
         subprocess.call(args)
 
