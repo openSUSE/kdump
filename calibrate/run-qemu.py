@@ -101,10 +101,12 @@ with tempfile.TemporaryDirectory() as tmpdir:
 
         build_initrd(oldcwd, INITRD, kernelver)
         build_elfcorehdr(oldcwd, ELFCOREHDR, ADDR_ELFCOREHDR)
+        elfcorehdr_size = (os.stat(ELFCOREHDR).st_size + 1023) // 1024
 
         kernel_args = (
             'console=ttyS0',
-            'elfcorehdr=0x{0:x} memmap=12K$0x{0:x}'.format(ADDR_ELFCOREHDR),
+            'elfcorehdr=0x{0:x} memmap={1:d}K$0x{0:x}'.format(
+                ADDR_ELFCOREHDR, elfcorehdr_size),
             'root=kdump',
         )
         args = (
