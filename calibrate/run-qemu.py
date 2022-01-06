@@ -102,6 +102,11 @@ with tempfile.TemporaryDirectory() as tmpdir:
         build_initrd(oldcwd, INITRD, kernelver)
         build_elfcorehdr(oldcwd, ELFCOREHDR, ADDR_ELFCOREHDR)
 
+        kernel_args = (
+            'console=ttyS0',
+            'elfcorehdr=0x{0:x} memmap=12K$0x{0:x}'.format(ADDR_ELFCOREHDR),
+            'root=kdump',
+        )
         args = (
             'qemu-kvm',
             '-smp', str(NUMCPUS),
@@ -111,7 +116,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
             '-serial', 'file:' + TRACKRSS_LOG,
             '-kernel', kernel,
             '-initrd', INITRD + '.xz',
-            '-append', 'console=ttyS0 elfcorehdr=0x{0:x} memmap=12K$0x{0:x} root=kdump'.format(ADDR_ELFCOREHDR),
+            '-append', ' '.join(kernel_args),
             '-device', 'loader,file={},force-raw=on,addr=0x{:x}'.format(ELFCOREHDR, ADDR_ELFCOREHDR)
         )
         subprocess.call(args)
