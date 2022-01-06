@@ -124,6 +124,19 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
             (key, val) = line.strip().split('=')
             results[key] = int(val)
 
+    kernel_base = params['TOTAL_RAM'] - results['INIT_MEMFREE']
+    # The above also includes the unpacked initramfs, which should be separate
+    kernel_base -= results['INIT_CACHED']
+    # It also should not include the MEMMAP array
+    pagesize = results['PAGESIZE']
+    pagesize_kb = pagesize // 1024
+    numpages = (params['TOTAL_RAM'] + pagesize_kb - 1) // pagesize_kb
+    memmap_pages = (numpages * results['SIZEOFPAGE'] + pagesize - 1) // pagesize
+    kernel_base -= memmap_pages * pagesize_kb
+    results['KERNEL_BASE'] = kernel_base - results['PERCPU']
+
+    results['PERCPU'] = results['PERCPU'] // params['NUMCPUS']
+
     return results
 
 with subprocess.Popen(('../kdumptool/kdumptool', 'find_kernel'),
@@ -151,19 +164,6 @@ with tempfile.TemporaryDirectory() as tmpdir:
 
     finally:
         os.chdir(oldcwd)
-
-kernel_base = params['TOTAL_RAM'] - results['INIT_MEMFREE']
-# The above also includes the unpacked initramfs, which should be separate
-kernel_base -= results['INIT_CACHED']
-# It also should not include the MEMMAP array
-pagesize = results['PAGESIZE']
-pagesize_kb = pagesize // 1024
-numpages = (params['TOTAL_RAM'] + pagesize_kb - 1) // pagesize_kb
-memmap_pages = (numpages * results['SIZEOFPAGE'] + pagesize - 1) // pagesize
-kernel_base -= memmap_pages * pagesize_kb
-results['KERNEL_BASE'] = kernel_base - results['PERCPU']
-
-results['PERCPU'] = results['PERCPU'] // params['NUMCPUS']
 
 keys = (
     'KERNEL_BASE',
