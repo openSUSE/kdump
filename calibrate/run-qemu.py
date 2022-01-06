@@ -81,6 +81,51 @@ class build_elfcorehdr(object):
 
         self.size = (os.stat(self.path).st_size + 1023) // 1024
 
+def run_qemu(bindir, params, initrd, elfcorehdr):
+    kernel_args = (
+        'console=ttyS0',
+        'elfcorehdr=0x{0:x} memmap={1:d}K$0x{0:x}'.format(
+            elfcorehdr.address, elfcorehdr.size),
+        'root=kdump',
+        'rootflags=bind',
+    )
+    args = (
+        'qemu-kvm',
+        '-smp', str(params['NUMCPUS']),
+        '-m', '{:d}K'.format(params['TOTAL_RAM']),
+        '-display', 'none',
+        '-serial', 'file:' + params['MESSAGES_LOG'],
+        '-serial', 'file:' + params['TRACKRSS_LOG'],
+        '-kernel', params['KERNEL'],
+        '-initrd', initrd.path,
+        '-append', ' '.join(kernel_args),
+        '-device', 'loader,file={},force-raw=on,addr=0x{:x}'.format(
+            elfcorehdr.path, elfcorehdr.address)
+    )
+    subprocess.call(args)
+
+    results = dict()
+
+    # Get kernel-space requirements
+    script = os.path.join(bindir, 'kernel.py')
+    with subprocess.Popen(script,
+                          stdin=open(params['MESSAGES_LOG']),
+                          stdout=subprocess.PIPE) as p:
+        for line in p.communicate()[0].decode().splitlines():
+            (key, val) = line.strip().split('=')
+            results[key] = int(val)
+
+    # Get user-space requirements
+    script = os.path.join(bindir, 'maxrss.py')
+    with subprocess.Popen(script,
+                          stdin=open(params['TRACKRSS_LOG']),
+                          stdout=subprocess.PIPE) as p:
+        for line in p.communicate()[0].decode().splitlines():
+            (key, val) = line.strip().split('=')
+            results[key] = int(val)
+
+    return results
+
 with subprocess.Popen(('../kdumptool/kdumptool', 'find_kernel'),
                       stdout=subprocess.PIPE) as p:
     for line in p.communicate()[0].decode().splitlines():
@@ -95,7 +140,6 @@ with subprocess.Popen(('get_kernel_version', params['KERNEL']),
                       stdout=subprocess.PIPE) as p:
     params['KERNELVER'] = p.communicate()[0].decode().strip()
 
-results = dict()
 with tempfile.TemporaryDirectory() as tmpdir:
     oldcwd = os.getcwd()
     try:
@@ -103,46 +147,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
         elfcorehdr = build_elfcorehdr(oldcwd, ADDR_ELFCOREHDR)
 
         initrd = build_initrd(oldcwd, params)
-
-        kernel_args = (
-            'console=ttyS0',
-            'elfcorehdr=0x{0:x} memmap={1:d}K$0x{0:x}'.format(
-                elfcorehdr.address, elfcorehdr.size),
-            'root=kdump',
-            'rootflags=bind',
-        )
-        args = (
-            'qemu-kvm',
-            '-smp', str(params['NUMCPUS']),
-            '-m', '{:d}K'.format(params['TOTAL_RAM']),
-            '-display', 'none',
-            '-serial', 'file:' + params['MESSAGES_LOG'],
-            '-serial', 'file:' + params['TRACKRSS_LOG'],
-            '-kernel', params['KERNEL'],
-            '-initrd', initrd.path,
-            '-append', ' '.join(kernel_args),
-            '-device', 'loader,file={},force-raw=on,addr=0x{:x}'.format(
-                elfcorehdr.path, elfcorehdr.address)
-        )
-        subprocess.call(args)
-
-        # Get kernel-space requirements
-        script = os.path.join(oldcwd, 'kernel.py')
-        with subprocess.Popen(script,
-                              stdin=open(params['MESSAGES_LOG']),
-                              stdout=subprocess.PIPE) as p:
-            for line in p.communicate()[0].decode().splitlines():
-                (key, val) = line.strip().split('=')
-                results[key] = int(val)
-
-        # Get user-space requirements
-        script = os.path.join(oldcwd, 'maxrss.py')
-        with subprocess.Popen(script,
-                              stdin=open(params['TRACKRSS_LOG']),
-                              stdout=subprocess.PIPE) as p:
-            for line in p.communicate()[0].decode().splitlines():
-                (key, val) = line.strip().split('=')
-                results[key] = int(val)
+        results = run_qemu(oldcwd, params, initrd, elfcorehdr)
 
     finally:
         os.chdir(oldcwd)
