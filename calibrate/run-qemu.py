@@ -82,20 +82,19 @@ class build_elfcorehdr(object):
 
         self.size = (os.stat(self.path).st_size + 1023) // 1024
 
-kernel = None
 with subprocess.Popen(('../kdumptool/kdumptool', 'find_kernel'),
                       stdout=subprocess.PIPE) as p:
     for line in p.communicate()[0].decode().splitlines():
         (key, val) = line.split(':')
         if key == 'Kernel':
-            kernel = val.strip()
-if kernel is None:
+            params['KERNEL'] = val.strip()
+if 'KERNEL' not in params:
     print('Cannot determine target kernel', file=sys.stderr)
     exit(1)
 
-with subprocess.Popen(('get_kernel_version', kernel),
+with subprocess.Popen(('get_kernel_version', params['KERNEL']),
                       stdout=subprocess.PIPE) as p:
-    kernelver = p.communicate()[0].decode().strip()
+    params['KERNELVER'] = p.communicate()[0].decode().strip()
 
 results = dict()
 with tempfile.TemporaryDirectory() as tmpdir:
@@ -104,7 +103,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
         os.chdir(tmpdir)
         elfcorehdr = build_elfcorehdr(oldcwd, ADDR_ELFCOREHDR)
 
-        build_initrd(oldcwd, params['INITRD'], kernelver)
+        build_initrd(oldcwd, params['INITRD'], params['KERNELVER'])
 
         kernel_args = (
             'console=ttyS0',
@@ -120,7 +119,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
             '-display', 'none',
             '-serial', 'file:' + params['MESSAGES_LOG'],
             '-serial', 'file:' + params['TRACKRSS_LOG'],
-            '-kernel', kernel,
+            '-kernel', params['KERNEL'],
             '-initrd', params['INITRD'] + '.xz',
             '-append', ' '.join(kernel_args),
             '-device', 'loader,file={},force-raw=on,addr=0x{:x}'.format(
