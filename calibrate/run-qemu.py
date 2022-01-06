@@ -31,41 +31,43 @@ params['INITRD'] = 'test-initrd'
 # conflicts with allocations at the end of RAM.
 ADDR_ELFCOREHDR = 768 * 1024 * 1024
 
-def build_initrd(bindir, initrd, kernelver):
-    # First, create the base initrd using dracut:
-    env = os.environ.copy()
-    env['KDUMP_CONFIGFILE'] = os.path.join(bindir, 'dummy.conf')
-    args = (
-        'dracut',
-        '--hostonly',
+class build_initrd(object):
+    def __init__(self, bindir, params):
+        # First, create the base initrd using dracut:
+        env = os.environ.copy()
+        env['KDUMP_CONFIGFILE'] = os.path.join(bindir, 'dummy.conf')
+        args = (
+            'dracut',
+            '--hostonly',
 
-        # Standard kdump initrd options:
-        '--omit', 'plymouth resume usrmount',
-        '--add', 'kdump',
+            # Standard kdump initrd options:
+            '--omit', 'plymouth resume usrmount',
+            '--add', 'kdump',
 
-        # Create a simple uncompressed CPIO archive:
-        '--no-compress',
-        '--no-early-microcode',
+            # Create a simple uncompressed CPIO archive:
+            '--no-compress',
+            '--no-early-microcode',
 
-        initrd,
-        kernelver
-    )
-    subprocess.call(args, env=env)
+            params['INITRD'],
+            params['KERNELVER'],
+        )
+        subprocess.call(args, env=env)
 
-    # Replace /init with trackrss:
-    trackrss = os.path.join(bindir, 'trackrss')
-    shutil.copy(trackrss, './init')
-    args =(
-        'cpio', '-o',
-        '-H', 'newc',
-        '--owner=0:0',
-        '--append', '--file=' + initrd
-    )
-    with subprocess.Popen(args, stdin=subprocess.PIPE) as p:
-        p.communicate(b'init')
+        # Replace /init with trackrss:
+        trackrss = os.path.join(bindir, 'trackrss')
+        shutil.copy(trackrss, './init')
+        args =(
+            'cpio', '-o',
+            '-H', 'newc',
+            '--owner=0:0',
+            '--append', '--file=' + params['INITRD'],
+        )
+        with subprocess.Popen(args, stdin=subprocess.PIPE) as p:
+            p.communicate(b'init')
 
-    # Compress the result:
-    subprocess.call(('xz', '-0', '--check=crc32', initrd))
+        # Compress the result:
+        subprocess.call(('xz', '-0', '--check=crc32', params['INITRD']))
+        self.path = params['INITRD'] + '.xz'
 
 class build_elfcorehdr(object):
     def __init__(self, bindir, addr, path='elfcorehdr.bin'):
@@ -103,7 +105,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
         os.chdir(tmpdir)
         elfcorehdr = build_elfcorehdr(oldcwd, ADDR_ELFCOREHDR)
 
-        build_initrd(oldcwd, params['INITRD'], params['KERNELVER'])
+        initrd = build_initrd(oldcwd, params)
 
         kernel_args = (
             'console=ttyS0',
@@ -120,7 +122,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
             '-serial', 'file:' + params['MESSAGES_LOG'],
             '-serial', 'file:' + params['TRACKRSS_LOG'],
             '-kernel', params['KERNEL'],
-            '-initrd', params['INITRD'] + '.xz',
+            '-initrd', initrd.path,
             '-append', ' '.join(kernel_args),
             '-device', 'loader,file={},force-raw=on,addr=0x{:x}'.format(
                 elfcorehdr.path, elfcorehdr.address)
