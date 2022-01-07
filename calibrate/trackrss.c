@@ -811,9 +811,26 @@ static void print_meminfo(char **info, int num)
 
 static int console_fd = -1;
 
-static int open_console()
+static int open_console(char *argv[])
 {
-	if (mknod(LOG_CONSOLE, S_IFCHR | 0660, LOG_DEV) < 0) {
+        static const char opt[] = "trackrss=";
+        dev_t dev = LOG_DEV;
+        char **arg, **lastarg;
+        for (arg = lastarg = &argv[1]; *arg; ++arg) {
+                if (strncmp(*arg, opt, sizeof(opt) - 1) == 0) {
+                        char *p = *arg + sizeof(opt) - 1;
+                        int maj, min;
+                        if (sscanf(p, "%d,%d", &maj, &min) != 2) {
+                                fprintf(stderr, "Invalid option: %s\n", *arg);
+                                return 1;
+                        }
+                        dev = makedev(maj, min);
+                } else
+                        *lastarg++ = *arg;
+        }
+        *lastarg = NULL;
+
+	if (mknod(LOG_CONSOLE, S_IFCHR | 0660, dev) < 0) {
 		perror("create console");
 		return 1;
 	}
@@ -886,7 +903,7 @@ int main(int argc, char *argv[])
 
         signal(SIGTERM, sigterm_handler);
 
-        ret = open_console();
+        ret = open_console(argv);
         if (ret)
                 return ret;
 

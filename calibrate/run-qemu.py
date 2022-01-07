@@ -102,6 +102,8 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
             elfcorehdr.address, elfcorehdr.size),
         'root=kdump',
         'rootflags=bind',
+        '--',
+        'trackrss=4,65',        # ttyS1
     )
     args = (
         qemu_name(),
