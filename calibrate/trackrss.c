@@ -809,6 +809,29 @@ static void print_meminfo(char **info, int num)
 	}
 }
 
+static int console_fd = -1;
+
+static int open_console()
+{
+	if (mknod(LOG_CONSOLE, S_IFCHR | 0660, LOG_DEV) < 0) {
+		perror("create console");
+		return 1;
+	}
+
+	console_fd = open(LOG_CONSOLE, O_WRONLY);
+	if (console_fd < 0) {
+		perror("open console");
+		return 1;
+	}
+
+        if (unlink(LOG_CONSOLE) < 0) {
+                perror("unlink console");
+                return 1;
+        }
+
+        return 0;
+}
+
 static int start_systemd(char *argv[])
 {
 	pid_t pid;
@@ -818,6 +841,7 @@ static int start_systemd(char *argv[])
 		perror("fork");
 		return 1;
 	} else if (pid > 0) {
+                close(console_fd);
 		execv(SYSTEMD_PATH, argv);
 		perror("execv");
 		_exit(1);
@@ -837,22 +861,11 @@ static int start_systemd(char *argv[])
 	} else if (pid > 0)
 		_exit(0);
 
-	if (mknod(LOG_CONSOLE, S_IFCHR | 0660, LOG_DEV) < 0 &&
-	    errno != EEXIST) {
-		perror("create console");
-		return 1;
-	}
-
-	int fd = open(LOG_CONSOLE, O_WRONLY);
-	if (fd < 0) {
-		perror("open console");
-		return 1;
-	}
-	if (dup2(fd, STDOUT_FILENO) < 0){
+	if (dup2(console_fd, STDOUT_FILENO) < 0){
 		perror("dup2");
 		return 1;
 	}
-	close(fd);
+	close(console_fd);
 
 	return 0;
 }
@@ -872,6 +885,10 @@ int main(int argc, char *argv[])
 	int ret;
 
         signal(SIGTERM, sigterm_handler);
+
+        ret = open_console();
+        if (ret)
+                return ret;
 
 	ret = init_mounts();
 	if (ret)
