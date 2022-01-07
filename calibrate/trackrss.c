@@ -44,7 +44,9 @@
 
 #define RECV_QLEN	16
 
-#define LOG_CONSOLE	"/dev/ttyS1"
+#define LOG_CONSOLE	"/dev/trackrss"
+
+/* Default log device: ttyS1 */
 #define LOG_DEV		makedev(4, 65)
 
 #define SYSTEMD_PATH	"/usr/lib/systemd/systemd"
