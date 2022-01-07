@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <signal.h>
 #include <time.h>
 #include <pthread.h>
 #include <sys/types.h>
@@ -34,6 +35,9 @@
 #include <linux/netlink.h>
 #include <linux/genetlink.h>
 #include <linux/taskstats.h>
+
+/* How long to wait upon receipt of SIGTERM */
+#define SIGTERM_WAIT    5
 
 /* There seems to be no canonical constant for this... */
 #define CTRL_GENL_VERSION	0x2
@@ -851,6 +855,12 @@ static int start_systemd(char *argv[])
 	return 0;
 }
 
+static void sigterm_handler(int signo)
+{
+        sleep(SIGTERM_WAIT);
+        exit(0);
+}
+
 int main(int argc, char *argv[])
 {
 	struct connection conn;
@@ -858,6 +868,8 @@ int main(int argc, char *argv[])
 	char *meminfo[MAX_MEMINFO_LINES];
 	int infonum;
 	int ret;
+
+        signal(SIGTERM, sigterm_handler);
 
 	ret = init_mounts();
 	if (ret)
