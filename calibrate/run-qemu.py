@@ -99,7 +99,7 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
     kernel_args = (
         'panic=1',
         'console=ttyS0',
-        'elfcorehdr=0x{0:x} memmap={1:d}K$0x{0:x}'.format(
+        'elfcorehdr=0x{0:x} crashkernel={1:d}K@0x{0:x}'.format(
             elfcorehdr.address, elfcorehdr.size),
         'root=kdump',
         'rootflags=bind',
