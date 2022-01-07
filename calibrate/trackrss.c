@@ -42,7 +42,7 @@
 /* There seems to be no canonical constant for this... */
 #define CTRL_GENL_VERSION	0x2
 
-#define RECV_QLEN	16
+#define RECV_QLEN	32
 
 #define LOG_CONSOLE	"/dev/trackrss"
 
