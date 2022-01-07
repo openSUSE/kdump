@@ -97,6 +97,7 @@ def qemu_name():
 
 def run_qemu(bindir, params, initrd, elfcorehdr):
     kernel_args = (
+        'panic=1',
         'console=ttyS0',
         'elfcorehdr=0x{0:x} memmap={1:d}K$0x{0:x}'.format(
             elfcorehdr.address, elfcorehdr.size),
@@ -108,6 +109,7 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
     args = (
         qemu_name(),
         '-smp', str(params['NUMCPUS']),
+        '-no-reboot',
         '-m', '{:d}K'.format(params['TOTAL_RAM']),
         '-display', 'none',
         '-serial', 'file:' + params['MESSAGES_LOG'],
