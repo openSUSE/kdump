@@ -96,15 +96,21 @@ def qemu_name():
     return 'qemu-system-' + machine
 
 def run_qemu(bindir, params, initrd, elfcorehdr):
+    if os.uname()[4].startswith('ppc'):
+        console = 'hvc0'
+        logdev = '229,1'        # hvc1
+    else:
+        console = 'ttyS0'
+        logdev = '4,65'         # ttyS1
     kernel_args = (
         'panic=1',
-        'console=ttyS0',
+        'console={}'.format(console),
         'elfcorehdr=0x{0:x} crashkernel={1:d}K@0x{0:x}'.format(
             elfcorehdr.address, elfcorehdr.size),
         'root=kdump',
         'rootflags=bind',
         '--',
-        'trackrss=4,65',        # ttyS1
+        'trackrss={}'.format(logdev),
     )
     args = (
         qemu_name(),
