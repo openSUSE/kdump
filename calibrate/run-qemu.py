@@ -81,6 +81,20 @@ class build_elfcorehdr(object):
 
         self.size = (os.stat(self.path).st_size + 1023) // 1024
 
+def qemu_name():
+    machine = os.uname()[4]
+    if machine == 'aarch64_be':
+        machine = 'aarch64'
+    elif machine == 'armv8b' or machine == 'armv8l':
+        machine = 'arm'
+    if machine == 'i586' or machine == 'i686':
+        machine = 'i386'
+    if machine == 'ppcle':
+        machine = 'ppc'
+    elif machine == 'ppc64le':
+        machine = 'ppc64'
+    return 'qemu-system-' + machine
+
 def run_qemu(bindir, params, initrd, elfcorehdr):
     kernel_args = (
         'console=ttyS0',
@@ -90,7 +104,7 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
         'rootflags=bind',
     )
     args = (
-        'qemu-kvm',
+        qemu_name(),
         '-smp', str(params['NUMCPUS']),
         '-m', '{:d}K'.format(params['TOTAL_RAM']),
         '-display', 'none',
