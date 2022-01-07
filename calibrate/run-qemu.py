@@ -33,6 +33,10 @@ class build_initrd(object):
         # First, create the base initrd using dracut:
         env = os.environ.copy()
         env['KDUMP_CONFIGFILE'] = os.path.join(bindir, config)
+        if params['NET']:
+            extra_args = ('--add-drivers', 'e1000e')
+        else:
+            extra_args = ()
         args = (
             'dracut',
             '--hostonly',
@@ -44,6 +48,9 @@ class build_initrd(object):
             # Create a simple uncompressed CPIO archive:
             '--no-compress',
             '--no-early-microcode',
+
+            # Additional options:
+            *extra_args,
 
             path,
             params['KERNELVER'],
@@ -102,6 +109,12 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
     else:
         console = 'ttyS0'
         logdev = '4,65'         # ttyS1
+    if params['NET']:
+        extra_kernel_args = ('bootdev=eth0', 'ip=eth0:dhcp')
+        extra_args = ('-nic', 'user,model=e1000e')
+    else:
+        extra_kernel_args = ()
+        extra_args = ()
     kernel_args = (
         'panic=1',
         'console={}'.format(console),
@@ -111,6 +124,7 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
         'rootflags=bind',
         '--',
         'trackrss={}'.format(logdev),
+        *extra_kernel_args,
     )
     args = (
         qemu_name(),
@@ -124,7 +138,8 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
         '-initrd', initrd.path,
         '-append', ' '.join(kernel_args),
         '-device', 'loader,file={},force-raw=on,addr=0x{:x}'.format(
-            elfcorehdr.path, elfcorehdr.address)
+            elfcorehdr.path, elfcorehdr.address),
+        *extra_args,
     )
     subprocess.call(args)
 
@@ -183,9 +198,11 @@ with tempfile.TemporaryDirectory() as tmpdir:
         os.chdir(tmpdir)
         elfcorehdr = build_elfcorehdr(oldcwd, ADDR_ELFCOREHDR)
 
+        params['NET'] = False
         initrd = build_initrd(oldcwd, params, 'dummy.conf')
         results = run_qemu(oldcwd, params, initrd, elfcorehdr)
 
+        params['NET'] = True
         initrd = build_initrd(oldcwd, params, 'dummy-net.conf')
         netresults = run_qemu(oldcwd, params, initrd, elfcorehdr)
 
