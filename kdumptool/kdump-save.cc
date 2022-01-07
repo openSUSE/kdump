@@ -315,33 +315,6 @@ int EnvironmentOverride::set(const char *value)
         : unsetenv(m_name.c_str());
 }
 
-// handle remounting existing readonly mounts readwrite
-// mount -a works only for not yet mounted filesystems
-void rwFixup()
-{
-    FstabMountTable tbl;
-    MountTable::iterator it(tbl, MNT_ITER_FORWARD);
-    while (++it) {
-        if (it->hasOption("bind") ||
-            it->hasOption("rbind")) {
-            FilePath mpt(it->target());
-            if (string(it->fstype()) == "none" && !mpt.isWritable()) {
-                // remounting bind mounts needs special incantation
-                StringVector args { "none", mpt, "-o", "remount,rw" };
-                ProcessFilter().execute("mount", args);
-            }
-        } else if (it->hasOption("ro")) {
-                continue;
-        } else {
-            FilePath mpt(it->target());
-            if (!mpt.isWritable()) {
-                StringVector args { mpt, "-o", "remount,rw" };
-                ProcessFilter().execute("mount", args);
-            }
-        }
-    }
-}
-
 static void deleteDumps()
 {
     try {
@@ -400,8 +373,6 @@ static void execute()
         if (code)
             cerr << "Transfer exit code is " << code << endl;
     } else {
-        rwFixup();
-
         // pre-script
         const string &prescript = config->KDUMP_PRESCRIPT.value();
         if (!prescript.empty()) {
