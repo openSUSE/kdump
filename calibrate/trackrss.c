@@ -257,7 +257,11 @@ void *recv_thread_fn(void *arg)
 
 static int conn_start_recv(struct connection *conn)
 {
-	if (pthread_create(&conn->recv_thread, NULL, recv_thread_fn, conn)) {
+	int err;
+
+	err = pthread_create(&conn->recv_thread, NULL, recv_thread_fn, conn);
+	if (err != 0) {
+		errno = err;
 		perror("pthread_create");
 		return 1;
 	}
