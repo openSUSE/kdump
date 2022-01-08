@@ -262,6 +262,7 @@ static int conn_start_recv(struct connection *conn)
 
 	sigemptyset(&sigs);
 	sigaddset(&sigs, SIGTERM);
+	sigaddset(&sigs, SIGALRM);
 	pthread_sigmask(SIG_BLOCK, &sigs, NULL);
 
 	err = pthread_create(&conn->recv_thread, NULL, recv_thread_fn, conn);
@@ -899,8 +900,12 @@ static int start_systemd(char *argv[])
 
 static void sigterm_handler(int signo)
 {
-        sleep(SIGTERM_WAIT);
-        exit(0);
+	alarm(SIGTERM_WAIT);
+}
+
+static void sigalrm_handler(int signo)
+{
+	exit(0);
 }
 
 int main(int argc, char *argv[])
@@ -912,6 +917,7 @@ int main(int argc, char *argv[])
 	int ret;
 
         signal(SIGTERM, sigterm_handler);
+	signal(SIGALRM, sigalrm_handler);
 
         ret = open_console(argv);
         if (ret)
