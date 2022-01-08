@@ -257,9 +257,15 @@ void *recv_thread_fn(void *arg)
 
 static int conn_start_recv(struct connection *conn)
 {
+	sigset_t sigs;
 	int err;
 
+	sigemptyset(&sigs);
+	sigaddset(&sigs, SIGTERM);
+	pthread_sigmask(SIG_BLOCK, &sigs, NULL);
+
 	err = pthread_create(&conn->recv_thread, NULL, recv_thread_fn, conn);
+	pthread_sigmask(SIG_UNBLOCK, &sigs, NULL);
 	if (err != 0) {
 		errno = err;
 		perror("pthread_create");
