@@ -117,6 +117,7 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
         extra_args = ()
     kernel_args = (
         'panic=1',
+        'nokaslr',
         'console={}'.format(console),
         'elfcorehdr=0x{0:x} crashkernel={1:d}K@0x{0:x}'.format(
             elfcorehdr.address, elfcorehdr.size),
