@@ -37,7 +37,7 @@
 #include <linux/taskstats.h>
 
 /* How long to wait upon receipt of SIGTERM */
-#define SIGTERM_WAIT    5
+#define SIGTERM_WAIT	5
 
 /* There seems to be no canonical constant for this... */
 #define CTRL_GENL_VERSION	0x2
@@ -905,7 +905,7 @@ static void sigterm_handler(int signo)
 
 static void sigalrm_handler(int signo)
 {
-	exit(0);
+	_exit(0);
 }
 
 int main(int argc, char *argv[])
