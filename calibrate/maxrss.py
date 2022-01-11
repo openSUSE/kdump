@@ -3,28 +3,16 @@
 import sys
 import argparse
 
-class rss_change:
-    def __init__(self):
-        self.added = list()
-        self.removed = list()
-        self.addsize = 0
-        self.removesize = 0
-
-    def add(self, name, amount):
-        self.added.append(name)
-        self.addsize += amount
-
-    def remove(self, name, amount):
-        self.removed.append(name)
-        self.removesize += amount
-
 parser = argparse.ArgumentParser()
 parser.add_argument('-d', '--debug', action='store_true',
                     help='print debugging messages on stderr')
 cmdline = parser.parse_args()
 
-processes = []
-events = {}
+contexts = dict()
+running = dict()
+rss = 0
+maxrss = 0
+maxrunning = dict()
 
 memfree = None
 cached = None
@@ -36,16 +24,32 @@ try:
     while True:
         (category, data) = input().split(':', 1)
 
-        if category == 'taskstats':
-            fields = data.split(maxsplit=3)
-            etime = int(fields[0])
-            btime = etime - int(fields[1])
-            rss = int(fields[2])
-
-            procidx = len(processes)
-            processes.append((fields[3], rss))
-            events.setdefault(btime, rss_change()).add(procidx, rss)
-            events.setdefault(etime, rss_change()).remove(procidx, rss)
+        if category == 'rss_stat':
+            index = data.rindex(': rss_stat: ')
+            (context, cpu, stamp) = data[:index].rsplit(maxsplit=2)
+            mm = None
+            size = None
+            curr = False
+            for field in data[index+12:].split():
+                (key, val) = field.split('=')
+                if key == 'mm_id':
+                    mm = int(val)
+                elif key == 'curr':
+                    if int(val):
+                        curr = True
+                elif key == 'size':
+                    size = int(val[:-1]) // 1024
+            if curr:
+                contexts[mm] = context.strip()
+            oldsize = running.get(mm, 0)
+            if size:
+                running[mm] = size
+            else:
+                del running[mm]
+            rss += size - oldsize
+            if rss > maxrss:
+                maxrss = rss
+                maxrunning = running.copy()
 
         elif category == 'meminfo':
             (key, value) = data.split(':')
@@ -90,25 +94,11 @@ if pagesize is None:
 if sizeofpage is None:
     print('Cannot determine sizeof(struct page)', file=sys.stderr)
 
-rss = 0
-maxrss = 0
-running = set()
-maxrunning = set()
-for t in sorted(events):
-    change = events[t]
-    rss += change.addsize
-    running.update(change.added)
-    if rss > maxrss:
-        maxrss = rss
-        maxrunning = set(running)
-    running.difference_update(change.removed)
-    rss -= change.removesize
-
 if cmdline.debug:
     print('Max RSS processes:', file=sys.stderr)
-    for idx in maxrunning:
-        p = processes[idx]
-        print('-', p[1], p[0], file=sys.stderr)
+    for (mm, rss) in maxrunning.items():
+        desc = contexts.get(mm, 'mm_{}'.format(mm))
+        print('-', desc, rss, file=sys.stderr)
 
 print('PAGESIZE={:d}'.format(pagesize))
 print('SIZEOFPAGE={:d}'.format(sizeofpage))
