@@ -440,6 +440,10 @@ static int init_tracing(void)
 
 	int ret;
 
+	ret = write_tracefs("saved_cmdlines_size", "256");
+	if (ret)
+		return ret;
+
 	ret = write_tracefs("events/kmem/rss_stat/filter", "member == 1");
 	if (ret)
 		return ret;
