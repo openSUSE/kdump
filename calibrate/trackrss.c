@@ -28,7 +28,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mount.h>
+#include <sys/ioctl.h>
 #include <sys/sysmacros.h>
+#include <linux/random.h>
 
 /* How long to wait upon receipt of SIGTERM */
 #define SIGTERM_WAIT	5
@@ -37,6 +39,10 @@
 
 /* Default log device: ttyS1 */
 #define LOG_DEV		makedev(4, 65)
+
+/* Random number generator device */
+#define RANDOM_DEV	makedev(1, 8)
+#define RANDOM_PATH	"/dev/random"
 
 #define SYSTEMD_PATH	"/usr/lib/systemd/systemd"
 
@@ -507,6 +513,41 @@ static int open_console(char *argv[])
         return 0;
 }
 
+static int init_random(void)
+{
+	int fd;
+
+	if (mknod(RANDOM_PATH, S_IFCHR | 0666, RANDOM_DEV) < 0) {
+		perror("create random");
+		return 1;
+	}
+
+	fd = open(RANDOM_PATH, O_WRONLY);
+	if (fd < 0) {
+		perror("open random");
+		return 1;
+	}
+
+        if (unlink(RANDOM_PATH) < 0) {
+                perror("unlink random");
+		goto err;
+        }
+
+	/* Bogus non-entropy, but who cares... */
+	int entcnt = 1024;
+	if (ioctl(fd, RNDADDTOENTCNT, &entcnt) < 0) {
+		perror("add random");
+		goto err;
+	}
+
+	close(fd);
+	return 0;
+
+err:
+	close(fd);
+	return 1;
+}
+
 static int start_systemd(char *argv[])
 {
 	pid_t pid;
@@ -568,6 +609,10 @@ int main(int argc, char *argv[])
         ret = open_console(argv);
         if (ret)
                 return ret;
+
+	ret = init_random();
+	if (ret)
+		return ret;
 
 	ret = init_mounts();
 	if (ret)
