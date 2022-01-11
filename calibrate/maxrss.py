@@ -24,7 +24,7 @@ try:
     while True:
         (category, data) = input().split(':', 1)
 
-        if category == 'rss_stat':
+        if category == 'trace':
             index = data.rindex(': rss_stat: ')
             (context, cpu, stamp) = data[:index].rsplit(maxsplit=2)
             mm = None

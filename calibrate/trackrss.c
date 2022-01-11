@@ -90,12 +90,12 @@ static void conn_cleanup(struct connection *conn)
 		fclose(conn->f);
 }
 
-static int get_taskstats(struct connection *conn)
+static int get_trace(struct connection *conn)
 {
 	char line[TRACE_LINE_LENGTH];
 
 	while (fgets(line, sizeof(line), conn->f))
-		printf("rss_stat:%s", line);
+		printf("trace:%s", line);
 
 	if (errno) {
 		perror("Read from trace pipe");
@@ -644,7 +644,7 @@ int main(int argc, char *argv[])
 	free_meminfo(meminfo, infonum);
 
 	while (!ret) {
-		ret = get_taskstats(&conn);
+		ret = get_trace(&conn);
 	}
 
  done:
