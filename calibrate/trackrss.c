@@ -40,6 +40,9 @@
 /* Default log device: ttyS1 */
 #define LOG_DEV		makedev(4, 65)
 
+/* Delay after each line [us] */
+#define LOG_DELAY_US	100
+
 /* Random number generator device */
 #define RANDOM_DEV	makedev(1, 8)
 #define RANDOM_PATH	"/dev/random"
@@ -94,8 +97,10 @@ static int get_trace(struct connection *conn)
 {
 	char line[TRACE_LINE_LENGTH];
 
-	while (fgets(line, sizeof(line), conn->f))
+	while (fgets(line, sizeof(line), conn->f)) {
+		usleep(LOG_DELAY_US);
 		printf("trace:%s", line);
+	}
 
 	if (errno) {
 		perror("Read from trace pipe");
