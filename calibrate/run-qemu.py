@@ -1,5 +1,6 @@
 #! /usr/bin/python3
 
+import sys
 import os
 import subprocess
 import tempfile
@@ -28,10 +29,20 @@ params['TRACKRSS_LOG'] = 'trackrss.log'
 # conflicts with allocations at the end of RAM.
 ADDR_ELFCOREHDR = 768 * 1024 * 1024
 
+def install_kdump_init(bindir):
+    env = os.environ.copy()
+    env['DESTDIR'] = os.path.abspath('.')
+    args = (
+        'cmake',
+        '--install', os.path.join(bindir, '..', 'dracut'),
+    )
+    subprocess.call(args, env=env, stdout=sys.stderr)
+
 class build_initrd(object):
     def __init__(self, bindir, params, config, path='test-initrd'):
         # First, create the base initrd using dracut:
         env = os.environ.copy()
+        env['KDUMP_LIBDIR'] = os.path.abspath('usr/lib/kdump')
         env['KDUMP_CONFIGFILE'] = os.path.join(bindir, config)
         if params['NET']:
             extra_args = ('--add-drivers', 'e1000e')
@@ -200,6 +211,8 @@ with tempfile.TemporaryDirectory() as tmpdir:
     try:
         os.chdir(tmpdir)
         elfcorehdr = build_elfcorehdr(oldcwd, ADDR_ELFCOREHDR)
+
+        install_kdump_init(oldcwd)
 
         params['NET'] = False
         initrd = build_initrd(oldcwd, params, 'dummy.conf')
