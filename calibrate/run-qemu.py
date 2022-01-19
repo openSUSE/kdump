@@ -210,9 +210,8 @@ with tempfile.TemporaryDirectory() as tmpdir:
     finally:
         os.chdir(oldcwd)
 
-results['INIT_NET'] = (
-    netresults['KERNEL_INIT'] - results['KERNEL_INIT'] +
-    netresults['INIT_CACHED'] - results['INIT_CACHED'])
+results['INIT_NET'] = netresults['KERNEL_INIT'] - results['KERNEL_INIT']
+results['INIT_CACHED_NET'] = netresults['INIT_CACHED'] - results['INIT_CACHED']
 results['USER_NET'] = netresults['USER_BASE'] - results['USER_BASE']
 
 keys = (
@@ -224,6 +223,7 @@ keys = (
     'PERCPU',
     'USER_BASE',
     'INIT_NET',
+    'INIT_CACHED_NET',
     'USER_NET',
 )
 for key in keys:
