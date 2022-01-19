@@ -35,6 +35,7 @@
 #include "process.h"
 #include "rootdirurl.h"
 #include "stringvector.h"
+#include "configparser.h"
 
 // All calculations are in KiB
 
@@ -44,113 +45,52 @@
 // Shift right by an amount, rounding the result up
 #define shr_round_up(n,amt)	(((n) + (1UL << (amt)) - 1) >> (amt))
 
-// Default reservation size depends on architecture
-//
 // The following macros are defined:
 //
 //    DEF_RESERVE_KB	default reservation size
-//    KERNEL_KB		kernel image text + data + bss
-//    INIT_KB		basic initramfs size (unpacked)
-//    INIT_NET_KB	initramfs size increment when network is included
-//    SIZE_STRUCT_PAGE	sizeof(struct page)
-//    PERCPU_KB         additional kernel memory for each online CPU
 //    CAN_REDUCE_CPUS   non-zero if the architecture can reduce kernel
 //                      memory requirements with nr_cpus=
 //
 
 #if defined(__x86_64__)
 # define DEF_RESERVE_KB		MB(192)
-# define KERNEL_KB		MB(38)
-# define KERNEL_INIT_KB		MB(5)
-# define INIT_KB		MB(51)
-# define INIT_NET_KB		MB(3)
-# define SIZE_STRUCT_PAGE	64
 # define CAN_REDUCE_CPUS	1
-# define PERCPU_KB		108
 
 #elif defined(__i386__)
 # define DEF_RESERVE_KB		MB(192)
-# define KERNEL_KB		MB(34)
-# define KERNEL_INIT_KB		MB(4)
-# define INIT_KB		MB(44)
-# define INIT_NET_KB		MB(2)
-# define SIZE_STRUCT_PAGE	36
 # define CAN_REDUCE_CPUS	1
-# define PERCPU_KB		56
 
 #elif defined(__powerpc64__)
 # define DEF_RESERVE_KB		MB(384)
-# define KERNEL_KB		MB(38)
-# define KERNEL_INIT_KB		MB(5)
-# define INIT_KB		MB(87)
-# define INIT_NET_KB		MB(4)
-# define SIZE_STRUCT_PAGE	64
 # define CAN_REDUCE_CPUS	0
-# define PERCPU_KB		172	// FIXME: is it non-linear?
 
 #elif defined(__powerpc__)
 # define DEF_RESERVE_KB		MB(192)
-# define KERNEL_KB		MB(29)
-# define KERNEL_INIT_KB		MB(5)
-# define INIT_KB		MB(51)
-# define INIT_NET_KB		MB(2)
-# define SIZE_STRUCT_PAGE	36
 # define CAN_REDUCE_CPUS	0
-# define PERCPU_KB		0	// TODO !!!
 
 #elif defined(__s390x__)
 # define DEF_RESERVE_KB		MB(192)
-# define KERNEL_KB		MB(31)
-# define KERNEL_INIT_KB		512
-# define INIT_KB		MB(51)
-# define INIT_NET_KB		MB(2)
-# define SIZE_STRUCT_PAGE	64
 # define CAN_REDUCE_CPUS	1
-# define PERCPU_KB		48
 
 # define align_memmap		s390x_align_memmap
 
 #elif defined(__s390__)
 # define DEF_RESERVE_KB		MB(192)
-# define KERNEL_KB		MB(29)
-# define KERNEL_INIT_KB		512
-# define INIT_KB		MB(44)
-# define INIT_NET_KB		MB(2)
-# define SIZE_STRUCT_PAGE	36
 # define CAN_REDUCE_CPUS	1
-# define PERCPU_KB		0	// TODO !!!
 
 # define align_memmap		s390_align_memmap
 
 #elif defined(__ia64__)
 # define DEF_RESERVE_KB		MB(768)
-# define KERNEL_KB		MB(77)
-# define KERNEL_INIT_KB		MB(3)
-# define INIT_KB		MB(66)
-# define INIT_NET_KB		MB(4)
-# define SIZE_STRUCT_PAGE	64
 # define CAN_REDUCE_CPUS	1
-# define PERCPU_KB		0	// TODO !!!
 
 #elif defined(__aarch64__)
 # define DEF_RESERVE_KB		MB(192)
-# define KERNEL_KB		MB(31)
-# define KERNEL_INIT_KB		MB(1)
-# define INIT_KB		MB(51)
-# define INIT_NET_KB		MB(3)
-# define SIZE_STRUCT_PAGE	64
 # define CAN_REDUCE_CPUS	1
-# define PERCPU_KB		0	// TODO !!!
 
 #elif defined(__arm__)
 # define DEF_RESERVE_KB		MB(192)
-# define KERNEL_KB		MB(29)
-# define KERNEL_INIT_KB		MB(1)
-# define INIT_KB		MB(44)
-# define INIT_NET_KB		MB(2)
-# define SIZE_STRUCT_PAGE	36
 # define CAN_REDUCE_CPUS	1
-# define PERCPU_KB		0	// TODO !!!
 
 #else
 # error "No default crashkernel reservation for your architecture!"
@@ -171,12 +111,6 @@ static inline unsigned long s390x_align_memmap(unsigned long maxpfn)
     // SECTION_SIZE_BITS: 28, PAGE_SHIFT: 12, KiB: 10
     return ((maxpfn - 1) | ((1UL << (28 - 12 - 10)) - 1)) + 1;
 }
-
-// (Pessimistic) estimate of the initrd compression ratio (percents)
-#define INITRD_COMPRESS	50
-
-// Estimated non-changing dynamic data (sysfs, procfs, etc.)
-#define KERNEL_DYNAMIC_KB	MB(8)
 
 // Default framebuffer size: 1024x768 @ 32bpp, except on mainframe
 #if defined(__s390__) || defined(__s390x__)
@@ -204,22 +138,6 @@ static inline unsigned long s390x_align_memmap(unsigned long maxpfn)
 // Default vm dirty ratio is 20%
 #define DIRTY_RATIO		20
 
-// Userspace base requirements:
-//   systemd (PID 1)	 8 M
-//   haveged             6 M
-//   journald		 5 M
-//   the journal itself	 4 M
-//   10 * udevd		28 M
-//   kdumptool		 4 M
-//   makedumpfile	 1 M
-// -------------------------
-// TOTAL:		56 M
-#define USER_BASE_KB	MB(56)
-
-// Additional requirements when network is configured
-//   dhclient		10 M
-#define USER_NET_KB	MB(10)
-
 // Maximum size of the page bitmap
 // 32 MiB is 32*1024*1024*8 = 268435456 bits
 // makedumpfile uses two bitmaps, so each has 134217728 bits
@@ -238,7 +156,16 @@ using std::ifstream;
 
 class SizeConstants {
     protected:
+        unsigned long m_kernel_base;
+        unsigned long m_kernel_init;
+        unsigned long m_kernel_init_net;
+        unsigned long m_init_cached;
+        unsigned long m_init_cached_net;
+        unsigned long m_percpu;
         unsigned long m_pagesize;
+        unsigned long m_sizeof_page;
+        unsigned long m_user_base;
+        unsigned long m_user_net;
 
     public:
         SizeConstants(void);
@@ -255,7 +182,7 @@ class SizeConstants {
          * @returns kernel base allocation [KiB]
          */
         unsigned long kernel_base_kb(void) const
-        { return KERNEL_KB + KERNEL_DYNAMIC_KB; }
+        { return m_kernel_base; }
 
         /** Get additional kernel requirements at boot.
          *
@@ -266,14 +193,14 @@ class SizeConstants {
          * @returns boot-time requirements [KiB]
          */
         unsigned long kernel_init_kb(void) const
-        { return KERNEL_INIT_KB + (INIT_KB * INITRD_COMPRESS) / 100; }
+        { return m_kernel_init; }
 
         /** Get additional boot-time kernel requirements for network.
          *
          * @returns additional boot-time requirements for network [KiB]
          */
         unsigned long kernel_init_net_kb(void) const
-        { return (INIT_NET_KB * INITRD_COMPRESS) / 100; }
+        { return m_kernel_init_net; }
 
         /** Get size of the unpacked initramfs.
          *
@@ -282,21 +209,21 @@ class SizeConstants {
          * @returns initramfs memory requirements [KiB]
          */
         unsigned long initramfs_kb(void) const
-        { return INIT_KB; }
+        { return m_init_cached; }
 
         /** Get the increase in unpacked intramfs size with network.
          *
          * @returns additional network initramfs memory requirements [KiB]
          */
         unsigned long initramfs_net_kb(void) const
-        { return INIT_NET_KB; }
+        { return m_init_cached_net; }
 
         /** Get additional memory requirements per CPU.
          *
          * @returns kernel per-cpu allocation size [KiB]
          */
         unsigned long percpu_kb(void) const
-        { return PERCPU_KB; }
+        { return m_percpu; }
 
         /** Get target page size.
          *
@@ -310,27 +237,53 @@ class SizeConstants {
          * @returns sizeof(struct page) in BYTES
          */
         unsigned long sizeof_page(void) const
-        { return SIZE_STRUCT_PAGE; }
+        { return m_sizeof_page; }
 
         /** Get base user-space requirements.
          *
          * @returns user-space base requirements [KiB]
          */
         unsigned long user_base_kb(void) const
-        { return USER_BASE_KB; }
+        { return m_user_base; }
 
         /** Get the increas in user-space requirements with network.
          *
          * @returns additional network user-space requirements [KiB]
          */
         unsigned long user_net_kb(void) const
-        { return USER_NET_KB; }
+        { return m_user_net; }
 };
 
 // -----------------------------------------------------------------------------
 SizeConstants::SizeConstants(void)
 {
-    m_pagesize = sysconf(_SC_PAGESIZE);
+    static const struct {
+        const char *const name;
+        unsigned long SizeConstants::*const var;
+    } vars[] = {
+        { "KERNEL_BASE", &SizeConstants::m_kernel_base },
+        { "KERNEL_INIT", &SizeConstants::m_kernel_init },
+        { "INIT_NET", &SizeConstants::m_kernel_init_net },
+        { "INIT_CACHED", &SizeConstants::m_init_cached },
+        { "INIT_CACHED_NET", &SizeConstants::m_init_cached_net },
+        { "PERCPU", &SizeConstants::m_percpu },
+        { "PAGESIZE", &SizeConstants::m_pagesize },
+        { "SIZEOFPAGE", &SizeConstants::m_sizeof_page },
+        { "USER_BASE", &SizeConstants::m_user_base },
+        { "USER_NET", &SizeConstants::m_user_net },
+        { nullptr, nullptr }
+    };
+    ShellConfigParser cfg("/usr/lib/kdump/calibrate.conf");
+
+    for (auto p = &vars[0]; p->name; ++p)
+        cfg.addVariable(p->name, "");
+    cfg.parse();
+    for (auto p = &vars[0]; p->name; ++p) {
+        KString val(cfg.getValue(p->name));
+        if (val.empty())
+            throw KError(std::string("No value configured for ") + p->name);
+        this->*p->var = val.asLongLong();
+    }
 }
 
 //}}}
