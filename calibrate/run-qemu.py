@@ -8,6 +8,9 @@ import shutil
 
 params = dict()
 
+# Directory with scripts and other data
+params['SCRIPTDIR'] = os.path.abspath(os.path.dirname(sys.argv[0]))
+
 # System dracut base directory
 params['DRACUTDIR'] = '/usr/lib/dracut'
 
@@ -62,7 +65,7 @@ class build_initrd(object):
         # First, create the base initrd using dracut:
         env = os.environ.copy()
         env['KDUMP_LIBDIR'] = os.path.abspath('usr/lib/kdump')
-        env['KDUMP_CONFIGFILE'] = os.path.join(bindir, config)
+        env['KDUMP_CONFIGFILE'] = os.path.join(params['SCRIPTDIR'], config)
         env['DRACUT_PATH'] = ' '.join((
             os.path.abspath(os.path.join(bindir, '..', 'kdumptool')),
             '/sbin',
@@ -185,7 +188,7 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
     results = dict()
 
     # Get kernel-space requirements
-    script = os.path.join(bindir, 'kernel.py')
+    script = os.path.join(params['SCRIPTDIR'], 'kernel.py')
     with subprocess.Popen(script,
                           stdin=open(params['MESSAGES_LOG']),
                           stdout=subprocess.PIPE) as p:
@@ -194,7 +197,7 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
             results[key] = int(val)
 
     # Get user-space requirements
-    script = os.path.join(bindir, 'maxrss.py')
+    script = os.path.join(params['SCRIPTDIR'], 'maxrss.py')
     with subprocess.Popen(script,
                           stdin=open(params['TRACKRSS_LOG']),
                           stdout=subprocess.PIPE) as p:
@@ -218,7 +221,7 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
     return results
 
 with subprocess.Popen(('../kdumptool/kdumptool',
-                       '-F', 'dummy.conf',
+                       '-F', os.path.join(params['SCRIPTDIR'], 'dummy.conf'),
                        'find_kernel'),
                       stdout=subprocess.PIPE) as p:
     for line in p.communicate()[0].decode().splitlines():
