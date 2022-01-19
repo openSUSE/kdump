@@ -112,17 +112,6 @@ add_executable(kdumptool
 target_link_libraries(kdumptool common ${EXTRA_LIBS})
 install (TARGETS kdumptool DESTINATION sbin)
 
-add_executable(kdump-save
-    kdump-save.cc
-)
-target_link_libraries(kdump-save common ${EXTRA_LIBS})
-install (
-    TARGETS
-        kdump-save
-    DESTINATION
-        /usr/lib/kdump
-)
-
 add_executable(testio
     testio.cc
 )

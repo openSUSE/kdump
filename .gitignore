@@ -25,8 +25,8 @@ calibrate/mkelfcorehdr
 calibrate/trackrss
 dracut/device-timeout-generator
 dracut/init-fadump
+dracut/kdump-save
 kdumptool/kdumptool
-kdumptool/kdump-save
 kdumptool/testcanonical
 kdumptool/testconfig
 kdumptool/testio
