@@ -8,6 +8,9 @@ import shutil
 
 params = dict()
 
+# System dracut base directory
+params['DRACUTDIR'] = '/usr/lib/dracut'
+
 # Total VM memory in KiB:
 params['TOTAL_RAM'] = 1024 * 1024
 
@@ -38,6 +41,22 @@ def install_kdump_init(bindir):
     )
     subprocess.call(args, env=env, stdout=sys.stderr)
 
+def init_local_dracut(params):
+    basedir = params['DRACUTDIR']
+    os.symlink(shutil.which('dracut'), 'dracut')
+    for name in os.listdir(basedir):
+        if name == 'modules.d':
+            os.mkdir(name)
+            for module in os.listdir(os.path.join(basedir, name)):
+                dst = os.path.join(name, module)
+                if module[2:] != 'kdump':
+                    os.symlink(os.path.join(basedir, dst), dst)
+
+            dst = os.path.join(name, '99kdump')
+            os.symlink(os.path.join('..', basedir[1:], dst), dst)
+        else:
+            os.symlink(os.path.join(basedir, name), name)
+
 class build_initrd(object):
     def __init__(self, bindir, params, config, path='test-initrd'):
         # First, create the base initrd using dracut:
@@ -49,7 +68,8 @@ class build_initrd(object):
         else:
             extra_args = ()
         args = (
-            'dracut',
+            os.path.abspath('dracut'),
+            '--local',
             '--hostonly',
 
             # Standard kdump initrd options:
@@ -213,6 +233,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
         elfcorehdr = build_elfcorehdr(oldcwd, ADDR_ELFCOREHDR)
 
         install_kdump_init(oldcwd)
+        init_local_dracut(params)
 
         params['NET'] = False
         initrd = build_initrd(oldcwd, params, 'dummy.conf')
