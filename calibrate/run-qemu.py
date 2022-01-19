@@ -63,6 +63,13 @@ class build_initrd(object):
         env = os.environ.copy()
         env['KDUMP_LIBDIR'] = os.path.abspath('usr/lib/kdump')
         env['KDUMP_CONFIGFILE'] = os.path.join(bindir, config)
+        env['DRACUT_PATH'] = ' '.join((
+            os.path.abspath(os.path.join(bindir, '..', 'kdumptool')),
+            '/sbin',
+            '/bin',
+            '/usr/sbin',
+            '/usr/bin'))
+
         if params['NET']:
             extra_args = ('--add-drivers', 'e1000e')
         else:
