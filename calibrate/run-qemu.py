@@ -144,18 +144,21 @@ def qemu_name():
     return 'qemu-system-' + machine
 
 def run_qemu(bindir, params, initrd, elfcorehdr):
-    if os.uname()[4].startswith('ppc'):
+    arch = os.uname()[4]
+    if arch.startswith('ppc'):
         console = 'hvc0'
         logdev = '229,1'        # hvc1
     else:
         console = 'ttyS0'
         logdev = '4,65'         # ttyS1
+    extra_args = []
     if params['NET']:
         extra_kernel_args = ('bootdev=eth0', 'ip=eth0:dhcp')
-        extra_args = ('-nic', 'user,model=e1000e')
+        extra_args.extend(('-nic', 'user,model=e1000e'))
     else:
         extra_kernel_args = ()
-        extra_args = ()
+    if arch == 'aarch64':
+        extra_args.extend(('-machine', 'virt'))
     kernel_args = (
         'panic=1',
         'nokaslr',
