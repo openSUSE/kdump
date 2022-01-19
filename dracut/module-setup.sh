@@ -1,7 +1,8 @@
 #!/bin/bash
 # module-setup.sh for kdump dracut module
 
-. /usr/lib/kdump/setup-kdump.functions
+test -n "$KDUMP_LIBDIR" || KDUMP_LIBDIR=/usr/lib/kdump
+. "$KDUMP_LIBDIR"/setup-kdump.functions
 
 kdump_needed() {
     # Building a kdump initrd?
@@ -270,7 +271,7 @@ install() {
 	inst_binary "$moddir/device-timeout-generator" \
 	    "$systemdutildir"/system-generators/kdump-device-timeout-generator
 
-	inst_simple /usr/lib/kdump/kdump-save /kdump/kdump-save
+	inst_simple "$KDUMP_LIBDIR"/kdump-save /kdump/kdump-save
 	awk -v mountpoints="${kdump_mnt[*]}" '{
 		gsub(/@KDUMP_MOUNTPOINTS@/, mountpoints)
 		print
@@ -300,7 +301,7 @@ install() {
 	[ "$KDUMP_FADUMP" != yes ] && \
 	    inst_hook mount 30 "$moddir/mount-kdump.sh"
 
-	inst_hook pre-pivot 90 /usr/lib/kdump/kdump-save
+	inst_hook pre-pivot 90 "$KDUMP_LIBDIR"/kdump-save
     fi
 
     inst_multiple makedumpfile \

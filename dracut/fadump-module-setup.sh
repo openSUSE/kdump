@@ -1,6 +1,7 @@
 #!/bin/bash
 
-. /usr/lib/kdump/setup-kdump.functions
+test -n "$KDUMP_LIBDIR" || KDUMP_LIBDIR=/usr/lib/kdump
+. "$KDUMP_LIBDIR"/setup-kdump.functions
 
 check() {
     if kdump_get_config && test "$KDUMP_FADUMP" = "yes"; then
