@@ -1,5 +1,5 @@
 #
-# (c) 2008, Bernhard Walle <bwalle@suse.de>, SUSE LINUX Products GmbH
+# Copyright (c) 2008-2022 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -12,18 +12,8 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA.
+# along with this program; if not, see <https://www.gnu.org/licenses>.
 #
-
-ADD_EXECUTABLE(device-timeout-generator
-    device-timeout-generator.c
-)
-TARGET_INCLUDE_DIRECTORIES(device-timeout-generator
-    PUBLIC ${BLKID_INCLUDE_DIRS})
-TARGET_LINK_LIBRARIES(device-timeout-generator
-    ${BLKID_LIBRARIES})
 
 INSTALL(
     FILES
@@ -62,7 +52,6 @@ INSTALL(
 
 INSTALL(
     FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/setup-kdump.functions
         ${CMAKE_CURRENT_SOURCE_DIR}/load.sh
         ${CMAKE_CURRENT_SOURCE_DIR}/load-once.sh
         ${CMAKE_CURRENT_SOURCE_DIR}/unload.sh
@@ -73,68 +62,5 @@ INSTALL(
         GROUP_READ GROUP_EXECUTE
         WORLD_READ WORLD_EXECUTE
 )
-
-INSTALL(
-    TARGETS
-        device-timeout-generator
-    DESTINATION
-        /usr/lib/dracut/modules.d/99kdump
-)
-
-INSTALL(
-    FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/kdump-root.sh
-        ${CMAKE_CURRENT_SOURCE_DIR}/kdump-boot.sh
-        ${CMAKE_CURRENT_SOURCE_DIR}/module-setup.sh
-        ${CMAKE_CURRENT_SOURCE_DIR}/mount-kdump.sh
-    DESTINATION
-        /usr/lib/dracut/modules.d/99kdump
-    PERMISSIONS
-        OWNER_READ OWNER_WRITE OWNER_EXECUTE
-        GROUP_READ GROUP_EXECUTE
-        WORLD_READ WORLD_EXECUTE
-)
-
-INSTALL(
-    FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/kdump-save.service.in
-    DESTINATION
-        /usr/lib/dracut/modules.d/99kdump
-    PERMISSIONS
-        OWNER_READ OWNER_WRITE
-        GROUP_READ
-        WORLD_READ
-)
-
-IF(${HAVE_FADUMP} STREQUAL "TRUE")
-
-    INSTALL(
-        FILES
-            ${CMAKE_CURRENT_SOURCE_DIR}/fadump-module-setup.sh
-        RENAME
-            module-setup.sh
-        DESTINATION
-            /usr/lib/dracut/modules.d/99zz-fadumpinit
-        PERMISSIONS
-            OWNER_READ OWNER_WRITE OWNER_EXECUTE
-            GROUP_READ GROUP_EXECUTE
-            WORLD_READ WORLD_EXECUTE
-    )
-
-    ADD_EXECUTABLE(init-fadump
-        init-fadump.c
-    )
-    INSTALL(
-        TARGETS
-            init-fadump
-        DESTINATION
-            /usr/lib/dracut/modules.d/99zz-fadumpinit
-        PERMISSIONS
-            OWNER_READ OWNER_WRITE OWNER_EXECUTE
-            GROUP_READ GROUP_EXECUTE
-            WORLD_READ WORLD_EXECUTE
-    )
-
-ENDIF()
 
 # vim: set sw=4 ts=4 et:

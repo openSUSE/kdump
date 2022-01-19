@@ -144,6 +144,7 @@ configure_file(
 #
 
 ADD_SUBDIRECTORY(kdumptool)
+ADD_SUBDIRECTORY(dracut)
 ADD_SUBDIRECTORY(calibrate)
 ADD_SUBDIRECTORY(doc)
 ADD_SUBDIRECTORY(init)
