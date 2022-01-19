@@ -179,7 +179,9 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
 
     return results
 
-with subprocess.Popen(('../kdumptool/kdumptool', 'find_kernel'),
+with subprocess.Popen(('../kdumptool/kdumptool',
+                       '-F', 'dummy.conf',
+                       'find_kernel'),
                       stdout=subprocess.PIPE) as p:
     for line in p.communicate()[0].decode().splitlines():
         (key, val) = line.split(':')
