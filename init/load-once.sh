@@ -19,5 +19,5 @@ flock -n "$LOCKFILE" -c '
     while [ -s "$JOBSFILE" ]
     do
         truncate -s 0 "$JOBSFILE" || exit 1
-        /lib/kdump/load.sh
+        /usr/lib/kdump/load.sh
     done'

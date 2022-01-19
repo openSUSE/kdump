@@ -56,7 +56,7 @@ INSTALL(
         ${CMAKE_CURRENT_SOURCE_DIR}/load-once.sh
         ${CMAKE_CURRENT_SOURCE_DIR}/unload.sh
     DESTINATION
-        /lib/kdump
+        /usr/lib/kdump
     PERMISSIONS
         OWNER_READ OWNER_WRITE OWNER_EXECUTE
         GROUP_READ GROUP_EXECUTE

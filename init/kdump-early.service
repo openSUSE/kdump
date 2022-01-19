@@ -4,8 +4,8 @@ After=local-fs.target
 
 [Service]
 Type=oneshot
-ExecStart=/lib/kdump/load.sh
-ExecStop=/lib/kdump/unload.sh
+ExecStart=/usr/lib/kdump/load.sh
+ExecStop=/usr/lib/kdump/unload.sh
 RemainAfterExit=true
 # It is OK if the initrd is missing in this early attempt
 SuccessExitStatus=6

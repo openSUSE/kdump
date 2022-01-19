@@ -1,7 +1,7 @@
 #!/bin/bash
 # module-setup.sh for kdump dracut module
 
-. /lib/kdump/setup-kdump.functions
+. /usr/lib/kdump/setup-kdump.functions
 
 kdump_needed() {
     # Building a kdump initrd?

@@ -15,7 +15,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 
-. /lib/kdump/setup-kdump.functions
+. /usr/lib/kdump/setup-kdump.functions
 
 kdump_get_config || return 1
 

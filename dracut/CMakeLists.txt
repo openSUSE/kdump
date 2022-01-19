@@ -48,7 +48,7 @@ INSTALL(
     FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/setup-kdump.functions
     DESTINATION
-        /lib/kdump
+        /usr/lib/kdump
     PERMISSIONS
         OWNER_READ OWNER_WRITE
         GROUP_READ

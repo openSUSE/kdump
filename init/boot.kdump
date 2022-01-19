@@ -26,8 +26,8 @@
 ### END INIT INFO
 
 KDUMPTOOL=/usr/sbin/kdumptool
-LOAD_KDUMP=/lib/kdump/load.sh
-UNLOAD_KDUMP=/lib/kdump/unload.sh
+LOAD_KDUMP=/usr/lib/kdump/load.sh
+UNLOAD_KDUMP=/usr/lib/kdump/unload.sh
 
 . /etc/rc.status
 
