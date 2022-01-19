@@ -23,3 +23,37 @@ target_link_libraries(trackrss -lpthread)
 ADD_EXECUTABLE(mkelfcorehdr
     mkelfcorehdr.c
 )
+
+get_directory_property(dracut_targets
+    DIRECTORY ${CMAKE_SOURCE_DIR}/dracut
+    BUILDSYSTEM_TARGETS
+)
+
+ADD_CUSTOM_COMMAND(
+    OUTPUT
+        calibrate.conf
+    COMMAND
+        ${CMAKE_CURRENT_SOURCE_DIR}/run-qemu.py
+        > ${CMAKE_CURRENT_BINARY_DIR}/calibrate.conf
+    VERBATIM
+    DEPENDS
+        ${dracut_targets}
+        dummy.conf
+        dummy-net.conf
+        trackrss
+        mkelfcorehdr
+        kernel.py
+        maxrss.py
+        run-qemu.py
+)
+ADD_CUSTOM_TARGET(calibrate-conf
+    ALL
+    DEPENDS
+        calibrate.conf
+)
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/calibrate.conf
+    DESTINATION
+        /usr/lib/kdump
+)

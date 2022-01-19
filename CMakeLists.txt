@@ -25,7 +25,7 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 # Configuration
 #
 
-cmake_minimum_required(VERSION 2.6.2)
+cmake_minimum_required(VERSION 3.7)
 set (PACKAGE_STRING "kdump")
 set (PACKAGE_VERSION "0.9.2")
 
