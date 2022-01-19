@@ -128,8 +128,11 @@ depends() {
     _modules[drm]=
 
     [ "$kdump_neednet" = y ] && _modules[network]=
-    
-    _modules[watchdog-modules]=
+
+    local _mod=watchdog-modules
+    if [ -e "$dracutsysrootdir$dracutbasedir"/modules.d/??$_mod ]; then
+        _modules[$_mod]=
+    fi
 
     for protocol in "${kdump_Protocol[@]}" ; do
 	if [ "$protocol" = "nfs" ]; then
