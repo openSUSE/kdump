@@ -45,11 +45,6 @@ ADD_TEST(quoting
          ${CMAKE_BINARY_DIR}/kdumptool/kdumptool
          ${CMAKE_CURRENT_SOURCE_DIR}/data)
 
-ADD_TEST(calibrate
-         ${CMAKE_CURRENT_SOURCE_DIR}/calibrate.sh
-         ${CMAKE_BINARY_DIR}/kdumptool/kdumptool
-         ${CMAKE_CURRENT_SOURCE_DIR}/data)
-
 ADD_TEST(listdir
          ${CMAKE_CURRENT_SOURCE_DIR}/listdir.sh
          ${CMAKE_BINARY_DIR}/kdumptool/testlistdir
