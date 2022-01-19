@@ -230,17 +230,110 @@ static inline unsigned long s390x_align_memmap(unsigned long maxpfn)
 // for overflow, DMA buffers, etc.
 #define MINLOW_KB	MB(64 + 8)
 
-// Default (pessimistic) boot-time requirements.
-// This value is used if exact calculation fails.
-#define DEF_BOOTSIZE					\
-    (KERNEL_KB + KERNEL_INIT_KB +			\
-     INIT_KB + INIT_NET_KB +				\
-     ((INIT_KB + INIT_NET_KB) * INITRD_COMPRESS) / 100)
-
 using std::cout;
 using std::endl;
 using std::ifstream;
 
+//{{{ SizeConstants ------------------------------------------------------------
+
+class SizeConstants {
+    protected:
+        unsigned long m_pagesize;
+
+    public:
+        SizeConstants(void);
+
+        /** Get kernel base requirements.
+         *
+         * This number covers all memory that can is unavailable to user
+         * space, even if it is not allocated by the kernel itself, e.g.
+         * if it is reserved by the firmware before the kernel starts.
+         *
+         * It also includes non-changing run-time allocations caused by
+         * PID 1 initialisation (sysfs, procfs, etc.).
+         *
+         * @returns kernel base allocation [KiB]
+         */
+        unsigned long kernel_base_kb(void) const
+        { return KERNEL_KB + KERNEL_DYNAMIC_KB; }
+
+        /** Get additional kernel requirements at boot.
+         *
+         * This is memory which is required at boot time but gets freed
+         * later. Most importantly, it includes the compressed initramfs
+         * image.
+         *
+         * @returns boot-time requirements [KiB]
+         */
+        unsigned long kernel_init_kb(void) const
+        { return KERNEL_INIT_KB + (INIT_KB * INITRD_COMPRESS) / 100; }
+
+        /** Get additional boot-time kernel requirements for network.
+         *
+         * @returns additional boot-time requirements for network [KiB]
+         */
+        unsigned long kernel_init_net_kb(void) const
+        { return (INIT_NET_KB * INITRD_COMPRESS) / 100; }
+
+        /** Get size of the unpacked initramfs.
+         *
+         * This is the size of the base image, without network.
+         *
+         * @returns initramfs memory requirements [KiB]
+         */
+        unsigned long initramfs_kb(void) const
+        { return INIT_KB; }
+
+        /** Get the increase in unpacked intramfs size with network.
+         *
+         * @returns additional network initramfs memory requirements [KiB]
+         */
+        unsigned long initramfs_net_kb(void) const
+        { return INIT_NET_KB; }
+
+        /** Get additional memory requirements per CPU.
+         *
+         * @returns kernel per-cpu allocation size [KiB]
+         */
+        unsigned long percpu_kb(void) const
+        { return PERCPU_KB; }
+
+        /** Get target page size.
+         *
+         * @returns page size in BYTES
+         */
+        unsigned long pagesize(void) const
+        { return m_pagesize; }
+
+        /** Get the size of struct page.
+         *
+         * @returns sizeof(struct page) in BYTES
+         */
+        unsigned long sizeof_page(void) const
+        { return SIZE_STRUCT_PAGE; }
+
+        /** Get base user-space requirements.
+         *
+         * @returns user-space base requirements [KiB]
+         */
+        unsigned long user_base_kb(void) const
+        { return USER_BASE_KB; }
+
+        /** Get the increas in user-space requirements with network.
+         *
+         * @returns additional network user-space requirements [KiB]
+         */
+        unsigned long user_net_kb(void) const
+        { return USER_NET_KB; }
+};
+
+// -----------------------------------------------------------------------------
+SizeConstants::SizeConstants(void)
+{
+    m_pagesize = sysconf(_SC_PAGESIZE);
+}
+
+//}}}
 //{{{ SystemCPU ----------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
@@ -989,12 +1082,15 @@ void Calibrate::execute()
         return;
     }
 
+    SizeConstants sizes;
     MemMap mm;
     unsigned long required, prev;
     unsigned long minlow = MINLOW_KB;
-    unsigned long pagesize = sysconf(_SC_PAGESIZE);
     unsigned long memtotal = shr_round_up(mm.total(), 10);
-    unsigned long bootsize = DEF_BOOTSIZE;
+    // Default (pessimistic) boot-time requirements.
+    unsigned long bootsize = sizes.kernel_base_kb() +
+        sizes.kernel_init_kb() + sizes.kernel_init_net_kb() +
+        sizes.initramfs_kb() + sizes.initramfs_net_kb();
 
     try {
 	Configuration *config = Configuration::config();
@@ -1004,15 +1100,12 @@ void Calibrate::execute()
         Debug::debug()->dbg("Expected total RAM: %lu KiB", memtotal);
 
 	// Calculate boot requirements
-	unsigned long ramfs = INIT_KB;
-	if (needsnet)
-	    ramfs += INIT_NET_KB;
-	unsigned long initrd = (ramfs * INITRD_COMPRESS) / 100;
-	bootsize = KERNEL_KB + KERNEL_INIT_KB + initrd + ramfs;
+	if (!needsnet)
+	    bootsize -= sizes.kernel_init_net_kb() + sizes.initramfs_net_kb();
         Debug::debug()->dbg("Memory needed at boot: %lu KiB", bootsize);
 
 	// Run-time kernel requirements
-	required = KERNEL_KB + ramfs + KERNEL_DYNAMIC_KB;
+        required = sizes.kernel_base_kb() + sizes.initramfs_kb();
 
         // Double the size, because fbcon allocates its own
         // framebuffer, and many DRM drivers allocate the hw
@@ -1079,7 +1172,7 @@ void Calibrate::execute()
 		if (it->first.startsWith("Acpi-") ||
 		    it->first.startsWith("ftrace_") ) {
 		    unsigned long slabsize = it->second->numSlabs() *
-			it->second->pagesPerSlab() * pagesize / 1024;
+			it->second->pagesPerSlab() * sizes.pagesize() / 1024;
 		    required += slabsize;
 
 		    Debug::debug()->dbg("Adding %ld KiB for %s slab cache",
@@ -1105,13 +1198,13 @@ void Calibrate::execute()
 	Debug::debug()->dbg("Total assumed CPUs: %lu", cpus);
 
 	// User-space requirements
-	unsigned long user = USER_BASE_KB;
+	unsigned long user = sizes.user_base_kb();
 	if (needsnet)
-	    user += USER_NET_KB;
+	    user += sizes.user_net_kb();
 
 	if (config->needsMakedumpfile()) {
 	    // Estimate bitmap size (1 bit for every RAM page)
-	    unsigned long bitmapsz = shr_round_up(memtotal / pagesize, 2);
+	    unsigned long bitmapsz = shr_round_up(memtotal / sizes.pagesize(), 2);
 	    if (bitmapsz > MAX_BITMAP_KB)
 		bitmapsz = MAX_BITMAP_KB;
 	    Debug::debug()->dbg("Estimated bitmap size: %lu KiB", bitmapsz);
@@ -1148,13 +1241,13 @@ void Calibrate::execute()
 #if HAVE_FADUMP
         if (config->KDUMP_FADUMP.value()) {
             // FADUMP will map all memory
-            unsigned long maxpfn = memtotal / (pagesize / 1024);
-            required += shr_round_up(maxpfn * SIZE_STRUCT_PAGE, 10);
+            unsigned long maxpfn = memtotal / (sizes.pagesize() / 1024);
+            required += shr_round_up(maxpfn * sizes.sizeof_page(), 10);
         } else {
 #endif
-            required = required * pagesize / (pagesize - SIZE_STRUCT_PAGE);
-            unsigned long maxpfn = (required - prev) / SIZE_STRUCT_PAGE;
-            required = prev + align_memmap(maxpfn) * SIZE_STRUCT_PAGE;
+            required = required * sizes.pagesize() / (sizes.pagesize() - sizes.sizeof_page());
+            unsigned long maxpfn = (required - prev) / sizes.sizeof_page();
+            required = prev + align_memmap(maxpfn) * sizes.sizeof_page();
 #if HAVE_FADUMP
         }
 #endif
