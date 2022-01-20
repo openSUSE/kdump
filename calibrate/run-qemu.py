@@ -144,6 +144,10 @@ def qemu_name():
     return 'qemu-system-' + machine
 
 def run_qemu(bindir, params, initrd, elfcorehdr):
+    extra_qemu_args = []
+    extra_kernel_args = []
+
+    # Set up console tty and a serial port for trackrss
     arch = os.uname()[4]
     if arch.startswith('ppc'):
         console = 'hvc0'
@@ -154,6 +158,7 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
     else:
         console = 'ttyS0'
         logdev = '4,65'         # ttyS1
+
     if arch.startswith('s390'):
         console_args = (
             '-serial', 'file:' + params['MESSAGES_LOG'],
@@ -166,14 +171,16 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
             '-serial', 'file:' + params['MESSAGES_LOG'],
             '-serial', 'file:' + params['TRACKRSS_LOG'],
         )
-    extra_args = []
+
+    # Kernel and QEMU arguments to congifure network
     if params['NET']:
-        extra_kernel_args = ('bootdev=eth0', 'ip=eth0:dhcp')
-        extra_args.extend(('-nic', 'user,model=e1000e'))
-    else:
-        extra_kernel_args = ()
+        extra_qemu_args.extend(('-nic', 'user,model=e1000e'))
+        extra_kernel_args.extend(('bootdev=eth0', 'ip=eth0:dhcp'))
+
+    # Other arch-specific arguments
     if arch == 'aarch64':
-        extra_args.extend(('-machine', 'virt'))
+        extra_qemu_args.extend(('-machine', 'virt'))
+
     kernel_args = (
         'panic=1',
         'nokaslr',
@@ -182,11 +189,11 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
             elfcorehdr.address, elfcorehdr.size),
         'root=kdump',
         'rootflags=bind',
+        *extra_kernel_args,
         '--',
         'trackrss={}'.format(logdev),
-        *extra_kernel_args,
     )
-    args = (
+    qemu_args = (
         qemu_name(),
         '-smp', str(params['NUMCPUS']),
         '-no-reboot',
@@ -198,9 +205,9 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
         '-append', ' '.join(kernel_args),
         '-device', 'loader,file={},force-raw=on,addr=0x{:x}'.format(
             elfcorehdr.path, elfcorehdr.address),
-        *extra_args,
+        *extra_qemu_args,
     )
-    subprocess.call(args)
+    subprocess.call(qemu_args)
 
     results = dict()
 
