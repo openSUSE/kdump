@@ -148,9 +148,24 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
     if arch.startswith('ppc'):
         console = 'hvc0'
         logdev = '229,1'        # hvc1
+    elif arch.startswith('s390'):
+        console = 'sclp0'
+        logdev = '229,0'        # hvc0
     else:
         console = 'ttyS0'
         logdev = '4,65'         # ttyS1
+    if arch.startswith('s390'):
+        console_args = (
+            '-serial', 'file:' + params['MESSAGES_LOG'],
+            '-device', 'virtio-serial-ccw',
+            '-chardev', 'file,path={},id=hvc0'.format(params['TRACKRSS_LOG']),
+            '-device', 'virtconsole,nr=0,chardev=hvc0',
+            )
+    else:
+        console_args = (
+            '-serial', 'file:' + params['MESSAGES_LOG'],
+            '-serial', 'file:' + params['TRACKRSS_LOG'],
+        )
     extra_args = []
     if params['NET']:
         extra_kernel_args = ('bootdev=eth0', 'ip=eth0:dhcp')
@@ -177,8 +192,7 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
         '-no-reboot',
         '-m', '{:d}K'.format(params['TOTAL_RAM']),
         '-display', 'none',
-        '-serial', 'file:' + params['MESSAGES_LOG'],
-        '-serial', 'file:' + params['TRACKRSS_LOG'],
+        *console_args,
         '-kernel', params['KERNEL'],
         '-initrd', initrd.path,
         '-append', ' '.join(kernel_args),
