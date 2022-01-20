@@ -179,7 +179,6 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
         oldmem = 'oldmem.bin'
         oldmem_size = qemu_ram * 1024
         oldmem_base = oldmem_size
-        qemu_ram = qemu_ram * 2
         with open(oldmem, 'wb') as f:
             f.write(oldmem_base.to_bytes(8, 'big'))
             f.write(oldmem_size.to_bytes(8, 'big'))
