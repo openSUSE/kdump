@@ -62,6 +62,8 @@ def init_local_dracut(params):
 
 class build_initrd(object):
     def __init__(self, bindir, params, config, path='test-initrd'):
+        arch = os.uname()[4]
+
         # First, create the base initrd using dracut:
         env = os.environ.copy()
         env['KDUMP_LIBDIR'] = os.path.abspath('usr/lib/kdump')
@@ -74,7 +76,11 @@ class build_initrd(object):
             '/usr/bin'))
 
         if params['NET']:
-            extra_args = ('--add-drivers', 'e1000e')
+            if arch.startswith('s390'):
+                net_driver = 'virtio-net'
+            else:
+                net_driver = 'e1000e'
+            extra_args = ('--add-drivers', net_driver)
         else:
             extra_args = ()
         args = (
@@ -193,7 +199,11 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
 
     # Kernel and QEMU arguments to congifure network
     if params['NET']:
-        extra_qemu_args.extend(('-nic', 'user,model=e1000e'))
+        if arch.startswith('s390'):
+            model = 'virtio'
+        else:
+            model = 'e1000e'
+        extra_qemu_args.extend(('-nic', 'user,model={}'.format(model)))
         extra_kernel_args.extend(('bootdev=eth0', 'ip=eth0:dhcp'))
 
     # Other arch-specific arguments
