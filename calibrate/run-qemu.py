@@ -193,7 +193,7 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
                 S390_OLDMEM_BASE, oldmem),
         ))
     else:
-        extra_kernel.args.append(
+        extra_kernel_args.append(
             'elfcorehdr=0x{0:x} crashkernel={1:d}K@0x{0:x}'.format(
                 elfcorehdr.address, elfcorehdr.size))
 
