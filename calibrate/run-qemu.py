@@ -172,6 +172,26 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
             '-serial', 'file:' + params['TRACKRSS_LOG'],
         )
 
+    qemu_ram = params['TOTAL_RAM']
+    # Set up ELF core headers
+    if arch.startswith('s390'):
+        S390_OLDMEM_BASE = 0x10418 # cf. struct parmarea
+        oldmem = 'oldmem.bin'
+        oldmem_size = qemu_ram * 1024
+        oldmem_base = oldmem_size
+        qemu_ram = qemu_ram * 2
+        with open(oldmem, 'wb') as f:
+            f.write(oldmem_base.to_bytes(8, 'big'))
+            f.write(oldmem_size.to_bytes(8, 'big'))
+        extra_qemu_args.extend((
+            '-device', 'loader,addr=0x{:x},file={}'.format(
+                S390_OLDMEM_BASE, oldmem),
+        ))
+    else:
+        extra_kernel.args.append(
+            'elfcorehdr=0x{0:x} crashkernel={1:d}K@0x{0:x}'.format(
+                elfcorehdr.address, elfcorehdr.size))
+
     # Kernel and QEMU arguments to congifure network
     if params['NET']:
         extra_qemu_args.extend(('-nic', 'user,model=e1000e'))
@@ -185,8 +205,6 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
         'panic=1',
         'nokaslr',
         'console={}'.format(console),
-        'elfcorehdr=0x{0:x} crashkernel={1:d}K@0x{0:x}'.format(
-            elfcorehdr.address, elfcorehdr.size),
         'root=kdump',
         'rootflags=bind',
         *extra_kernel_args,
@@ -197,7 +215,7 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
         qemu_name(),
         '-smp', str(params['NUMCPUS']),
         '-no-reboot',
-        '-m', '{:d}K'.format(params['TOTAL_RAM']),
+        '-m', '{:d}K'.format(qemu_ram),
         '-display', 'none',
         *console_args,
         '-kernel', params['KERNEL'],
