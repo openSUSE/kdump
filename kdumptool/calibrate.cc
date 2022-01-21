@@ -138,6 +138,9 @@ static inline unsigned long s390x_align_memmap(unsigned long maxpfn)
 // Default vm dirty ratio is 20%
 #define DIRTY_RATIO		20
 
+// Reserve this much percent above the calculated value
+#define ADD_RESERVE             10
+
 // Maximum size of the page bitmap
 // 32 MiB is 32*1024*1024*8 = 268435456 bits
 // makedumpfile uses two bitmaps, so each has 134217728 bits
@@ -1213,6 +1216,9 @@ void Calibrate::execute()
 	Debug::debug()->dbg("Total run-time size: %lu KiB", required);
 	if (required < bootsize)
 	    required = bootsize;
+
+        // Reserve a fixed percentage on top of the calculation
+        required = (required * (100 + ADD_RESERVE)) / 100;
 
 #if HAVE_FADUMP
         // The kernel enforces minimum reservation size for FADUMP
