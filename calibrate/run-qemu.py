@@ -33,10 +33,15 @@ params['ARCH'] = os.uname()[4]
 # This is tricky. The elfcorehdr memory range is removed from the kernel
 # memory map with a command line option, but the kernel boot code runs
 # before the command line is parsed, and it may overwrite the data.
-# The region at 768M should be reasonably safe, because it is high enough
-# to avoid conflicts with special-purpose regions and low enough to avoid
-# conflicts with allocations at the end of RAM.
-ADDR_ELFCOREHDR = 768 * 1024 * 1024
+if params['ARCH'] == 'aarch64':
+    # QEMU defines all RAM at 1G physical for AArch64
+    ADDR_ELFCOREHDR = (1024 * 1024 * 1024) + (256 * 1024 * 1024)
+else:
+    # For other platforms, the region at 768M should be reasonably safe,
+    # because it is high enough to avoid conflicts with special-purpose
+    # regions and low enough to avoid conflicts with allocations at the
+    # end of RAM.
+    ADDR_ELFCOREHDR = 768 * 1024 * 1024
 
 def install_kdump_init(bindir):
     env = os.environ.copy()
