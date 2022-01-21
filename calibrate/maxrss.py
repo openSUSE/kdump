@@ -61,11 +61,14 @@ try:
                 percpu = int(value.split()[0])
 
         elif category == 'vmcoreinfo':
-            (key, value) = data.split('=')
-            if key == 'PAGESIZE':
-                pagesize = int(value)
-            elif key == 'SIZE(page)':
-                sizeofpage = int(value)
+            try:
+                (key, value) = data.split('=')
+                if key == 'PAGESIZE':
+                    pagesize = int(value)
+                elif key == 'SIZE(page)':
+                    sizeofpage = int(value)
+            except ValueError:
+                pass
 
         else:
             if cmdline.debug:
