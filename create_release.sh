@@ -43,7 +43,7 @@ for opt in "$@"; do
 done
 test -z "$commit" && commit=HEAD
 
-VERSION=$(git describe "$commit")
+VERSION=$(git describe "$commit" | tr - .)
 test $? -eq 0 || exit 1
 
 # remove leading "v" from the tag
