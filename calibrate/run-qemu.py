@@ -286,6 +286,9 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
 
     return results
 
+def calc_diff(src, dst, key, diffkey):
+    src[diffkey] = dst[key] - src[key]
+
 with subprocess.Popen(('../kdumptool/kdumptool',
                        '-F', os.path.join(params['SCRIPTDIR'], 'dummy.conf'),
                        'find_kernel'),
@@ -322,9 +325,9 @@ with tempfile.TemporaryDirectory() as tmpdir:
     finally:
         os.chdir(oldcwd)
 
-results['INIT_NET'] = netresults['KERNEL_INIT'] - results['KERNEL_INIT']
-results['INIT_CACHED_NET'] = netresults['INIT_CACHED'] - results['INIT_CACHED']
-results['USER_NET'] = netresults['USER_BASE'] - results['USER_BASE']
+calc_diff(results, netresults, 'KERNEL_INIT', 'INIT_NET')
+calc_diff(results, netresults, 'INIT_CACHED', 'INIT_CACHED_NET')
+calc_diff(results, netresults, 'USER_BASE', 'USER_NET')
 
 keys = (
     'KERNEL_BASE',
