@@ -26,6 +26,9 @@ params['MESSAGES_LOG'] = 'messages.log'
 # Where trackrss log should go
 params['TRACKRSS_LOG'] = 'trackrss.log'
 
+# Store the system architecture for convenience
+params['ARCH'] = os.uname()[4]
+
 # Physical address where elfcorehdr should be loaded.
 # This is tricky. The elfcorehdr memory range is removed from the kernel
 # memory map with a command line option, but the kernel boot code runs
@@ -62,8 +65,6 @@ def init_local_dracut(params):
 
 class build_initrd(object):
     def __init__(self, bindir, params, config, path='test-initrd'):
-        arch = os.uname()[4]
-
         # First, create the base initrd using dracut:
         env = os.environ.copy()
         env['KDUMP_LIBDIR'] = os.path.abspath('usr/lib/kdump')
@@ -76,7 +77,7 @@ class build_initrd(object):
             '/usr/bin'))
 
         if params['NET']:
-            if arch.startswith('s390'):
+            if params['ARCH'].startswith('s390'):
                 net_driver = 'virtio-net'
             else:
                 net_driver = 'e1000e'
@@ -135,8 +136,7 @@ class build_elfcorehdr(object):
 
         self.size = (os.stat(self.path).st_size + 1023) // 1024
 
-def qemu_name():
-    machine = os.uname()[4]
+def qemu_name(machine):
     if machine == 'aarch64_be':
         machine = 'aarch64'
     elif machine == 'armv8b' or machine == 'armv8l':
@@ -150,11 +150,11 @@ def qemu_name():
     return 'qemu-system-' + machine
 
 def run_qemu(bindir, params, initrd, elfcorehdr):
+    arch = params['ARCH']
     extra_qemu_args = []
     extra_kernel_args = []
 
     # Set up console tty and a serial port for trackrss
-    arch = os.uname()[4]
     if arch.startswith('ppc'):
         console = 'hvc0'
         logdev = '229,1'        # hvc1
@@ -221,7 +221,7 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
         'trackrss={}'.format(logdev),
     )
     qemu_args = (
-        qemu_name(),
+        qemu_name(arch),
         '-smp', str(params['NUMCPUS']),
         '-no-reboot',
         '-m', '{:d}K'.format(qemu_ram),
