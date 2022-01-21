@@ -287,7 +287,7 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
     return results
 
 def calc_diff(src, dst, key, diffkey):
-    src[diffkey] = dst[key] - src[key]
+    src[diffkey] = max(0, dst[key] - src[key])
 
 with subprocess.Popen(('../kdumptool/kdumptool',
                        '-F', os.path.join(params['SCRIPTDIR'], 'dummy.conf'),
