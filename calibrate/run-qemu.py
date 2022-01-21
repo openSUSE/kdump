@@ -208,8 +208,11 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
 
     # Other arch-specific arguments
     if arch == 'aarch64':
-        extra_qemu_args.extend(('-machine', 'virt'))
-
+        extra_qemu_args.extend((
+            '-machine', 'virt',
+            '-cpu', 'max',
+            '-bios', '/usr/share/qemu/qemu-uefi-aarch64.bin',
+        ))
     kernel_args = (
         'panic=1',
         'nokaslr',
