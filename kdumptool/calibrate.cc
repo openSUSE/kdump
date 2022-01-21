@@ -1149,6 +1149,9 @@ void Calibrate::execute()
 	    cpus = online + offline;
 	}
 	Debug::debug()->dbg("Total assumed CPUs: %lu", cpus);
+        cpus *= sizes.percpu_kb();
+        Debug::debug()->dbg("Total per-cpu requirements: %lu KiB", cpus);
+        required += cpus;
 
 	// User-space requirements
 	unsigned long user = sizes.user_base_kb();
