@@ -174,7 +174,7 @@ ADD_CUSTOM_TARGET(
 INSTALL(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sysconfig.kdump
     DESTINATION
-        /var/adm/fillup-templates/
+        /usr/share/fillup-templates/
 )
 
 ADD_CUSTOM_COMMAND(
