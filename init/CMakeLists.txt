@@ -41,7 +41,6 @@ INSTALL(
 INSTALL(
     FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/mkdumprd
-        ${CMAKE_CURRENT_SOURCE_DIR}/kdump-bootloader.pl
     DESTINATION
         /usr/sbin
     PERMISSIONS

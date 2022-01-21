@@ -255,14 +255,13 @@ function fadump_bootloader()
     local newstate="$1"
 
     # check if the old configuration is still valid
-    boot_opts=$(kdump-bootloader.pl --get)
-    nofadump_opts=$(echo "$boot_opts" | remove_from_commandline 'fadump')
+    local boot_opts=$(pbl --get-option fadump)
     if [ "$newstate" = on ] ; then
-	if [ "$boot_opts" = "$nofadump_opts" ] ; then
-	    kdump-bootloader.pl --update fadump=on
-	fi
-    elif [ "$boot_opts" != "$nofadump_opts" ] ; then
-	kdump-bootloader.pl --update
+        if [ "$boot_opts" != "fadump=on" ] ; then
+            pbl --add-option fadump=on --config
+        fi
+    elif [ -n "$boot_opts" ] ; then
+        pbl --del-option fadump --config
     fi
 }
 
