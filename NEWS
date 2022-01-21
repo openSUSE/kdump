@@ -1,5 +1,5 @@
-next
-----
+1.0
+---
   * Provide scripts to measure actual kernel and user space memory
     consumption in a QEMU-based VM
   * Store the values from these scripts in a configuration file
