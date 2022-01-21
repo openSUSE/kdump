@@ -170,7 +170,14 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
         console = 'ttyS0'
         logdev = '4,65'         # ttyS1
 
-    if arch.startswith('s390'):
+    if arch == 'aarch64':
+        console_args = (
+            '-serial', 'null',  # ttyAMA0 (used for OVMF debug messages)
+            '-chardev', 'file,path={},id=ttyS0'.format(params['MESSAGES_LOG']),
+            '-chardev', 'file,path={},id=ttyS1'.format(params['TRACKRSS_LOG']),
+            '-device', 'pci-serial-2x,chardev1=ttyS0,chardev2=ttyS1',
+            )
+    elif arch.startswith('s390'):
         console_args = (
             '-serial', 'file:' + params['MESSAGES_LOG'],
             '-device', 'virtio-serial-ccw',
