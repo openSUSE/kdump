@@ -1125,8 +1125,7 @@ void Calibrate::execute()
 	    SlabInfos::Map info = slab.getInfo();
 	    SlabInfos::Map::iterator it;
 	    for (it = info.begin(); it != info.end(); ++it) {
-		if (it->first.startsWith("Acpi-") ||
-		    it->first.startsWith("ftrace_") ) {
+		if (it->first.startsWith("Acpi-")) {
 		    unsigned long slabsize = it->second->numSlabs() *
 			it->second->pagesPerSlab() * sizes.pagesize() / 1024;
 		    required += slabsize;
