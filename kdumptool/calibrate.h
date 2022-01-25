@@ -28,6 +28,8 @@
  * Subcommand to calibrate reserved memory
  */
 class Calibrate : public Subcommand {
+    protected:
+        bool m_shrink;
 
     public:
         /**

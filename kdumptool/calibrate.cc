@@ -22,8 +22,12 @@
 #include <cstring>
 #include <cstdlib>
 #include <limits>
-#include <unistd.h>
+
 #include <dirent.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "subcommand.h"
 #include "debug.h"
@@ -155,6 +159,7 @@ using std::cerr;
 using std::cout;
 using std::endl;
 using std::ifstream;
+using std::string;
 
 //{{{ SizeConstants ------------------------------------------------------------
 
@@ -991,7 +996,13 @@ CryptInfo::CryptInfo(std::string const& device)
 
 // -----------------------------------------------------------------------------
 Calibrate::Calibrate()
-{}
+    : m_shrink(false)
+{
+    Debug::debug()->trace("Calibrate::Calibrate()");
+
+    m_options.push_back(new FlagOption("shrink", 's', &m_shrink,
+        "Shrink the crash kernel reservation"));
+}
 
 // -----------------------------------------------------------------------------
 const char *Calibrate::getName() const
@@ -1155,6 +1166,31 @@ static unsigned long runtimeSize(SizeConstants const &sizes,
 }
 
 // -----------------------------------------------------------------------------
+static void shrink_crash_size(unsigned long size)
+{
+    static const char crash_size_fname[] = "/sys/kernel/kexec_crash_size";
+
+    std::ostringstream ss;
+    ss << size;
+    const string &numstr = ss.str();
+
+    int fd = open(crash_size_fname, O_WRONLY);
+    if (fd < 0)
+        throw KSystemError(string("Cannot open ") + crash_size_fname,
+                           errno);
+    if (write(fd, numstr.c_str(), numstr.length()) < 0) {
+        if (errno == EINVAL)
+            Debug::debug()->dbg("New crash kernel size is bigger");
+        else if (errno == ENOENT)
+            throw KError("Crash kernel is currently loaded");
+        else
+            throw KSystemError(string("Cannot write to ") + crash_size_fname,
+                               errno);
+    }
+    close(fd);
+}
+
+// -----------------------------------------------------------------------------
 void Calibrate::execute()
 {
     Debug::debug()->trace("Calibrate::execute()");
@@ -1223,13 +1259,13 @@ void Calibrate::execute()
 
     if (base < (1ULL<<32)) {
         low = minlow = 0;
-	high = required;
     } else {
         low = minlow = MINLOW_KB;
-	high = (required > low ? required - low : 0);
-	if (high < bootsize)
-	    high = bootsize;
+        required = (required > low ? required - low : 0);
+        if (required < bootsize)
+            required = bootsize;
     }
+    high = required;
 
     maxlow = mm.largest(1ULL<<32) >> 10;
     minhigh = 0;
@@ -1290,6 +1326,9 @@ void Calibrate::execute()
     cout << "MaxLow: " << (maxlow >> 10) << endl;
     cout << "MinHigh: " << shr_round_up(minhigh, 10) << endl;
     cout << "MaxHigh: " << (maxhigh >> 10) << endl;
+
+    if (m_shrink)
+        shrink_crash_size(required << 10);
 }
 
 //}}}
