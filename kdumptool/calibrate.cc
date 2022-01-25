@@ -1019,10 +1019,10 @@ void Calibrate::execute()
         return;
     }
 
+    Configuration *config = Configuration::config();
     SizeConstants sizes;
     MemMap mm;
     unsigned long required, prev;
-    unsigned long minlow = MINLOW_KB;
     unsigned long memtotal = shr_round_up(mm.total(), 10);
     // Default (pessimistic) boot-time requirements.
     unsigned long bootsize = sizes.kernel_base_kb() +
@@ -1030,7 +1030,6 @@ void Calibrate::execute()
         sizes.initramfs_kb() + sizes.initramfs_net_kb();
 
     try {
-	Configuration *config = Configuration::config();
 	bool needsnet = config->needsNetwork();
 
 	// Get total RAM size
@@ -1200,45 +1199,17 @@ void Calibrate::execute()
         // Reserve a fixed percentage on top of the calculation
         required = (required * (100 + ADD_RESERVE)) / 100;
 
-#if HAVE_FADUMP
-        // The kernel enforces minimum reservation size for FADUMP
-        if (config->KDUMP_FADUMP.value()) {
-            static const char rtas_fname[] =
-                "/proc/device-tree/rtas/ibm,configure-kernel-dump";
-            static const char opal_fname[] =
-                "/proc/device-tree/ibm,opal/dump";
-
-            unsigned long fadump_min = 0;
-            if (FilePath(rtas_fname).exists()) {
-                // RTAS_FADUMP_MIN_BOOT_MEM
-                // see arch/powerpc/platforms/pseries/rtas-fadump.h
-                fadump_min = MB(320);
-            } else if (FilePath(opal_fname).exists()) {
-                // OPAL_FADUMP_MIN_BOOT_MEM
-                // see arch/powerpc/platforms/powernv/opal-fadump.h
-                fadump_min = MB(768);
-            } else {
-                Debug::debug()->info("Unknown FADUMP implementation!");
-            }
-
-            if (fadump_min)
-                Debug::debug()->dbg("Minimum FADUMP size: %lu KiB", fadump_min);
-            if (minlow < fadump_min)
-                minlow = fadump_min;
-            if (required < minlow)
-                required = minlow;
-        }
-#endif
     } catch(KError &e) {
 	Debug::debug()->info(e.what());
 	required = DEF_RESERVE_KB;
     }
 
-    cout << "Total: " << (memtotal >> 10) << endl;
+    unsigned long low, minlow, maxlow;
+    unsigned long high, minhigh, maxhigh;
 
 #if defined(__x86_64__)
+
     unsigned long long base = mm.find(required << 10, 16UL << 20);
-    unsigned long low, high;
 
     Debug::debug()->dbg("Estimated crash area base: 0x%llx", base);
 
@@ -1249,32 +1220,74 @@ void Calibrate::execute()
     }
 
     if (base < (1ULL<<32)) {
-	low = 0;
+        low = minlow = 0;
 	high = required;
     } else {
-	low = minlow;
+        low = minlow = MINLOW_KB;
 	high = (required > low ? required - low : 0);
 	if (high < bootsize)
 	    high = bootsize;
     }
+
+    maxlow = mm.largest(1ULL<<32) >> 10;
+    minhigh = 0;
+    maxhigh = mm.largest() >> 10;
+
+#else  // __x86_64__
+
+    minlow = MINLOW_KB;
+
+#if HAVE_FADUMP
+    // The kernel enforces minimum reservation size for FADUMP
+    if (config->KDUMP_FADUMP.value()) {
+        static const char rtas_fname[] =
+            "/proc/device-tree/rtas/ibm,configure-kernel-dump";
+        static const char opal_fname[] =
+            "/proc/device-tree/ibm,opal/dump";
+
+        unsigned long fadump_min = 0;
+        if (FilePath(rtas_fname).exists()) {
+            // RTAS_FADUMP_MIN_BOOT_MEM
+            // see arch/powerpc/platforms/pseries/rtas-fadump.h
+            fadump_min = MB(320);
+        } else if (FilePath(opal_fname).exists()) {
+            // OPAL_FADUMP_MIN_BOOT_MEM
+            // see arch/powerpc/platforms/powernv/opal-fadump.h
+            fadump_min = MB(768);
+        } else {
+            Debug::debug()->info("Unknown FADUMP implementation!");
+        }
+
+        if (fadump_min)
+            Debug::debug()->dbg("Minimum FADUMP size: %lu KiB", fadump_min);
+        if (minlow < fadump_min)
+            minlow = fadump_min;
+        if (required < minlow)
+            required = minlow;
+    }
+#endif
+
+    low = required;
+
+# if defined(__i386__)
+    maxlow = mm.largest(512ULL<<20) >> 10;
+# else
+    maxlow = mm.largest() >> 10;
+# endif  // __i386__
+
+    high = 0;
+    minhigh = 0;
+    maxhigh = 0;
+
+#endif  // __x86_64__
+
+    cout << "Total: " << (memtotal >> 10) << endl;
     cout << "Low: " << shr_round_up(low, 10) << endl;
     cout << "High: " << shr_round_up(high, 10) << endl;
-    cout << "MinLow: " << shr_round_up(low, 10) << endl;
-    cout << "MaxLow: " << (mm.largest(1ULL<<32) >> 20) << endl;
-    cout << "MinHigh: 0" << endl;
-    cout << "MaxHigh: " << (mm.largest() >> 20) << endl;
-#else
-    cout << "Low: " << shr_round_up(required, 10) << endl;
-    cout << "High: 0" << endl;
     cout << "MinLow: " << shr_round_up(minlow, 10) << endl;
-# if defined(__i386__)
-    cout << "MaxLow: " << (mm.largest(512ULL<<20) >> 20) << endl;
-# else
-    cout << "MaxLow: " << (mm.largest() >> 20) << endl;
-# endif
-    cout << "MinHigh: 0 " << endl;
-    cout << "MaxHigh: 0 " << endl;
-#endif
+    cout << "MaxLow: " << (maxlow >> 10) << endl;
+    cout << "MinHigh: " << shr_round_up(minhigh, 10) << endl;
+    cout << "MaxHigh: " << (maxhigh >> 10) << endl;
 }
 
 //}}}
