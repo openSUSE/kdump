@@ -151,6 +151,7 @@ static inline unsigned long s390x_align_memmap(unsigned long maxpfn)
 // for overflow, DMA buffers, etc.
 #define MINLOW_KB	MB(64 + 8)
 
+using std::cerr;
 using std::cout;
 using std::endl;
 using std::ifstream;
@@ -999,6 +1000,161 @@ const char *Calibrate::getName() const
 }
 
 // -----------------------------------------------------------------------------
+static unsigned long runtimeSize(SizeConstants const &sizes,
+                                 unsigned long memtotal)
+{
+    Configuration *config = Configuration::config();
+    unsigned long required, prev;
+
+    // Run-time kernel requirements
+    required = sizes.kernel_base_kb() + sizes.initramfs_kb();
+
+    // Double the size, because fbcon allocates its own framebuffer,
+    // and many DRM drivers allocate the hw framebuffer in system RAM
+    try {
+        Framebuffers fb;
+        required += 2 * fb.size() / 1024UL;
+    } catch(KError &e) {
+        Debug::debug()->dbg("Cannot get framebuffer size: %s", e.what());
+        required += 2 * DEF_FRAMEBUFFER_KB;
+    }
+
+    // LUKS Argon2 hash requires a lot of memory
+    try {
+        FilesystemTypeMap map;
+
+        if (config->KDUMP_COPY_KERNEL.value()) {
+            try {
+                map.addPath("/boot");
+            } catch (KError&) {
+                // ignore device resolution failures
+            }
+        }
+
+        std::istringstream iss(config->KDUMP_SAVEDIR.value());
+        std::string elem;
+        while (iss >> elem) {
+            RootDirURL url(elem, std::string());
+            if (url.getProtocol() == RootDirURL::PROT_FILE) {
+                try {
+                    map.addPath(url.getRealPath());
+                } catch (KError&) {
+                    // ignore device resolution failures
+                }
+            }
+        }
+
+        unsigned long crypto_mem = 0;
+        for (const auto& devmap : map.devices()) {
+            if (devmap.second == "crypto_LUKS") {
+                CryptInfo info(devmap.first);
+                if (crypto_mem < info.memory())
+                    crypto_mem = info.memory();
+            }
+        }
+        required += crypto_mem;
+
+        Debug::debug()->dbg("Adding %lu KiB for crypto devices", crypto_mem);
+    } catch (KError &e) {
+        Debug::debug()->dbg("Cannot check encrypted volumes: %s", e.what());
+        // Fall back to no allocation
+    }
+
+    // Add space for constant slabs
+    try {
+        SlabInfos slab;
+        for (const auto& elem : slab.getInfo()) {
+            if (elem.first.startsWith("Acpi-")) {
+                unsigned long slabsize = elem.second->numSlabs() *
+                    elem.second->pagesPerSlab() * sizes.pagesize() / 1024;
+                required += slabsize;
+
+                Debug::debug()->dbg("Adding %ld KiB for %s slab cache",
+                                    slabsize, elem.second->name().c_str());
+            }
+        }
+    } catch (KError &e) {
+        Debug::debug()->dbg("Cannot get slab sizes: %s", e.what());
+    }
+
+    // Add memory based on CPU count
+    unsigned long cpus = 0;
+    if (CAN_REDUCE_CPUS)
+        cpus = config->KDUMP_CPUS.value();
+    if (!cpus) {
+        SystemCPU syscpu;
+        unsigned long online = syscpu.numOnline();
+        unsigned long offline = syscpu.numOffline();
+        Debug::debug()->dbg("CPUs online: %lu, offline: %lu",
+                            online, offline);
+        cpus = online + offline;
+    }
+    Debug::debug()->dbg("Total assumed CPUs: %lu", cpus);
+    cpus *= sizes.percpu_kb();
+    Debug::debug()->dbg("Total per-cpu requirements: %lu KiB", cpus);
+    required += cpus;
+
+    // User-space requirements
+    unsigned long user = sizes.user_base_kb();
+    if (config->needsNetwork())
+        user += sizes.user_net_kb();
+
+    if (config->needsMakedumpfile()) {
+        // Estimate bitmap size (1 bit for every RAM page)
+        unsigned long bitmapsz = shr_round_up(memtotal / sizes.pagesize(), 2);
+        if (bitmapsz > MAX_BITMAP_KB)
+            bitmapsz = MAX_BITMAP_KB;
+        Debug::debug()->dbg("Estimated bitmap size: %lu KiB", bitmapsz);
+        user += bitmapsz;
+
+        // Makedumpfile needs additional 96 B for every 128 MiB of RAM
+        user += 96 * shr_round_up(memtotal, 20 + 7);
+    }
+    Debug::debug()->dbg("Total userspace: %lu KiB", user);
+    required += user;
+
+    // Make room for dirty pages and in-flight I/O:
+    //
+    //   required = prev + dirty + io
+    //      dirty = total * (DIRTY_RATIO / 100)
+    //         io = dirty * (BUF_PER_DIRTY_MB / 1024)
+    //
+    // solve the above using integer math:
+    unsigned long dirty;
+    prev = required;
+    required = required * MB(100) /
+        (MB(100) - MB(DIRTY_RATIO) - DIRTY_RATIO * BUF_PER_DIRTY_MB);
+    dirty = (required - prev) * MB(1) / (MB(1) + BUF_PER_DIRTY_MB);
+    Debug::debug()->dbg("Dirty pagecache: %lu KiB", dirty);
+    Debug::debug()->dbg("In-flight I/O: %lu KiB", required - prev - dirty);
+
+    // Account for "large hashes"
+    prev = required;
+    required = required * MB(1024) / (MB(1024) - KERNEL_HASH_PER_MB);
+    Debug::debug()->dbg("Large kernel hashes: %lu KiB", required - prev);
+
+    // Add space for memmap
+    prev = required;
+#if HAVE_FADUMP
+    if (config->KDUMP_FADUMP.value()) {
+        // FADUMP will map all memory
+        unsigned long maxpfn = memtotal / (sizes.pagesize() / 1024);
+        required += shr_round_up(maxpfn * sizes.sizeof_page(), 10);
+    } else {
+#endif
+        required = required * sizes.pagesize() / (sizes.pagesize() - sizes.sizeof_page());
+        unsigned long maxpfn = (required - prev) / sizes.sizeof_page();
+        required = prev + align_memmap(maxpfn) * sizes.sizeof_page();
+#if HAVE_FADUMP
+    }
+#endif
+    Debug::debug()->dbg("Maximum memmap size: %lu KiB", required - prev);
+
+    Debug::debug()->dbg("Total run-time size: %lu KiB", required);
+    return required;
+}
+
+// -----------------------------------------------------------------------------
 void Calibrate::execute()
 {
     Debug::debug()->trace("Calibrate::execute()");
@@ -1022,177 +1178,23 @@ void Calibrate::execute()
     Configuration *config = Configuration::config();
     SizeConstants sizes;
     MemMap mm;
-    unsigned long required, prev;
+    unsigned long required;
     unsigned long memtotal = shr_round_up(mm.total(), 10);
-    // Default (pessimistic) boot-time requirements.
+
+    // Get total RAM size
+    Debug::debug()->dbg("Expected total RAM: %lu KiB", memtotal);
+
+    // Calculate boot requirements
     unsigned long bootsize = sizes.kernel_base_kb() +
-        sizes.kernel_init_kb() + sizes.kernel_init_net_kb() +
-        sizes.initramfs_kb() + sizes.initramfs_net_kb();
+        sizes.kernel_init_kb() + sizes.initramfs_kb();
+    if (config->needsNetwork())
+        bootsize += sizes.kernel_init_net_kb() + sizes.initramfs_net_kb();
+    Debug::debug()->dbg("Memory needed at boot: %lu KiB", bootsize);
 
     try {
-	bool needsnet = config->needsNetwork();
-
-	// Get total RAM size
-        Debug::debug()->dbg("Expected total RAM: %lu KiB", memtotal);
-
-	// Calculate boot requirements
-	if (!needsnet)
-	    bootsize -= sizes.kernel_init_net_kb() + sizes.initramfs_net_kb();
-        Debug::debug()->dbg("Memory needed at boot: %lu KiB", bootsize);
-
-	// Run-time kernel requirements
-        required = sizes.kernel_base_kb() + sizes.initramfs_kb();
-
-        // Double the size, because fbcon allocates its own
-        // framebuffer, and many DRM drivers allocate the hw
-        // framebuffer in system RAM
-	try {
-	    Framebuffers fb;
-	    required += 2 * fb.size() / 1024UL;
-	} catch(KError &e) {
-	    Debug::debug()->dbg("Cannot get framebuffer size: %s", e.what());
-	    required += 2 * DEF_FRAMEBUFFER_KB;
-	}
-
-        // LUKS Argon2 hash requires a lot of memory
-        try {
-            FilesystemTypeMap map;
-
-            if (config->KDUMP_COPY_KERNEL.value()) {
-                try {
-                    map.addPath("/boot");
-                } catch (KError&) {
-                    // ignore device resolution failures
-                }
-            }
-
-            std::istringstream iss(config->KDUMP_SAVEDIR.value());
-            std::string elem;
-            while (iss >> elem) {
-                RootDirURL url(elem, std::string());
-                if (url.getProtocol() == RootDirURL::PROT_FILE) {
-                    try {
-                        map.addPath(url.getRealPath());
-                    } catch (KError&) {
-                        // ignore device resolution failures
-                    }
-                }
-            }
-
-            unsigned long crypto_mem = 0;
-            StringStringMap devices = map.devices();
-            for (StringStringMap::iterator it = devices.begin();
-                 it != devices.end();
-                 ++it) {
-                if (it->second == "crypto_LUKS") {
-                    CryptInfo info(it->first);
-                    if (crypto_mem < info.memory())
-                        crypto_mem = info.memory();
-                }
-            }
-            required += crypto_mem;
-
-            Debug::debug()->dbg("Adding %lu KiB for crypto devices",
-                                crypto_mem);
-        } catch (KError &e) {
-	    Debug::debug()->dbg("Cannot check encrypted volumes: %s", e.what());
-            // Fall back to no allocation
-        }
-
-	// Add space for constant slabs
-	try {
-	    SlabInfos slab;
-	    SlabInfos::Map info = slab.getInfo();
-	    SlabInfos::Map::iterator it;
-	    for (it = info.begin(); it != info.end(); ++it) {
-		if (it->first.startsWith("Acpi-")) {
-		    unsigned long slabsize = it->second->numSlabs() *
-			it->second->pagesPerSlab() * sizes.pagesize() / 1024;
-		    required += slabsize;
-
-		    Debug::debug()->dbg("Adding %ld KiB for %s slab cache",
-					slabsize, it->second->name().c_str());
-		}
-	    }
-	} catch (KError &e) {
-	    Debug::debug()->dbg("Cannot get slab sizes: %s", e.what());
-	}
-
-	// Add memory based on CPU count
-	unsigned long cpus = 0;
-	if (CAN_REDUCE_CPUS)
-	    cpus = config->KDUMP_CPUS.value();
-        if (!cpus) {
-	    SystemCPU syscpu;
-	    unsigned long online = syscpu.numOnline();
-	    unsigned long offline = syscpu.numOffline();
-	    Debug::debug()->dbg("CPUs online: %lu, offline: %lu",
-				online, offline);
-	    cpus = online + offline;
-	}
-	Debug::debug()->dbg("Total assumed CPUs: %lu", cpus);
-        cpus *= sizes.percpu_kb();
-        Debug::debug()->dbg("Total per-cpu requirements: %lu KiB", cpus);
-        required += cpus;
-
-	// User-space requirements
-	unsigned long user = sizes.user_base_kb();
-	if (needsnet)
-	    user += sizes.user_net_kb();
-
-	if (config->needsMakedumpfile()) {
-	    // Estimate bitmap size (1 bit for every RAM page)
-	    unsigned long bitmapsz = shr_round_up(memtotal / sizes.pagesize(), 2);
-	    if (bitmapsz > MAX_BITMAP_KB)
-		bitmapsz = MAX_BITMAP_KB;
-	    Debug::debug()->dbg("Estimated bitmap size: %lu KiB", bitmapsz);
-	    user += bitmapsz;
-
-	    // Makedumpfile needs additional 96 B for every 128 MiB of RAM
-	    user += 96 * shr_round_up(memtotal, 20 + 7);
-	}
-        Debug::debug()->dbg("Total userspace: %lu KiB", user);
-	required += user;
-
-	// Make room for dirty pages and in-flight I/O:
-	//
-	//   required = prev + dirty + io
-	//      dirty = total * (DIRTY_RATIO / 100)
-	//	   io = dirty * (BUF_PER_DIRTY_MB / 1024)
-	//
-	// solve the above using integer math:
-	unsigned long dirty;
-	prev = required;
-	required = required * MB(100) /
-	    (MB(100) - MB(DIRTY_RATIO) - DIRTY_RATIO * BUF_PER_DIRTY_MB);
-	dirty = (required - prev) * MB(1) / (MB(1) + BUF_PER_DIRTY_MB);
-        Debug::debug()->dbg("Dirty pagecache: %lu KiB", dirty);
-        Debug::debug()->dbg("In-flight I/O: %lu KiB", required - prev - dirty);
-
-	// Account for "large hashes"
-	prev = required;
-	required = required * MB(1024) / (MB(1024) - KERNEL_HASH_PER_MB);
-        Debug::debug()->dbg("Large kernel hashes: %lu KiB", required - prev);
-
-	// Add space for memmap
-	prev = required;
-#if HAVE_FADUMP
-        if (config->KDUMP_FADUMP.value()) {
-            // FADUMP will map all memory
-            unsigned long maxpfn = memtotal / (sizes.pagesize() / 1024);
-            required += shr_round_up(maxpfn * sizes.sizeof_page(), 10);
-        } else {
-#endif
-            required = required * sizes.pagesize() / (sizes.pagesize() - sizes.sizeof_page());
-            unsigned long maxpfn = (required - prev) / sizes.sizeof_page();
-            required = prev + align_memmap(maxpfn) * sizes.sizeof_page();
-#if HAVE_FADUMP
-        }
-#endif
-        Debug::debug()->dbg("Maximum memmap size: %lu KiB", required - prev);
+        required = runtimeSize(sizes, memtotal);
 
 	// Make sure there is enough space at boot
-	Debug::debug()->dbg("Total run-time size: %lu KiB", required);
 	if (required < bootsize)
 	    required = bootsize;
 
