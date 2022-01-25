@@ -367,9 +367,32 @@ if [ $((${KDUMP_VERBOSE:-0} & 16)) -gt 0 ] ; then
     KDUMPTOOL="$KDUMPTOOL -D"
 fi
 
+update=
+shrink=
+while [ $# -gt 0 ] ; do
+    case "$1" in
+        --update)
+            update=yes
+            ;;
+        --shrink)
+            shrink=yes
+            ;;
+        *)
+            echo "Unknown option: $1" >&2
+            exit 1
+            ;;
+    esac
+    shift
+done
+
 find_kernel || exit 6
-if [ "$1" = "--update" ] ; then
+
+if [ "$update" = yes ] ; then
     rebuild_kdumprd || exit 1
+fi
+
+if [ "$shrink" = yes ] ; then
+    $KDUMPTOOL calibrate --shrink > /dev/null
 fi
 
 if [ "$KDUMP_FADUMP" = "yes" ] ; then
