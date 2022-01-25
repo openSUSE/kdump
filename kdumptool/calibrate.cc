@@ -793,7 +793,7 @@ class MemMap {
 
     public:
 
-	typedef std::list<const MemRange*> List;
+        typedef std::list<MemRange> List;
 
         /**
 	 * Initialize a new MemMap object.
@@ -801,9 +801,6 @@ class MemMap {
 	 * @param[in] procdir Mount point for procfs
 	 */
 	MemMap(const char *procdir = "/proc");
-
-	~MemMap()
-	{ destroyRanges(); }
 
 	/**
 	 * Get the total System RAM (in bytes).
@@ -832,11 +829,6 @@ class MemMap {
     private:
 
 	List m_ranges;
-
-	/**
-	 * Destroy MemRange objects in m_ranges.
-	 */
-	void destroyRanges(void);
 };
 
 MemMap::MemMap(const char *procdir)
@@ -870,7 +862,7 @@ MemMap::MemMap(const char *procdir)
 	    std::string name;
 	    std::getline(f, name);
 	    if (name == "System RAM")
-		m_ranges.push_back(new MemRange(start, end));
+                m_ranges.emplace_back(start, end);
 	} else
 	    f.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
@@ -879,22 +871,12 @@ MemMap::MemMap(const char *procdir)
 }
 
 // -----------------------------------------------------------------------------
-void MemMap::destroyRanges(void)
-{
-    List::iterator it;
-    for (it = m_ranges.begin(); it != m_ranges.end(); ++it)
-	delete *it;
-    m_ranges.clear();
-}
-
-// -----------------------------------------------------------------------------
 unsigned long long MemMap::total(void) const
 {
-    List::const_iterator it;
     unsigned long long ret = 0;
 
-    for (it = m_ranges.begin(); it != m_ranges.end(); ++it)
-	ret += (*it)->length();
+    for (const auto& range : m_ranges)
+        ret += range.length();
 
     return ret;
 }
@@ -902,17 +884,16 @@ unsigned long long MemMap::total(void) const
 // -----------------------------------------------------------------------------
 unsigned long long MemMap::largest(unsigned long long limit) const
 {
-    List::const_iterator it;
     unsigned long long ret = 0;
 
-    for (it = m_ranges.begin(); it != m_ranges.end(); ++it) {
+    for (const auto& range : m_ranges) {
 	MemRange::Addr start, end, length;
 
-	start = (*it)->start();
+        start = range.start();
 	if (start > limit)
 	    continue;
 
-	end = (*it)->end();
+        end = range.end();
 	length = (end <= limit ? end : limit) - start + 1;
 	if (length > ret)
 	    ret = length;
@@ -927,14 +908,14 @@ unsigned long long MemMap::find(unsigned long size, unsigned long align) const
     List::const_reverse_iterator it;
 
     for (it = m_ranges.rbegin(); it != m_ranges.rend(); ++it) {
-	MemRange::Addr base = (*it)->end() + 1;
+        MemRange::Addr base = it->end() + 1;
 
 	if (base < size)
 	    continue;
 
 	base -= size;
 	base -= base % align;
-	if (base >= (*it)->start())
+        if (base >= it->start())
 	    return base;
     }
 
