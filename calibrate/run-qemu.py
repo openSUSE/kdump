@@ -108,7 +108,7 @@ class build_initrd(object):
             path,
             params['KERNELVER'],
         )
-        subprocess.call(args, env=env)
+        subprocess.call(args, env=env, stdout=sys.stderr)
 
         # Replace /init with trackrss:
         trackrss = os.path.join(bindir, 'trackrss')
