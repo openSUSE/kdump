@@ -526,7 +526,8 @@ static int init_random(void)
 {
 	int fd;
 
-	if (mknod(RANDOM_PATH, S_IFCHR | 0666, RANDOM_DEV) < 0) {
+	if (mknod(RANDOM_PATH, S_IFCHR | 0666, RANDOM_DEV) < 0 &&
+            errno != EEXIST) {
 		perror("create random");
 		return 1;
 	}
