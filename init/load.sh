@@ -375,7 +375,7 @@ while [ $# -gt 0 ] ; do
             update=yes
             ;;
         --shrink)
-            shrink=yes
+            shrink="$KDUMP_AUTO_RESIZE"
             ;;
         *)
             echo "Unknown option: $1" >&2

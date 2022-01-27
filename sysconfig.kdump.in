@@ -54,6 +54,16 @@ KDUMP_COMMANDLINE=""
 #
 KDUMP_COMMANDLINE_APPEND=""
 
+## Type:        yesno
+## Default:     "no"
+#
+# When this option is set to yes, kdump tries to shrink the crash
+# kernel reservation at boot.
+#
+# See also: kdump(6).
+#
+KDUMP_AUTO_RESIZE="no"
+
 @if @HAVE_FADUMP@ TRUE
 ## Type:        yesno
 ## Default:     "no"

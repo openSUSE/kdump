@@ -1,5 +1,6 @@
 next
 ----
+  * KDUMP_AUTO_RESIZE: Automatically shrink the reservation at boot
   * Use the pbl script to udpate the bootloader
 
 1.0

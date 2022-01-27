@@ -184,6 +184,27 @@ See also KDUMP_COMMANDLINE.
 
 Default is "".
 
+KDUMP_AUTO_RESIZE
+~~~~~~~~~~~~~~~~~
+
+Memory for the crash kernel is reserved at boot time. It is a large
+block that must be continuous in physical address space, and such
+allocations must be early because of memory fragmentation. However,
+the Linux kernel allows to shrink this reserved area later, and this
+is what kdump does before loading the panic kernel when this option
+is turned on.
+
+The intention is that the _crashkernel_ boot option is set to the
+maximum possible value (e.g. half of available RAM), which should be
+enough for the worst case. When the system boots, it checks the
+actual requirements and reduces the reservation accordingly.
+
+Note that this option is ignored if the reservation is not done by
+the Linux kernel, i.e. under the Xen hypervisor, or when using
+FADUMP on IBM POWER.
+
+Default is "no".
+
 ifeval::['@HAVE_FADUMP@'=='TRUE']
 
 KDUMP_FADUMP
