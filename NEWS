@@ -1,3 +1,6 @@
+next
+----
+
 1.0.1
 -----
   * KDUMP_AUTO_RESIZE: Automatically shrink the reservation at boot
