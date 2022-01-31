@@ -93,6 +93,7 @@ class build_initrd(object):
             os.path.abspath('dracut'),
             '--local',
             '--hostonly',
+            '--no-hostonly-default-device',
 
             # Standard kdump initrd options:
             '--omit', 'plymouth resume usrmount',

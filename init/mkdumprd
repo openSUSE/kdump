@@ -55,7 +55,7 @@ function status_message()
 # Create a new initrd using dracut                                           {{{
 function run_dracut()
 {
-    DRACUT_ARGS="--force --hostonly --omit 'plymouth resume usrmount' $@"
+    DRACUT_ARGS="--force --hostonly --no-hostonly-default-device --omit 'plymouth resume usrmount' $@"
 
     if [ -z "$KERNELVERSION" ]
     then
