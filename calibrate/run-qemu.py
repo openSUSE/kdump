@@ -217,8 +217,15 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
             model = 'virtio'
         else:
             model = 'e1000e'
-        extra_qemu_args.extend(('-nic', 'user,model={}'.format(model)))
-        extra_kernel_args.extend(('bootdev=eth0', 'ip=eth0:dhcp'))
+        mac = '12:34:56:78:9A:BC'
+        extra_qemu_args.extend((
+            '-nic', 'user,mac={},model={}'.format(mac, model)
+        ))
+        extra_kernel_args.extend((
+            'ifname=kdump0:{}'.format(mac),
+            'bootdev=kdump0',
+            'ip=kdump0:dhcp'
+        ))
 
     # Other arch-specific arguments
     if arch == 'aarch64':
