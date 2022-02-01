@@ -11,6 +11,7 @@
 Description=save kernel crash dump
 Documentation=man:kdump(7)
 RequiresMountsFor=@KDUMP_MOUNTPOINTS@
+After=dracut-initqueue.service
 Before=initrd-parse-etc.service
 ConditionPathExists=/etc/initrd-release
 ConditionPathExists=/proc/vmcore
