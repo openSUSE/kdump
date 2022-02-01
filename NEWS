@@ -1,6 +1,7 @@
 next
 ----
   * Accept cmake option -DCALIBRATE=OFF to skip calibration at build time
+  * Improved estimate of the largest possible crash kernel reservation
 
 1.0.1
 -----

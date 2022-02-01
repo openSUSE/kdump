@@ -835,9 +835,11 @@ class MemMap {
     private:
 
 	List m_ranges;
+        MemRange::Addr m_kstart, m_kend;
 };
 
 MemMap::MemMap(const char *procdir)
+    : m_kstart(0), m_kend(0)
 {
     FilePath path(procdir);
 
@@ -848,7 +850,8 @@ MemMap::MemMap(const char *procdir)
 
     f.setf(std::ios::hex, std::ios::basefield);
     while (f) {
-	if (f.peek() != ' ' && !f.eof()) {
+        int firstc = f.peek();
+        if (!f.eof()) {
 	    MemRange::Addr start, end;
 
 	    if (!(f >> start))
@@ -865,12 +868,16 @@ MemMap::MemMap(const char *procdir)
 	    while ((c = f.get()) == ' ');
 	    f.unget();
 
-	    std::string name;
+            KString name;
 	    std::getline(f, name);
-	    if (name == "System RAM")
+            if (firstc != ' ' && name == "System RAM") {
                 m_ranges.emplace_back(start, end);
-	} else
-	    f.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            } else if (firstc == ' ' && name.startsWith("Kernel ")) {
+                if (!m_kstart)
+                    m_kstart = start;
+                m_kend = end;
+            }
+        }
     }
 
     f.close();
@@ -900,7 +907,15 @@ unsigned long long MemMap::largest(unsigned long long limit) const
 	    continue;
 
         end = range.end();
-	length = (end <= limit ? end : limit) - start + 1;
+        if (end > limit)
+            end = limit;
+        length = end - start + 1;
+        if (start <= m_kstart && m_kstart <= end) {
+            // Worst case is if the kernel is placed exactly in the middle
+            MemRange::Addr ksize =
+                (end < m_kend ? end : m_kend) - m_kstart + 1;
+            length = (length - ksize) / 2;
+        }
 	if (length > ret)
 	    ret = length;
     }
