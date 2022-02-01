@@ -1,3 +1,6 @@
+next
+-----
+
 1.0.2
 -----
   * Accept cmake option -DCALIBRATE=OFF to skip calibration at build time
