@@ -82,11 +82,12 @@ class build_initrd(object):
             '/usr/bin'))
 
         if params['NET']:
+            netdrivers = [ 'af_packet' ]
             if params['ARCH'].startswith('s390'):
-                net_driver = 'virtio-net'
+                netdrivers.append('virtio-net')
             else:
-                net_driver = 'e1000e'
-            extra_args = ('--add-drivers', net_driver)
+                netdrivers.append('e1000e')
+            extra_args = ('--add-drivers', ' '.join(netdrivers))
         else:
             extra_args = ()
         args = (
