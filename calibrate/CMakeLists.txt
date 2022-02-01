@@ -46,14 +46,19 @@ ADD_CUSTOM_COMMAND(
         maxrss.py
         run-qemu.py
 )
-ADD_CUSTOM_TARGET(calibrate-conf
-    ALL
-    DEPENDS
-        calibrate.conf
-)
-INSTALL(
-    FILES
-        ${CMAKE_CURRENT_BINARY_DIR}/calibrate.conf
-    DESTINATION
-        /usr/lib/kdump
-)
+
+IF(CALIBRATE)
+
+    ADD_CUSTOM_TARGET(calibrate-conf
+        ALL
+        DEPENDS
+            calibrate.conf
+    )
+    INSTALL(
+        FILES
+            ${CMAKE_CURRENT_BINARY_DIR}/calibrate.conf
+        DESTINATION
+            /usr/lib/kdump
+    )
+
+ENDIF()

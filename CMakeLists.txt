@@ -31,6 +31,7 @@ set (PACKAGE_VERSION "1.0.1")
 
 include_directories("${PROJECT_BINARY_DIR}")
 
+option(CALIBRATE "Run QEMU to calibrate the build host" ON)
 
 #
 # Defines
