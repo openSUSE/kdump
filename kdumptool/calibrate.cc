@@ -806,7 +806,7 @@ class MemMap {
 	 *
 	 * @param[in] procdir Mount point for procfs
 	 */
-	MemMap(const char *procdir = "/proc");
+        MemMap(const SizeConstants &sizes, const char *procdir = "/proc");
 
 	/**
 	 * Get the total System RAM (in bytes).
@@ -834,12 +834,13 @@ class MemMap {
 
     private:
 
+        const SizeConstants& m_sizes;
 	List m_ranges;
         MemRange::Addr m_kstart, m_kend;
 };
 
-MemMap::MemMap(const char *procdir)
-    : m_kstart(0), m_kend(0)
+MemMap::MemMap(const SizeConstants &sizes, const char *procdir)
+    : m_sizes(sizes), m_kstart(0), m_kend(0)
 {
     FilePath path(procdir);
 
@@ -911,10 +912,11 @@ unsigned long long MemMap::largest(unsigned long long limit) const
             end = limit;
         length = end - start + 1;
         if (start <= m_kstart && m_kstart <= end) {
-            // Worst case is if the kernel is placed exactly in the middle
+            // Worst case is if the kernel and initrd are spread evenly
+            // across this RAM region
             MemRange::Addr ksize =
                 (end < m_kend ? end : m_kend) - m_kstart + 1;
-            length = (length - ksize) / 2;
+            length = (length - ksize - m_sizes.kernel_init_kb()) / 3;
         }
 	if (length > ret)
 	    ret = length;
@@ -1228,7 +1230,7 @@ void Calibrate::execute()
 
     Configuration *config = Configuration::config();
     SizeConstants sizes;
-    MemMap mm;
+    MemMap mm(sizes);
     unsigned long required;
     unsigned long memtotal = shr_round_up(mm.total(), 10);
 
