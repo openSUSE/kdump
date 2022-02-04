@@ -460,10 +460,15 @@ This variable specifies the dump format.
   dump file.
 
 *snappy*::
-  _snappy_ is very similar to _lzo_, but it uses the Snappy compression
+  _snappy_ is similar to _compressed_, but it uses the Snappy compression
   algorithm. It is usually considerably faster and achieves approximately
   the same compression ratio. Snappy is optimized for 64-bit, little-endian
   architectures (e.g. x86_64).
+
+*zstd*::
+  _zstd_ is again similar to _compressed_, but it uses the Zstandard
+  compression algorithm. While slightly slower, it can produce smaller
+  files than _lzo_ or _snapy_.
 
 Default: "compressed"
 

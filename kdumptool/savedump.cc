@@ -257,6 +257,7 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
     bool useCompressed = strcasecmp(dumpformat.c_str(), "compressed") == 0;
     bool useLZO = strcasecmp(dumpformat.c_str(), "lzo") == 0;
     bool useSnappy = strcasecmp(dumpformat.c_str(), "snappy") == 0;
+    bool useZstd = strcasecmp(dumpformat.c_str(), "zstd") == 0;
 
     if (noDump)
 	return;			// nothing to be done
@@ -319,6 +320,8 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
             cmdline << "-l ";
 	if (useSnappy)
 	    cmdline << "-p ";
+        if (useZstd)
+            cmdline << "-z ";
         cmdline << m_dump;
 
         string directCmdline = cmdline.str();

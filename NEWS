@@ -1,5 +1,6 @@
 next
 -----
+  * Support for zstd-compressed dumps.
 
 1.0.2
 -----
