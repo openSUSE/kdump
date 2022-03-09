@@ -609,6 +609,8 @@ function kdump_ip_config()						   # {{{
 
 	ipaddr="${cidr%/*}"
 	prefix="${cidr:${#ipaddr}}"
+	[ "$prefix" = "/32" ] && continue
+
 	set -- $rest
 
         if [ "$1" == "peer" ] ; then
