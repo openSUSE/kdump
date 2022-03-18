@@ -17,7 +17,7 @@ if [ "$KDUMP_FADUMP" = "yes" ]; then
 	echo 0 > "$FADUMP_REGISTERED"
     fi
 else
-    $KEXEC -p -u
+    $KEXEC -a -p -u
 fi
 
 test $? -eq 0 || exit 1
