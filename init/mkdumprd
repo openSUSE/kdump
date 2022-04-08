@@ -22,6 +22,7 @@ kdump_get_config || return 1
 KERNELVERSION=
 FORCE=0
 QUIET=0
+DEBUG=false
 DRACUT=/usr/bin/dracut
 
 #
@@ -36,7 +37,8 @@ function usage()
     echo "                    Defaults to the running kernel."
     echo "   -f               Force regeneration even if the configuration"
     echo "                    did not change"
-    echo "   -q               quiet (don't print status messages)"
+    echo "   -q               Quiet (don't print status messages)"
+    echo "   -d               Output debug information of the initrd build process"
     echo "   -h               Print this help"
 }                                                                          # }}}
 
@@ -63,6 +65,7 @@ function run_dracut()
     fi
 
     DRACUT_ARGS="$DRACUT_ARGS --add 'kdump' $INITRD $KERNELVERSION"
+    $DEBUG && DRACUT_ARGS="--debug $DRACUT_ARGS"
     echo "Regenerating kdump initrd ..." >&2
     eval "bash -$- $DRACUT $DRACUT_ARGS"
 }                                                                          # }}}
@@ -75,6 +78,8 @@ function build_fadumprd()
     # be booted after a crash, but any installed kernel can be used
     # to save the dump. Consequently, let mkinitrd regenerate initrd
     # for all installed kernels.
+
+    $DEBUG && export dracut_args="--debug"
     echo "Regenerating all initrds ..." >&2
     eval "bash -$- /sbin/mkinitrd"
 }                                                                          # }}}
@@ -92,7 +97,7 @@ function build_initrd()
 
 
 # Option parsing                                                             {{{
-while getopts "hfqk:K:I:" name ; do
+while getopts "hfqk:K:I:d" name ; do
     case $name in
         k)  KERNELVERSION=$OPTARG
             ;;
@@ -111,6 +116,9 @@ while getopts "hfqk:K:I:" name ; do
             ;;
 
         I)  INITRD=$OPTARG
+            ;;
+        
+	d)  DEBUG=true
             ;;
 
         ?)  usage

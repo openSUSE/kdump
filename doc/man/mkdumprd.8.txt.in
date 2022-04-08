@@ -81,6 +81,9 @@ all standard command line parsing rules.
   Be quiet. Don't output status messages. Used to call *mkdumprd*(8) from
   /etc/init.d/kdump init script.
 
+*-d*::
+  Output debug information of the initrd build process.
+
 FILES
 -----
 
