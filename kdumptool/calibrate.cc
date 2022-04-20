@@ -143,7 +143,11 @@ static inline unsigned long s390x_align_memmap(unsigned long maxpfn)
 #define DIRTY_RATIO		20
 
 // Reserve this much percent above the calculated value
-#define ADD_RESERVE             10
+#define ADD_RESERVE_PCT		20
+
+// Reserve this much additional KiB above the calculated value
+#define ADD_RESERVE_KB		MB(8)
+
 
 // Maximum size of the page bitmap
 // 32 MiB is 32*1024*1024*8 = 268435456 bits
@@ -1252,7 +1256,7 @@ void Calibrate::execute()
 	    required = bootsize;
 
         // Reserve a fixed percentage on top of the calculation
-        required = (required * (100 + ADD_RESERVE)) / 100;
+        required = (required * (100 + ADD_RESERVE_PCT)) / 100 + ADD_RESERVE_KB;
 
     } catch(KError &e) {
 	Debug::debug()->info(e.what());
