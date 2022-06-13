@@ -178,7 +178,15 @@ kdump_cmdline_zfcp() {
 
 kdump_ip_set_explicitly() {
     local _opt
-    for _opt in $KDUMP_COMMANDLINE $KDUMP_COMMANDLINE_APPEND
+    local opts
+
+    if [ "$KDUMP_FADUMP" = yes ]; then
+        _opts="`cat /proc/cmdline`"
+    else
+        _opts="$KDUMP_COMMANDLINE $KDUMP_COMMANDLINE_APPEND"
+    fi
+
+    for _opt in $_opts
     do
         if [ "${_opt%%=*}" = "ip" -a \
              "${_opt#*=}" != "$_opt" ]
