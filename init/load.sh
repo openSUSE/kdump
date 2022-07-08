@@ -120,8 +120,7 @@ function build_kdump_commandline()
         if [ ${KDUMP_CPUS:-1} -ne 0 ] ; then
             nr_cpus=$(cpus_param "$kdump_kernel")=${KDUMP_CPUS:-1}
         fi
-        # Use deadline for saving the memory footprint
-        commandline="$commandline elevator=deadline sysrq=yes reset_devices acpi_no_memhotplug cgroup_disable=memory nokaslr"
+        commandline="$commandline sysrq=yes reset_devices acpi_no_memhotplug cgroup_disable=memory nokaslr"
         commandline="$commandline numa=off"
         commandline="$commandline irqpoll ${nr_cpus}"
         commandline="$commandline root=kdump rootflags=bind rd.udev.children-max=8"
