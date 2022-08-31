@@ -160,7 +160,7 @@ While NFS and CIFS can be handled via mounting, FTP and SFTP must be handled in
 the copy process (via external binary or a library). We need both network access
 and disk access in the initrd. For this, we need the disk drivers and network
 drivers and network configuration. This is only a configuration problem since
-everything is already implemented in +mkinitrd+ to provide network boot (NFS
+everything is already implemented in +dracut+ to provide network boot (NFS
 root) facility.
 
 Filtering

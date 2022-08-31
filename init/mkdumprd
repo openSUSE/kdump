@@ -24,6 +24,7 @@ FORCE=0
 QUIET=0
 DEBUG=false
 DRACUT=/usr/bin/dracut
+UPDATE_BOOTLOADER=/sbin/update-bootloader
 
 #
 # Prints usage.                                                              {{{
@@ -76,12 +77,13 @@ function build_fadumprd()
 {
     # With fadump, this script has no control over which kernel will
     # be booted after a crash, but any installed kernel can be used
-    # to save the dump. Consequently, let mkinitrd regenerate initrd
+    # to save the dump. Consequently, let dracut regenerate initrd
     # for all installed kernels.
 
-    $DEBUG && export dracut_args="--debug"
+    DRACUT_ARGS="--force --regenerate-all"
+    $DEBUG && DRACUT_ARGS="--debug $DRACUT_ARGS"
     echo "Regenerating all initrds ..." >&2
-    eval "bash -$- /sbin/mkinitrd"
+    eval "bash -$- $DRACUT $DRACUT_ARGS && type -P $UPDATE_BOOTLOADER &> /dev/null && $UPDATE_BOOTLOADER --refresh"
 }                                                                          # }}}
 
 #
