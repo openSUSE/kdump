@@ -54,7 +54,7 @@ because
 * the kdump initrd should use no splash screen,
 * the kdump initrd includes *kdumptool*(8) and all required libraries.
 
-This script calls *mkinitrd*(8) with all required parameters. If the initrd
+This script calls *dracut*(8) with all required parameters. If the initrd
 already exists, it checks first if the configuration file or the kernel are
 newer, and only rebuilds the initrd if necessary.
 
@@ -102,7 +102,7 @@ later.
 
 SEE ALSO
 --------
-*kdumptool*(8), *mkinitrd*(8),
+*kdumptool*(8), *dracut*(8),
 http://en.opensuse.org/Kdump[_http://en.opensuse.org/Kdump_]
 
 
