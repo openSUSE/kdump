@@ -282,7 +282,7 @@ install() {
 	inst_binary "$moddir/device-timeout-generator" \
 	    "$systemdutildir"/system-generators/kdump-device-timeout-generator
 
-	inst_simple "$KDUMP_LIBDIR"/kdump-save /kdump/kdump-save
+	inst_binary "$KDUMP_LIBDIR"/kdump-save /kdump/kdump-save
 	awk -v mountpoints="${kdump_mnt[*]}" '{
 		gsub(/@KDUMP_MOUNTPOINTS@/, mountpoints)
 		print
