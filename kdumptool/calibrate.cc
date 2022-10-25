@@ -1167,21 +1167,11 @@ static unsigned long runtimeSize(SizeConstants const &sizes,
 
     // Add space for memmap
     prev = required;
-#if HAVE_FADUMP
-    if (config->KDUMP_FADUMP.value()) {
-        // FADUMP will map all memory
-        unsigned long maxpfn = memtotal / (sizes.pagesize() / 1024);
-        required += shr_round_up(maxpfn * sizes.sizeof_page(), 10);
-    } else {
-#endif
-        required = required * sizes.pagesize() / (sizes.pagesize() - sizes.sizeof_page());
-        unsigned long maxpfn = (required - prev) / sizes.sizeof_page();
-        required = prev + align_memmap(maxpfn) * sizes.sizeof_page();
-#if HAVE_FADUMP
-    }
-#endif
-    Debug::debug()->dbg("Maximum memmap size: %lu KiB", required - prev);
+    required = required * sizes.pagesize() / (sizes.pagesize() - sizes.sizeof_page());
+    unsigned long maxpfn = (required - prev) / sizes.sizeof_page();
+    required = prev + align_memmap(maxpfn) * sizes.sizeof_page();
 
+    Debug::debug()->dbg("Maximum memmap size: %lu KiB", required - prev);
     Debug::debug()->dbg("Total run-time size: %lu KiB", required);
     return required;
 }
@@ -1295,37 +1285,6 @@ void Calibrate::execute()
 #else  // __x86_64__
 
     minlow = MINLOW_KB;
-
-#if HAVE_FADUMP
-    // The kernel enforces minimum reservation size for FADUMP
-    if (config->KDUMP_FADUMP.value()) {
-        static const char rtas_fname[] =
-            "/proc/device-tree/rtas/ibm,configure-kernel-dump";
-        static const char opal_fname[] =
-            "/proc/device-tree/ibm,opal/dump";
-
-        unsigned long fadump_min = 0;
-        if (FilePath(rtas_fname).exists()) {
-            // RTAS_FADUMP_MIN_BOOT_MEM
-            // see arch/powerpc/platforms/pseries/rtas-fadump.h
-            fadump_min = MB(320);
-        } else if (FilePath(opal_fname).exists()) {
-            // OPAL_FADUMP_MIN_BOOT_MEM
-            // see arch/powerpc/platforms/powernv/opal-fadump.h
-            fadump_min = MB(768);
-        } else {
-            Debug::debug()->info("Unknown FADUMP implementation!");
-        }
-
-        if (fadump_min)
-            Debug::debug()->dbg("Minimum FADUMP size: %lu KiB", fadump_min);
-        if (minlow < fadump_min)
-            minlow = fadump_min;
-        if (required < minlow)
-            required = minlow;
-    }
-#endif
-
     low = required;
 
 # if defined(__i386__)
@@ -1347,6 +1306,26 @@ void Calibrate::execute()
     cout << "MaxLow: " << (maxlow >> 10) << endl;
     cout << "MinHigh: " << shr_round_up(minhigh, 10) << endl;
     cout << "MaxHigh: " << (maxhigh >> 10) << endl;
+
+#if HAVE_FADUMP
+    unsigned long fadump, minfadump, maxfadump;
+
+    /* min = 64 MB, max = 50% of total memory, suggested = 5% of total memory */
+    maxfadump = memtotal / 2;
+    minfadump = MB(64);
+    if (maxfadump < minfadump)
+        maxfadump = minfadump;
+    fadump = memtotal / 20;
+    if (fadump < minfadump)
+        fadump = minfadump;
+    if (fadump > maxfadump)
+        fadump = maxfadump;
+
+
+    cout << "Fadump: "    << shr_round_up(fadump, 10) << endl;
+    cout << "MinFadump: " << shr_round_up(minfadump, 10) << endl;
+    cout << "MaxFadump: " << shr_round_up(maxfadump, 10) << endl;
+#endif
 
     if (m_shrink)
         shrink_crash_size(required << 10);
