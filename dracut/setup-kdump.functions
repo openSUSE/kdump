@@ -1233,7 +1233,7 @@ ACTION=="add", SUBSYSTEM=="ccwgroup", KERNEL=="$_dev", ATTR{layer2}="$_layer2"
 ACTION=="add", SUBSYSTEM=="ccwgroup", KERNEL=="$_dev", ATTR{online}="1"
 EOF
 
-    cat >"${_root}/etc/udev/rules.d/70-persistent-net-${_bootif}.rules" <<EOF
+    cat >"${_root}/etc/udev/rules.d/80-persistent-net-${_bootif}.rules" <<EOF
 SUBSYSTEM=="net", ACTION=="add", DRIVERS=="qeth"$_dev_id_match, KERNELS=="$_dev", ATTR{type}=="$_type", NAME="$_bootif"
 EOF
 }									   # }}}
