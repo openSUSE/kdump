@@ -197,6 +197,9 @@ kdump_ip_set_explicitly() {
     return 1
 }
 
+# Output variables:
+#   kdump_kmods  additional kernel modules updated
+#   kdump_ifmap  hardware network interface map updated
 kdump_cmdline_ip() {
     [ "$kdump_neednet" = y ] || return 0
 
@@ -251,6 +254,9 @@ cmdline_zfcp() {
     [ "$_arch" = "s390" -o "$_arch" = "s390x" ] && kdump_cmdline_zfcp
 }
 
+# Output variables:
+#   kdump_kmods  additional kernel modules updated
+#   kdump_ifmap  hardware network interface map updated
 cmdline_net() {
     kdump_cmdline_ip
 }
@@ -265,7 +271,12 @@ install() {
         local _cmdline=$(cmdline_zfcp)
         [ -n "$_cmdline" ] && printf "%s\n" "$_cmdline" >> "${initdir}/etc/cmdline.d/99kdump-zfcp.conf"
 
-        _cmdline=$(cmdline_net)
+	# don't call cmdline_net in a subshell, it sets global variables
+	_cmdline_f=$(mktemp) || return 1
+	cmdline_net > $_cmdline_f
+        _cmdline=$(< $_cmdline_f)
+	rm _cmdline_f
+
         [ -n "$_cmdline" ] && printf "%s\n" "$_cmdline" >> "${initdir}/etc/cmdline.d/99kdump-net.conf"
     fi
 
