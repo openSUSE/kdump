@@ -202,6 +202,19 @@ INSTALL(FILES
         /usr/lib/kdump
 )
 
+IF("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "ppc64(le)?")
+    INSTALL(
+        FILES
+            ${CMAKE_CURRENT_SOURCE_DIR}/kdump-migrate-action.sh
+        DESTINATION
+            /usr/lib/kdump
+        PERMISSIONS
+            OWNER_READ OWNER_WRITE OWNER_EXECUTE
+            GROUP_READ GROUP_EXECUTE
+            WORLD_READ WORLD_EXECUTE
+    )
+ENDIF()
+
 #
 # Source Packages
 #
