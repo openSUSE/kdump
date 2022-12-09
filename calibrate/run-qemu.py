@@ -258,6 +258,19 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
             elfcorehdr.path, elfcorehdr.address),
         *extra_qemu_args,
     )
+
+    # create the log files and monitor them with tail -f 
+    # (redirected to stderr)
+    # for debugging possible problems inside the VM
+    f = open(params['MESSAGES_LOG'], "w")
+    f.close()
+    subprocess.Popen(["tail", "-f", params['MESSAGES_LOG']], stdout=2)
+    
+    f = open(params['TRACKRSS_LOG'], "w")
+    f.close()
+    subprocess.Popen(["tail", "-f", params['TRACKRSS_LOG']], stdout=2)
+
+    
     subprocess.call(qemu_args)
 
     results = dict()

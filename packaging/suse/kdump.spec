@@ -145,7 +145,11 @@ export CXXFLAGS="%{optflags} -std=c++11"
 	-DCALIBRATE=OFF
 %endif
 
-%cmake_build
+# run make directly instead of cmake_build, which would run make in parallel
+# and try to group output, preventing any debugging output from qemu if it
+# fails to exit
+make VERBOSE=1
+
 
 %check
 %ctest
