@@ -69,7 +69,6 @@ BuildRequires:  libxslt
 BuildRequires:  pkgconfig
 BuildRequires:  systemd-sysvinit
 BuildRequires:  util-linux-systemd
-BuildRequires:  wicked
 BuildRequires:  zlib-devel
 BuildRequires:  pkgconfig(systemd)
 BuildRequires:  pkgconfig(udev)
@@ -87,7 +86,6 @@ BuildRequires:  qemu-ipxe
 BuildRequires:  qemu-vgabios
 BuildRequires:  systemd-sysvinit
 BuildRequires:  util-linux-systemd
-BuildRequires:  wicked
 %endif
 Requires:       /usr/bin/sed
 Requires:       curl
