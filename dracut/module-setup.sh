@@ -275,7 +275,7 @@ install() {
 	_cmdline_f=$(mktemp) || return 1
 	cmdline_net > $_cmdline_f
         _cmdline=$(< $_cmdline_f)
-	rm _cmdline_f
+	rm $_cmdline_f
 
         [ -n "$_cmdline" ] && printf "%s\n" "$_cmdline" >> "${initdir}/etc/cmdline.d/99kdump-net.conf"
     fi
