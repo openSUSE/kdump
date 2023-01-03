@@ -1017,7 +1017,8 @@ function kdump_modify_config()						   # {{{
 	shadow: files
 	group: files
 EOF
-      grep '^[[:space:]]*hosts:' /etc/nsswitch.conf \
+          grep -s '^[[:space:]]*hosts:' /etc/nsswitch.conf \
+          || grep '^[[:space:]]*hosts:' /usr/etc/nsswitch.conf \
 	  || echo 'hosts: dns [!UNAVAIL=return] files'
     } > "${dest}/etc/nsswitch.conf"
 
