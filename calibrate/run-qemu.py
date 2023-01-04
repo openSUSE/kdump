@@ -264,14 +264,17 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
     # for debugging possible problems inside the VM
     f = open(params['MESSAGES_LOG'], "w")
     f.close()
-    subprocess.Popen(["tail", "-f", params['MESSAGES_LOG']], stdout=2)
+    tail_messages = subprocess.Popen(["tail", "-f", params['MESSAGES_LOG']], stdout=2)
     
     f = open(params['TRACKRSS_LOG'], "w")
     f.close()
-    subprocess.Popen(["tail", "-f", params['TRACKRSS_LOG']], stdout=2)
+    tail_trackrss = subprocess.Popen(["tail", "-f", params['TRACKRSS_LOG']], stdout=2)
 
     
     subprocess.call(qemu_args)
+
+    tail_messages.kill()
+    tail_trackrss.kill()
 
     results = dict()
 
