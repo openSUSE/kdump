@@ -436,6 +436,7 @@ static void execute()
 
 int main(int argc, char **argv)
 {
+    bool continue_on_error = true;
     try {
         // sanity check
         if (!FilePath(DEFAULT_DUMP).exists())
@@ -449,13 +450,18 @@ int main(int argc, char **argv)
 
         Configuration *config = Configuration::config();
         config->readFile(CONFIG_FILE);
+	continue_on_error = config->KDUMP_CONTINUE_ON_ERROR.value();
 
         execute();
     } catch(std::exception &e) {
         cerr << "Cannot save dump!" << endl
              << endl
-             << "  " << e.what() << "." << endl
-             << endl
+             << "  " << e.what() << "." << endl;
+
+	if (continue_on_error)
+	    return 1;
+
+        cerr << endl
              << "Something failed. You can try to debug it here." << endl;
         runShell();
         return 1;
