@@ -50,7 +50,7 @@
 Name:           kdump
 Version:        1.0.2+git26.gc6fab38
 Release:        0
-Summary:        Script for kdump
+Summary:        Kernel crash dump scripts and utilities
 License:        GPL-2.0-or-later
 Group:          System/Kernel
 URL:            https://github.com/openSUSE/kdump
