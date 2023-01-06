@@ -1,0 +1,55 @@
+On maintaining calibrate.conf
+-----------------------------
+
+kdumptool calibrate needs a config file populated with measured
+memory values: /usr/lib/kdump/calibrate.conf
+
+These values are determined by building the package with the
+with_calibrate macro defined. This causes the build to run
+an instrumented kdump environment in a qemu VM, tracking memory
+consumption during the boot and execution of kdump.
+All the values are recorded in calibrate.conf
+
+Because SUSE needs stable builds and these values are not stable,
+the package is normally not built with the with_calibrate macro.
+Instead, pre-generated values are used in calibrate.conf.
+
+The values in calibrate.conf are different for different distributions and
+architectures. The package sources include a file calibrate.conf.all
+with all possible distribution/architecture combinations. Every line is prefixed
+with the distribution and architecture, following a ':'. The build
+"greps" and "cuts" the appropriate set of values from this file into
+/usr/lib/kdump/calibrate.conf
+
+The values in calibrate.conf.all should be re-generated after major changes to
+the distribution or when a new distribution/architecture is introduced. To do
+this, the maintainer needs to:
+
+1) build the package with with_calibrate
+  
+  One way to do this is to branch the package. In OBS, in the branched
+  projects's "Project Config" tab, enter:
+	  Macros:
+	  %_with_calibrate 1
+	  :Macros
+
+  The package build will run qemu and generate a fresh calibrate.conf
+  file, not using the pre-built values from calibrate.conf.all
+  The generated calibrate.conf will contain one extra line, not normally present:
+  GENERATED_ON=distro.arch 
+  This is the prefix that should be used in calibrate.conf.all
+
+2) extract calibrate.conf from the built RPMs for all the architectures and 
+   distributions that you want to update the values for, prefix the lines with the 
+   value of GENERATED_ON and update calibrate.conf.all with those lines
+
+   To make this task easier, you can use the update_calibrate.py script.
+   Run it in the directory with your branched osc package working copy.
+
+   It will extract calibrate.conf from all the built kdump binaries in the project
+   and update calibrate.conf.all with the extracted values.
+
+   The old calibrate.conf.all is saved in calibrate.conf.all.old
+
+3) make sure the changed values make sense by comparing calibrate.conf.all and 
+   calibrate.conf.all.old and commit the new calibrate.conf.all
