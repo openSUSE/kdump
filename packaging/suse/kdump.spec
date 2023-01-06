@@ -19,12 +19,12 @@
 
 %if 0%{?is_opensuse}
 %if 0%{suse_version} > 1500
-%define distro_suffix tumbleweed.%{_arch}
+%define distro_prefix tumbleweed.%{_arch}
 %else
-%define distro_suffix leap%{sle_version}.%{_arch}
+%define distro_prefix leap%{sle_version}.%{_arch}
 %endif
 %else
-%define distro_suffix sle%{sle_version}.%{_arch}
+%define distro_prefix sle%{sle_version}.%{_arch}
 %endif
 
 %ifarch aarch64
@@ -55,7 +55,7 @@ License:        GPL-2.0-or-later
 Group:          System/Kernel
 URL:            https://github.com/openSUSE/kdump
 Source:         %{name}-%{version}.tar.xz
-Source1:        %{name}-calibrate.tar.bz2
+Source1:        calibrate.conf.all
 Source2:        %{name}-rpmlintrc
 BuildRequires:  asciidoc
 BuildRequires:  cmake >= 3.7
@@ -134,7 +134,7 @@ after a crash dump has occured.
 
 %prep
 %setup -q
-%setup -q -D -T -a 1
+cp %{SOURCE1} calibrate.conf.all
 
 %build
 export CXXFLAGS="%{optflags} -std=c++11"
@@ -159,9 +159,18 @@ make VERBOSE=1
 # empty directory
 mkdir -p %{buildroot}%{_localstatedir}/crash
 
-# Install pre-built calibrate.conf
 %if !%{with calibrate}
-cp calibrate/calibrate.conf.%{distro_suffix} %{buildroot}/usr/lib/kdump/calibrate.conf
+# get distro_prefix-prefixed lines from calibrate.conf.all
+grep "^%distro_prefix:" calibrate.conf.all | cut -f 2- -d: > %{buildroot}/usr/lib/kdump/calibrate.conf
+if ! test -s %{buildroot}/usr/lib/kdump/calibrate.conf; then
+echo "no calibration data for %distro_prefix in calibrate.conf.all, see packaging/suse/calibrate/README"
+false
+fi
+%else
+# save the distro_prefix 
+echo "GENERATED_ON=%{distro_prefix}" >> %{buildroot}/usr/lib/kdump/calibrate.conf
+echo "generated calibrate.conf:"
+cat  %{buildroot}/usr/lib/kdump/calibrate.conf
 %endif
 
 # symlink for init script
