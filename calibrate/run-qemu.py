@@ -240,6 +240,8 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
         'console={}'.format(console),
         'root=kdump',
         'rootflags=bind',
+	'rd.shell=0',
+	'rd.emergency=poweroff',
         *extra_kernel_args,
         '--',
         'trackrss={}'.format(logdev),
