@@ -83,8 +83,10 @@ BuildRequires:  kernel-default
 BuildRequires:  makedumpfile
 BuildRequires:  procps
 BuildRequires:  python3
+%ifnarch s390x
 BuildRequires:  qemu-ipxe
 BuildRequires:  qemu-vgabios
+%endif
 BuildRequires:  systemd-sysvinit
 BuildRequires:  util-linux-systemd
 BuildRequires:  wicked
