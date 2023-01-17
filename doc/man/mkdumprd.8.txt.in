@@ -42,7 +42,7 @@ mkdumprd - (Re)build the initramfs for kdump
 
 SYNOPSIS
 --------
-*mkdumprd* [-h] [-q] [-f] [-k _kernelver_]
+*mkdumprd* [_options_]
 
 DESCRIPTION
 -----------
@@ -63,9 +63,6 @@ OPTIONS
 All option parsing is done via the *getopt(3)* function, and therefore follows
 all standard command line parsing rules.
 
-*-h* | *--help*::
-  Shows help output and exits.
-
 *-k* _kernelversion_::
   Specifies the kernel version. If no version is specified and also no kernel
   or initrd are specified, then mkdumprd uses *kdumptool*(8) to find out the
@@ -77,12 +74,18 @@ all standard command line parsing rules.
 *-I* _initrd_::
   Specifies the resulting initrd. If you specify that option, also specify _-K_.
 
+*-f*::
+  Force regeneration even if the configuration did not change.
+
 *-q*::
   Be quiet. Don't output status messages. Used to call *mkdumprd*(8) from
   /etc/init.d/kdump init script.
 
 *-d*::
   Output debug information of the initrd build process.
+
+*-h*::
+  Shows help output and exits.
 
 FILES
 -----

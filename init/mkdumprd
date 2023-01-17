@@ -36,11 +36,15 @@ function usage()
     echo ""
     echo "   -k <version>     Kernel to create the initrd for."
     echo "                    Defaults to the running kernel."
+    echo "   -K <kernel>      Kernel binary to create the initrd for."
+    echo "                    If you specify that option, also specify -I."
+    echo "   -I <initrd>      Resulting initrd."
+    echo "                    If you specify that option, also specify -K."
     echo "   -f               Force regeneration even if the configuration"
-    echo "                    did not change"
-    echo "   -q               Quiet (don't print status messages)"
-    echo "   -d               Output debug information of the initrd build process"
-    echo "   -h               Print this help"
+    echo "                    did not change."
+    echo "   -q               Quiet (don't print status messages)."
+    echo "   -d               Output debug information of the initrd build process."
+    echo "   -h               Print this help."
 }                                                                          # }}}
 
 #
