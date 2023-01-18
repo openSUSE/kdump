@@ -25,6 +25,9 @@
 #include "util.h"
 #include "debug.h"
 
+#define KERNEL_USR_PATH     "/usr/lib/modules/"
+#define KERNEL_USR_PATH_LEN (sizeof(KERNEL_USR_PATH)-1)
+
 //{{{ KernelPath ---------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
@@ -54,10 +57,20 @@ KernelPath::KernelPath(FilePath const &path)
     Debug::debug()->trace("KernelPath::KernelPath(%s)", path.c_str());
 
     m_directory = path.dirName();
-    KString name = path.getCanonicalPath().baseName();
+    FilePath cpath = path.getCanonicalPath();
+    KString name = cpath.baseName();
 
-    for (auto const pfx : imageNames(Util::getArch())) {
-        if (name.startsWith(pfx)) {
+    for (auto const& pfx : imageNames(Util::getArch())) {
+        if (name == pfx) {
+            // Image name does not contain version, check if path is:
+            // /usr/lib/modules/<version>/image
+            std::string kdir = cpath.dirName();
+            std::string::size_type pos = kdir.find(KERNEL_USR_PATH);
+            if (pos != std::string::npos) {
+                m_version.assign(kdir, pos + KERNEL_USR_PATH_LEN);
+            }
+        } else if (name.startsWith(pfx)) {
+            // Image name should contain version: image-<kver>
             if (name[pfx.length()] == '-') {
                 m_version.assign(name, pfx.length() + 1);
             }
