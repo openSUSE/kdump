@@ -1,6 +1,6 @@
 [Unit]
 Description=Load kdump kernel and initrd
-After=local-fs.target network.service YaST2-Second-Stage.service YaST2-Firstboot.service
+After=local-fs.target network.service YaST2-Second-Stage.service YaST2-Firstboot.service kdump-early.service
 
 [Service]
 Type=oneshot
