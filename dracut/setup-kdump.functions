@@ -843,7 +843,7 @@ function kdump_update_mount()						   # {{{
     if [ "$device" = "/dev/root" ]; then
         root=$(kdump_get_root_from_commandline)
 
-        if [ -n $root ]; then
+        if [ -n "$root" ]; then
             device=$root
         fi
     fi
