@@ -273,7 +273,9 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
     tail_trackrss = subprocess.Popen(["tail", "-f", params['TRACKRSS_LOG']], stdout=2)
 
     
-    subprocess.call(qemu_args)
+    result = subprocess.run(qemu_args, capture_output=True, check=True)
+    if not result.returncode:
+        print("qemu result: ", result, file=sys.stderr)
 
     tail_messages.kill()
     tail_trackrss.kill()
@@ -334,23 +336,20 @@ with subprocess.Popen(('get_kernel_version', params['KERNEL']),
 
 with tempfile.TemporaryDirectory() as tmpdir:
     oldcwd = os.getcwd()
-    try:
-        os.chdir(tmpdir)
-        elfcorehdr = build_elfcorehdr(oldcwd, ADDR_ELFCOREHDR)
+    os.chdir(tmpdir)
+    elfcorehdr = build_elfcorehdr(oldcwd, ADDR_ELFCOREHDR)
 
-        install_kdump_init(oldcwd)
-        init_local_dracut(params)
+    install_kdump_init(oldcwd)
+    init_local_dracut(params)
 
-        params['NET'] = False
-        initrd = build_initrd(oldcwd, params, 'dummy.conf')
-        results = run_qemu(oldcwd, params, initrd, elfcorehdr)
+    params['NET'] = False
+    initrd = build_initrd(oldcwd, params, 'dummy.conf')
+    results = run_qemu(oldcwd, params, initrd, elfcorehdr)
 
-        params['NET'] = True
-        initrd = build_initrd(oldcwd, params, 'dummy-net.conf')
-        netresults = run_qemu(oldcwd, params, initrd, elfcorehdr)
-
-    finally:
-        os.chdir(oldcwd)
+    params['NET'] = True
+    initrd = build_initrd(oldcwd, params, 'dummy-net.conf')
+    netresults = run_qemu(oldcwd, params, initrd, elfcorehdr)
+    os.chdir(oldcwd)
 
 calc_diff(results, netresults, 'KERNEL_INIT', 'INIT_NET')
 calc_diff(results, netresults, 'INIT_CACHED', 'INIT_CACHED_NET')
