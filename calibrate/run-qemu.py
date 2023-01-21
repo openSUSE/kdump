@@ -27,7 +27,19 @@ params['MESSAGES_LOG'] = 'messages.log'
 params['TRACKRSS_LOG'] = 'trackrss.log'
 
 # Store the system architecture for convenience
+arch = os.uname()[4]
 params['ARCH'] = os.uname()[4]
+
+if arch == "i386" or arch == "i586" or arch == "i686" or arch == "x86_64":
+    image="vmlinuz"
+elif arch.startswith("s390"):
+    image="image"
+elif arch == "aarch64":
+    image="Image"
+else:
+    image="vmlinux"
+
+params['KERNEL'] = "/boot/" + image
 
 # Physical address where elfcorehdr should be loaded.
 # This is tricky. The elfcorehdr memory range is removed from the kernel
@@ -317,18 +329,6 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
 
 def calc_diff(src, dst, key, diffkey):
     src[diffkey] = max(0, dst[key] - src[key])
-
-with subprocess.Popen(('../kdumptool/kdumptool',
-                       '-F', os.path.join(params['SCRIPTDIR'], 'dummy.conf'),
-                       'find_kernel'),
-                      stdout=subprocess.PIPE) as p:
-    for line in p.communicate()[0].decode().splitlines():
-        (key, val) = line.split(':')
-        if key == 'Kernel':
-            params['KERNEL'] = val.strip()
-if 'KERNEL' not in params:
-    print('Cannot determine target kernel', file=sys.stderr)
-    exit(1)
 
 with subprocess.Popen(('get_kernel_version', params['KERNEL']),
                       stdout=subprocess.PIPE) as p:
