@@ -273,7 +273,7 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
     tail_trackrss = subprocess.Popen(["tail", "-f", params['TRACKRSS_LOG']], stdout=2)
 
     
-    result = subprocess.run(qemu_args, capture_output=True, check=True)
+    result = subprocess.run(qemu_args, stdout=sys.stderr, stderr=sys.stderr, check=True)
     if not result.returncode:
         print("qemu result: ", result, file=sys.stderr)
 
