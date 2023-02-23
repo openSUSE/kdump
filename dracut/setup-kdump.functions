@@ -485,47 +485,45 @@ function kdump_hwaddr()							   # {{{
 #   kdump_ifmap  hardware network interface map updated
 function kdump_ifname_config()						   # {{{
 {
-    local _iface="$1"
-    local _ifkind=$(kdump_ifkind "$_iface")
+        local _iface="$1"
+        local _ifkind=$(kdump_ifkind "$_iface")
 
-    if [ -z "$_ifkind" ]
-    then
-	kdump_iface="kdump$kdump_ifnum"
-	kdump_ifnum=$(( $kdump_ifnum + 1 ))
-	kdump_ifmap="$kdump_ifmap $_iface:$kdump_iface"
-
-	local _drv=$( readlink "/sys/class/net/$_iface/device/driver" )
-	case "$_drv" in
-	    */qeth)
-		;;
-	    *)
-		local hwaddr=$(kdump_hwaddr "$_iface")
-		[ -n "$hwaddr" ] && kdump_netif="$kdump_netif ifname=$kdump_iface:$hwaddr"
-		;;
-	esac
-
-	local mod="/sys/class/net/$_iface/device/driver/module"
-	if [ -L "$mod" ]
-	then
-	    mod=$(readlink "$mod")
-	    kdump_kmods="$kdump_kmods ${mod##*/}"
-	fi
-    else
 	case "$_ifkind" in
-	    bridge)
-		kdump_bridge_config "$_iface"
-		;;
-	    bond)
-		kdump_bond_config "$_iface"
-		;;
-	    vlan)
-		kdump_vlan_config "$_iface"
-		;;
-	    *)
-		return 1
-		;;
+		"" | infiniband)
+			kdump_iface="kdump$kdump_ifnum"
+			kdump_ifnum=$(( $kdump_ifnum + 1 ))
+			kdump_ifmap="$kdump_ifmap $_iface:$kdump_iface"
+
+			local _drv=$( readlink "/sys/class/net/$_iface/device/driver" )
+			case "$_drv" in
+				*/qeth)
+					;;
+				*)
+					local hwaddr=$(kdump_hwaddr "$_iface")
+					[ -n "$hwaddr" ] && kdump_netif="$kdump_netif ifname=$kdump_iface:$hwaddr"
+					;;
+			esac
+
+			local mod="/sys/class/net/$_iface/device/driver/module"
+			if [ -L "$mod" ]
+			then
+				mod=$(readlink "$mod")
+				kdump_kmods="$kdump_kmods ${mod##*/}"
+			fi
+			;;
+		bridge)
+			kdump_bridge_config "$_iface"
+			;;
+		bond)
+			kdump_bond_config "$_iface"
+			;;
+		vlan)
+			kdump_vlan_config "$_iface"
+			;;
+		*)
+			return 1
+			;;
 	esac
-    fi
 }									   # }}}
 
 #
