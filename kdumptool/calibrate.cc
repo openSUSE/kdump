@@ -143,10 +143,10 @@ static inline unsigned long s390x_align_memmap(unsigned long maxpfn)
 #define DIRTY_RATIO		20
 
 // Reserve this much percent above the calculated value
-#define ADD_RESERVE_PCT		20
+#define ADD_RESERVE_PCT		30
 
 // Reserve this much additional KiB above the calculated value
-#define ADD_RESERVE_KB		MB(8)
+#define ADD_RESERVE_KB		MB(64)
 
 
 // Maximum size of the page bitmap
