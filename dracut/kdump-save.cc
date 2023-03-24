@@ -28,6 +28,7 @@
 #include <unistd.h>
 
 #include "config.h"
+#include "debug.h"
 #include "global.h"
 #include "configuration.h"
 #include "deletedumps.h"
@@ -385,6 +386,10 @@ static void saveDump()
 static void execute()
 {
     Configuration *config = Configuration::config();
+
+    if (config->KDUMP_VERBOSE.value() & 8)
+	    Debug::debug()->setStderrLevel(Debug::DL_TRACE);
+    Debug::debug()->trace("execute()");
 
     // start LED blinking
     BlinkProcess blinker;
