@@ -16,8 +16,7 @@
 # 02110-1301, USA.
 
 . /usr/lib/kdump/setup-kdump.functions
-
-kdump_get_config || return 1
+. /usr/lib/kdump/kdump-read-config.sh || exit 1
 
 KERNELVERSION=
 FORCE=0
@@ -94,12 +93,64 @@ function build_fadumprd()
 # Build $INITRD with dump capture support using dracut                       {{{
 function build_initrd()
 {
+    get_mount
     if [ "$KDUMP_FADUMP" = "yes" ] ; then
         build_fadumprd
     else
-        run_dracut --compress \'xz -0 --check=crc32\'
+        run_dracut --compress \'xz -0 --check=crc32\' ${KDUMP_DRACUT_MOUNT_OPTION}
     fi
 }                                                                          # }}}
+
+# exports KDUMP_DRACUT_MOUNT_OPTION for targets mounted by dracut
+# For FADUMP builds, this will be propagated to zz-fadumpinit module
+function get_mount()
+{
+	# dracut needs to mount the target directory for the
+	# file, nfs and cifs protocols
+	MOUNTPOINT="/kdump/mnt"
+	case ${KDUMP_PROTO} in 
+		file)
+			read -r SOURCE TARGET FS OPTIONS < <(findmnt --raw -n --target ${KDUMP_SAVEDIR#*://} --output=source,target,fstype,options) ||
+				error "Cannot find mount point for ${${KDUMP_SAVEDIR#*://}}"
+			TARGET="${MOUNTPOINT}${TARGET}"
+			export KDUMP_DRACUT_MOUNT_OPTION="--mount \"${SOURCE} ${TARGET} ${FS} ${OPTIONS}\""
+			;;
+		cifs)
+                        # split URL into host, directory, user and password parts
+			URL="${KDUMP_SAVEDIR#*://}"
+                        DIR="/${URL#*/}"    
+                        HOST="${URL%%/*}"  
+			UPW="${HOST%%@*}"
+			HOST="${HOST#*@}"
+			USER=
+			PW=
+			if ! [[ ${UPW} == ${HOST} ]]; then
+				USER="${UPW%%:*}"
+                        	PW="${UPW#*:}"    
+				[[ ${PW} == ${UPW} ]] && PW=""
+			fi
+			
+			export KDUMP_DRACUT_MOUNT_OPTION="--mount \"//${HOST}${DIR} ${MOUNTPOINT} cifs user=$USER,password=$PW\""
+			;;
+		nfs)
+                        # split URL into host, directory, user and password parts
+                        URL="${KDUMP_SAVEDIR#*://}"
+                        DIR="/${URL#*/}"    
+                        HOST="${URL%%/*}"  
+			
+			export KDUMP_DRACUT_MOUNT_OPTION="--mount \"${HOST}:${DIR} ${MOUNTPOINT} nfs nolock\""
+			;;
+		*)
+			export KDUMP_DRACUT_MOUNT_OPTION=""
+			;;
+	esac
+}
+
+function error()
+{
+	echo "$1" >&2
+	exit 1
+}
 
 
 # Option parsing                                                             {{{
@@ -183,6 +234,7 @@ if (( ! $FORCE )) ; then
 fi
 
 build_initrd
+
 
 exit $?
 

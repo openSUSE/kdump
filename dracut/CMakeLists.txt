@@ -23,13 +23,6 @@ TARGET_INCLUDE_DIRECTORIES(device-timeout-generator
 TARGET_LINK_LIBRARIES(device-timeout-generator
     ${BLKID_LIBRARIES})
 
-ADD_EXECUTABLE(kdump-save
-    kdump-save.cc
-)
-TARGET_INCLUDE_DIRECTORIES(kdump-save
-    PUBLIC ${CMAKE_SOURCE_DIR}/kdumptool)
-TARGET_LINK_LIBRARIES(kdump-save common ${EXTRA_LIBS})
-
 INSTALL(
     TARGETS
         device-timeout-generator
@@ -38,10 +31,14 @@ INSTALL(
 )
 
 INSTALL (
-    TARGETS
-        kdump-save
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/kdump-save
     DESTINATION
-        /usr/lib/kdump
+        /usr/lib/dracut/modules.d/99kdump
+    PERMISSIONS
+        OWNER_READ OWNER_WRITE OWNER_EXECUTE
+        GROUP_READ GROUP_EXECUTE
+        WORLD_READ WORLD_EXECUTE
 )
 
 INSTALL(
@@ -71,7 +68,7 @@ INSTALL(
 
 INSTALL(
     FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/kdump-save.service.in
+        ${CMAKE_CURRENT_SOURCE_DIR}/kdump-save.service
     DESTINATION
         /usr/lib/dracut/modules.d/99kdump
     PERMISSIONS

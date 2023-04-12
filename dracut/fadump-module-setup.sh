@@ -31,6 +31,7 @@ install() {
         "--omit" "plymouth resume usrmount zz-fadumpinit"
         "--no-compress"
         "--no-early-microcode"
+	"${KDUMP_DRACUT_MOUNT_OPTION}"
     )
     local _dracut="${dracut_cmd:-dracut}"
     "$_dracut" "${_dracut_args[@]}" "$_initrd" "$kernel" || return 1
