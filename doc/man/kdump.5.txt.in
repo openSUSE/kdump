@@ -47,9 +47,8 @@ SYNOPSIS
 
 DESCRIPTION
 -----------
-This configuration file provides various options for the kdump loading and
-saving process. It's mostly read by *kdumptool*(8) but also by the kdump init
-script.
+This configuration file provides various options for generating the kdump 
+initramfs and the loading and saving process.
 
 OPTIONS
 -------
@@ -139,9 +138,6 @@ the number of *makedumpfile*(8) processes created.
 If the value is zero, all available CPUs are used, i.e. the _maxcpus_
 parameter is not added to the kdump kernel command line.
 
-*Note:* This parameter does not work properly for the _ELF_ format,
-because *makedumpfile*(8) does not support split _ELF_ dump files.
-
 Default is 1.
 
 
@@ -202,14 +198,14 @@ Note that this option is ignored if the reservation is not done by
 the Linux kernel, i.e. under the Xen hypervisor, or when using
 FADUMP on IBM POWER.
 
-Default is "no".
+Default is "false".
 
 ifeval::['@HAVE_FADUMP@'=='TRUE']
 
 KDUMP_FADUMP
 ~~~~~~~~~~~~
 
-If this option is set to "yes", kdump will use the FADUMP mechanism
+If this option is set to "true", kdump will use the FADUMP mechanism
 (firmware-assisted dump). With this option, the secondary kernel is never
 loaded from the primary kernel. Instead, the kdump feature is added to the
 standard initrd. If the primary kernel crashes, the firmware reboots the
@@ -218,18 +214,18 @@ boot, saves the dump, and continues with normal startup.
 
 *Note:* FADUMP is only available on powerpc.
 
-Default is "no".
+Default is "false".
 
 KDUMP_FADUMP_SHELL
 ~~~~~~~~~~~~~~~~~~
 
-When this option is "yes", kdump launches a shell after saving the dump.
+When this option is "true", kdump launches a shell after saving the dump.
 If FADUMP is disabled, this option has no effect, because launching a shell
-is the default action when KDUMP_IMMEDIATE_REBOOT is set to "no".
+is the default action when KDUMP_IMMEDIATE_REBOOT is set to "false".
 
 This option can be useful for debugging.
 
-Default is "no".
+Default is "false".
 
 endif::[]
 
@@ -245,9 +241,8 @@ MAKEDUMPFILE_OPTIONS
 ~~~~~~~~~~~~~~~~~~~~
 
 Additional options for *makedumpfile*(8). makedumpfile will be used to save the
-dump if KDUMP_DUMPLEVEL is non-zero or KDUMP_DUMPFORMAT is not _ELF_.
-Normally, you don't have to specify any options here, but you may be asked in
-Bugzilla to add the _-D_ option for debugging.
+dump unless KDUMP_DUMPFORMAT is _raw_.
+You may want to set this to _-X_ to exclude XEN DomU pages.
 
 Default is "".
 
@@ -255,16 +250,16 @@ Default is "".
 KDUMP_IMMEDIATE_REBOOT
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Immediately reboot after saving the core in the kdump kernel? Use "yes" or "no".
+Immediately reboot after saving the core in the kdump kernel? Use "true" or "false".
 
 ifeval::['@HAVE_FADUMP@'=='TRUE']
-If this option is set to "no" and FADUMP is enabled, normal boot process
+If this option is set to "false" and FADUMP is enabled, normal boot process
 continues after saving the dump. This can save one reboot, but on NUMA
 systems all node-level memory is allocated on the dumping node, degrading
 the performance of all other nodes until reboot.
 endif::[]
 
-Default is "yes".
+Default is "true".
 
 KDUMP_TRANSFER
 ~~~~~~~~~~~~~~
@@ -288,49 +283,33 @@ Default: "".
 KDUMP_SAVEDIR
 ~~~~~~~~~~~~~
 
-The directory where dumps are saved to. If the directory does not exist, it will
-be created. The directory is a URL and must conform to the syntax described in
+The directory where dumps are saved to - either an absolute path or a URL.
+The URL and must conform to the syntax described in
 the section "URL FORMAT" below. If the directory does not exist, it will be
-created. (That is true for all targets, even network targets. Of course the user
-must have the permission to create directories.)
+created, except on NFS and CIFS mounts.
 
 Below that directory, for each dump a directory with a time stamp in the
-following format will be created: "YYYY-MM-TT-HH:MM". That directory contains
-the dump and various other files, depending which dump target will be used and
-which dump settings are made.
+following format will be created: "YYYY-MM-DD-HH-MM". That directory contains
+the vmcore dump, the dmesg and a README.txt file.
 
-If KDUMP_COPY_KERNEL is set, that directory will also contain the kernel.
-
-You can specify multiple targets separated by spaces. The dump will then be
-split and saved to all target directories in parallel. This is useful if the
-targets are on different storage devices, because their combined I/O bandwidth
-can be used.
-Note how this option interacts with KDUMP_CPUS.  If you specify more CPUs than
-target locations, then they will be assigned to the available processes in a
-round-robin fashion (i.e. more than one process will be writing to the same
-directory). If you specify more locations than CPUs, then only the first
-KDUMP_CPUS locations will be used.
-This feature is supported only for local files using the kdump-compressed
-format.
-
-Default: "file:///var/log/dump".
+Default: "/var/crash".
 
 
 KDUMP_KEEP_OLD_DUMPS
 ~~~~~~~~~~~~~~~~~~~~
 
-Number of old dumps to keep. That variable is only honored on local directories
-(i.e., if KDUMP_SAVEDIR starts with _file_) because we think it's bad from a
-security point of view if other hosts delete stuff (that may be from another
-hosts) on a dump server. The deletion process takes place before the dumps are
-saved. So if you specify 3 here, then after the dump has been saved, 4 dumps are
-on disk.
+Number of old dumps to keep. This variable is only honored on local directories
+(i.e., if KDUMP_SAVEDIR is a directory or starts with _file_) because we think
+it's bad from a security point of view if other hosts delete stuff (that may be
+from another hosts) on a dump server. The deletion process takes place before
+the dumps are saved. So if you specify 3 here, then after the dump has been
+saved, 4 dumps are on disk.
 
 Set that variable to "0" to disable the deletion of dumps entirely, and set
 that variable to "-1" to delete all dumps, i.e. then only the just saved dump is
 on disk.
 
-Default: "5"
+Default: "0"
 
 
 KDUMP_FREE_DISK_SIZE
@@ -365,8 +344,9 @@ several options, you have to add their value. The options are:
   /etc/init.d/kdump.
 
 8::
-  Debugging for kdump transfer mechanism. That is executed in initrd and
-  generates lots of output. However, it's very useful if something does not
+  Debugging. The kdump-save script and most of the programs it runs 
+  (including makedumpfile)  are run with debugging options.
+  Generates lots of output. However, it's very useful if something does not
   work.
 
 16::
@@ -378,16 +358,16 @@ several options, you have to add their value. The options are:
 So, for example, if you want to have the command line on stdout when loading the
 kernel and also in the system log, just use KDUMP_VERBOSE = 5 (i.e. 1 + 4).
 
-Default: "3".
+Default: "0".
 
 
 KDUMP_DUMPLEVEL
 ~~~~~~~~~~~~~~~
 
 Determines the dump level. If KDUMP_DUMPLEVEL is non-zero, then
-*makedumpfile*(8) is used to strip pages that may not be necessary for
-analysing. 0 means no stripping, and 31 is the maximum dump level, i.e.
-0 produces the largest dump files and 31 the smallest.
+*makedumpfile*(8) strips pages that may not be necessary for analysing. 0 means
+no stripping, and 31 is the maximum dump level, i.e.  0 produces the largest
+dump files and 31 the smallest.
 
 The following table from makedumpfile(8) shows what each dump level means:
 
@@ -469,6 +449,11 @@ This variable specifies the dump format.
   compression algorithm. While slightly slower, it can produce smaller
   files than _lzo_ or _snapy_.
 
+*raw*::
+  _raw_ creates a verbatim copy of /proc/vmcore without any processing
+  with makedumpfile.
+  makedumpfile is still used to extract kernel log buffer.
+
 Default: "compressed"
 
 
@@ -476,7 +461,7 @@ KDUMP_CONTINUE_ON_ERROR
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 If something goes wrong while saving the dump or deleting old dumps in initrd,
-then *kdumptool*(8) normally tries to execute the next action. However, it can
+kdump-save normally tries to execute the next action. However, it can
 be useful to open a shell at that point in time and fix or debug the problem.
 This happens when KDUMP_CONTINUE_ON_ERROR is set to "false".
 
@@ -498,8 +483,8 @@ Default: ""
 KDUMP_PRESCRIPT
 ~~~~~~~~~~~~~~~
 
-Program that is executed before taking the dump. You have to include that
-program in KDUMP_REQUIRED_PROGRAMS.
+Program or command that is executed before taking the dump. You have to include
+that program in KDUMP_REQUIRED_PROGRAMS.
 
 Default: ""
 
@@ -507,8 +492,8 @@ Default: ""
 KDUMP_POSTSCRIPT
 ~~~~~~~~~~~~~~~~
 
-Program that is executed after taking the dump and before the system is
-rebooted. You have to include that program in KDUMP_REQUIRED_PROGRAMS.
+Program or command that is executed after taking the dump and before the system
+is rebooted. You have to include that program in KDUMP_REQUIRED_PROGRAMS.
 
 As a special case, if KDUMP_POSTSCRIPT contains +/usr/lib/fence_kdump_send+,
 this script is automatically added to the initrd, and network is configured by
@@ -516,50 +501,6 @@ default.
 
 Default: ""
 
-
-KDUMP_COPY_KERNEL
-~~~~~~~~~~~~~~~~~
-
-Not only copy the dump to KDUMP_SAVEDIR but also the installed kernel. Valid
-values are "yes" and "no". If you want to have the debugging information also
-copied, which is required to open the program, you also have to install the
-_kernel-<flavour>-debuginfo_ package.
-
-Modules are not copied, only the kernel image and the debugging file.
-
-Default: "yes"
-
-
-KDUMPTOOL_FLAGS
-~~~~~~~~~~~~~~~
-
-This is a space-separated list of flags to tweak the run-time behaviour of
-*kdumptool*(8). These flags are recognized:
-
-*NOSPARSE*::
-  Disable the creation of sparse-files. This flag is for debugging purposes,
-  e.g. if the file system or network protocol has problems with sparse files.
-  Because SFTP and FTP are not mounted, that option has no meaning when saving
-  the dump to SFTP and FTP.
-
-*SPLIT*::
-  If KDUMP_CPUS>1, use the _--split_ option of *makedumpfile*(8) instead of
-  the default _--num-threads_.
-
-*SINGLE*::
-  Specify this flag to force the use of only one CPU for dumping, regardless
-  of the value of KDUMP_CPUS.
-  It disables the _--split_ and _--num-threads_ options of *makedumpfile*(8).
-
-  For compatibility with older versions, *NOSPLIT* is an alias for *SINGLE*.
-  Its use is deprecated.
-
-*XENALLDOMAINS*::
-  When dumping a Xen virtualization host, *makedumpfile*(8) is normally
-  invoked with the _-X_ option to exclude DomU pages. This flag can be
-  used to include all pages in the dump.
-
-Default: ""
 
 KDUMP_NETCONFIG
 ~~~~~~~~~~~~~~~
@@ -614,7 +555,18 @@ does not even add the _network_ dracut module to the initrd.
 
 Default: "auto"
 
-KDUMP_SMTP_SERVER
+KDUMP_NET_TIMEOUT
+~~~~~~~~~~~~~~~~~
+
+Number of seconds to wait for the target machine to respond to ping.
+Setting to "0" disables this timeout.
+You may need to do this if the machine does not respond to ping and
+KDUMP_CONTINUE_ON_ERROR is set to "false" to avoid being dropped to a
+debug shell. 
+
+Default: "30"
+
+KDUMP_SMTP_SERVER - not implemented yet
 ~~~~~~~~~~~~~~~~~
 
 If you want to get an email after the dump has been copied, you can specify an
@@ -629,7 +581,7 @@ no authentication will be used.
 
 Default: ""
 
-KDUMP_SMTP_USER
+KDUMP_SMTP_USER - not implemented yet
 ~~~~~~~~~~~~~~~
 
 Username used for SMTP authentication. Also specify KDUMP_SMTP_PASSWORD in that
@@ -638,7 +590,7 @@ used.
 
 Default: ""
 
-KDUMP_SMTP_PASSWORD
+KDUMP_SMTP_PASSWORD - not implemented yet
 ~~~~~~~~~~~~~~~~~~~
 
 Password used for SMTP authentication. Also specify KDUMP_SMTP_USER in that
@@ -647,7 +599,7 @@ used.
 
 Default: ""
 
-KDUMP_NOTIFICATION_TO
+KDUMP_NOTIFICATION_TO - not implemented yet
 ~~~~~~~~~~~~~~~~~~~~~
 
 Email address where notification mails should be sent to. Don't specify a
@@ -658,7 +610,7 @@ Example: john@myprovider.de
 
 Default: ""
 
-KDUMP_NOTIFICATION_CC
+KDUMP_NOTIFICATION_CC - not implemented yet
 ~~~~~~~~~~~~~~~~~~~~~
 
 Space-separated list of email addresses where notification mails should be sent
@@ -669,19 +621,19 @@ Example: "john@myprovider.de doe@myprovider.de"
 
 Default: ""
 
-KDUMP_SSH_HOST_KEY
+KDUMP_HOST_KEY
 ~~~~~~~~~~~~~~~~~~
 
-Target host key encoded with base64, i.e. as found in +~/.ssh/known_hosts+.
-This is used for the SFTP transfer protocol to verify the authenticity of
-the remote host. If this field is left empty, the setup scripts will try
-to get it automatically using *ssh-keygen -F $target_host*.
+Target host key and type encoded with base64, i.e. as found in
++~/.ssh/known_hosts+.  This is used for the SFTP transfer protocol to verify
+the authenticity of the remote host. If this field is left empty, the setup
+scripts will try to get it automatically using *ssh-keygen -F $target_host*.
 
 If you want to disable host key checking, set this variable to "*".
 
 Example (broken into lines for readability):
 
-  AAAAB3NzaC1yc2EAAAABIwAAAIEAxIJIeuVX0F0u53wMgH22fdl62ifLXRwaPAXPsCr
+  ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAIEAxIJIeuVX0F0u53wMgH22fdl62ifLXRwaPAXPsCr
   vyerMEb5DXHnIv1sYdzlJ1g/2Iw+ppjGDh1En/P12Dpl2uLBZh0MOrM71spTjvTwV2M
   KZtXrYjZUIPIZdd9vrI+/LEI0nw7LSdnKKgkAIXMhaRrq9N6uoZWe41ilU4NpnL/k=
 
@@ -690,10 +642,10 @@ Default: ""
 KDUMP_SSH_IDENTITY
 ~~~~~~~~~~~~~~~~~~
 
-List of SSH identity files for public key authentication. If empty, kdump
-will try all standard OpenSSH identities for the 'root' user (rsa, dsa,
-ecdsa, ed25519, in this order). The path to every identity file is relative
-to +~root/.ssh+, or an absolute path can be given.
+List of SSH identity files for public key authentication. If empty, kdump will
+copy all standard OpenSSH identities for the 'root' user (rsa, dsa, ecdsa,
+ed25519). The path to every identity file is relative to +~root/.ssh+, or an
+absolute path can be given.
 
 Example: "/root/.ssh/id_kdump_rsa"
 
@@ -720,18 +672,18 @@ The _specification_ varies for each protocol.
 Local files (_file_)
 ~~~~~~~~~~~~~~~~~~~~
 
-That type describes a local path.
+This type describes a local path.
 
 _Format:_ [*file*://]/_path_
 
-As shown, the _file_ prefix is optional, i.e. a simple path is still valid.
+As shown, the _file://_ prefix is optional, i.e. a simple path is still valid.
 The _path_ must start with a leading slash (/), i.e. only absolute paths are
 allowed.
 
 _Examples:_
 
-* +/var/log/dump+
-* +file:///var/log/dump+
+* +/var/crash+
+* +file:///var/crash+
 
 
 File Transfer Protocol (_ftp_)
@@ -755,10 +707,10 @@ files (see above).
 
 _Examples:_
 
-* +ftp://neptunium/var/log/dump+
-* +ftp://bwalle@neptunium.suse.de/var/log/dump+
-* +ftp://bwalle:dontsay@strauss.suse.de:123/var/log/dump+
-* +ftp://192.168.0.70/var/log/dump+
+* +ftp://neptunium/var/crash+
+* +ftp://bwalle@neptunium.suse.de/var/crash+
+* +ftp://bwalle:dontsay@strauss.suse.de:123/var/crash+
+* +ftp://192.168.0.70/var/crash+
 
 
 Secure File Transfer Protocol (_sftp_)
@@ -766,38 +718,35 @@ Secure File Transfer Protocol (_sftp_)
 
 This URL type is used to specify paths on a remote server that is reachable via
 SFTP. It's important that an SFTP server must be running (which is the default
-on SUSE), the *kdumptool* does not use FISH (FIles transferred over SHell
-protocol).
+on SUSE). 
 
-_Format:_ *sftp*://\[__user__@]_hostname_[:__port__]/_path_
+_Format:_ *sftp*://\[_user_[:__password__]@]_hostname_[:__port__]/_path_
 
 It's possible to use "scp" as an alias for "sftp" (for backward compatibility),
-but it is a misnomer; *kdumptool* does not implement the SCP protocol and it
+but it is a misnomer; kdump does not implement the SCP protocol and it
 will use SFTP instead.
 
 See the description of FTP for an explanation of the _hostname_ and _port_
 elements.
 
-After a system crash, the crashed machine first verifies the identity of the
-target host to make sure it does not save the dump to an imposter. Then the
-target host verifies the identity of the crashed machine. SSH private/public
-key pairs are used in both cases.
-
 Server Identification
 ^^^^^^^^^^^^^^^^^^^^^
 
-Since system dumps may contain sensitive information, *kdump* uses strict
-host key checking for the target server. The SSH client must have a copy
+Since system dumps may contain sensitive information, *kdump* uses strict host
+key checking for the target server by default. The SSH client must have a copy
 of the public part of the target server's host key. The copy is kept in a
 known_hosts file on the client. *Kdump* will use the key found in
-+~root/.ssh/known_hosts+ when the kdump initrd is generated.
++~root/.ssh/known_hosts+ when the kdump initrd is generated. 
+KDUMP_SSH_IDENTITY may be used to either disable host key checking 
+(not recommended) or specify an alternative host key.
 
 Client Authentication
 ^^^^^^^^^^^^^^^^^^^^^
 
-The crashed system uses root's private SSH key to login to the target system.
-The public part of that key must be copied to the target user's
+The crashed system uses root's private SSH key to login to the target system by
+default.  The public part of that key must be copied to the target user's
 +~/.ssh/authorized_keys+ on the target host.
+This should be preferred to setting the password in the URL.
 
 Example Setup
 ^^^^^^^^^^^^^
@@ -825,7 +774,7 @@ you run this command.
 root@crasher:~# ssh-keygen -t rsa -b 4096 -N "" -f ~/.ssh/id_rsa
 --------------------------------------------------------------------------------
 +
-Do not use any password to encrypt the key. *kdumptool* is designed to be used
+Do not use any password to encrypt the key - kdump is designed to be used
 non-interactively.
 
 3. Append the content of +\~.ssh/id_rsa.pub+ to +~dump/.ssh/authorized_keys+
@@ -837,15 +786,15 @@ root@crasher:~# ssh-copy-id dump@collector
 
 _Examples:_
 
-* +sftp://dump@collector:22/var/log/dump+
-* +sftp://neptunium/var/log/dump+
+* +sftp://dump@collector:22/var/crash+
+* +sftp://neptunium/var/crash+
 
 
 Secure Shell Protocol (_ssh_)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Unlike the _sftp_ URL type, this protocol does not use SFTP, but rather
-transfers the data to a remote *dd* command.
+transfers the data to a remote *cat* command.
 
 _Format:_ *ssh*://\[__user__@]_hostname_[:__port__]/_path_
 
@@ -853,7 +802,7 @@ Most of the notes for SFTP also apply to SSH, except:
 
 * SFTP need not be configured on the target host.
 * Shell access must be granted to the dump user.
-* The shell must allow execution of +mkdir+, +dd+ and +mv+.
+* The shell must allow execution of +mkdir+ and +cat+.
 
 _Examples:_
 
@@ -867,17 +816,17 @@ NFS is used to specify remote hosts that export their file system via NFS.
 NFS doesn't use username and password. Also, the URL format cannot be used
 to specify options. As default, the _nolock_ option is used.
 
-_Format:_ *nfs*://_host_[:__port__]/_path_
+_Format:_ *nfs*://_host_/_path_
 
-_host_ is the hostname, _port_ is optional (should not be used, it is only
-implemented for completeness with the other URL formats). _path_ specifies
-the path that is exported via NFS in _/etc/exports_ (or a subdirectory of a
-path that is exported).
+_host_ is the hostname. _path_ specifies the path that is exported via NFS in
+_/etc/exports_ (or a subdirectory of a path that is exported; the subdirectory
+must exist before the crash is triggered).
+
 
 _Examples:_
 
-* +nfs://neptunium/var/log/dump+
-* +nfs://10.10.2.120/var/log/dump+
+* +nfs://neptunium/var/crash+
+* +nfs://10.10.2.120/var/crash+
 
 
 Common Internet File System (_cifs_)
@@ -891,23 +840,24 @@ Server running on Unix or MacOS.
 _Format:_ *cifs*://[_user_[:__password__]@]_host_/_path_
 
 Although it's technically not 100 % correct, _smb_ is used as an alias for
-_cifs_, so the program will always return _cifs_ even if you specify _smb_.
+_cifs_.
 
 The parts of the URL are described in the FTP section above.
+_path_ must exist before the crash is triggered.
 
 *Note:* You have to use the slash as path separator, not the backslash as on
-Microsoft Windows.
+Microsoft Windows. 
 
 _Examples:_
 
-* +cifs://neptunium/var/log/dump+
-* +cifs://bwalle:dontsay@neptunium:/var/log/dump+
-* +smb://bwalle@192.168.0.70:/var/log+
+* +cifs://neptunium/var/crash+
+* +cifs://bwalle:dontsay@neptunium/var/crash+
+* +smb://bwalle@192.168.0.70/var/log+
 
 
 BUGS
 ----
-Please report bugs and enhancement requests at https://bugzilla.novell.com[].
+Please report bugs and enhancement requests at https://bugzilla.suse.com[].
 
 COPYING
 -------

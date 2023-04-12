@@ -111,6 +111,7 @@ PreReq:         /usr/bin/rm
 PreReq:         /usr/bin/touch
 Recommends:     cifs-utils
 Recommends:     nfs-client
+Recommends:     lftp
 # update should detect the split-off from kexec-tools
 Provides:       kexec-tools:%{_initddir}/kdump
 ExcludeArch:    s390 ppc %arm32

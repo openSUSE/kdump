@@ -1,0 +1,457 @@
+#!/bin/bash
+
+function main() {
+	VERBOSE=false
+	if [[ $((KDUMP_VERBOSE & 8)) -ne 0 ]]; then
+		echo "Turning on debugging based on KDUMP_VERBOSE = ${KDUMP_VERBOSE}."
+		set -x
+		VERBOSE=true
+	fi
+
+
+	[[ -e /proc/vmcore ]] || fatal_error "/proc/vmcore does not exist; kdump initrd booted from non-kdump kernel?"
+
+	# blink leds to indicate kdump in progress
+	blink &
+	BLINK_PID=$!
+
+	# KDUMP_TRANSFER may specify a custom command to do all the work
+	if [[ -n ${KDUMP_TRANSFER} ]]; then
+		${KDUMP_TRANSFER}
+		RET=$?
+		if [[ ${RET} -ne 0 ]]; then
+			echo "Transfer exit code: ${RET}"
+			exit ${RET}	
+		fi
+		exit 0
+	fi
+
+	# KDUMP_PRESCRIPT
+	if [[ -n ${KDUMP_PRESCRIPT} ]]; then
+		echo "Running KDUMP_PRESCRIPT (${KDUMP_PRESCRIPT})"
+		${KDUMP_PRESCRIPT}
+		RES=$?
+		[[ ${RES} -ne 0 ]] && error "Pre-script failed (${RES})"
+	fi
+
+	# parse KDUMP_SAVEDIR based on destination protocol
+	unset URL
+	case "${KDUMP_PROTO}" in
+		file)
+			# modified by dracut module to dereference symlinks
+			FILE_PATH="/kdump/mnt${KDUMP_SAVEDIR}"
+			;;
+		ftp)
+			# split URL into host and directory parts, lftp fails when
+			# the directory part of URL does not exist yet
+			URL=${KDUMP_SAVEDIR#*://}
+			URL_DIR="/${URL#*/}"
+			URL="ftp://${URL%%/*}"
+			;;
+		sftp)
+			# split URL into host and directory parts, lftp fails when
+			# the directory part of URL does not exist yet
+			URL=${KDUMP_SAVEDIR#*://}
+			URL_DIR="/${URL#*/}"
+			URL="sftp://${URL%%/*}"
+			;;
+		ssh)
+			# split URL into host and directory parts, ssh can't
+			# work with directories in URLs
+			URL=${KDUMP_SAVEDIR#*://}
+			URL_DIR="/${URL#*/}"
+			HOST="${URL%%/*}"
+			URL="ssh://${HOST}"
+			# if SSH password is given in the URL, pass it to ssh via a script
+			# first, split HOST into user, pass and host
+			UPW="${HOST%%@*}"
+			HOST="${HOST#*@}"
+			USER=
+			PW=
+			if ! [[ ${UPW} == ${HOST} ]]; then
+				USER="${UPW%%:*}"
+				PW="${UPW#*:}"
+				[[ ${PW} == ${UPW} ]] && PW=""
+			fi
+			# password set in the URL, use it
+			if [[ -n "${PW}" ]]; then
+				export SSH_ASKPASS="/tmp/ssh_askpass"
+				export SSH_ASKPASS_REQUIRE=force
+				echo "echo \"${PW}\"" > $SSH_ASKPASS
+				chmod a+x $SSH_ASKPASS
+			fi
+			;;
+		nfs)
+			# KDUMP_SAVEDIR not needed, already mounted in /kdump/mnt
+			FILE_PATH="/kdump/mnt"
+			;;
+		cifs)
+			# KDUMP_SAVEDIR not needed, already mounted in /kdump/mnt
+			FILE_PATH="/kdump/mnt"
+			;;
+		*)
+			fatal_error "KDUMP_PROTO invalid: ${KDUMP_PROTO}"
+			;;
+
+	esac
+	
+
+	# delete old dumps (for local files only)
+	################
+	if [[ ${KDUMP_PROTO} == file ]] && [[ ${KDUMP_KEEP_OLD_DUMPS} -ne 0 ]]; then
+		SKIP=${KDUMP_KEEP_OLD_DUMPS}
+		ls -d1r "${FILE_PATH}"/[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]-[0-2][0-9][-:][0-5][0-9] 2>/dev/null | while read d; do
+			SKIP=$((SKIP - 1))
+			[[ $SKIP -ge 0 ]] && continue
+			echo "Deleting old dump: ${d}"
+			rm -rf "${d}"
+		done
+	fi
+
+	# wait until host in the URL is reachable
+	################
+	if [[ -n "${URL}" ]] && [[ ${KDUMP_NET_TIMEOUT} -gt 0 ]]; then
+		HOST="${URL#*://}"
+		HOST="${HOST%%/*}"
+		HOST="${HOST#*@}"
+		HOST="${HOST%%:*}"
+		echo "Waiting for ${HOST} to respond to ping..."
+		END_TIME=`date +%s`
+		END_TIME=$((END_TIME + KDUMP_NET_TIMEOUT))
+		while ! ping -c 1 -w 3 ${HOST}; do
+			NOW=`date +%s`
+			if [[ $NOW -gt $END_TIME ]]; then
+				error "Host not responding"
+				break
+			fi
+		done
+	fi
+
+	# set dump saving options
+	################
+	export TMPDIR=/tmp			# for makedumpfile
+	read HOSTNAME < /etc/hostname.kdump	# for naming remote dumps
+
+	DUMPTIME=$(date +"%Y-%m-%d-%H-%M")
+	DUMPTIME_ISO=$(date +"%Y-%m-%dT%H:%M:%S")
+	if [[ ${KDUMP_PROTO} == file ]]; then
+		SUBDIR="${DUMPTIME}"
+	else
+		SUBDIR="${HOSTNAME}-${DUMPTIME}"
+	fi
+	
+	if [[ ${KDUMP_DUMPLEVEL} -gt 31 ]] || [[ ${KDUMP_DUMPLEVEL} -lt 0 ]]; then
+		error "KDUMP_DUMPLEVEL (${KDUMP_DUMPLEVEL}) is invalid, using 0"
+		KDUMP_DUMPLEVEL=0
+	fi
+
+	# set the file saving command SAVE_COMMAND; 
+	# it will read from a file pointed to by SOURCE and
+	# output to DIR/FILENAME
+	case ${KDUMP_PROTO} in 
+		file|nfs|cifs)
+			DIR="${FILE_PATH}/${SUBDIR}"
+			SAVE_COMMAND='mkdir -p "${DIR}" && cat ${SOURCE} > "${DIR}/${FILENAME}"'
+			;;
+		ssh)
+			DIR="${URL_DIR}/${SUBDIR}"
+			SSH_DEBUG=""
+			${VERBOSE} && SSH_DEBUG="-vvv "
+			SAVE_COMMAND='ssh ${SSH_DEBUG} "${URL}" "mkdir -p ${DIR} && cat > ${DIR}/${FILENAME}" < ${SOURCE}'
+			;;
+		sftp|ftp)
+			DIR="${URL_DIR}/${SUBDIR}"
+			LFTP_DEBUG=""
+			${VERBOSE} && LFTP_DEBUG="-d "
+			SAVE_COMMAND='lftp ${LFTP_DEBUG} -c "set net:timeout 5; set net:max-retries 2; open --env-password ${URL} || exit 1; mkdir -pf ${DIR};  put ${SOURCE} -o ${DIR}/${FILENAME}"'
+			# NOTE: --env-password is a hack for sftp not to ask for password if keys are used
+			# the password can still be part of the URL
+	esac
+
+	# use a FIFO; lftp can upload files from a fifo (unlike sftp) but not from stdin
+	# note that lftp requires the fifo to be open for writing first, otherwise uploads
+	# an empty file
+	SOURCE=/tmp/fifo
+	[[ -e ${SOURCE} ]] && rm ${SOURCE}
+	mkfifo ${SOURCE} || fatal_error "Cannot create fifo"
+
+	read -d '' -r DUMP_INFO <<-__END
+		Dump time: ${DUMPTIME_ISO}
+		Host: ${HOSTNAME}
+		Dump level: ${KDUMP_DUMPLEVEL}
+		Dump format: ${KDUMP_DUMPFORMAT}
+	__END
+	
+	# save a temporary README.txt before the dump
+	################
+	FILENAME=README.txt
+	echo -e "This file will be overwritten when the dump is finished.\nIf you see this text the crash dump is likely incomplete.\n\n${DUMP_INFO}" > ${SOURCE} &
+	eval ${SAVE_COMMAND}
+	SAVE_COMMAND_RET=$?
+	[[ ${SAVE_COMMAND_RET} -ne 0 ]] && kill $! 2>/dev/null
+	if wait $! && [[ ${SAVE_COMMAND_RET} -eq 0 ]]; then
+		echo "Saved temporary README.txt"
+	else
+		error "Error saving temporary README.txt" >&2
+	fi
+
+	
+	# save dmesg using makedumpfile
+	# run with debugging message level and get the vmcore OSRELEASE and CRASHTIME from the stderr
+	################
+	VMCOREINFO_DETAILS=""
+	FILENAME=dmesg
+	makedumpfile -F --message-level 8 --dump-dmesg /proc/vmcore > $SOURCE 2> /tmp/makedumpfile_stderr &
+	eval ${SAVE_COMMAND}
+	SAVE_COMMAND_RET=$?
+	[[ ${SAVE_COMMAND_RET} -ne 0 ]] && kill $! 2>/dev/null
+	if wait $! && [[ ${SAVE_COMMAND_RET} -eq 0 ]]; then
+		echo "Saved dmesg"
+		DMESG_STATUS="saved successfully"
+		# parse CRASHTIME and OSRELEASE 
+		OLD_IFS="${IFS}"
+		IFS=" ="
+		while read KEY VALUE; do
+			[[ CRASHTIME == "${KEY}" ]] && CRASHTIME=${VALUE}
+			[[ OSRELEASE == "${KEY}" ]] && OSRELEASE=${VALUE}
+		done < /tmp/makedumpfile_stderr
+		IFS="${OLD_IFS}"
+	else
+		DMESG_STATUS="error while saving, return code: $?"
+		error "Failed saving dmesg"
+		${VERBOSE} && cat /tmp/makedumpfile_stderr >&2
+	fi
+	[[ -n "${OSRELEASE}" ]] && VMCOREINFO_DETAILS+="Kernel version: ${OSRELEASE}"$'\n'
+	[[ -n "${CRASHTIME}" ]] && VMCOREINFO_DETAILS+="Crash time: $(date +%Y-%m-%dT%H:%M:%S -d @${CRASHTIME})"$'\n'
+	rm /tmp/makedumpfile_stderr
+
+	# save vmcore
+	################
+	MAKEDUMPFILE=true
+	case ${KDUMP_DUMPFORMAT} in
+		none)
+			DUMP_COMMAND=""
+			MAKEDUMPFILE=false
+			;;
+		raw)	
+			DUMP_COMMAND="cat /proc/vmcore"
+			MAKEDUMPFILE=false
+			;;
+		ELF)	
+			FORMAT="-E" 
+			;;
+		compressed)
+			FORMAT="-c" 
+			;;
+		lzo)
+			FORMAT="-l" 
+			;;
+		snappy)
+			FORMAT="-p"
+			;;
+		zstd)
+			FORMAT="-z"
+			;;
+		*)
+			error "KDUMP_DUMPFORMAT invalid, using compressed"
+			FORMAT="-z"
+	esac
+
+	#more options for makedumpfile
+	if $MAKEDUMPFILE; then
+		# number of threads
+		THREADS=""
+		CPUS=$(nproc)	
+		[[ ${KDUMP_CPUS} -gt 0 ]] && [[ ${KDUMP_CPUS} -lt ${CPUS} ]] && CPUS=${KDUMP_CPUS}
+		[[ ${KDUMP_DUMPFORMAT} == ELF ]] && CPUS=1
+		[[ ${CPUS} -ne 1 ]] && THREADS="--num-threads ${CPUS}"
+
+		# makedumpfile verbosity
+		MSG_LEVEL=6 # common and error messages
+		[[ $((KDUMP_VERBOSE & 8)) -ne 0 ]] && MSG_LEVEL=$((MSG_LEVEL | 8)) # debug
+		[[ $((KDUMP_VERBOSE & 2)) -ne 0 ]] && MSG_LEVEL=$((MSG_LEVEL | 1)) # progress
+
+		DUMP_COMMAND="makedumpfile -F ${FORMAT} ${THREADS} --message-level $MSG_LEVEL -d ${KDUMP_DUMPLEVEL} ${MAKEDUMPFILE_OPTIONS} /proc/vmcore"
+	fi
+
+	# save the dump
+	if [[ -n "$DUMP_COMMAND" ]]; then
+		FILENAME=vmcore
+		eval "${DUMP_COMMAND} > $SOURCE" & 
+		eval ${SAVE_COMMAND}
+		SAVE_COMMAND_RET=$?
+		[[ ${SAVE_COMMAND_RET} -ne 0 ]] && kill $! 2>/dev/null
+		if wait $! && [[ ${SAVE_COMMAND_RET} -eq 0 ]]; then
+			echo "Saved vmcore"
+			VMCORE_STATUS="saved successfully"
+		else
+			VMCORE_STATUS="error while saving, return code: $?"
+			error "Failed saving vmcore"
+		fi
+	else
+		VMCORE_STATUS="skipped"
+		
+	fi
+
+	# delete the vmcore if less space than KDUMP_FREE_DISK_SIZE remains
+	if [[ ${KDUMP_PROTO} == file ]] && [[ ${KDUMP_FREE_DISK_SIZE} -gt 0 ]]; then
+		read -d$'\x1' DUMMY FREE  < <(df --output=avail --block-size=1M "${DIR}")
+		if [[ -n "${FREE}" ]] && [[ ${FREE} -lt ${KDUMP_FREE_DISK_SIZE} ]]; then
+			echo "Remaining space (${FREE} MB) less than KDUMP_FREE_DISK_SIZE (${KDUMP_FREE_DISK_SIZE} MB)"
+			echo "Deleting vmcore"
+			rm "${DIR}/${FILENAME}"
+			VMCORE_STATUS="deleted (${FREE} < KDUMP_FREE_DISK_SIZE ${KDUMP_FREE_DISK_SIZE})"
+		fi
+	fi
+
+	# overwrite README.txt with a final version
+	################
+	FILENAME=README.txt
+	cat > ${SOURCE} <<-__END &
+		Kernel crashdump
+		----------------
+		dmesg status: ${DMESG_STATUS}
+		vmcore status: ${VMCORE_STATUS}
+		${VMCOREINFO_DETAILS}${DUMP_INFO}
+	__END
+	eval ${SAVE_COMMAND}
+	SAVE_COMMAND_RET=$?
+	[[ ${SAVE_COMMAND_RET} -ne 0 ]] && kill $! 2>/dev/null
+	if wait $! && [[ ${SAVE_COMMAND_RET} -eq 0 ]]; then
+		echo "Saved final README.txt"
+	else
+		error "Error saving final README.txt" >&2
+	fi
+
+
+
+	# KDUMP_POSTSCRIPT
+	if [[ -n ${KDUMP_POSTSCRIPT} ]]; then
+		echo "Running KDUMP_POSTSCRIPT (${KDUMP_POSTSCRIPT})"
+		${KDUMP_POSTSCRIPT}
+		RES=$?
+		[[ ${RES} -ne 0 ]] && error "Post-script failed (${RES})"
+	fi
+
+	
+	if ${KDUMP_IMMEDIATE_REBOOT}; then
+		umount -a
+		reboot -f
+		exit 0
+	fi
+	
+	# is this FADUMP?
+	FADUMP=0
+	[[ -e /sys/kernel/fadump/enabled ]] && read FADUMP < /sys/kernel/fadump/enabled
+
+	if [[ ${FADUMP} == 1 ]]; then
+		echo "1" > /sys/kernel/fadump/release_mem
+
+		if ${KDUMP_FADUMP_SHELL}; then
+			echo "Dump saving completed. Running a shell; exit will continue the boot."
+			bash
+		fi
+
+		mountpoint /kdump/mnt && umount /kdump/mnt
+
+	else
+		echo "Dump saving completed. Running a shell; exit will reboot."
+		bash
+		umount -a
+		reboot -f
+	fi
+	exit 0
+}
+
+function error()
+{
+	echo "Error: $1" >&2
+	if [[ ${KDUMP_CONTINUE_ON_ERROR} == false ]]; then
+		echo "Something failed. Running a debug shell. Exit the shell to continue."
+		bash
+	fi
+}
+
+function fatal_error()
+{
+	echo "Fatal error: $1" >&2
+	if [[ ${KDUMP_CONTINUE_ON_ERROR} == false ]]; then
+		echo "Something failed. Running a debug shell."
+		echo "If you manage to fix the problem, exit the shell to continue."
+		echo "Otherwise you should reboot!"
+		bash
+	else
+		echo "Exitting $0" >&2
+		exit 1
+	fi
+}
+
+# periodically blink all leds found on the system
+function blink() {
+	set +x  # no debugging output
+	shopt -s nullglob
+
+	# desired time of the full cycle in milliseconds
+	CYCLE_MS=1500
+
+	[[ -d /sys/class/leds ]] || return 1
+	cd /sys/class/leds
+
+	# calcuate delay time per led
+	LED_COUNT=$(wc *)
+	[[ ${LED_COUNT} -eq 0 ]] && return 1
+	LED_MS=$((CYCLE_MS / LED_COUNT))
+	LED_S=$(printf "%d.%03d" $((LED_MS / 1000)) $((LED_MS % 1000))) 
+
+	# save led state
+	declare -A LED_STATE
+	for i in *; do
+		read LED_STATE[$i] < $i/brightness
+	done
+
+	# blink
+	while ! [ -e /tmp/stop-blink ]; do
+		for i in *; do
+			read MAX < $i/max_brightness 
+			echo ${MAX} > $i/brightness
+			sleep ${LED_S}
+			echo "0" > $i/brightness; 
+		done
+	done
+	
+	# restore led state
+	for i in *; do
+		echo ${LED_STATE[$i]} > $i/brightness
+	done
+
+}
+
+function cleanup()
+{
+	> /tmp/stop-blink
+	wait $BLINK_PID
+}
+
+# trivial substitutes for binaries that we can avoid including
+
+# show number of online CPUs
+function nproc()
+{
+	NPROC=0
+	while read a b; do [[ processor == ${a} ]] && NPROC=$((NPROC+1)); done < /proc/cpuinfo
+	echo $NPROC
+}
+
+# count arguments
+function wc()
+{
+	echo $#
+}
+
+# /etc/kdump.conf is generated by kdump_read_config.sh from dracut; 
+# all options are initialized and validated so we don't have to do it again
+. /etc/kdump.conf
+
+trap cleanup EXIT
+
+main "$@"

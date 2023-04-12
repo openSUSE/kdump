@@ -342,7 +342,7 @@ function rebuild_kdumprd()
 # MAIN PROGRAM STARTS HERE
 #
 
-eval $($KDUMPTOOL dump_config)
+. /usr/lib/kdump/kdump-read-config.sh
 
 if [ $((${KDUMP_VERBOSE:-0} & 4)) -gt 0 ] ; then
     function kdump_echo()
@@ -394,7 +394,7 @@ if [ "$shrink" = yes ] ; then
     $KDUMPTOOL calibrate --shrink > /dev/null
 fi
 
-if [ "$KDUMP_FADUMP" = "yes" ] ; then
+if [ "$KDUMP_FADUMP" = "true" ] ; then
     load_kdump_fadump
 else
     fadump_bootloader off

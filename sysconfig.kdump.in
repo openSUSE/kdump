@@ -54,39 +54,39 @@ KDUMP_COMMANDLINE=""
 #
 KDUMP_COMMANDLINE_APPEND=""
 
-## Type:        yesno
-## Default:     "no"
+## Type:        boolean
+## Default:     "false"
 #
-# When this option is set to yes, kdump tries to shrink the crash
+# When this option is set to true, kdump tries to shrink the crash
 # kernel reservation at boot.
 #
 # See also: kdump(6).
 #
-KDUMP_AUTO_RESIZE="no"
+KDUMP_AUTO_RESIZE="false"
 
 @if @HAVE_FADUMP@ TRUE
-## Type:        yesno
-## Default:     "no"
+## Type:        boolean
+## Default:     "false"
 ## ServiceRestart:	kdump
 #
-# Set this option to yes if you want to use fadump (firmware-assisted dump).
+# Set this option to true if you want to use fadump (firmware-assisted dump).
 # This option is only meaningful on powerpc.
 #
 # See also: kdump(5).
 #
-KDUMP_FADUMP="no"
+KDUMP_FADUMP="false"
 
-## Type:        yesno
-## Default:     "no"
+## Type:        boolean
+## Default:     "false"
 ## ServiceRestart:	kdump
 #
-# If this option is set to yes, a shell is started after saving the dump
+# If this option is set to true, a shell is started after saving the dump
 # with fadump (see above).
 # This option can be useful for debugging.
 #
 # See also: kdump(5).
 #
-KDUMP_FADUMP_SHELL="no"
+KDUMP_FADUMP_SHELL="false"
 
 @endif
 ## Type:	string
@@ -100,15 +100,15 @@ KDUMP_FADUMP_SHELL="no"
 #
 KEXEC_OPTIONS=""
 
-## Type:	yesno
-## Default:	yes
+## Type:	boolean
+## Default:	true
 ## ServiceRestart:	kdump
 #
 # Immediately reboot after saving the core in the kdump kernel?
 #
 # See also: kdump(5).
 #
-KDUMP_IMMEDIATE_REBOOT="yes"
+KDUMP_IMMEDIATE_REBOOT="true"
 
 ## Type:	string
 ## Default:	""
@@ -125,31 +125,30 @@ KDUMP_IMMEDIATE_REBOOT="yes"
 KDUMP_TRANSFER=""
 
 ## Type:	string
-## Default:	"file:///var/log/dump"
+## Default:	"/var/crash" 
 ## ServiceRestart:	kdump
 #
-# Which directory should the dumps be saved in by the default dumper?
-# This can be:
+# Which directory should the dumps be saved in by the default dumper?  This can
+# be:
 #
-#   - a local file, for example "file:///var/log/dump" (or, deprecated,
-#     just "/var/log/dump")
-#   - a FTP server, for example "ftp://user:password@host/var/log/dump"
-#   - a SFTP server, for example "sftp://user@host/var/log/dump"
-#   - a SSH server, for example "ssh://user@host/var/log/dump"
-#   - a NFS share, for example "nfs://server/export/var/log/dump"
-#   - a CIFS (SMB) share, for example
-#     "cifs://user:password@host/share/var/log/dump"
+#   - a local file, for example "file:///var/crash" (or just
+#                               "/var/crash") 
+#   - a FTP server, for example "ftp://user:password@host/var/crash" 
+#   - a SFTP server, for example "sftp://user[:password]@host/var/crash"
+#   - a SSH server, for example "ssh://user[:password]@host/var/crash"
+#   - a NFS share, for example "nfs://server/export/var/crash" 
+#   - a CIFS (SMB) share, for example "cifs://user:password@host/share/var/crash"
 #
-# SFTP and SSH targets use public/private key authentication, see the manual
-# page for more details on setting it up.
+# SFTP and SSH targets should use public/private key authentication, see the
+# manual page for more details on setting it up.
 #
 # See also: kdump(5) which contains an exact specification for the URL format.
 # Consider using the "yast2 kdump" module if you are unsure.
 #
-KDUMP_SAVEDIR="file:///var/crash"
+KDUMP_SAVEDIR="/var/crash"
 
 ## Type:	integer
-## Default:	5
+## Default:	0
 ## ServiceRestart:	kdump
 #
 # Specifies how many old dumps are kept.  If the number of dump files
@@ -161,7 +160,7 @@ KDUMP_SAVEDIR="file:///var/crash"
 #
 # See also: kdump(5).
 #
-KDUMP_KEEP_OLD_DUMPS=5
+KDUMP_KEEP_OLD_DUMPS=0
 
 ## Type:	integer
 ## Default:	64
@@ -178,7 +177,7 @@ KDUMP_KEEP_OLD_DUMPS=5
 KDUMP_FREE_DISK_SIZE=64
 
 ## Type:        integer
-## Default:     3
+## Default:     0
 ## ServiceRestart:	kdump
 #
 # Determines if kdump uses verbose output. This value is a bitmask:
@@ -193,7 +192,7 @@ KDUMP_FREE_DISK_SIZE=64
 #
 # See also: kdump(5).
 #
-KDUMP_VERBOSE=3
+KDUMP_VERBOSE=0
 
 ## Type:        integer
 ## Default:     31
@@ -209,7 +208,7 @@ KDUMP_VERBOSE=3
 #
 KDUMP_DUMPLEVEL=31
 
-## Type:        list(,none,ELF,compressed,lzo,snappy,zstd)
+## Type:        list(,none,ELF,compressed,lzo,snappy,zstd,raw)
 ## Default:     "compressed"
 ## ServiceRestart:	kdump
 #
@@ -223,10 +222,8 @@ KDUMP_DUMPFORMAT="compressed"
 ## Default:     true
 ## ServiceRestart:	kdump
 #
-# By default, kdumptool(8) copies multiple files with the save_dump action.
-# Set this value to "true" to make kdumptool try to save the next file even
-# if saving the previous file failed, or set it to "false" to let the program
-# immediately abort.
+# Set this value to "false" to drop into a debug shell when an error is 
+# encountered during saving the dump
 #
 # See also: kdump(5).
 #
@@ -269,33 +266,6 @@ KDUMP_PRESCRIPT=""
 #
 KDUMP_POSTSCRIPT=""
 
-## Type:        yesno
-## Default:     "yes"
-## ServiceRestart:	kdump
-#
-# Not only copy the dump to KDUMP_SAVEDIR but also the installed kernel.
-# If the debugging information is installed, also the debug information will
-# be copied. But only the kernel is copied, not all modules.
-#
-# See also: kdump(5).
-#
-KDUMP_COPY_KERNEL="yes"
-
-## Type:        string(NOSPARSE,SPLIT,SINGLE,XENALLDOMAINS)
-## Default:     ""
-## ServiceRestart:	kdump
-#
-# Space-separated list of flags to tweak the run-time behaviour of kdumptool:
-#
-#   NOSPARSE disable creation of sparse files.
-#   SPLIT    split the dump file with "makedumpfile --split"
-#   SINGLE   use single CPU to save the dump
-#   XENALLDOMAINS do not filter out Xen DomU pages
-#
-# See also: kdump(5).
-#
-KDUMPTOOL_FLAGS=""
-
 ## Type:        string
 ## Default:     auto
 ## ServiceRestart:	kdump
@@ -319,8 +289,7 @@ KDUMP_NETCONFIG="auto"
 ## Default:     30
 ## ServiceRestart:      kdump
 #
-# Timeout for network changes. Kdumptool gives up waiting for a working
-# network setup when it does not change for the given number of seconds.
+# Timeout for the remote machine to respond to ping.
 #
 # See also: kdump(5)
 #

@@ -172,6 +172,17 @@ ADD_CUSTOM_TARGET(
         sysconfig.kdump
 )
 
+INSTALL (
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/kdump-read-config.sh
+    DESTINATION
+        /usr/lib/kdump
+    PERMISSIONS
+        OWNER_READ OWNER_WRITE OWNER_EXECUTE
+        GROUP_READ GROUP_EXECUTE
+        WORLD_READ WORLD_EXECUTE
+)
+
 INSTALL(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sysconfig.kdump
     DESTINATION

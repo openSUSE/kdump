@@ -1,10 +1,11 @@
 #!/bin/bash
 
 test -n "$KDUMP_LIBDIR" || KDUMP_LIBDIR=/usr/lib/kdump
-. "$KDUMP_LIBDIR"/setup-kdump.functions
+. "$KDUMP_LIBDIR"/kdump-read-config.sh || return 1
+. "$KDUMP_LIBDIR"/setup-kdump.functions || return 1
 
 check() {
-    if kdump_get_config && test "$KDUMP_FADUMP" = "yes"; then
+    if test "$KDUMP_FADUMP" = "true"; then
         return 0
     fi
 
@@ -16,8 +17,6 @@ depends() {
 }
 
 install() {
-    kdump_get_config || return 1
-
     local _fadumpdir="$initdir/fadumproot"
 
     mkdir -p "$_fadumpdir" || return 1
@@ -32,6 +31,9 @@ install() {
         "--no-compress"
         "--no-early-microcode"
     )
+
+    [[ -n "${KDUMP_DRACUT_MOUNT_OPTION}" ]] && _dracut_args+=("--mount" "${KDUMP_DRACUT_MOUNT_OPTION}")
+
     local _dracut="${dracut_cmd:-dracut}"
     "$_dracut" "${_dracut_args[@]}" "$_initrd" "$kernel" || return 1
     kdump_unpack_initrd "$_initrd" "$_fadumpdir" || return 1

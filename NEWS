@@ -1,3 +1,22 @@
+1.9
+---
+  * complete rewrite of kdump-save and parts of initrd generation
+    * mounts are now entirely handled by dracut
+    * deprecated: split dumps (saving to more than one targets at once)
+    * deprecated: KDUMPTOOL_FLAGS option removed; original XENALLDOMAINS is now
+      the default, disable with MAKEDUMPFILE_OPTIONS=-X
+    * deprecated: notification e-mails
+    * deprecated: copying of the kernel image (KDUMP_COPY_KERNEL)
+    * FTP and SFTP are now handled by lftp, added to the spec file as Recommends:
+    * SSH and SFTP now support passwords provided in the URL
+    * fixed KDUMP_SSH_HOST_KEY, now needs to include the key type    
+    * new KDUMP_DUMPFORMAT=raw, will save an unmodified /proc/vmcore
+    * the output directory name is now YYYY-MM-DD-HH-MM, i.e. the separator between
+      HH and MM changed 
+    * unified default KDUMP_SAVEDIR across config, code and man to /var/crash
+    * ping is now used to detect network is up; disable with KDUMP_NET_TIMEOUT=0    
+    * all the yes/no options changed to true/false; yes/no/1/0 still accepted
+
 1.0.3
 -----
   
