@@ -24,7 +24,11 @@
 %define distro_prefix leap%{sle_version}.%{_arch}
 %endif
 %else
+%if 0%{suse_version} >= 1600
+%define distro_prefix alp%{suse_version}.%{_arch}
+%else
 %define distro_prefix sle%{sle_version}.%{_arch}
+%endif
 %endif
 
 %ifarch aarch64
