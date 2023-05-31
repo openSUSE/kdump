@@ -147,14 +147,14 @@ system RAM. See <<crashkernel_exteded>>.
 
 Enable kdump service
 ~~~~~~~~~~~~~~~~~~~~
-The kdump runlevel script just loads the kdump kernel at boot. To enable it, use
-the YaST runlevel editor or simply
+The kdump systemd service just loads the kdump kernel at boot. To enable it, use
+yast2 kdump or simply
 
 --------------------------
-# chkconfig boot.kdump on
+# systemctl enable kdump
 --------------------------
 
-on a shell. You can also execute it manually with +rckdump start+.
+on a shell. You can also execute it manually with +systemctl start kdump+.
 
 Configure kdump
 ~~~~~~~~~~~~~~~
@@ -171,7 +171,7 @@ the configuration options.
 
 Load the kdump kernel
 ~~~~~~~~~~~~~~~~~~~~~
-As mentioned above, the init script _/etc/init.d/boot.kdump_ takes the part of
+As mentioned above, the kdump service takes the part of
 loading the kdump kernel. As kdump kernel, the normal system kernel is used, no
 special kernel image is required.
 

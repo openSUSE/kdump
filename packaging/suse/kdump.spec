@@ -179,7 +179,6 @@ cat  %{buildroot}/usr/lib/kdump/calibrate.conf
 %endif
 
 # symlink for init script
-rm %{buildroot}%{_initddir}/boot.kdump
 ln -s %{_sbindir}/service %{buildroot}%{_sbindir}/rckdump
 
 %pre

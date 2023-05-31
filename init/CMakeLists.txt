@@ -17,17 +17,6 @@
 
 INSTALL(
     FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/boot.kdump
-    DESTINATION
-        /etc/init.d
-    PERMISSIONS
-        OWNER_READ OWNER_WRITE OWNER_EXECUTE
-        GROUP_READ GROUP_EXECUTE
-        WORLD_READ WORLD_EXECUTE
-)
-
-INSTALL(
-    FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/kdump.service
         ${CMAKE_CURRENT_SOURCE_DIR}/kdump-early.service
     DESTINATION

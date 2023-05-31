@@ -188,7 +188,7 @@ KDUMP_FREE_DISK_SIZE=64
 # 4: kdump command line is written so standard output when executing
 #    /etc/init.d/kdump
 # 8: Debugging while saving dump.
-# 16: Debugging when loading (and detecting) the kdump kernel in boot.kdump.
+# 16: Debugging when loading (and detecting) the kdump kernel.
 #
 # See also: kdump(5).
 #
