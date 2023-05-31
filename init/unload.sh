@@ -3,14 +3,13 @@
 #  Copyright 2015 Petr Tesarik <ptesarik@suse.com>
 #  Unload the kdump kernel
 
-KDUMPTOOL=/usr/sbin/kdumptool
 KEXEC=/sbin/kexec
 FADUMP_REGISTERED=/sys/kernel/fadump_registered
 UDEV_RULES_DIR=/run/udev/rules.d
 
-eval $($KDUMPTOOL dump_config)
+. /usr/lib/kdump/kdump-read-config.sh
 
-if [ "$KDUMP_FADUMP" = "yes" ]; then
+if [ "$KDUMP_FADUMP" = "true" ]; then
     # The kernel fails with EINVAL if unregistered already
     # (see bnc#814780)
     if [ $(cat "$FADUMP_REGISTERED") != "0" ] ; then
