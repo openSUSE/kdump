@@ -231,7 +231,7 @@ rm %{_localstatedir}/log/dump >/dev/null 2>&1 || true
 %files
 %defattr(-,root,root)
 %license COPYING
-%doc ChangeLog README NEWS
+%doc README NEWS
 %{_sbindir}/kdumptool
 %{_sbindir}/mkdumprd
 %{_mandir}/man5/kdump.5%{?ext_man}
