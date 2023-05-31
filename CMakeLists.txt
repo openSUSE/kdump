@@ -149,7 +149,6 @@ ADD_SUBDIRECTORY(dracut)
 ADD_SUBDIRECTORY(calibrate)
 ADD_SUBDIRECTORY(doc)
 ADD_SUBDIRECTORY(init)
-ADD_SUBDIRECTORY(tests)
 
 #
 # Configuration and Udev

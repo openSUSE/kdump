@@ -51,4 +51,3 @@ doc/man/*.[1-8].gz
 /sysconfig.kdump
 /70-kdump.rules
 build/
-tests/data/tmp/
