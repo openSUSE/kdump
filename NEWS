@@ -1,7 +1,63 @@
-next
+1.0.3
 -----
-  * Support for zstd-compressed dumps.
-
+  
+  * Honor the KDUMP_VERBOSE setting in kdump-save
+  * fix distro prefix for ALP
+  * add calibrate values for ALP (copied from TW)
+  * add calibrate values for Leap 15.5
+  * revert back to using rd.neednet=1 to enable network (bsc#1206015)
+  * kdumptool calibrate: add even more margin to reservation 
+    calculations (bsc#1207061)
+  * don't skip infiniband interfaces (bsc#1186745)
+    (not a complete fix, requires a patch in dracut as well)
+  * Run kdump.service only after kdump-early.service is done 
+    (boo#1196335)
+  * fixed calibrate build on s390
+  * minor fixes
+  * improve the generation of calibrate.conf
+    * print the qemu messages and trackrss log during calibrate
+    * use static IP address for calibration
+    * all calibrate.conf variants now stored in a single file
+    * added a README and a helper script for updating calibrate.conf
+    * prevent dracut from running emergency shell
+    * fix s390x build dependencies
+  * fix deleting of a temporary file in dracut/module-setup.sh
+  * look for nsswitch.conf in /etc and /usr/etc
+  * never run a debugging shell when KDUMP_CONTINUE_ON_ERROR is set
+  * remove build dependency for wicked 
+  * fix package summary in the spec file
+  * maintain the spec file in git
+  * Make the kdump-save.service reboot after kdump-save is finished
+    (bsc#1204000)
+  * fix renaming of qeth interfaces (bsc#1204743, bsc#1144337)
+  * ppc64: rebuild initrd image after migration (bsc#1191410)
+  * kdumptool calibrate: modify fadump suggestions (jsc#IBM-1027)
+  * update to kdump-1.0.2+git20:
+    * Use inst_binary to install kdump-save
+  * disable build on arm 32bit (bsc#1203888)
+  * mkdumprd: replace mkinitrd with native dracut (bsc#1202443) 
+  * fix network-related dracut options handling for fadump case
+  * drop the elevator=deadline kernel option (bsc#1193211)
+  * fix broken URL in manpage (bsc#1187312)
+  * kdumptool calibrate: add more margin to reservation calculations 
+    (bsc#1196728)
+  * remount filesystem r/w for fadump (bsc#1197125)
+  * stop reloading FADump on CPU hot-add event
+  * pull sources directly from git using obs_scm
+  * fix bsc#1190299, bsc#1186272
+  * add support for Zstandard compression algorithm
+  * remove patches included in upstream git:
+    kdump-calibrate-include-af_packet.patch,
+    kdump-calibrate-fix-nic-naming.patch,
+    kdump-calibrate.conf-depends-on-kdumptool.patch
+  * Exclude i586 from SLE builds.
+  * kdump-calibrate.conf-depends-on-kdumptool.patch: calibrate.conf:
+    Add dependency on kdumptool.
+  * kdump-calibrate-fix-nic-naming.patch: calibrate: Fix network
+    interface naming.
+  * kdump-calibrate-include-af_packet.patch: calibrate: Explicitly
+    include af_packet in the test initrd.
+  
 1.0.2
 -----
   * Accept cmake option -DCALIBRATE=OFF to skip calibration at build time
