@@ -2,7 +2,7 @@
 #
 # (c) 2014, Petr Tesarik <ptesarik@suse.de>, SUSE LINUX Products GmbH
 #
-# Helper functions needed to set up kdump initrd.
+# Helper functions needed to set up networking in the kdump initrd.
 #
 
 #

@@ -45,7 +45,7 @@ INSTALL(
     FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/setup-kdump.functions
     DESTINATION
-        /usr/lib/kdump
+        /usr/lib/dracut/modules.d/99kdump
     PERMISSIONS
         OWNER_READ OWNER_WRITE
         GROUP_READ

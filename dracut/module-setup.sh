@@ -11,7 +11,7 @@ check() {
 	fi
 
 	. "$KDUMP_LIBDIR"/kdump-read-config.sh || return 1
-	. "$KDUMP_LIBDIR"/setup-kdump.functions || return 1
+	. "$moddir"/setup-kdump.functions || return 1
 
 	# no network needed by default
 	kdump_neednet=
