@@ -2,7 +2,6 @@
 
 test -n "$KDUMP_LIBDIR" || KDUMP_LIBDIR=/usr/lib/kdump
 . "$KDUMP_LIBDIR"/kdump-read-config.sh || return 1
-. "$KDUMP_LIBDIR"/setup-kdump.functions || return 1
 
 check() {
     if test "$KDUMP_FADUMP" = "true"; then
@@ -36,7 +35,9 @@ install() {
 
     local _dracut="${dracut_cmd:-dracut}"
     "$_dracut" "${_dracut_args[@]}" "$_initrd" "$kernel" || return 1
-    kdump_unpack_initrd "$_initrd" "$_fadumpdir" || return 1
+    pushd "$_fadumpdir" || return 1
+    lsinitrd --unpack "$_initrd" || return 1
+    popd
     rm -f "$_initrd"
     dinfo "****** Generating FADUMP initrd done *******"
 
