@@ -19,6 +19,7 @@
   * put the kdump initrd in /var/lib/kdump/initrd
   * use default kernel symlink (/boot/vmlinuz) instead of kernel autodetection
   * KDUMP_KERNELVER can specify an absolute path to a kernel image
+  * improved mkdumprd detection of changed settings
 
 1.0.3
 -----

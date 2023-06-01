@@ -18,7 +18,7 @@
 . /usr/lib/kdump/kdump-read-config.sh || exit 1
 
 KERNELVERSION=
-FORCE=0
+FORCE=false
 QUIET=0
 DEBUG=false
 DRACUT=/usr/bin/dracut
@@ -163,7 +163,7 @@ function error()
 # Option parsing                                                             {{{
 while getopts "hfqk:K:I:d" name ; do
     case $name in
-        f)  FORCE=1
+        f)  FORCE=true
             ;;
 
         h)  usage
@@ -220,26 +220,45 @@ if ! [ -f "$KERNEL_REALPATH" ] ; then
 fi
 
 # check if we need to regenerate the initrd
+UPDATE=$FORCE
+
+# no initrd yet
+[[ -f "$INITRD" ]] || UPDATE=true
+
+# kernel changed
 KERNEL_CURRENT=$(realpath -qe /var/lib/kdump/kernel)
-if (( ! $FORCE )) ; then
-    if [ -f "$INITRD" ] && \
-            [[ "$KERNEL_REALPATH" == "$KERNEL_CURRENT" ]] && \
-            [ /etc/sysconfig/kdump -ot "$INITRD" ] && \
-            [ /root/.ssh/id_dsa.pub -ot "$INITRD" ] && \
-            [ /root/.ssh/id_dsa -ot "$INITRD" ] && \
-            [ /etc/hosts -ot "$INITRD" ] && \
-            [ /etc/nsswitch.conf -ot "$INITRD" ]; then
-        status_message "Not regenerating kdump initrd. Use mkdumprd -f to force regeneration."
-        exit 0
-    fi
+[[ "$KERNEL_REALPATH" == "$KERNEL_CURRENT" ]] || UPDATE=true
+
+# config changed
+[[ /etc/sysconfig/kdump -ot "$INITRD" ]] || UPDATE=true
+
+# network settings changed
+if [[ $KDUMP_PROTO != file ]]; then
+	[[ /etc/hosts -ot "$INITRD" ]] || UPDATE=true
+	[[ /etc/nsswitch.conf -ot "$INITRD" ]] || UPDATE=true
+	
+	# SSH keys changed
+	if [[ $KDUMP_PROTO == ssh ]] || [[ $KDUMP_PROTO == sftp ]]; then
+		pushd ~root/.ssh >/dev/null #identity files are relative to this directory
+		[[ -z "${KDUMP_SSH_IDENTITY}" ]] && KDUMP_SSH_IDENTITY="id_rsa id_dsa id_ecdsa id_ed25519"
+		for i in ${KDUMP_SSH_IDENTITY}; do
+			[[ -f  "${i}.pub" ]] && [[ "${i}.pub" -ot "$INITRD" ]] || UPDATE=true
+		done
+		popd
+	fi
 fi
 
-build_initrd
+if $UPDATE; then
+	build_initrd || exit $?
+else
+	status_message "Not regenerating kdump initrd. Use mkdumprd -f to force regeneration."
+        exit 0
+fi
+
 
 # if we're rebuilding the default INITRD, update the kernel symlink
-# to point to the kernel image the initrd was built for
+# to point to the kernel image the initrd was just built for
 [[ "$INITRD" == "$INITRD_DEFAULT" ]] && ln -sf "$KERNEL_REALPATH" /var/lib/kdump/kernel
 
-exit $?
 
 # vim: set ts=4 sw=4 et fdm=marker: :collapseFolds=1:
