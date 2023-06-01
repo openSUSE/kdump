@@ -17,6 +17,5 @@
 # 02110-1301, USA.
 #
 
-ADD_SUBDIRECTORY(implementation)
 ADD_SUBDIRECTORY(man)
 

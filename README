@@ -3,16 +3,9 @@ kdump configuration
 
 This package consists of:
 
-  - kdumptool, a tool to
-      o identify a kernel,
-      o save a dump over various transports (local file, SSH2, FTP, NFS, SMB),
-      o copy the kernel including debugging information,
-      o delete old dumps,
-      o read the VMCOREINFO (see *makedumpfile*(8) of kernel core dumps),
-      o show the progress over the keyboard LED.
   - udev rules,
-  - initrd support files (setup script, boot script, generation script),
-  - init script,
+  - initrd support files (setup script, boot script, generation script, save script),
+  - systemd service script,
   - configuration file,
   - documentation.
 
@@ -20,8 +13,6 @@ It's designed to take the whole dump in a special initramfs.
 
 Requirements:
 
-  - libelf (http://directory.fsf.org/project/libelf/),
-  - libcurl (http://curl.haxx.se/),
   - asciidoc (http://www.methods.co.nz/asciidoc/),
   - cmake (http://www.cmake.org/).
   - libblkid (libblkid-devel)
@@ -29,6 +20,6 @@ Requirements:
 It's maintained in a git tree at https://github.com/opensuse/kdump/
 
 Author:     Bernhard Walle <bwalle@suse.de>
-Maintainer: Lance Wang <lzwang@suse.com>
-Copyright:  (c) 2008-2017, SUSE LINUX Products GmbH
+Maintainer: Jiri Bohac <jbohac@suse.cz>
+Copyright:  (c) 2008-2023, SUSE LINUX Products GmbH
 License:    GPL v2 or later
