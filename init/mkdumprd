@@ -23,6 +23,8 @@ QUIET=0
 DEBUG=false
 DRACUT=/usr/bin/dracut
 UPDATE_BOOTLOADER=/sbin/update-bootloader
+INITRD_DEFAULT=/var/lib/kdump/initrd
+INITRD=$INITRD_DEFAULT
 
 #
 # Prints usage.                                                              {{{
@@ -32,12 +34,9 @@ function usage()
     echo ""
     echo "This script uses dracut(8) internally. Options:"
     echo ""
-    echo "   -k <version>     Kernel to create the initrd for."
-    echo "                    Defaults to the running kernel."
-    echo "   -K <kernel>      Kernel binary to create the initrd for."
-    echo "                    If you specify that option, also specify -I."
-    echo "   -I <initrd>      Resulting initrd."
-    echo "                    If you specify that option, also specify -K."
+    echo "   -k <kernel>  or"
+    echo "   -K <kernel>      Overrides KDUMP_KERNELVER."
+    echo "   -I <initrd>      Output file for initrd ($INITRD_DEFAULT by default)"
     echo "   -f               Force regeneration even if the configuration"
     echo "                    did not change."
     echo "   -q               Quiet (don't print status messages)."
@@ -86,6 +85,10 @@ function build_fadumprd()
     $DEBUG && DRACUT_ARGS="--debug $DRACUT_ARGS"
     echo "Regenerating all initrds ..." >&2
     eval "bash -$- $DRACUT $DRACUT_ARGS && type -P $UPDATE_BOOTLOADER &> /dev/null && $UPDATE_BOOTLOADER --refresh"
+
+    # create an empty initrd file, the timestamp will be used to determine
+    # if initrds need to be regenerated
+    touch $INITRD
 }                                                                          # }}}
 
 #
@@ -160,9 +163,6 @@ function error()
 # Option parsing                                                             {{{
 while getopts "hfqk:K:I:d" name ; do
     case $name in
-        k)  KERNELVERSION=$OPTARG
-            ;;
-
         f)  FORCE=1
             ;;
 
@@ -173,7 +173,7 @@ while getopts "hfqk:K:I:d" name ; do
         q)  QUIET=1
             ;;
 
-        K)  KERNEL=$OPTARG
+        k|K)  KDUMP_KERNELVER="$OPTARG"
             ;;
 
         I)  INITRD=$OPTARG
@@ -190,21 +190,22 @@ done
 shift $(($OPTIND -1))
                                                                            # }}}
 
-#
-# if we don't have specified -K <file>, then get the kernel from the version
-# if $KERNELVERSION is non-zero and use the default kernel for kdump
-# if $KERNELVERSION is zero.
-if [ -z "$KERNEL" ] ; then
-    if [ -n "$KERNELVERSION" ] ; then
-        KERNEL=/boot/vmlinuz-$KERNELVERSION
-        test -f "$KERNEL" || KERNEL=/boot/image-$KERNELVERSION
-        test -f "$KERNEL" || KERNEL=/boot/Image-$KERNELVERSION
-        test -f "$KERNEL" || KERNEL=/boot/vmlinux-$KERNELVERSION
-    else
-        output=$(kdumptool find_kernel $find_kernel_args)
-        KERNEL=$(echo "$output" | grep ^Kernel | cut -f 2)
-        INITRD=$(echo "$output" | grep ^Initrd | cut -f 2)
-    fi
+
+# KDUMP_KERNELVER may be an absolute path name or a kernel version
+if [[ ${KDUMP_KERNELVER:0:1} == "/" ]]; then
+	# absolute path
+	KERNEL=${KDUMP_KERNELVER}
+else
+	# if a specific version is requested, look for it 
+	# in /boot/$IMAGE-$KDUMP_KERNELVER
+	# otherwise use the default kernel symlink /boot/$IMAGE
+	# IMAGE names are different for different architectures
+	
+	[[ -n "${KDUMP_KERNELVER}" ]] && KDUMP_KERNELVER="-${KDUMP_KERNELVER}"
+	for i in vmlinuz image Image vmlinux; do
+		KERNEL="/boot/${i}${KDUMP_KERNELVER}"
+		[[ -f $KERNEL ]] && break
+	done
 fi
 
 if ! [ -f "$KERNEL" ] ; then
@@ -212,26 +213,22 @@ if ! [ -f "$KERNEL" ] ; then
     exit 1
 fi
 
-#
-# if we don't have specified -I <file>, then get the kernel from the version
-if [ -z "$INITRD" ] ; then
-    INITRD=/boot/initrd-$KERNELVERSION
-
-    if ! echo $KERNELVERSION | grep -q kdump ; then
-        INITRD=$INITRD-kdump
-    fi
+KERNEL_REALPATH=$(realpath -e "$KERNEL")
+if ! [ -f "$KERNEL_REALPATH" ] ; then
+    echo "Kernel $KERNEL is an invalid symlink."
+    exit 1
 fi
 
-#
-# check if we need to regenerate it?
+# check if we need to regenerate the initrd
+KERNEL_CURRENT=$(realpath -qe /var/lib/kdump/kernel)
 if (( ! $FORCE )) ; then
     if [ -f "$INITRD" ] && \
+            [[ "$KERNEL_REALPATH" == "$KERNEL_CURRENT" ]] && \
             [ /etc/sysconfig/kdump -ot "$INITRD" ] && \
             [ /root/.ssh/id_dsa.pub -ot "$INITRD" ] && \
             [ /root/.ssh/id_dsa -ot "$INITRD" ] && \
             [ /etc/hosts -ot "$INITRD" ] && \
-            [ /etc/nsswitch.conf -ot "$INITRD" ] && \
-            [ "$KERNEL" -ot "$INITRD" ] ; then
+            [ /etc/nsswitch.conf -ot "$INITRD" ]; then
         status_message "Not regenerating kdump initrd. Use mkdumprd -f to force regeneration."
         exit 0
     fi
@@ -239,6 +236,9 @@ fi
 
 build_initrd
 
+# if we're rebuilding the default INITRD, update the kernel symlink
+# to point to the kernel image the initrd was built for
+[[ "$INITRD" == "$INITRD_DEFAULT" ]] && ln -sf "$KERNEL_REALPATH" /var/lib/kdump/kernel
 
 exit $?
 

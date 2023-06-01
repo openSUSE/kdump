@@ -62,66 +62,11 @@ variables.
 KDUMP_KERNELVER
 ~~~~~~~~~~~~~~~
 
-Kernel Version string for the -kdump kernel, such as "2.6.25-5-kdump".
-The init script will use a kernel named _/boot/vmlinu[zx]-$KDUMP_KERNELVER_.
-Using "kdump" will default to the most recently installed kdump kernel
-(to which the symbolic link _/boot/vmlinuz-kdump_ points).
+Kernel Version string (such as "6.3.1-2-default") or an absolute path to a kernel 
+image that should be used for kdump.
 
-If no version is specified, then the init script will try to find a kdump kernel
-with the algorithm described below.
-
-Default is "" which means that the auto-detection described above is used.
-
-Kernel auto-detection
-^^^^^^^^^^^^^^^^^^^^^
-
-Let's assume that a kernel name _KERNELRELEASE_ consists of _BASEVERSION_ and a
-_FLAVOUR_ on SUSE. For example consider the kernel release ("uname -r")
-"2.6.25.18-0.2-default". Then the _BASEVERSION_ is "2.6.25.18-0.2" (but there
-are also _BASEVERSION_ strings without a dash) and the _FLAVOUR_ is "default".
-
-To find out if a kernel is suitable as capture kernel, there are strong
-and weak requirements. The strong requirements mean that you just cannot use the
-kernel as kdump kernel:
-
-* Either the kernel must be a special kdump kernel with a modified
-  start address *or*
-* the kernel is relocatable.
-
-The weak requirements mean that a kernel is not good as kdump kernel so it
-should be avoided when better kernels are installed. A kernel does not
-fulfil that weak requirements when
-
-* It is a realtime kernel (since the interrupt handling is different and
-  _irqpoll_ has problems) *or*
-* the kernel is compiled for a huge number of CPUs (above 1024 in our case)
-  since that means that the capure kernel needs more memory.
-
-After all that definition, the algorithm tries following kernels in that order:
-
-. _BASEVERSION_-kdump (e.g. /boot/vmlinuz-2.6.27-rc1-kdump)
-. kdump (e.g. /boot/vmlinuz-kdump)
-. _KERNELRELEASE_ (e.g. /boot/vmlinuz-2.6.27-rc1-kdump), strong check
-. _BASEVERSION_-default (e.g. /boot/vmlinuz-2.6.27-rc1-default), strong check
-. "" (e.g. /boot/vmlinuz), strong check
-. _KERNELRELEASE_ (e.g. /boot/vmlinuz-2.6.27-rc1-kdump), weak check
-. "" (e.g. /boot/vmlinuz), weak check
-
-On each item, it tries:
-
-. /boot/*vmlinuz
-. /boot/*vmlinux
-
-Initrd
-^^^^^^
-
-For the initrd, if the kernel name already contains "kdump", then the initrd
-_/boot/initrd-<kernelver>_ is used. Else, we use
-_/boot/initrd-<kernelver>-kdump_ (the kernel flavour is not replaced, so for
-example this means _/boot/initrd-2.6.25.9-0.2-default-kdump_. This is because
-the initrd used for kdump always has to be special, and it makes no sense to
-load the normal initrd that would not save the dump.
-
+Default is "" which means to use the default
+/boot/{vmlinuz,image,Image,vmlinux} symlink
 
 
 KDUMP_CPUS

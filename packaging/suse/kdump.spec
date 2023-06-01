@@ -163,6 +163,7 @@ make VERBOSE=1
 %cmake_install
 # empty directory
 mkdir -p %{buildroot}%{_localstatedir}/crash
+mkdir -p %{buildroot}%{_localstatedir}/lib/kdump
 
 %if !%{with calibrate}
 # get distro_prefix-prefixed lines from calibrate.conf.all
@@ -247,5 +248,6 @@ rm %{_localstatedir}/log/dump >/dev/null 2>&1 || true
 %{_unitdir}/kdump.service
 %{_unitdir}/kdump-early.service
 %{_sbindir}/rckdump
+%dir /var/lib/kdump
 
 %changelog

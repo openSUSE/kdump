@@ -52,7 +52,7 @@ because
 * the kdump initrd should include network modules and network configuration
   (and therefore is larger as the normal initrd used for booting),
 * the kdump initrd should use no splash screen,
-* the kdump initrd includes *kdumptool*(8) and all required libraries.
+* the kdump initrd includes the kdump-save script and all required libraries.
 
 This script calls *dracut*(8) with all required parameters. If the initrd
 already exists, it checks first if the configuration file or the kernel are
@@ -63,16 +63,13 @@ OPTIONS
 All option parsing is done via the *getopt(3)* function, and therefore follows
 all standard command line parsing rules.
 
-*-k* _kernelversion_::
-  Specifies the kernel version. If no version is specified and also no kernel
-  or initrd are specified, then mkdumprd uses *kdumptool*(8) to find out the
-  correct kernel and initrd.
-
+*-k* _kernel_::
 *-K* _kernel_::
-  Specifies the kernel binary. If you specify that option, also specify _-I_.
+  Specifies the kernel version or an absolute path to a kernel image
+  (overrides KDUMP_KERNELVER from the kdump config file).
 
 *-I* _initrd_::
-  Specifies the resulting initrd. If you specify that option, also specify _-K_.
+  Specifies the resulting initrd. 
 
 *-f*::
   Force regeneration even if the configuration did not change.

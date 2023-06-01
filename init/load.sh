@@ -1,13 +1,14 @@
 #! /bin/bash
 #
 #  Copyright Petr Tesarik <ptesarik@suse.com>
-#  Load the kdump kernel specified in /etc/sysconfig/kdump
+#  Load the kdump kernel 
 
-KDUMPTOOL=/usr/sbin/kdumptool
 KEXEC=/sbin/kexec
 FADUMP_ENABLED=/sys/kernel/fadump_enabled
 FADUMP_REGISTERED=/sys/kernel/fadump_registered
 UDEV_RULES_DIR=/run/udev/rules.d
+kdump_initrd=/var/lib/kdump/initrd
+kdump_kernel=/var/lib/kdump/kernel
 
 #
 # Remove an option from the kernel command line
@@ -168,11 +169,6 @@ function build_kexec_options()
     local kdump_kernel="$1"
     local options="$KEXEC_OPTIONS"
 
-    # remove `--args-linux' for x86 type kernel files here
-    if [ $($KDUMPTOOL identify_kernel -t "$kdump_kernel") = "x86" ] ; then
-        options=$(echo "$options" | sed -e 's/--args-linux//g')
-    fi
-
     # add --noio on ia64
     if [ $(uname -i) = "ia64" ] ; then
         options="$options --noio"
@@ -311,25 +307,11 @@ function load_kdump_fadump()
 }
 
 #
-# Find the desired kernel and initrd
-function find_kernel()
-{
-    local output
-    output=$($KDUMPTOOL find_kernel)
-    test $? -eq 0 || return 1
-
-    kdump_kernel=$(echo "$output" | grep ^Kernel | cut -f 2)
-    kdump_initrd=$(echo "$output" | grep ^Initrd | cut -f 2)
-
-    return 0
-}
-
-#
 # Rebuild the kdump initramfs if necessary
 function rebuild_kdumprd()
 {
     local output
-    output=$(mkdumprd -K "$kdump_kernel" -I "$kdump_initrd" 2>&1)
+    output=$(mkdumprd 2>&1)
     if [ $? -ne 0 ] ; then
 	echo "$output"
 	return 1
@@ -362,10 +344,6 @@ else
     function kdump_logger(){ :; }
 fi
 
-if [ $((${KDUMP_VERBOSE:-0} & 16)) -gt 0 ] ; then
-    KDUMPTOOL="$KDUMPTOOL -D"
-fi
-
 update=
 shrink=
 while [ $# -gt 0 ] ; do
@@ -384,14 +362,19 @@ while [ $# -gt 0 ] ; do
     shift
 done
 
-find_kernel || exit 6
 
 if [ "$update" = yes ] ; then
     rebuild_kdumprd || exit 1
 fi
 
+# check if initrd and the kernel it was built for exist
+# return 6 if not, which is treated as success by 
+# the kdump-early service
+[[ -f "${kdump_initrd}" ]] || exit 6
+[[ -f "${kdump_kernel}" ]] || exit 6
+
 if [ "$shrink" = yes ] ; then
-    $KDUMPTOOL calibrate --shrink > /dev/null
+    kdumptool calibrate --shrink > /dev/null
 fi
 
 if [ "$KDUMP_FADUMP" = "true" ] ; then

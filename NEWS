@@ -16,6 +16,9 @@
     * unified default KDUMP_SAVEDIR across config, code and man to /var/crash
     * ping is now used to detect network is up; disable with KDUMP_NET_TIMEOUT=0    
     * all the yes/no options changed to true/false; yes/no/1/0 still accepted
+  * put the kdump initrd in /var/lib/kdump/initrd
+  * use default kernel symlink (/boot/vmlinuz) instead of kernel autodetection
+  * KDUMP_KERNELVER can specify an absolute path to a kernel image
 
 1.0.3
 -----
