@@ -195,6 +195,10 @@ shift $(($OPTIND -1))
 if [[ ${KDUMP_KERNELVER:0:1} == "/" ]]; then
 	# absolute path
 	KERNEL=${KDUMP_KERNELVER}
+	if ! [ -f "$KERNEL" ] ; then
+	    echo "Kernel $KERNEL does not exist."
+	    exit 1
+	fi
 else
 	# if a specific version is requested, look for it 
 	# in /boot/$IMAGE-$KDUMP_KERNELVER
@@ -209,7 +213,7 @@ else
 fi
 
 if ! [ -f "$KERNEL" ] ; then
-    echo "Kernel $KERNEL does not exist."
+    echo "Kernel not found."
     exit 1
 fi
 
