@@ -72,54 +72,10 @@ ENDIF (asciidoc_version_string VERSION_LESS 8.3.0)
 #
 set (CMAKE_LIBRARY_PATH /usr/lib64 ${CMAKE_LIBRARY_PATH})
 
-# zlib
-INCLUDE(FindZLIB)
-SET(EXTRA_LIBS ${EXTRA_LIBS} ${ZLIB_LIBRARY})
-INCLUDE_DIRECTORIES( ${ZLIB_INCLUDE_DIR} )
-
-IF(NOT ZLIB_FOUND)
-    MESSAGE(FATAL_ERROR "Zlib not found. Install zlib-devel or something like that")
-ENDIF(NOT ZLIB_FOUND)
-
-# libelf
-INCLUDE(Findlibelf)
-SET(EXTRA_LIBS ${EXTRA_LIBS} ${LIBELF_LIBRARIES})
-INCLUDE_DIRECTORIES(${LIBELF_INCLUDE_DIRS})
-
-IF(NOT LIBELF_FOUND)
-    MESSAGE(FATAL_ERROR "libelf not found. Install libelf-devel or something like that")
-ENDIF(NOT LIBELF_FOUND)
-
-# libcurl
-INCLUDE(FindCURL)
-SET(EXTRA_LIBS ${EXTRA_LIBS} ${CURL_LIBRARIES})
-INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIRS})
-
-IF(NOT CURL_FOUND)
-    MESSAGE(FATAL_ERROR "CURL not found. Install curl-devel or something like that")
-ENDIF(NOT CURL_FOUND)
-
-# libesmtp
-INCLUDE(Findesmtp)
-
-IF (ESMTP_FOUND)
-    SET(EXTRA_LIBS ${EXTRA_LIBS} ${ESMTP_LIBRARIES})
-    INCLUDE_DIRECTORIES(${ESMTP_INCLUDE_DIRS})
-ENDIF (ESMTP_FOUND)
-
-IF(NOT ESMTP_FOUND)
-    MESSAGE("esmtp not found. Install libesmtp-devel or something like that")
-    MESSAGE("Building without mail support!")
-    SET(ESMTP_FOUND FALSE)
-ENDIF(NOT ESMTP_FOUND)
 
 # libblkid
 pkg_check_modules(BLKID REQUIRED blkid)
 
-# libmount
-pkg_check_modules(LIBMOUNT REQUIRED mount)
-SET(EXTRA_LIBS ${EXTRA_LIBS} ${LIBMOUNT_LIBRARIES})
-INCLUDE_DIRECTORIES(${LIBMOUNT_INCLUDE_DIRS})
 
 #
 # Check for FADUMP

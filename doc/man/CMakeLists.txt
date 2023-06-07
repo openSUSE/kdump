@@ -35,10 +35,6 @@ CONFIGURE_FILE(
     "${CMAKE_CURRENT_SOURCE_DIR}/mkdumprd.8.txt.in"
     "${CMAKE_CURRENT_BINARY_DIR}/mkdumprd.8.txt"
 )
-CONFIGURE_FILE(
-    "${CMAKE_CURRENT_SOURCE_DIR}/kdumptool.8.txt.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/kdumptool.8.txt"
-)
 
 ADD_CUSTOM_COMMAND(
     OUTPUT
@@ -55,21 +51,6 @@ ADD_CUSTOM_COMMAND(
         ${CMAKE_CURRENT_BINARY_DIR}
 )                      
 
-
-ADD_CUSTOM_COMMAND(
-    OUTPUT
-        ${CMAKE_CURRENT_BINARY_DIR}/kdumptool.8.gz
-    COMMAND
-        ${A2X_EXECUTABLE} ${A2X_MAN_OPTIONS}
-        -D ${CMAKE_CURRENT_BINARY_DIR}
-        ${CMAKE_CURRENT_BINARY_DIR}/kdumptool.8.txt &&
-        rm -f ${CMAKE_CURRENT_SOURCE_DIR}/kdumptool.8.xml &&
-        gzip -f ${CMAKE_CURRENT_BINARY_DIR}/kdumptool.8
-    DEPENDS
-        ${CMAKE_CURRENT_BINARY_DIR}/kdumptool.8.txt
-    WORKING_DIRECTORY
-        ${CMAKE_CURRENT_BINARY_DIR}
-)
 
 ADD_CUSTOM_COMMAND(
     OUTPUT
@@ -126,17 +107,14 @@ ADD_CUSTOM_TARGET(
         ${CMAKE_CURRENT_BINARY_DIR}/kdump.7.gz
         ${CMAKE_CURRENT_BINARY_DIR}/vmcore.5.gz
         ${CMAKE_CURRENT_BINARY_DIR}/kdump.5.gz
-        ${CMAKE_CURRENT_BINARY_DIR}/kdumptool.8.gz
         ${CMAKE_CURRENT_BINARY_DIR}/mkdumprd.8.gz
 )
-
 #
 # always build the manpages before building the program
 ADD_DEPENDENCIES(
-    kdumptool
+    calibrate
     manpages
 )
-
 
 INSTALL(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/kdump.7.gz
@@ -151,7 +129,6 @@ INSTALL(FILES
 )
 
 INSTALL(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/kdumptool.8.gz
     ${CMAKE_CURRENT_BINARY_DIR}/mkdumprd.8.gz
     DESTINATION
         share/man/man8

@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# kdumptool used be a kdumptool swiss-army knife program doing everything
+# now the only remaining functionality is "kdumptool calibrate" used by YaST 
+# and possibly other tools to get crashkernel reservation info.
+# So this is now a wrapper for the calibrate binary, carved out of the
+# original kdumptool
+
+
+function usage()
+{
+	cat  >&2 <<-__END
+	Usage: kdumptool calibrate [-s | --shrink] [-d]
+	Outputs possible and suggested memory reservation values.
+	Options:
+	    -d			turn on debugging
+	    -s or --shrink	shrink the current reservation to the calculated value
+	__END
+	exit 1
+}
+
+[[ "$1" == "calibrate" ]] || usage
+
+# export all config values to the binary
+set -a
+. /usr/lib/kdump/kdump-read-config.sh
+
+# find possible LUKS memory requirement
+# and export it in KDUMP_LUKS_MEMORY
+KDUMP_LUKS_MEMORY=0
+if [[ "${KDUMP_PROTO}" == "file" ]]; then
+	KDUMP_SAVEDIR_REALPATH=$(realpath -m "${KDUMP_SAVEDIR#*://}")
+	MOUNT_SOURCE=$(findmnt -nvr -o SOURCE --target "${KDUMP_SAVEDIR_REALPATH}")
+
+
+	# find which device is the encrypted device for MOUNT_SOURCE
+	CRYPTO_SOURCE=""
+	while read SOURCE FSTYPE; do
+		[[ "${FSTYPE}" == crypto_LUKS ]] && CRYPTO_SOURCE="${SOURCE}"
+	done < <(lsblk -n -l -s -o PATH,FSTYPE "${MOUNT_SOURCE}")
+
+	if [[ -n "${CRYPTO_SOURCE}" ]]; then
+		while read KEY VALUE; do
+			[[ "$KEY" == "Memory:" ]] && KDUMP_LUKS_MEMORY=$((KDUMP_LUKS_MEMORY + VALUE))
+		done < <(cryptsetup luksDump "${CRYPTO_SOURCE}")
+	fi
+fi
+
+# skip over the "calibrate" argument and pass the rest to the binary
+shift
+/usr/lib/kdump/calibrate "$@"
+
+# exit code 2 means bad arguments
+[[ $? -eq 2 ]] && usage
+exit $?
+
+
+
+

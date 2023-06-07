@@ -65,15 +65,9 @@ BuildRequires:  asciidoc
 BuildRequires:  cmake >= 3.7
 BuildRequires:  gcc-c++
 BuildRequires:  libblkid-devel
-BuildRequires:  libcurl-devel
-BuildRequires:  libelf-devel
-BuildRequires:  libesmtp-devel
-BuildRequires:  libmount-devel
-BuildRequires:  libxslt
 BuildRequires:  pkgconfig
 BuildRequires:  systemd-sysvinit
 BuildRequires:  util-linux-systemd
-BuildRequires:  zlib-devel
 BuildRequires:  pkgconfig(systemd)
 BuildRequires:  pkgconfig(udev)
 #!BuildIgnore:  fop
@@ -94,7 +88,6 @@ BuildRequires:  systemd-sysvinit
 BuildRequires:  util-linux-systemd
 %endif
 Requires:       /usr/bin/sed
-Requires:       curl
 Requires:       dracut >= 047
 Requires:       kexec-tools
 Requires:       makedumpfile
@@ -237,7 +230,6 @@ rm %{_localstatedir}/log/dump >/dev/null 2>&1 || true
 %{_sbindir}/mkdumprd
 %{_mandir}/man5/kdump.5%{?ext_man}
 %{_mandir}/man7/kdump.7%{?ext_man}
-%{_mandir}/man8/kdumptool.8%{?ext_man}
 %{_mandir}/man8/mkdumprd.8%{?ext_man}
 %{_fillupdir}/sysconfig.kdump
 %dir %{dracutlibdir}

@@ -22,24 +22,38 @@
 #include <cstring>
 #include <cstdlib>
 #include <limits>
+#include <string>
+#include <cstdarg>
+#include <list>
+#include <map>
+#include <sstream>
 
 #include <dirent.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <getopt.h>
 
-#include "subcommand.h"
-#include "debug.h"
-#include "calibrate.h"
-#include "configuration.h"
-#include "util.h"
-#include "fileutil.h"
-#include "mounts.h"
-#include "process.h"
-#include "rootdirurl.h"
-#include "stringvector.h"
-#include "configparser.h"
+
+bool needsNetwork;
+bool needsMakedumpfile;
+long long KDUMP_CPUS, KDUMP_LUKS_MEMORY;
+bool m_shrink = false;
+bool debug = false;
+
+void read_str(std::string &str, const char* path);
+
+void DEBUG(const char *msg, ...)
+{
+    va_list valist;
+	if (!debug)
+		return;
+    va_start(valist, msg);
+    vfprintf(stderr, msg, valist);
+	fprintf(stderr, "\n");
+    va_end(valist);
+}
 
 // All calculations are in KiB
 
@@ -165,8 +179,6 @@ using std::endl;
 using std::ifstream;
 using std::string;
 
-//{{{ SizeConstants ------------------------------------------------------------
-
 class SizeConstants {
     protected:
         unsigned long m_kernel_base;
@@ -286,83 +298,25 @@ SizeConstants::SizeConstants(void)
         { "USER_NET", &SizeConstants::m_user_net },
         { nullptr, nullptr }
     };
-    ShellConfigParser cfg("/usr/lib/kdump/calibrate.conf");
-
-    for (auto p = &vars[0]; p->name; ++p)
-        cfg.addVariable(p->name, "");
-    cfg.parse();
     for (auto p = &vars[0]; p->name; ++p) {
-        KString val(cfg.getValue(p->name));
-        if (val.empty())
-            throw KError(std::string("No value configured for ") + p->name);
-        this->*p->var = val.asLongLong();
+		char *val = std::getenv(p->name);
+		char *end;
+		long long lval;
+        if (!val || !*val)
+            throw std::runtime_error(std::string("No value configured for ") + p->name);
+        this->*p->var = strtoll(val, &end, 10);
+		if (*end)
+            throw std::runtime_error(std::string("Invalid value configured for ") + p->name);
     }
 }
-
-//}}}
-//{{{ SystemCPU ----------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-unsigned long SystemCPU::count(const char *name)
-{
-    FilePath path(m_cpudir);
-    path.appendPath(name);
-    unsigned long ret = 0UL;
-
-    ifstream fin(path.c_str());
-    if (!fin)
-	throw KSystemError("Cannot open " + path, errno);
-
-    try {
-	unsigned long n1, n2;
-	char delim;
-
-	fin.exceptions(ifstream::badbit);
-	while (fin >> n1) {
-	    fin >> delim;
-	    if (fin && delim == '-') {
-		if (! (fin >> n2) )
-		    throw KError(path + ": wrong number format");
-		ret += n2 - n1;
-		fin >> delim;
-	    }
-	    if (!fin.eof() && delim != ',')
-		throw KError(path + ": wrong delimiter: " + delim);
-	    ++ret;
-	}
-	if (!fin.eof())
-	    throw KError(path + ": wrong number format");
-	fin.close();
-    } catch (ifstream::failure &e) {
-	throw KSystemError("Cannot read " + path, errno);
-    }
-
-    return ret;
-}
-
-//}}}
-//{{{ HyperInfo ----------------------------------------------------------------
 
 class HyperInfo {
 
     public:
-        /**
-         * Initialize a new HyperInfo object.
-         *
-         * @param[in] procdir Mount point for procfs
-         * @param[in] sysdir  Mount point for sysfs
-         */
-        HyperInfo(const char *procdir = "/proc", const char *sysdir = "/sys");
+        HyperInfo();
 
     protected:
         std::string m_type, m_guest_type, m_guest_variant;
-
-    private:
-        /**
-         * Read a file under a base directory into a string.
-         */
-        void read_str(std::string &str, const FilePath &basedir,
-                      const char *attr);
 
     public:
         /**
@@ -385,21 +339,16 @@ class HyperInfo {
 };
 
 // -----------------------------------------------------------------------------
-HyperInfo::HyperInfo(const char *procdir, const char *sysdir)
+HyperInfo::HyperInfo()
 {
-    FilePath basedir(sysdir);
-    basedir.appendPath("hypervisor");
-
-    read_str(m_type, basedir, "type");
-    read_str(m_guest_type, basedir, "guest_type");
+    read_str(m_type, "/sys/hypervisor/type");
+    read_str(m_guest_type, "/sys/hypervisor/guest_type");
 
     if (m_type == "xen") {
         std::string caps;
         std::string::size_type pos, next, len;
 
-        basedir = procdir;
-        basedir.appendPath("xen");
-        read_str(caps, basedir, "capabilities");
+        read_str(caps, "/proc/xen/capabilities");
 
         m_guest_variant = "DomU";
         pos = 0;
@@ -418,159 +367,89 @@ HyperInfo::HyperInfo(const char *procdir, const char *sysdir)
     }
 }
 
-// -----------------------------------------------------------------------------
-void HyperInfo::read_str(std::string &str, const FilePath &basedir,
-                         const char *attr)
+void read_str(std::string &str, const char* path)
 {
-    FilePath fp(basedir);
     std::ifstream f;
 
-    fp.appendPath(attr);
-    f.open(fp.c_str());
+    f.open(path);
     if (!f)
         return;
 
     getline(f, str);
     f.close();
     if (f.bad())
-        throw KError(fp + ": Read failed");
+        throw std::runtime_error(string(path) + ": Read failed");
 }
 
-//}}}
-//{{{ Framebuffer --------------------------------------------------------------
-
-class Framebuffer {
-
-    public:
-        /**
-	 * Initialize a new Framebuffer object.
-	 *
-	 * @param[in] fbpath Framebuffer sysfs directory path
-	 */
-	Framebuffer(const char *fbpath)
-	: m_dir(fbpath)
-	{}
-
-    protected:
-        /**
-	 * Path to the framebuffer device base directory
-	 */
-	const FilePath m_dir;
-
-    public:
-	/**
-	 * Get length of the framebuffer [in bytes].
-	 */
-	unsigned long size(void) const;
-};
-
-// -----------------------------------------------------------------------------
-unsigned long Framebuffer::size(void) const
+unsigned long Framebuffer_size(string path) 
 {
-    FilePath fp;
     std::ifstream f;
     unsigned long width, height, stride;
     char sep;
+    string fp;
 
-    fp.assign(m_dir);
-    fp.appendPath("virtual_size");
+    fp = path + "/virtual_size";
     f.open(fp.c_str());
     if (!f)
-	throw KError(fp + ": Open failed");
+	throw std::runtime_error(fp + ": Open failed");
     f >> width >> sep >> height;
     f.close();
     if (f.bad())
-	throw KError(fp + ": Read failed");
+	throw std::runtime_error(fp + ": Read failed");
     else if (!f || sep != ',')
-	throw KError(fp + ": Invalid content!");
-    Debug::debug()->dbg("Framebuffer virtual size: %lux%lu", width, height);
+	throw std::runtime_error(fp + ": Invalid content!");
+    DEBUG("Framebuffer virtual size: %lux%lu", width, height);
 
-    fp.assign(m_dir);
-    fp.appendPath("stride");
+    fp = path + "/stride";
     f.open(fp.c_str());
     if (!f)
-	throw KError(fp + ": Open failed");
+	throw std::runtime_error(fp + ": Open failed");
     f >> stride;
     f.close();
     if (f.bad())
-	throw KError(fp + ": Read failed");
+	throw std::runtime_error(fp + ": Read failed");
     else if (!f || sep != ',')
-	throw KError(fp + ": Invalid content!");
-    Debug::debug()->dbg("Framebuffer stride: %lu bytes", stride);
+	throw std::runtime_error(fp + ": Invalid content!");
+    DEBUG("Framebuffer stride: %lu bytes", stride);
 
     return stride * height;
 }
 
-//}}}
-//{{{ Framebuffers -------------------------------------------------------------
-
-class Framebuffers {
-
-    public:
-        /**
-	 * Initialize a new Framebuffer object.
-	 *
-	 * @param[in] sysdir Mount point for sysfs
-	 */
-	Framebuffers(const char *sysdir = "/sys")
-	: m_fbdir(FilePath(sysdir).appendPath("class/graphics"))
-	{}
-
-    protected:
-        /**
-	 * Path to the base directory with links to framebuffer devices
-	 */
-	const FilePath m_fbdir;
-
-        /**
-	 * Filter only valid framebuffer device name
-	 */
-	class DirFilter : public ListDirFilter {
-
-	    public:
-		virtual ~DirFilter()
-		{}
-
-		bool test(int dirfd, const struct dirent *d) const
-		{
-		    char *end;
-		    if (strncmp(d->d_name, "fb", 2))
-			return false;
-		    strtoul(d->d_name + 2, &end, 10);
-		    return (*end == '\0' && end != d->d_name + 2);
-		}
-	};
-
-    public:
-	/**
-	 * Get size of all framebuffers [in bytes].
-	 */
-	unsigned long size(void) const;
-};
-
-// -----------------------------------------------------------------------------
-unsigned long Framebuffers::size(void) const
+unsigned long Framebuffers_size(void)
 {
-    Debug::debug()->trace("Framebuffers::size()");
-
     unsigned long ret = 0UL;
 
-    StringVector v = m_fbdir.listDir(DirFilter());
-    for (StringVector::const_iterator it = v.begin(); it != v.end(); ++it) {
-        Debug::debug()->dbg("Found framebuffer: %s", it->c_str());
+	string fbs = "/sys/class/graphics";
+    DIR *dirp = opendir(fbs.c_str());
+    if (!dirp)
+		throw std::runtime_error("Cannot open directory " + fbs + ". errno=" +  std::to_string(errno));
 
-	FilePath fp(m_fbdir);
-	fp.appendPath(*it);
-	Framebuffer fb(fp.c_str());
-	ret += fb.size();
+    try {
+		struct dirent *d;
+
+		errno = 0;
+		while ( (d = readdir(dirp)) ) {
+			char *end;
+			if (strncmp(d->d_name, "fb", 2))
+				continue;
+			strtoul(d->d_name + 2, &end, 10);
+			if (*end != '\0' || end == d->d_name + 2)
+				continue;
+			string fb = fbs + "/" + d->d_name;
+			DEBUG("Found framebuffer: %s", fb.c_str());
+			ret += Framebuffer_size(fb);
+		}
+		if (errno)
+			throw std::runtime_error("Cannot read directory " + fbs + ". errno=" + std::to_string(errno));
+    } catch(...) {
+		closedir(dirp);
+		throw;
     }
+    closedir(dirp);
 
-    Debug::debug()->dbg("Total size of all framebuffers: %lu bytes", ret);
+    DEBUG("Total size of all framebuffers: %lu bytes", ret);
     return ret;
 }
-
-//}}}
-//{{{ SlabInfo -----------------------------------------------------------------
 
 class SlabInfo {
 
@@ -580,11 +459,11 @@ class SlabInfo {
 	 *
 	 * @param[in] line Line from /proc/slabinfo
 	 */
-	SlabInfo(const KString &line);
+	SlabInfo(const string &line);
 
     protected:
 	bool m_comment;
-	KString m_name;
+	string m_name;
 	unsigned long m_active_objs;
 	unsigned long m_num_objs;
 	unsigned long m_obj_size;
@@ -597,7 +476,7 @@ class SlabInfo {
 	bool isComment(void) const
 	{ return m_comment; }
 
-	const KString &name(void) const
+	const string &name(void) const
 	{ return m_name; }
 
 	unsigned long activeObjs(void) const
@@ -623,14 +502,14 @@ class SlabInfo {
 };
 
 // -----------------------------------------------------------------------------
-SlabInfo::SlabInfo(const KString &line)
+SlabInfo::SlabInfo(const string &line)
 {
     static const char slabdata_mark[] = " : slabdata ";
 
     std::istringstream ss(line);
     ss >> m_name;
     if (!ss)
-	throw KError("Invalid slabinfo line: " + line);
+	throw std::runtime_error("Invalid slabinfo line: " + line);
 
     if (m_name[0] == '#') {
 	m_comment = true;
@@ -641,20 +520,17 @@ SlabInfo::SlabInfo(const KString &line)
     ss >> m_active_objs >> m_num_objs >> m_obj_size
        >> m_obj_per_slab >> m_pages_per_slab;
     if (!ss)
-	throw KError("Invalid slabinfo line: " + line);
+	throw std::runtime_error("Invalid slabinfo line: " + line);
 
     size_t sdpos = line.find(slabdata_mark, ss.tellg());
-    if (sdpos == KString::npos)
-	throw KError("Invalid slabinfo line: " + line);
+    if (sdpos == string::npos)
+	throw std::runtime_error("Invalid slabinfo line: " + line);
 
     ss.seekg(sdpos + sizeof(slabdata_mark) - 1, ss.beg);
     ss >> m_active_slabs >> m_num_slabs;
     if (!ss)
-	throw KError("Invalid slabinfo line: " + line);
+	throw std::runtime_error("Invalid slabinfo line: " + line);
 }
-
-//}}}
-//{{{ SlabInfos ----------------------------------------------------------------
 
 // Taken from procps:
 #define SLABINFO_LINE_LEN	2048
@@ -663,25 +539,12 @@ SlabInfo::SlabInfo(const KString &line)
 class SlabInfos {
 
     public:
-	typedef std::map<KString, const SlabInfo*> Map;
+	typedef std::map<string, const SlabInfo*> Map;
 
-        /**
-	 * Initialize a new SlabInfos object.
-	 *
-	 * @param[in] procdir Mount point for procfs
-	 */
-	SlabInfos(const char *procdir = "/proc")
-	: m_path(FilePath(procdir).appendPath("slabinfo"))
-	{}
+	SlabInfos() {}
 
 	~SlabInfos()
 	{ destroyInfo(); }
-
-    protected:
-        /**
-	 * Path to the slabinfo file
-	 */
-	const FilePath m_path;
 
         /**
 	 * SlabInfo for each slab
@@ -716,28 +579,29 @@ const SlabInfos::Map& SlabInfos::getInfo(void)
     static const char verhdr[] = "slabinfo - version: ";
     char buf[SLABINFO_VER_LEN], *p, *end;
     unsigned long major, minor;
+	string m_path("/proc/slabinfo");
 
     std::ifstream f(m_path.c_str());
     if (!f)
-	throw KError(m_path + ": Open failed");
+	throw std::runtime_error(m_path + ": Open failed");
     f.getline(buf, sizeof buf);
     if (f.bad())
-	throw KError(m_path + ": Read failed");
+	throw std::runtime_error(m_path + ": Read failed");
     else if (!f || strncmp(buf, verhdr, sizeof(verhdr)-1))
-	throw KError(m_path + ": Invalid version");
+	throw std::runtime_error(m_path + ": Invalid version");
     p = buf + sizeof(verhdr) - 1;
 
     major = strtoul(p, &end, 10);
     if (end == p || *end != '.')
-	throw KError(m_path + ": Invalid version");
+	throw std::runtime_error(m_path + ": Invalid version");
     p = end + 1;
     minor = strtoul(p, &end, 10);
     if (end == p || *end != '\0')
-	throw KError(m_path + ": Invalid version");
-    Debug::debug()->dbg("Found slabinfo version %lu.%lu", major, minor);
+	throw std::runtime_error(m_path + ": Invalid version");
+    DEBUG("Found slabinfo version %lu.%lu", major, minor);
 
     if (major != 2)
-	throw KError(m_path + ": Unsupported slabinfo version");
+	throw std::runtime_error(m_path + ": Unsupported slabinfo version");
 
     char line[SLABINFO_LINE_LEN];
     while(f.getline(line, SLABINFO_LINE_LEN)) {
@@ -751,9 +615,6 @@ const SlabInfos::Map& SlabInfos::getInfo(void)
 
     return m_info;
 }
-
-//}}}
-//{{{ MemRange -----------------------------------------------------------------
 
 class MemRange {
 
@@ -795,9 +656,6 @@ class MemRange {
 
 	Addr m_start, m_end;
 };
-
-//}}}
-//{{{ MemMap -------------------------------------------------------------------
 
 class MemMap {
 
@@ -846,12 +704,11 @@ class MemMap {
 MemMap::MemMap(const SizeConstants &sizes, const char *procdir)
     : m_sizes(sizes), m_kstart(0), m_kend(0)
 {
-    FilePath path(procdir);
+	string path("/proc/iomem");
 
-    path.appendPath("iomem");
     ifstream f(path.c_str());
     if (!f)
-	throw KError(path + ": Open failed");
+	throw std::runtime_error(path + ": Open failed");
 
     f.setf(std::ios::hex, std::ios::basefield);
     while (f) {
@@ -860,24 +717,24 @@ MemMap::MemMap(const SizeConstants &sizes, const char *procdir)
 	    MemRange::Addr start, end;
 
 	    if (!(f >> start))
-		throw KError("Invalid resource start");
+		throw std::runtime_error("Invalid resource start");
 	    if (f.get() != '-')
-		throw KError("Invalid range delimiter");
+		throw std::runtime_error("Invalid range delimiter");
 	    if (!(f >> end))
-		throw KError("Invalid resource end");
+		throw std::runtime_error("Invalid resource end");
 
 	    int c;
 	    while ((c = f.get()) == ' ');
 	    if (c != ':')
-		throw KError("Invalid resource name delimiter");
+		throw std::runtime_error("Invalid resource name delimiter");
 	    while ((c = f.get()) == ' ');
 	    f.unget();
 
-            KString name;
+            string name;
 	    std::getline(f, name);
             if (firstc != ' ' && name == "System RAM") {
                 m_ranges.emplace_back(start, end);
-            } else if (firstc == ' ' && name.startsWith("Kernel ")) {
+            } else if (firstc == ' ' && !name.compare(0, 7, "Kernel ")) {
                 if (!m_kstart)
                     m_kstart = start;
                 m_kend = end;
@@ -949,93 +806,44 @@ unsigned long long MemMap::find(unsigned long size, unsigned long align) const
     return ~0ULL;
 }
 
-//}}}
-//{{{ CryptInfo ----------------------------------------------------------------
-
-/**
- * Given a LUKS crypto device, dump the header using 'cryptinfo' and
- * parse the output looking for maximum memory requirements.
- */
-class CryptInfo {
-        unsigned long m_memory;
-
-    public:
-        CryptInfo(std::string const& device);
-
-	/**
-	 * Get memory requirements.
-	 *
-	 * @return Maximum memory in KiB needed to open the device
-	 */
-        unsigned long memory(void) const
-        { return m_memory; }
-};
-
-// -----------------------------------------------------------------------------
-CryptInfo::CryptInfo(std::string const& device)
-    : m_memory(0)
+unsigned long SystemCPU_count(const char *name)
 {
-    Debug::debug()->trace("CryptInfo::CryptInfo(%s)", device.c_str());
+    unsigned long ret = 0UL;
 
-    ProcessFilter p;
+    ifstream fin(name);
+    if (!fin)
+	throw std::runtime_error(string("Cannot open ") + name + ", errno=" + std::to_string(errno));
 
-    StringVector args;
-    args.push_back("luksDump");
-    args.push_back(device);
+    try {
+	unsigned long n1, n2;
+	char delim;
 
-    std::ostringstream stdoutStream, stderrStream;
-    p.setStdout(&stdoutStream);
-    p.setStderr(&stderrStream);
-    int ret = p.execute("cryptsetup", args);
-    if (ret != 0) {
-        KString error = stderrStream.str();
-        throw KError("cryptsetup failed: " + error.trim());
+	fin.exceptions(ifstream::badbit);
+	while (fin >> n1) {
+	    fin >> delim;
+	    if (fin && delim == '-') {
+		if (! (fin >> n2) )
+		    throw std::runtime_error(string(name) + ": wrong number format");
+		ret += n2 - n1;
+		fin >> delim;
+	    }
+	    if (!fin.eof() && delim != ',')
+		throw std::runtime_error(string(name) + ": wrong delimiter: " + delim);
+	    ++ret;
+	}
+	if (!fin.eof())
+	    throw std::runtime_error(string(name) + ": wrong number format");
+	fin.close();
+    } catch (ifstream::failure &e) {
+	throw std::runtime_error("Cannot read " + string(name) +", errno=" + std::to_string(errno));
     }
 
-    KString out = stdoutStream.str();
-    size_t pos = 0;
-    while (pos < out.length()) {
-        size_t end = out.find_first_of("\r\n", pos);
-        size_t sep = out.find(':', pos);
-        if (sep < end) {
-            KString key = out.substr(pos, sep - pos);
-            if (key.trim() == "Memory") {
-                KString val = out.substr(sep + 1, end - sep - 1);
-                unsigned long memory = val.trim().asLongLong();
-                Debug::debug()->dbg("Crypto device %s needs %lu KiB",
-                                    device.c_str(), memory);
-                if (memory > m_memory)
-                    m_memory = memory;
-            }
-        }
-        pos = out.find_first_not_of("\r\n", end);
-    }
+    return ret;
 }
 
-//}}}
-//{{{ Calibrate ----------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-Calibrate::Calibrate()
-    : m_shrink(false)
-{
-    Debug::debug()->trace("Calibrate::Calibrate()");
-
-    m_options.push_back(new FlagOption("shrink", 's', &m_shrink,
-        "Shrink the crash kernel reservation"));
-}
-
-// -----------------------------------------------------------------------------
-const char *Calibrate::getName() const
-{
-    return "calibrate";
-}
-
-// -----------------------------------------------------------------------------
 static unsigned long runtimeSize(SizeConstants const &sizes,
                                  unsigned long memtotal)
 {
-    Configuration *config = Configuration::config();
     unsigned long required, prev;
 
     // Run-time kernel requirements
@@ -1044,105 +852,69 @@ static unsigned long runtimeSize(SizeConstants const &sizes,
     // Double the size, because fbcon allocates its own framebuffer,
     // and many DRM drivers allocate the hw framebuffer in system RAM
     try {
-        Framebuffers fb;
-        required += 2 * fb.size() / 1024UL;
-    } catch(KError &e) {
-        Debug::debug()->dbg("Cannot get framebuffer size: %s", e.what());
+        required += 2 * Framebuffers_size() / 1024UL;
+    } catch(std::runtime_error &e) {
+        DEBUG("Cannot get framebuffer size: %s", e.what());
         required += 2 * DEF_FRAMEBUFFER_KB;
     }
 
     // LUKS Argon2 hash requires a lot of memory
-    try {
-        FilesystemTypeMap map;
-
-        if (config->KDUMP_COPY_KERNEL.value()) {
-            try {
-                map.addPath("/boot");
-            } catch (KError&) {
-                // ignore device resolution failures
-            }
-        }
-
-        std::istringstream iss(config->KDUMP_SAVEDIR.value());
-        std::string elem;
-        while (iss >> elem) {
-            RootDirURL url(elem, std::string());
-            if (url.getProtocol() == RootDirURL::PROT_FILE) {
-                try {
-                    map.addPath(url.getRealPath());
-                } catch (KError&) {
-                    // ignore device resolution failures
-                }
-            }
-        }
-
-        unsigned long crypto_mem = 0;
-        for (const auto& devmap : map.devices()) {
-            if (devmap.second == "crypto_LUKS") {
-                CryptInfo info(devmap.first);
-                if (crypto_mem < info.memory())
-                    crypto_mem = info.memory();
-            }
-        }
-        required += crypto_mem;
-
-        Debug::debug()->dbg("Adding %lu KiB for crypto devices", crypto_mem);
-    } catch (KError &e) {
-        Debug::debug()->dbg("Cannot check encrypted volumes: %s", e.what());
-        // Fall back to no allocation
+	if (KDUMP_LUKS_MEMORY) {
+        required += KDUMP_LUKS_MEMORY;
+        DEBUG("Adding %lu KiB for crypto devices", KDUMP_LUKS_MEMORY);
     }
 
     // Add space for constant slabs
     try {
         SlabInfos slab;
         for (const auto& elem : slab.getInfo()) {
-            if (elem.first.startsWith("Acpi-")) {
+            if (!elem.first.compare(0, 5, "Acpi-")) {
                 unsigned long slabsize = elem.second->numSlabs() *
                     elem.second->pagesPerSlab() * sizes.pagesize() / 1024;
                 required += slabsize;
 
-                Debug::debug()->dbg("Adding %ld KiB for %s slab cache",
+                DEBUG("Adding %ld KiB for %s slab cache",
                                     slabsize, elem.second->name().c_str());
             }
         }
-    } catch (KError &e) {
-        Debug::debug()->dbg("Cannot get slab sizes: %s", e.what());
+    } catch (std::runtime_error &e) {
+        DEBUG("Cannot get slab sizes: %s", e.what());
     }
 
     // Add memory based on CPU count
     unsigned long cpus = 0;
-    if (CAN_REDUCE_CPUS)
-        cpus = config->KDUMP_CPUS.value();
+    if (CAN_REDUCE_CPUS) {
+	cpus = KDUMP_CPUS;
+    }
     if (!cpus) {
-        SystemCPU syscpu;
-        unsigned long online = syscpu.numOnline();
-        unsigned long offline = syscpu.numOffline();
-        Debug::debug()->dbg("CPUs online: %lu, offline: %lu",
+        unsigned long online = SystemCPU_count("/sys/devices/system/cpu/online");
+        unsigned long offline = SystemCPU_count("/sys/devices/system/cpu/offline");
+        DEBUG("CPUs online: %lu, offline: %lu",
                             online, offline);
         cpus = online + offline;
     }
-    Debug::debug()->dbg("Total assumed CPUs: %lu", cpus);
+    DEBUG("Total assumed CPUs: %lu", cpus);
     cpus *= sizes.percpu_kb();
-    Debug::debug()->dbg("Total per-cpu requirements: %lu KiB", cpus);
+    DEBUG("Total per-cpu requirements: %lu KiB", cpus);
     required += cpus;
 
     // User-space requirements
     unsigned long user = sizes.user_base_kb();
-    if (config->needsNetwork())
+    if (needsNetwork)
         user += sizes.user_net_kb();
 
-    if (config->needsMakedumpfile()) {
+    if (needsMakedumpfile) {
         // Estimate bitmap size (1 bit for every RAM page)
         unsigned long bitmapsz = shr_round_up(memtotal / sizes.pagesize(), 2);
         if (bitmapsz > MAX_BITMAP_KB)
             bitmapsz = MAX_BITMAP_KB;
-        Debug::debug()->dbg("Estimated bitmap size: %lu KiB", bitmapsz);
+        DEBUG("Estimated bitmap size: %lu KiB", bitmapsz);
         user += bitmapsz;
 
         // Makedumpfile needs additional 96 B for every 128 MiB of RAM
         user += 96 * shr_round_up(memtotal, 20 + 7);
     }
-    Debug::debug()->dbg("Total userspace: %lu KiB", user);
+    DEBUG("Total userspace: %lu KiB", user);
     required += user;
 
     // Make room for dirty pages and in-flight I/O:
@@ -1157,13 +929,13 @@ static unsigned long runtimeSize(SizeConstants const &sizes,
     required = required * MB(100) /
         (MB(100) - MB(DIRTY_RATIO) - DIRTY_RATIO * BUF_PER_DIRTY_MB);
     dirty = (required - prev) * MB(1) / (MB(1) + BUF_PER_DIRTY_MB);
-    Debug::debug()->dbg("Dirty pagecache: %lu KiB", dirty);
-    Debug::debug()->dbg("In-flight I/O: %lu KiB", required - prev - dirty);
+    DEBUG("Dirty pagecache: %lu KiB", dirty);
+    DEBUG("In-flight I/O: %lu KiB", required - prev - dirty);
 
     // Account for "large hashes"
     prev = required;
     required = required * MB(1024) / (MB(1024) - KERNEL_HASH_PER_MB);
-    Debug::debug()->dbg("Large kernel hashes: %lu KiB", required - prev);
+    DEBUG("Large kernel hashes: %lu KiB", required - prev);
 
     // Add space for memmap
     prev = required;
@@ -1171,8 +943,8 @@ static unsigned long runtimeSize(SizeConstants const &sizes,
     unsigned long maxpfn = (required - prev) / sizes.sizeof_page();
     required = prev + align_memmap(maxpfn) * sizes.sizeof_page();
 
-    Debug::debug()->dbg("Maximum memmap size: %lu KiB", required - prev);
-    Debug::debug()->dbg("Total run-time size: %lu KiB", required);
+    DEBUG("Maximum memmap size: %lu KiB", required - prev);
+    DEBUG("Total run-time size: %lu KiB", required);
     return required;
 }
 
@@ -1187,29 +959,78 @@ static void shrink_crash_size(unsigned long size)
 
     int fd = open(crash_size_fname, O_WRONLY);
     if (fd < 0)
-        throw KSystemError(string("Cannot open ") + crash_size_fname,
-                           errno);
+        throw std::runtime_error(string("Cannot open ") + crash_size_fname +
+			", errno=" + std::to_string(errno));
     if (write(fd, numstr.c_str(), numstr.length()) < 0) {
         if (errno == EINVAL)
-            Debug::debug()->dbg("New crash kernel size is bigger");
+            DEBUG("New crash kernel size is bigger");
         else if (errno == ENOENT)
-            throw KError("Crash kernel is currently loaded");
+            throw std::runtime_error("Crash kernel is currently loaded");
         else
-            throw KSystemError(string("Cannot write to ") + crash_size_fname,
-                               errno);
+            throw std::runtime_error(string("Cannot write to ") + crash_size_fname +
+                               ", errno=" + std::to_string(errno));
     }
     close(fd);
 }
 
 // -----------------------------------------------------------------------------
-void Calibrate::execute()
+int main(int argc, char* argv[])
 {
-    Debug::debug()->trace("Calibrate::execute()");
+	int opt;
+	static option long_options[] = {
+		{"shrink", 0, 0, 's'},
+		{0, 0, 0, 0}
+	};
+
+	while ((opt = getopt_long(argc, argv, "ds", long_options, NULL)) != -1) {
+	       switch (opt) {
+			case 's':
+				m_shrink = true;
+				break;
+			case 'd':
+				debug = true;
+				break;
+			default:
+				exit(2);
+		}
+	}
+
+	/* parse environment variables */
+	try {
+		char *end, *val;
+		val = std::getenv("KDUMP_CPUS");
+		if (!val || !*val)
+			throw std::runtime_error("KDUMP_CPUS not defined");
+		KDUMP_CPUS = strtoll(val, &end, 10);
+		if (*end)
+			throw std::runtime_error("KDUMP_CPUS invalid");
+
+		val = std::getenv("KDUMP_LUKS_MEMORY");
+		if (!val || !*val)
+			throw std::runtime_error("KDUMP_LUKS_MEMORY not defined");
+		KDUMP_LUKS_MEMORY = strtoll(val, &end, 10);
+		if (*end)
+			throw std::runtime_error("KDUMP_LUKS_MEMORY invalid");
+
+		val = std::getenv("KDUMP_PROTO");
+		if (!val || !*val)
+			throw std::runtime_error("KDUMP_PROTO not defined");
+		needsNetwork = strcmp(val, "file");
+
+		val = std::getenv("KDUMP_FORMAT");
+		if (!val || !*val)
+			throw std::runtime_error("KDUMP_FORMAT not defined");
+		needsMakedumpfile = strcmp(val, "none") && strcmp(val, "raw");
+	}
+	catch(std::runtime_error &e) {
+		cerr << "Error parsing config from envrironment variables: " << e.what() << endl;
+		exit(1);
+	}
 
     HyperInfo hyper;
-    Debug::debug()->dbg("Hypervisor type: %s", hyper.type().c_str());
-    Debug::debug()->dbg("Guest type: %s", hyper.guest_type().c_str());
-    Debug::debug()->dbg("Guest variant: %s", hyper.guest_variant().c_str());
+    DEBUG("Hypervisor type: %s", hyper.type().c_str());
+    DEBUG("Guest type: %s", hyper.guest_type().c_str());
+    DEBUG("Guest variant: %s", hyper.guest_variant().c_str());
     if (hyper.type() == "xen" && hyper.guest_type() == "PV" &&
         hyper.guest_variant() == "DomU") {
         cout << "Total: 0" << endl;
@@ -1219,24 +1040,23 @@ void Calibrate::execute()
         cout << "MaxLow: 0" << endl;
         cout << "MinHigh: 0 " << endl;
         cout << "MaxHigh: 0 " << endl;
-        return;
+        return 0;
     }
 
-    Configuration *config = Configuration::config();
     SizeConstants sizes;
     MemMap mm(sizes);
     unsigned long required;
     unsigned long memtotal = shr_round_up(mm.total(), 10);
 
     // Get total RAM size
-    Debug::debug()->dbg("Expected total RAM: %lu KiB", memtotal);
+    DEBUG("Expected total RAM: %lu KiB", memtotal);
 
     // Calculate boot requirements
     unsigned long bootsize = sizes.kernel_base_kb() +
         sizes.kernel_init_kb() + sizes.initramfs_kb();
-    if (config->needsNetwork())
+    if (needsNetwork)
         bootsize += sizes.kernel_init_net_kb() + sizes.initramfs_net_kb();
-    Debug::debug()->dbg("Memory needed at boot: %lu KiB", bootsize);
+    DEBUG("Memory needed at boot: %lu KiB", bootsize);
 
     try {
         required = runtimeSize(sizes, memtotal);
@@ -1248,8 +1068,8 @@ void Calibrate::execute()
         // Reserve a fixed percentage on top of the calculation
         required = (required * (100 + ADD_RESERVE_PCT)) / 100 + ADD_RESERVE_KB;
 
-    } catch(KError &e) {
-	Debug::debug()->info(e.what());
+    } catch(std::runtime_error &e) {
+	cerr << "Error calculating required reservation, using default: " << e.what() << endl;
 	required = DEF_RESERVE_KB;
     }
 
@@ -1260,11 +1080,11 @@ void Calibrate::execute()
 
     unsigned long long base = mm.find(required << 10, 16UL << 20);
 
-    Debug::debug()->dbg("Estimated crash area base: 0x%llx", base);
+    DEBUG("Estimated crash area base: 0x%llx", base);
 
     // If maxpfn is above 4G, SWIOTLB may be needed
     if ((base + (required << 10)) >= (1ULL<<32)) {
-	Debug::debug()->dbg("Adding 64 MiB for SWIOTLB");
+	DEBUG("Adding 64 MiB for SWIOTLB");
 	required += MB(64);
     }
 
@@ -1331,6 +1151,3 @@ void Calibrate::execute()
         shrink_crash_size(required << 10);
 }
 
-//}}}
-
-// vim: set sw=4 ts=4 fdm=marker et: :collapseFolds=1:
