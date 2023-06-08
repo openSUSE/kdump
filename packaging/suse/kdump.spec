@@ -91,7 +91,6 @@ Requires:       /usr/bin/sed
 Requires:       dracut >= 047
 Requires:       kexec-tools
 Requires:       makedumpfile
-Requires:       openssh
 %ifarch ppc64 ppc64le
 Requires:       servicelog
 BuildRequires:  servicelog
@@ -105,6 +104,7 @@ PreReq:         /usr/bin/touch
 Recommends:     cifs-utils
 Recommends:     nfs-client
 Recommends:     lftp
+Recommends:     openssh
 # update should detect the split-off from kexec-tools
 Provides:       kexec-tools:%{_initddir}/kdump
 ExcludeArch:    s390 ppc %arm32
