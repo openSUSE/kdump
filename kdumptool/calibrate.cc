@@ -1016,13 +1016,13 @@ int main(int argc, char* argv[])
 			throw std::runtime_error("KDUMP_PROTO not defined");
 		needsNetwork = strcmp(val, "file");
 
-		val = std::getenv("KDUMP_FORMAT");
+		val = std::getenv("KDUMP_DUMPFORMAT");
 		if (!val || !*val)
-			throw std::runtime_error("KDUMP_FORMAT not defined");
+			throw std::runtime_error("KDUMP_DUMPFORMAT not defined");
 		needsMakedumpfile = strcmp(val, "none") && strcmp(val, "raw");
 	}
 	catch(std::runtime_error &e) {
-		cerr << "Error parsing config from envrironment variables: " << e.what() << endl;
+		cerr << "Error parsing config from environment variables: " << e.what() << endl;
 		exit(1);
 	}
 

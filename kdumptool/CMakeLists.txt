@@ -6,14 +6,14 @@ INSTALL(
     TARGETS
         calibrate
     DESTINATION
-        /usr/lib/kdump/calibrate
+        /usr/lib/kdump
 )
 
 INSTALL(
     FILES
         kdumptool
     DESTINATION
-        /usr/sbin/kdumptool
+        /usr/sbin
     PERMISSIONS
         OWNER_READ OWNER_WRITE OWNER_EXECUTE
         GROUP_READ GROUP_EXECUTE

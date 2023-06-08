@@ -24,6 +24,7 @@ function usage()
 # export all config values to the binary
 set -a
 . /usr/lib/kdump/kdump-read-config.sh
+. /usr/lib/kdump/calibrate.conf
 
 # find possible LUKS memory requirement
 # and export it in KDUMP_LUKS_MEMORY
