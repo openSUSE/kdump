@@ -301,7 +301,6 @@ SizeConstants::SizeConstants(void)
     for (auto p = &vars[0]; p->name; ++p) {
 		char *val = std::getenv(p->name);
 		char *end;
-		long long lval;
         if (!val || !*val)
             throw std::runtime_error(std::string("No value configured for ") + p->name);
         this->*p->var = strtoll(val, &end, 10);
