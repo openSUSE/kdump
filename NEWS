@@ -20,6 +20,8 @@
   * use default kernel symlink (/boot/vmlinuz) instead of kernel autodetection
   * KDUMP_KERNELVER can specify an absolute path to a kernel image
   * improved mkdumprd detection of changed settings
+  * removed all of kdumptool except the calibrate subcommand
+  * cleaned up dependencies (ssh now only Recommended)
 
 1.0.3
 -----
