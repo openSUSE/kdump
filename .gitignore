@@ -7,7 +7,6 @@ CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
 Makefile
-config.h
 DartConfiguration.tcl
 
 CPackConfig.cmake
@@ -25,18 +24,7 @@ calibrate/mkelfcorehdr
 calibrate/trackrss
 dracut/device-timeout-generator
 dracut/init-fadump
-kdumptool/testcanonical
-kdumptool/testconfig
-kdumptool/testio
-kdumptool/testkconfig
-kdumptool/testlistdir
-kdumptool/testmail
-kdumptool/testprocess
-kdumptool/testreadlink
-kdumptool/testsftppacket
-kdumptool/teststringutil
-kdumptool/testurldecode
-kdumptool/testurlparser
+kdumptool/calibrate
 
 # generated documentation
 doc/man/*.txt
