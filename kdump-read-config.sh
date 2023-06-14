@@ -25,20 +25,15 @@ function kdump_read_config_main()
 	option string 	 KDUMP_KERNELVER ""
 	option string 	 KDUMP_NETCONFIG "auto"
 	option int 	 KDUMP_NET_TIMEOUT 30
-	#option string 	 KDUMP_NOTIFICATION_CC ""	#not implemented yet
-	option deprecated KDUMP_NOTIFICATION_CC
-	#option string 	 KDUMP_NOTIFICATION_TO ""	#not implemented yet
-	option deprecated KDUMP_NOTIFICATION_TO
+	option string 	 KDUMP_NOTIFICATION_CC ""
+	option string 	 KDUMP_NOTIFICATION_TO ""
 	option string 	 KDUMP_POSTSCRIPT ""
 	option string 	 KDUMP_PRESCRIPT ""
 	option string 	 KDUMP_REQUIRED_PROGRAMS ""
 	option string 	 KDUMP_SAVEDIR "/var/crash"
-	#option string 	 KDUMP_SMTP_PASSWORD ""		#not implemented yet
-	option deprecated KDUMP_SMTP_PASSWORD
-	#option string 	 KDUMP_SMTP_SERVER ""		#not implemented yet
-	option deprecated KDUMP_SMTP_SERVER
-	#option string 	 KDUMP_SMTP_USER ""		#not implemented yet
-	option deprecated KDUMP_SMTP_USER
+	option string 	 KDUMP_SMTP_PASSWORD ""
+	option string 	 KDUMP_SMTP_SERVER ""
+	option string 	 KDUMP_SMTP_USER ""
 	option string 	 KDUMP_SSH_IDENTITY ""
 	option string 	 KDUMP_TRANSFER ""
 	option int 	 KDUMP_VERBOSE 0

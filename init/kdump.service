@@ -11,3 +11,4 @@ RemainAfterExit=true
 [Install]
 WantedBy=multi-user.target
 Also=kdump-early.service
+Also=kdump-notify.service

@@ -511,63 +511,73 @@ debug shell.
 
 Default: "30"
 
-KDUMP_SMTP_SERVER - not implemented yet
+KDUMP_SMTP_SERVER
 ~~~~~~~~~~~~~~~~~
-
-If you want to get an email after the dump has been copied, you can specify an
+If e-mail notifications are enabled using KDUMP_NOTIFICATION_TO, you can specify an
 SMTP server here. It's valid to specify a hostname, an IP address. Optionally,
 you can also specify a port with the usual _:port_ syntax.
 
-Example: smtp.myprovider.de:25
+Passed to mailx using its "smtp" option.
 
-If you provide a username (KDUMP_SMTP_USER) and a password
-(KDUMP_SMTP_PASSWORD), then SMTP AUTH will be used. Otherwise, plain SMTP with
-no authentication will be used.
+Example: smtp.myprovider.de:25
 
 Default: ""
 
-KDUMP_SMTP_USER - not implemented yet
+KDUMP_SMTP_USER
 ~~~~~~~~~~~~~~~
 
 Username used for SMTP authentication. Also specify KDUMP_SMTP_PASSWORD in that
-case. If no username and/or no password will be provided, plain SMTP will be
+case. 
+
+If you provide a username and a password, then SMTP AUTH and STARTTLS will be
 used.
+
+Passed to mailx using its "smtp-auth-user" option.
 
 Default: ""
 
-KDUMP_SMTP_PASSWORD - not implemented yet
+KDUMP_SMTP_PASSWORD
 ~~~~~~~~~~~~~~~~~~~
 
 Password used for SMTP authentication. Also specify KDUMP_SMTP_USER in that
-case. If no username and/or no password will be provided, plain SMTP will be
-used.
+case. 
+
+Passed to mailx using its "smtp-auth-password" option.
 
 Default: ""
 
-KDUMP_NOTIFICATION_TO - not implemented yet
+KDUMP_NOTIFICATION_TO
 ~~~~~~~~~~~~~~~~~~~~~
+Email address where notification mails should be sent to. 
+Notifications are sent via a kdump-notify systemd service during boot
+and only work when KDUMP_SAVEDIR points to a local directory.
 
-Email address where notification mails should be sent to. Don't specify a
-real name here, only an email address. You have to configure a SMTP server with
-KDUMP_SMTP_SERVER to use that feature.
+The service scans for new dumps present in KDUMP_SAVEDIR and
+sends an e-mail notification using the mailx program, concatenating
+all README.txt files from newly found dumps.
+
+You either need to configure mailx, e.g. using /root/.mailrc, or specify
+KDUMP_SMTP_SERVER and optionally KDUMP_SMTP_USER and KDUMP_SMTP_PASSWORD.
 
 Example: john@myprovider.de
 
 Default: ""
 
-KDUMP_NOTIFICATION_CC - not implemented yet
+KDUMP_NOTIFICATION_CC
 ~~~~~~~~~~~~~~~~~~~~~
 
 Space-separated list of email addresses where notification mails should be sent
-to via Cc. Don't specify real names here, only email addresses. You have to
-configure a SMTP server with KDUMP_SMTP_SERVER to use that feature.
+to via Cc. KDUMP_NOTIFICATION_TO needs to be configured (you can't send
+notifications only to Cc: addresses without a To:).
+
+Don't specify real names here, only email addresses.
 
 Example: "john@myprovider.de doe@myprovider.de"
 
 Default: ""
 
 KDUMP_HOST_KEY
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
 
 Target host key and type encoded with base64, i.e. as found in
 +~/.ssh/known_hosts+.  This is used for the SFTP transfer protocol to verify

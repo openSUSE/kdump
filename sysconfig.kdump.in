@@ -299,9 +299,8 @@ KDUMP_NET_TIMEOUT=30
 ## Default:     ""
 ## ServiceRestart:	kdump
 #
-# SMTP server used for sending a notification email after a dump has
-# been taken. See also KDUMP_SMTP_USER and KDUMP_SMTP_PASSWORD if you
-# want to use SMTP AUTH.
+# SMTP server for notifications. 
+# Passed to mailx using its "smtp" option.
 #
 # See also: kdump(5)
 #
@@ -311,8 +310,8 @@ KDUMP_SMTP_SERVER=""
 ## Default:     ""
 ## ServiceRestart:	kdump
 #
-# Username for SMTP AUTH when KDUMP_SMTP_SERVER is set. This is optional,
-# without username/password, plain SMTP will be used.
+# Username used for SMTP authentication. 
+# Passed to mailx using its "smtp-auth-user" option.
 #
 # See also: kdump(5)
 #
@@ -322,9 +321,8 @@ KDUMP_SMTP_USER=""
 ## Default:     ""
 ## ServiceRestart:	kdump
 #
-# Password for SMTP AUTH when KDUMP_SMTP_SERVER is set. This is optional,
-# without username/password, plain SMTP will be used.
-#
+# Password for SMTP AUTH. 
+# Passed to mailx using its "smtp-auth-password" option.
 # See also: kdump(5)
 #
 KDUMP_SMTP_PASSWORD=""
@@ -333,8 +331,12 @@ KDUMP_SMTP_PASSWORD=""
 ## Default:     ""
 ## ServiceRestart:	kdump
 #
-# Mail address to which a notification mail will be sent when a dump has been
-# saved. You have to configure at least KDUMP_SMTP_SERVER to use that feature.
+# Email address where notification mails should be sent to. 
+# Notifications are sent via a kdump-notify systemd service during boot
+# and only work when KDUMP_SAVEDIR points to a local directory.
+#
+# You either need to configure mailx, e.g. using /root/.mailrc, or specify
+# KDUMP_SMTP_SERVER and optionally KDUMP_SMTP_USER and KDUMP_SMTP_PASSWORD.
 #
 # See also: kdump(5)
 #
@@ -344,9 +346,9 @@ KDUMP_NOTIFICATION_TO=""
 ## Default:     ""
 ## ServiceRestart:	kdump
 #
-# List of space-separated mail addresses to which notification mail will be
-# sent via Cc if a dump has been saved. You have to configure at least
-# KDUMP_SMTP_SERVER to use that feature.
+# Space-separated list of email addresses where notification mails should be sent
+# to via Cc. KDUMP_NOTIFICATION_TO needs to be configured (you can't send
+# notifications only to Cc: addresses without a To:).
 #
 # See also: kdump(5)
 #

@@ -1,0 +1,70 @@
+#!/bin/bash
+
+# send e-mail notifications for newly found crash dumps
+
+. /usr/lib/kdump/kdump-read-config.sh || exit 1
+
+if [[ -z "$KDUMP_NOTIFICATION_TO" ]]; then
+	echo "KDUMP_NOTIFICATION_TO not configured" >&2
+       	exit 0
+fi
+
+if ! which mailx > /dev/null; then
+	echo "kdump-notify needs mailx to send notifications" >&2
+	exit 1
+fi
+
+if ! [[ ${KDUMP_PROTO} == "file" ]]; then
+	echo "kdump-notify only works for local directories" >&2
+	exit 1
+fi
+
+DUMP_DIR=${KDUMP_SAVEDIR#*://}
+if ! [[ -d "$DUMP_DIR" ]]; then
+	echo "$DUMP_DIR does not exist (yet)" >&2
+	exit 0
+fi
+
+# for all the dump directories, newest first, check if there are any
+# without a .notified file
+BODY=""
+while read d; do
+	[[ -d "$d" ]] || continue
+	
+	# notification already sent for this and all older directories
+	[[ -f "$d/.notified" ]] && break
+
+	if [[ -z "$BODY" ]]; then
+		BODY=$(mktemp) || exit 1
+		NEWEST="$d"
+	else
+		echo -e "================\n" >> "$BODY"
+	fi
+
+	echo "New crash dump found in $d:" >> "$BODY"
+	cat "$d/README.txt" >> "$BODY"
+done < <(ls -d1r "$DUMP_DIR"/[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]-[0-2][0-9][-:][0-5][0-9] 2>/dev/null)
+
+if [[ -z "$BODY" ]]; then
+	echo "No new dumps found in $DUMP_DIR" >&2
+	exit 0
+fi
+
+HOSTNAME=" $(hostname)"
+declare -a OPTIONS
+[[ -n "$KDUMP_NOTIFICATION_CC" ]] && OPTIONS+=(-c "$KDUMP_NOTIFICATION_CC")
+[[ -n "$KDUMP_SMTP_SERVER" ]] && OPTIONS+=(-S "smtp=$KDUMP_SMTP_SERVER")
+if [[ -n "$KDUMP_SMTP_USER" ]] && [[ -n "$KDUMP_SMTP_PASSWORD" ]]; then
+	OPTIONS+=(-S "smtp-use-starttls")
+	OPTIONS+=(-S "smtp-auth-user=$KDUMP_SMTP_USER")
+	OPTIONS+=(-S "smtp-auth-password=$KDUMP_SMTP_PASSWORD")
+fi
+
+if mailx -v -s "kdump: system${HOSTNAME} crashed" "${OPTIONS[@]}" "${KDUMP_NOTIFICATION_TO}" < "$BODY"; then
+	# remember that this and all older directories have had their
+	# notifications sent
+	echo "Notification sent for this and all older directories on $(date)" > "$NEWEST/.notified"
+else
+	echo "Error sending mail" >&2
+	exit 1
+fi

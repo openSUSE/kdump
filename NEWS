@@ -1,3 +1,7 @@
+1.9.1
+-----
+  * reimplement e-mail notifications
+
 1.9
 ---
   * complete rewrite of kdump-save and parts of initrd generation

@@ -19,6 +19,7 @@ INSTALL(
     FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/kdump.service
         ${CMAKE_CURRENT_SOURCE_DIR}/kdump-early.service
+        ${CMAKE_CURRENT_SOURCE_DIR}/kdump-notify.service
     DESTINATION
         /usr/lib/systemd/system
     PERMISSIONS
@@ -43,6 +44,7 @@ INSTALL(
         ${CMAKE_CURRENT_SOURCE_DIR}/load.sh
         ${CMAKE_CURRENT_SOURCE_DIR}/load-once.sh
         ${CMAKE_CURRENT_SOURCE_DIR}/unload.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/kdump-notify
     DESTINATION
         /usr/lib/kdump
     PERMISSIONS

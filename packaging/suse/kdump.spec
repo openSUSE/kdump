@@ -105,6 +105,7 @@ Recommends:     cifs-utils
 Recommends:     nfs-client
 Recommends:     lftp
 Recommends:     openssh
+Suggests:	mailx
 # update should detect the split-off from kexec-tools
 Provides:       kexec-tools:%{_initddir}/kdump
 ExcludeArch:    s390 ppc %arm32
@@ -178,6 +179,7 @@ ln -s %{_sbindir}/service %{buildroot}%{_sbindir}/rckdump
 %pre
 %service_add_pre kdump.service
 %service_add_pre kdump-early.service
+%service_add_pre kdump-notify.service
 
 %post
 # change only permission if the file exists before /etc/sysconfig/kdump
@@ -189,7 +191,8 @@ fi
 %{fillup_only -n kdump}
 %service_add_post kdump.service
 %service_add_post kdump-early.service
-# ensure newly added kdump-early.service is-enabled matches prior state
+%service_add_post kdump-notify.service
+# ensure newly added kdump-*.service is-enabled matches prior state
 if [ -x %{_bindir}/systemctl ] && %{_bindir}/systemctl is-enabled kdump.service &>/dev/null ; then
 	%{_bindir}/systemctl reenable kdump.service || :
 fi
@@ -213,6 +216,7 @@ servicelog_notify --remove --command=/usr/lib/kdump/kdump-migrate-action.sh
 echo "Stopping kdump ..."
 %service_del_preun kdump.service
 %service_del_preun kdump-early.service
+%service_del_preun kdump-notify.service
 
 %postun
 # force regeneration of kdumprd
@@ -221,6 +225,7 @@ touch %{_sysconfdir}/sysconfig/kdump
 rm %{_localstatedir}/log/dump >/dev/null 2>&1 || true
 %service_del_postun kdump.service
 %service_del_postun kdump-early.service
+%service_del_postun kdump-notify.service
 
 %files
 %defattr(-,root,root)
@@ -239,6 +244,7 @@ rm %{_localstatedir}/log/dump >/dev/null 2>&1 || true
 /usr/lib/kdump/*
 %{_unitdir}/kdump.service
 %{_unitdir}/kdump-early.service
+%{_unitdir}/kdump-notify.service
 %{_sbindir}/rckdump
 %dir /var/lib/kdump
 
