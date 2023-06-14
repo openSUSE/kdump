@@ -1,9 +1,9 @@
 [Unit]
 Description=Send e-mail notifications for new crash dumps
-After=local-fs.target network.service YaST2-Second-Stage.service YaST2-Firstboot.service kdump-early.service
+After=local-fs.target network.target 
 
 [Service]
-Type=oneshot
+Type=simple
 ExecStart=/usr/lib/kdump/kdump-notify
 
 [Install]

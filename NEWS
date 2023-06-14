@@ -1,6 +1,7 @@
 1.9.2
 -----
   * adapt kdumptool to work with YaST
+  * wait for SMTP server to become reachable
 
 1.9.1
 -----

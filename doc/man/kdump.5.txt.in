@@ -526,8 +526,8 @@ Default: ""
 KDUMP_SMTP_USER
 ~~~~~~~~~~~~~~~
 
-Username used for SMTP authentication. Also specify KDUMP_SMTP_PASSWORD in that
-case. 
+Username used for SMTP authentication. Only use together with KDUMP_SMTP_PASSWORD 
+and KDUMP_SMTP_SERVER. 
 
 If you provide a username and a password, then SMTP AUTH and STARTTLS will be
 used.
@@ -539,8 +539,8 @@ Default: ""
 KDUMP_SMTP_PASSWORD
 ~~~~~~~~~~~~~~~~~~~
 
-Password used for SMTP authentication. Also specify KDUMP_SMTP_USER in that
-case. 
+Password used for SMTP authentication. Only use together with KDUMP_SMTP_USER
+and KDUMP_SMTP_SERVER. 
 
 Passed to mailx using its "smtp-auth-password" option.
 
@@ -558,6 +558,9 @@ all README.txt files from newly found dumps.
 
 You either need to configure mailx using /etc/mail.rc or specify
 KDUMP_SMTP_SERVER and optionally KDUMP_SMTP_USER and KDUMP_SMTP_PASSWORD.
+When KDUMP_SMTP_SERVER is specified the kdump-notify service will wait
+some time for the server to become reachable. Otherwise this is 
+the responsibility of the local mailx / MTA configuration.
 
 Example: john@myprovider.de
 

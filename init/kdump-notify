@@ -53,11 +53,34 @@ fi
 HOSTNAME=" $(hostname)"
 declare -a OPTIONS
 [[ -n "$KDUMP_NOTIFICATION_CC" ]] && OPTIONS+=(-c "$KDUMP_NOTIFICATION_CC")
-[[ -n "$KDUMP_SMTP_SERVER" ]] && OPTIONS+=(-S "smtp=$KDUMP_SMTP_SERVER")
-if [[ -n "$KDUMP_SMTP_USER" ]] && [[ -n "$KDUMP_SMTP_PASSWORD" ]]; then
-	OPTIONS+=(-S "smtp-use-starttls")
-	OPTIONS+=(-S "smtp-auth-user=$KDUMP_SMTP_USER")
-	OPTIONS+=(-S "smtp-auth-password=$KDUMP_SMTP_PASSWORD")
+
+if [[ -n "$KDUMP_SMTP_SERVER" ]]; then
+	OPTIONS+=(-S "smtp=$KDUMP_SMTP_SERVER")
+
+	if [[ -n "$KDUMP_SMTP_USER" ]] && [[ -n "$KDUMP_SMTP_PASSWORD" ]]; then
+		OPTIONS+=(-S "smtp-use-starttls")
+		OPTIONS+=(-S "smtp-auth-user=$KDUMP_SMTP_USER")
+		OPTIONS+=(-S "smtp-auth-password=$KDUMP_SMTP_PASSWORD")
+	fi
+
+	# When KDUMP_SMTP_SERVER is specified, wait for the server to be reachable;
+	# even if ping does not work this will wait until DNS works.
+	# Otherwise mailx should send via a local MTA.
+	KDUMP_SMTP_TIMEOUT=${KDUMP_SMTP_TIMEOUT:-300}
+
+	HOST="${KDUMP_SMTP_SERVER%%:*}"
+	echo "Waiting for ${HOST} to respond to ping for ${KDUMP_SMTP_TIMEOUT} seconds ..."
+	END_TIME=`date +%s`
+	END_TIME=$((END_TIME + KDUMP_SMTP_TIMEOUT))
+	while ! ping -c 1 -w 10 ${HOST}; do
+		NOW=`date +%s`
+		if [[ $NOW -gt $END_TIME ]]; then
+			echo "Host ${HOST} not responding"
+			break
+		fi
+		sleep 10
+	done
+
 fi
 
 if mailx -v -s "kdump: system${HOSTNAME} crashed" "${OPTIONS[@]}" "${KDUMP_NOTIFICATION_TO}" < "$BODY"; then
