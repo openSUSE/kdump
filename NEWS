@@ -1,3 +1,7 @@
+1.9.2
+-----
+  * adapt kdumptool to work with YaST
+
 1.9.1
 -----
   * reimplement e-mail notifications

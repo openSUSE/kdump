@@ -10,14 +10,20 @@
 function usage()
 {
 	cat  >&2 <<-__END
-	Usage: kdumptool calibrate [-s | --shrink] [-d]
+	Usage: kdumptool [--configfile f] calibrate [-s | --shrink] [-d]
 	Outputs possible and suggested memory reservation values.
 	Options:
+	    --configfile f	use f as alternative configfile
 	    -d			turn on debugging
 	    -s or --shrink	shrink the current reservation to the calculated value
 	__END
 	exit 1
 }
+
+if [[ "$1" == "--configfile" ]]; then
+       	export KDUMP_CONF="$2"
+	shift 2
+fi
 
 [[ "$1" == "calibrate" ]] || usage
 
@@ -50,10 +56,10 @@ fi
 # skip over the "calibrate" argument and pass the rest to the binary
 shift
 /usr/lib/kdump/calibrate "$@"
-
+RET=$?
 # exit code 2 means bad arguments
-[[ $? -eq 2 ]] && usage
-exit $?
+[[ $RET -eq 2 ]] && usage
+exit $RET
 
 
 

@@ -3,9 +3,6 @@
 # Sanitize kdump config options and set their default values.
 # May be sourced to set the options in the current shell.
 
-# source the config file
-. /etc/sysconfig/kdump
-
 function kdump_read_config_main() 
 {
 	# define all kdump config options and their defaults here:
@@ -129,13 +126,22 @@ function option() {
 		return
 	fi
 	[[ "${OPTION}" == "${DEFAULT}" ]] && return
-	$PRINT_NONDEFAULT && echo "${NAME}=\'${OPTION//\'/\'\\\'\'}\'"
+	$PRINT_NONDEFAULT && echo "${NAME}='${OPTION//\'/\'\\\'\'}'"
 
 }
 
 PRINT_NONDEFAULT=false
 PRINT_ALL=false
+
 [[ "$1" == "--print-nondefault" ]] && PRINT_NONDEFAULT=true
 [[ "$1" == "--print" ]] && PRINT_ALL=true
+
+if [[ -n "$KDUMP_CONF" ]]; then
+	# source specified config file
+	. "$KDUMP_CONF"
+else
+	# source the default config file
+	. /etc/sysconfig/kdump
+fi
 
 kdump_read_config_main
