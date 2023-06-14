@@ -335,7 +335,7 @@ KDUMP_SMTP_PASSWORD=""
 # Notifications are sent via a kdump-notify systemd service during boot
 # and only work when KDUMP_SAVEDIR points to a local directory.
 #
-# You either need to configure mailx, e.g. using /root/.mailrc, or specify
+# You either need to configure mailx using /etc/mail.rc or specify
 # KDUMP_SMTP_SERVER and optionally KDUMP_SMTP_USER and KDUMP_SMTP_PASSWORD.
 #
 # See also: kdump(5)

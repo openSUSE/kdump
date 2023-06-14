@@ -556,7 +556,7 @@ The service scans for new dumps present in KDUMP_SAVEDIR and
 sends an e-mail notification using the mailx program, concatenating
 all README.txt files from newly found dumps.
 
-You either need to configure mailx, e.g. using /root/.mailrc, or specify
+You either need to configure mailx using /etc/mail.rc or specify
 KDUMP_SMTP_SERVER and optionally KDUMP_SMTP_USER and KDUMP_SMTP_PASSWORD.
 
 Example: john@myprovider.de
