@@ -60,7 +60,6 @@ Group:          System/Kernel
 URL:            https://github.com/openSUSE/kdump
 Source:         %{name}-%{version}.tar.xz
 Source1:        calibrate.conf.all
-Source2:        %{name}-rpmlintrc
 BuildRequires:  asciidoc
 BuildRequires:  cmake >= 3.7
 BuildRequires:  gcc-c++
