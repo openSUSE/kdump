@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# kdumptool used be a kdumptool swiss-army knife program doing everything
-# now the only remaining functionality is "kdumptool calibrate" used by YaST 
+# kdumptool used be a swiss-army knife program with lots of subcommands.
+# Now the only remaining functionality is "kdumptool calibrate" used by YaST 
 # and possibly other tools to get crashkernel reservation info.
 # So this is now a wrapper for the calibrate binary, carved out of the
-# original kdumptool
+# original kdumptool.
 
 
 function usage()
