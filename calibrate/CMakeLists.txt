@@ -38,7 +38,6 @@ ADD_CUSTOM_COMMAND(
     VERBATIM
     DEPENDS
         ${dracut_targets}
-        kdumptool
         dummy.conf
         dummy-net.conf
         trackrss

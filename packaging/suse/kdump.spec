@@ -78,7 +78,10 @@ BuildRequires:  iputils
 BuildRequires:  kernel-default
 BuildRequires:  makedumpfile
 BuildRequires:  procps
+BuildRequires:  pciutils
 BuildRequires:  python3
+BuildRequires:  openssh
+BuildRequires:  lftp
 %ifnarch s390x
 BuildRequires:  qemu-ipxe
 BuildRequires:  qemu-vgabios

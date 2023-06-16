@@ -84,10 +84,9 @@ class build_initrd(object):
     def __init__(self, bindir, params, config, path='test-initrd'):
         # First, create the base initrd using dracut:
         env = os.environ.copy()
-        env['KDUMP_LIBDIR'] = os.path.abspath('usr/lib/kdump')
-        env['KDUMP_CONFIGFILE'] = os.path.join(params['SCRIPTDIR'], config)
+        env['KDUMP_LIBDIR'] = os.path.abspath(params['SCRIPTDIR'] + "/..")
+        env['KDUMP_CONF'] = os.path.join(params['SCRIPTDIR'], config)
         env['DRACUT_PATH'] = ' '.join((
-            os.path.abspath(os.path.join(bindir, '..', 'kdumptool')),
             '/sbin',
             '/bin',
             '/usr/sbin',
