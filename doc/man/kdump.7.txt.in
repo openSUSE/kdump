@@ -128,18 +128,10 @@ memory reservation area starts. Starting with version 2.6.27, it's not necessary
 to specify that _offset_ manually since the kernel chooses a suitable base
 address automatically.
 
-For the _size_, following values are recommended:
+To find a suggested value for _size_, us the _kdumptool calibrate_ command.
+The suggested value is the sum of the Low and High values in its output.
 
-`-----------------`--------------------------------------------
-Architecture      Size
----------------------------------------------------------------
-+i386+            +64M+
-+x86_64+          +64M+ or +128M+ on large machines
-+ppc64+           +128M+ or +256M+ on large machines
-+ia64+            +512M+ (or more on very large machines)
----------------------------------------------------------------
-
-Example: +crashkernel=64M+ (on a normal PC system)
+Example: +crashkernel=256M+ (on a normal PC system)
 
 [NOTE]
 There's also a more advanced syntax that makes the amount of memory dependent on
@@ -222,23 +214,19 @@ are available:
 * NFS,
 * CIFS.
 
-The recommendation is to use FTP or SFTP for network dumping or the local file
-dump. The configuration variable _KDUMP_SAVEDIR_ has to be filled with a URL to
+The configuration variable _KDUMP_SAVEDIR_ has to be filled with a URL to
 where the dump should be saved. The syntax is described in *kdump*(5).
 
-If the directory does not exist, it will be created. Since the dump is taken in
-initrd, the network and mount configuration is a bit different from the normal
-system. However, the *mkdumprd*(8) script is designed to do everything
-automatically for you. If you would like to use a special network interface, see
+If you would like to use a special network interface, see
 the _KDUMP_NETCONFIG_ setting.
 
 Example:
 
-* +file:///var/log/dump+
+* +/var/log/dump+
 * +ftp://user@host:server/incoming/dumps+
 
 [NOTE]
-If you want to use SFTP with public key authentication, make sure to read the
+If you want to use SSH or SFTP with public key authentication, make sure to read the
 "Secure File Transfer Protocol" section in *kdump*(5).
 
 Deletion of old dumps
@@ -323,20 +311,9 @@ keyboard is not reliable in kdump environment.
 
 Notification
 ~~~~~~~~~~~~
-If you enable notification support, then you get an email after the dump has
-been copied (and before the _KDUMP_IMMEDIATE_REBOOT_ takes place). Because we
-don't have a mail server running in initrd where the mail has to be sent, you
-have to configure a SMTP server:
-
-* _KDUMP_SMTP_SERVER_ must hold a hostname (and an optional port, separated by a
-  colon) to a SMTP server.
-* _KDUMP_STMP_USER_ and _KDUMP_SMTP_PASSWORD_ must be set to username and
-  password if SMTP AUTH should be used, or empty otherwise (plain SMTP without
-  authentication will be used).
-
-Then an email will be sent to the address in _KDUMP_NOTIFICATION_TO_ (only one
-address possible) and _KDUMP_NOTIFICATION_CC_ (multiple addresses possible).
-
+If you enable notification support, then you get an email when the system reboots
+after the dump has been copied. This only works for locally saved dumps.
+See _KDUMP_NOTIFICATION_TO_ in *kdump*(5).
 
 Debugging options
 ~~~~~~~~~~~~~~~~~
@@ -344,18 +321,20 @@ If something goes wrong and you possibly opened a bug report, you may be asked
 to increase verbosity to report what's going wrong. Also, this is useful if you
 would like to find the cause yourself.
 
-At first, you can increase _KDUMP_VERBOSE_. The maximum log level is _15_. That
+First, you can increase _KDUMP_VERBOSE_. The maximum log level is _15_. That
 gives both information when loading the dump kernel (i.e. the _rckdump start_
-command) and also when copying the dump in initrd.
+command) and also when copying the dump in initrd. Log levels of 8 or above
+print a lot of debugging information and also turn on debugging 
+in subcommands being executed, such as ssh or makedumpfile.
+
+To debug the creation of the kdump initrd, you may want to run
+_mkdumprd -d_.
 
 [WARNING]
 If you use a VGA console and trigger the dump when X11 is running (i.e. your
 graphical desktop), you might not see any output. Use a serial console in that
 case, or try to trigger the dump from Linux console (i.e. press _Ctrl-Alt-F1_
 in your graphical desktop and log in there).
-
-If the problem is the *makedumpfile*(8) filtering tool, then set
-_MAKEDUMPFILE_OPTIONS_ to _-D_ to get debugging output of makedumpfile.
 
 Advanced Configuration
 ----------------------
