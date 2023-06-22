@@ -37,6 +37,7 @@ set -a
 KDUMP_LUKS_MEMORY=0
 if [[ "${KDUMP_PROTO}" == "file" ]]; then
 	KDUMP_SAVEDIR_REALPATH=$(realpath -m "${KDUMP_SAVEDIR#*://}")
+	mkdir -p "$KDUMP_SAVEDIR_REALPATH"
 	MOUNT_SOURCE=$(findmnt -nvr -o SOURCE --target "${KDUMP_SAVEDIR_REALPATH}")
 
 
