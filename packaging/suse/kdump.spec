@@ -80,7 +80,7 @@ BuildRequires:  makedumpfile
 BuildRequires:  procps
 BuildRequires:  pciutils
 BuildRequires:  python3
-BuildRequires:  openssh
+BuildRequires:  openssh-clients
 BuildRequires:  lftp
 %ifnarch s390x
 BuildRequires:  qemu-ipxe
@@ -106,7 +106,7 @@ PreReq:         /usr/bin/touch
 Recommends:     cifs-utils
 Recommends:     nfs-client
 Recommends:     lftp
-Recommends:     openssh
+Recommends:     openssh-clients
 Suggests:	mailx
 # update should detect the split-off from kexec-tools
 Provides:       kexec-tools:%{_initddir}/kdump
