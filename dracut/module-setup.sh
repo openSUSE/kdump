@@ -179,16 +179,26 @@ install() {
 	# per-protocol config
 	case ${KDUMP_PROTO} in
 		ssh)
-			inst_multiple ssh
+			if ! inst_multiple ssh; then
+				dfatal "Kdump needs ssh for ${KDUMP_SAVEDIR}."
+				exit 1
+			fi
+
 			[[ ${KDUMP_NET_TIMEOUT} -gt 0 ]] && inst_multiple ping
 			kdump_init_ssh
 			;;
 		ftp)
-			inst_multiple lftp /usr/lib64/lftp/*/proto-ftp.so
+			if ! inst_multiple lftp /usr/lib64/lftp/*/proto-ftp.so; then 
+				dfatal "Kdump needs lftp for ${KDUMP_SAVEDIR}."
+				exit 1
+			fi
 			[[ ${KDUMP_NET_TIMEOUT} -gt 0 ]] && inst_multiple ping
 			;;
 		sftp)
-			inst_multiple lftp /usr/lib64/lftp/*/proto-sftp.so ssh
+			if ! inst_multiple lftp /usr/lib64/lftp/*/proto-sftp.so ssh; then
+				dfatal "Kdump needs lftp and ssh for ${KDUMP_SAVEDIR}."
+				exit 1
+			fi
 			[[ ${KDUMP_NET_TIMEOUT} -gt 0 ]] && inst_multiple ping
 			kdump_init_ssh
 			;;
@@ -233,7 +243,10 @@ function kdump_init_ssh()						   # {{{
 	else 
 		echo "StrictHostKeyChecking yes" >> "${SSH_DIR}/config"
 		if [[ -z "${KDUMP_HOST_KEY}" ]]; then
-			ssh-keygen -F "${HOST}" > "${SSH_DIR}/known_hosts" || derror "SSH host key neither specified in KDUMP_HOST_KEY nor found by 'ssh-keygen -F $HOST'; SSH host key checking will fail."
+			if ! ssh-keygen -F "${HOST}" > "${SSH_DIR}/known_hosts"; then
+			       dfatal "SSH host key neither specified in KDUMP_HOST_KEY nor found by 'ssh-keygen -F $HOST'; SSH host key checking will fail."
+			       exit 1
+			fi
 		else
 			echo "${HOST} ${KDUMP_HOST_KEY}" > "${SSH_DIR}/known_hosts"
 		fi
