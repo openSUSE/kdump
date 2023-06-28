@@ -1,3 +1,10 @@
+1.9.3
+-----
+  * fix calibrate
+  * update kdump(7) manpage
+  * turn missing ssh, lftp or host key into a fatal error
+  * depend on openssh-clients not openssh
+
 1.9.2
 -----
   * adapt kdumptool to work with YaST
