@@ -271,12 +271,12 @@ void SaveDump::saveDump(const RootDirURLVector &urlv)
         if (cpus > online_cpus)
             cpus = online_cpus;
     }
+    /* The check for NOSPLIT is for backward compatibility */
     if (!config->kdumptoolContainsFlag("SINGLE") &&
+        !config->kdumptoolContainsFlag("NOSPLIT") &&
         cpus > 1) {
 
-        /* The check for NOSPLIT is for backward compatibility */
-        if (config->kdumptoolContainsFlag("SPLIT") &&
-            !config->kdumptoolContainsFlag("NOSPLIT")) {
+        if (config->kdumptoolContainsFlag("SPLIT")) {
             if (!useElf)
                 m_split = cpus;
             else
