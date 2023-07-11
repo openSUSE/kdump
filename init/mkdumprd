@@ -88,7 +88,7 @@ function build_fadumprd()
 
     # create an empty initrd file, the timestamp will be used to determine
     # if initrds need to be regenerated
-    touch $INITRD
+    > $INITRD
 }                                                                          # }}}
 
 #
