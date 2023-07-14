@@ -1,3 +1,7 @@
+1.9.4
+-----
+  * fix FADUMP initramfs when not created by mkdumprd
+
 1.9.3
 -----
   * fix calibrate

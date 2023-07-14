@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# this module is part of kdump
+# for FADUMP, the kdump initrd is embedded in every system initrd
+# A modified /init program determines whether to run the standard init
+# or the one from the embedded kdump initrd
+
 test -n "$KDUMP_LIBDIR" || KDUMP_LIBDIR=/usr/lib/kdump
 . "$KDUMP_LIBDIR"/kdump-read-config.sh || return 1
 
@@ -21,24 +26,11 @@ install() {
     mkdir -p "$_fadumpdir" || return 1
 
     dinfo "****** Generating FADUMP initrd *******"
-    local _initrd="$_fadumpdir/initrd"
-    local -a _dracut_args=(
-        "--force"
-        "--hostonly"
-        "--add" "kdump"
-        "--omit" "plymouth resume usrmount zz-fadumpinit"
-        "--no-compress"
-        "--no-early-microcode"
-    )
-
-    [[ -n "${KDUMP_DRACUT_MOUNT_OPTION}" ]] && _dracut_args+=("--mount" "${KDUMP_DRACUT_MOUNT_OPTION}")
-
-    local _dracut="${dracut_cmd:-dracut}"
-    "$_dracut" "${_dracut_args[@]}" "$_initrd" "$kernel" || return 1
+    mkdumprd -F -I "$_fadumpdir/initrd" -K "$kernel" || return 1
     pushd "$_fadumpdir" || return 1
-    lsinitrd --unpack "$_initrd" || return 1
+    lsinitrd --unpack initrd || return 1
+    rm -f initrd
     popd
-    rm -f "$_initrd"
     dinfo "****** Generating FADUMP initrd done *******"
 
     mv -f "$initdir/init" "$initdir/init.dracut"

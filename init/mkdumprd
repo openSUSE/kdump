@@ -17,95 +17,31 @@
 
 . /usr/lib/kdump/kdump-read-config.sh || exit 1
 
-KERNELVERSION=
 FORCE=false
-QUIET=0
+QUIET=false
 DEBUG=false
-DRACUT=/usr/bin/dracut
 UPDATE_BOOTLOADER=/sbin/update-bootloader
 INITRD_DEFAULT=/var/lib/kdump/initrd
 INITRD=$INITRD_DEFAULT
 
-#
-# Prints usage.                                                              {{{
 function usage()
 {
-    echo "mkdumprd - Create an initrd for kdump"
-    echo ""
-    echo "This script uses dracut(8) internally. Options:"
-    echo ""
-    echo "   -k <kernel>  or"
-    echo "   -K <kernel>      Overrides KDUMP_KERNELVER."
-    echo "   -I <initrd>      Output file for initrd ($INITRD_DEFAULT by default)"
-    echo "   -f               Force regeneration even if the configuration"
-    echo "                    did not change."
-    echo "   -q               Quiet (don't print status messages)."
-    echo "   -d               Output debug information of the initrd build process."
-    echo "   -h               Print this help."
-}                                                                          # }}}
+	echo "mkdumprd - Create an initrd for kdump"
+	echo ""
+	echo "This script uses dracut(8) internally. Options:"
+	echo ""
+	echo "   -k <kernel>  or"
+	echo "   -K <kernel>      Overrides KDUMP_KERNELVER."
+	echo "   -I <initrd>      Output file for initrd ($INITRD_DEFAULT by default)"
+	echo "   -f               Force regeneration even if the configuration"
+	echo "                    did not change."
+	echo "   -q               Quiet (don't print status messages)."
+	echo "   -d               Output debug information of the initrd build process."
+	echo "   -h               Print this help."
+	echo "   -F               internal, don't use; build embedded FADUMP initrd"
+}
 
-#
-# Quiet message                                                              {{{
-function status_message()
-{
-    local msg=$1
-
-    if (( ! $QUIET )) ; then
-        echo ">>> $msg"
-    fi
-}                                                                          # }}}
-
-#
-# Create a new initrd using dracut                                           {{{
-function run_dracut()
-{
-    DRACUT_ARGS="--force --hostonly --no-hostonly-default-device --omit 'plymouth resume usrmount' $@"
-
-    if [ -z "$KERNELVERSION" ]
-    then
-	KERNELVERSION=$(get_kernel_version "$KERNEL")
-    fi
-
-    DRACUT_ARGS="$DRACUT_ARGS --add 'kdump' $INITRD $KERNELVERSION"
-    $DEBUG && DRACUT_ARGS="--debug $DRACUT_ARGS"
-    echo "Regenerating kdump initrd ..." >&2
-    eval "bash -$- $DRACUT $DRACUT_ARGS"
-}                                                                          # }}}
-
-#
-# Rebuild all initrds                                                        {{{
-function build_fadumprd()
-{
-    # With fadump, this script has no control over which kernel will
-    # be booted after a crash, but any installed kernel can be used
-    # to save the dump. Consequently, let dracut regenerate initrd
-    # for all installed kernels.
-
-    DRACUT_ARGS="--force --regenerate-all"
-    $DEBUG && DRACUT_ARGS="--debug $DRACUT_ARGS"
-    echo "Regenerating all initrds ..." >&2
-    eval "bash -$- $DRACUT $DRACUT_ARGS && type -P $UPDATE_BOOTLOADER &> /dev/null && $UPDATE_BOOTLOADER --refresh"
-
-    # create an empty initrd file, the timestamp will be used to determine
-    # if initrds need to be regenerated
-    > $INITRD
-}                                                                          # }}}
-
-#
-# Build $INITRD with dump capture support using dracut                       {{{
-function build_initrd()
-{
-    get_mount
-    if [ "$KDUMP_FADUMP" = "true" ] ; then
-        build_fadumprd
-    else
-        [[ -n "${KDUMP_DRACUT_MOUNT_OPTION}" ]] && KDUMP_DRACUT_MOUNT_OPTION="--mount \"$KDUMP_DRACUT_MOUNT_OPTION\""
-        run_dracut --compress \'xz -0 --check=crc32\' ${KDUMP_DRACUT_MOUNT_OPTION}
-    fi
-}                                                                          # }}}
-
-# exports KDUMP_DRACUT_MOUNT_OPTION for targets mounted by dracut
-# For FADUMP builds, this will be propagated to zz-fadumpinit module
+# sets KDUMP_DRACUT_MOUNT_OPTION for targets mounted by dracut
 function get_mount()
 {
 	# dracut needs to mount the target directory for the
@@ -120,7 +56,7 @@ function get_mount()
 			read -r SOURCE TARGET FS OPTIONS < <(findmnt -n -v --raw --target "${KDUMP_SAVEDIR_REALPATH}" --output=source,target,fstype,options) ||
 				error "Cannot find mount point for ${KDUMP_SAVEDIR#*://}"
 			TARGET="${MOUNTPOINT}${TARGET}"
-			export KDUMP_DRACUT_MOUNT_OPTION="${SOURCE} ${TARGET} ${FS} ${OPTIONS}"
+			KDUMP_DRACUT_MOUNT_OPTION="${SOURCE} ${TARGET} ${FS} ${OPTIONS}"
 			;;
 		cifs)
                         # split URL into host, directory, user and password parts
@@ -137,7 +73,7 @@ function get_mount()
 				[[ ${PW} == ${UPW} ]] && PW=""
 			fi
 			
-			export KDUMP_DRACUT_MOUNT_OPTION="//${HOST}${DIR} ${MOUNTPOINT} cifs user=$USER,password=$PW"
+			KDUMP_DRACUT_MOUNT_OPTION="//${HOST}${DIR} ${MOUNTPOINT} cifs user=$USER,password=$PW"
 			;;
 		nfs)
                         # split URL into host, directory, user and password parts
@@ -145,10 +81,10 @@ function get_mount()
                         DIR="/${URL#*/}"    
                         HOST="${URL%%/*}"  
 			
-			export KDUMP_DRACUT_MOUNT_OPTION="${HOST}:${DIR} ${MOUNTPOINT} nfs nolock"
+			KDUMP_DRACUT_MOUNT_OPTION="${HOST}:${DIR} ${MOUNTPOINT} nfs nolock"
 			;;
 		*)
-			export KDUMP_DRACUT_MOUNT_OPTION=""
+			KDUMP_DRACUT_MOUNT_OPTION=""
 			;;
 	esac
 }
@@ -161,7 +97,7 @@ function error()
 
 
 # Option parsing                                                             {{{
-while getopts "hfqk:K:I:d" name ; do
+while getopts "hfqk:K:I:dF" name ; do
     case $name in
         f)  FORCE=true
             ;;
@@ -170,7 +106,7 @@ while getopts "hfqk:K:I:d" name ; do
             exit 0
             ;;
 
-        q)  QUIET=1
+        q)  QUIET=true
             ;;
 
         k|K)  KDUMP_KERNELVER="$OPTARG"
@@ -180,7 +116,11 @@ while getopts "hfqk:K:I:d" name ; do
             ;;
         
 	d)  DEBUG=true
+	    set -x
             ;;
+
+	F)  FADUMP_INTERNAL=true
+	    ;;
 
         ?)  usage
             exit 1
@@ -188,7 +128,6 @@ while getopts "hfqk:K:I:d" name ; do
     esac
 done
 shift $(($OPTIND -1))
-                                                                           # }}}
 
 
 # KDUMP_KERNELVER may be an absolute path name or a kernel version
@@ -229,9 +168,6 @@ UPDATE=$FORCE
 # no initrd yet
 [[ -f "$INITRD" ]] || UPDATE=true
 
-# kernel changed
-KERNEL_CURRENT=$(realpath -qe /var/lib/kdump/kernel)
-[[ "$KERNEL_REALPATH" == "$KERNEL_CURRENT" ]] || UPDATE=true
 
 # config changed
 [[ /etc/sysconfig/kdump -ot "$INITRD" ]] || UPDATE=true
@@ -252,17 +188,82 @@ if [[ $KDUMP_PROTO != file ]]; then
 	fi
 fi
 
-if $UPDATE; then
-	build_initrd || exit $?
-else
-	status_message "Not regenerating kdump initrd. Use mkdumprd -f to force regeneration."
+# With FADUMP, we don't know which kernel will be booted after a crash.
+# Kdump initrd is embedded in all standard initrds by the zz-fadumpinit module 
+# which calls this script with -F.
+#
+# if we're called in any other way (i.e. without -F), and we now determined the
+# kdump configuration had changed, we regenerate all initrds.  zz-fadumpinit
+# will call us again to build the kdump part of each inird.
+
+if [[ "$KDUMP_FADUMP" == "true" ]] && [[ "$FADUMP_INTERNAL" != "true" ]]; then
+	if ! $UPDATE; then
+		# initrds up to date, nothing to do
+		$QUIET || echo "Not regenerating initrds. Use mkdumprd -f to force regeneration."
+		exit 0
+	fi
+	DEBUG_ARG=""
+	$DEBUG && DEBUG_ARG="--debug"
+	echo "Regenerating all initrds ..." >&2
+	dracut --force --regenerate-all $DEBUG_ARG || exit
+	type -P $UPDATE_BOOTLOADER &> /dev/null && $UPDATE_BOOTLOADER --refresh 
+
+	# create an empty initrd file, the timestamp will be used to determine
+	# if initrds need to be regenerated
+	> $INITRD
+
+	# remove the kernel symlink, it is not used for FADUMP
+	rm -f /var/lib/kdump/kernel
+
+	exit 0
+fi
+
+# more checks for the non-FADUMP case
+
+# kernel changed
+KERNEL_CURRENT=$(realpath -qe /var/lib/kdump/kernel)
+[[ "$KERNEL_REALPATH" == "$KERNEL_CURRENT" ]] || UPDATE=true
+
+if ! $UPDATE; then
+	# initrd is up to date, nothing to do
+	$QUIET || echo "Not regenerating kdump initrd. Use mkdumprd -f to force regeneration."
         exit 0
 fi
 
+# build the initrd
+get_mount
+
+KERNELVERSION=$(get_kernel_version "$KERNEL")
+declare -a DRACUT_ARGS
+# arguments common with FADUMP
+DRACUT_ARGS=(
+        "--force"
+        "--hostonly"
+	"--no-hostonly-default-device" 
+        "--add" "kdump"
+        "--omit" "plymouth resume usrmount zz-fadumpinit"
+)
+
+[[ -n "${KDUMP_DRACUT_MOUNT_OPTION}" ]] && DRACUT_ARGS+=("--mount" "${KDUMP_DRACUT_MOUNT_OPTION}")
+$DEBUG && DRACUT_ARGS+=("--debug")
+
+if [[ "$FADUMP_INTERNAL" == "true" ]]; then
+	# additional FADUMP arguments
+	DRACUT_ARGS+=(
+        "--no-compress"
+        "--no-early-microcode"
+	)
+else
+	# additional non-FADUMP arguments
+	DRACUT_ARGS+=(
+	"--compress" "xz -0 --check=crc32" 
+	)
+fi
+
+echo "Regenerating kdump initrd ..." >&2
+dracut "${DRACUT_ARGS[@]}" "$INITRD" "$KERNELVERSION" || exit
 
 # if we're rebuilding the default INITRD, update the kernel symlink
 # to point to the kernel image the initrd was just built for
 [[ "$INITRD" == "$INITRD_DEFAULT" ]] && ln -sf "$KERNEL_REALPATH" /var/lib/kdump/kernel
-
-
-# vim: set ts=4 sw=4 et fdm=marker: :collapseFolds=1:
+exit 0
