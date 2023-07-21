@@ -1,6 +1,7 @@
 1.9.4
 -----
   * fix FADUMP initramfs when not created by mkdumprd
+  * FADUMP: let dracut de-duplicate initrd by preserving modification times
 
 1.9.3
 -----

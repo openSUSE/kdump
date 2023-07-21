@@ -28,7 +28,7 @@ install() {
     dinfo "****** Generating FADUMP initrd *******"
     mkdumprd -F -I "$_fadumpdir/initrd" -K "$kernel" || return 1
     pushd "$_fadumpdir" || return 1
-    lsinitrd --unpack initrd || return 1
+    cpio -id --preserve-modification-time --quiet < initrd || return 1
     rm -f initrd
     popd
     dinfo "****** Generating FADUMP initrd done *******"
