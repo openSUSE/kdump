@@ -89,6 +89,35 @@ function get_mount()
 	esac
 }
 
+# check if config has changed since a given initrd has been generated
+function initrd_up_to_date()
+{
+	local INITRD=$1
+
+	# no initrd yet
+	[[ -f "$INITRD" ]] || return 1
+
+	# config changed
+	[[ /etc/sysconfig/kdump -ot "$INITRD" ]] || return 1
+
+	# network settings changed
+	if [[ $KDUMP_PROTO != file ]]; then
+		[[ /etc/hosts -ot "$INITRD" ]] || return 1
+		[[ /etc/nsswitch.conf -ot "$INITRD" ]] || return 1
+		
+		# SSH keys changed
+		if [[ $KDUMP_PROTO == ssh ]] || [[ $KDUMP_PROTO == sftp ]]; then
+			pushd ~root/.ssh >/dev/null #identity files are relative to this directory
+			[[ -z "${KDUMP_SSH_IDENTITY}" ]] && KDUMP_SSH_IDENTITY="id_rsa id_dsa id_ecdsa id_ed25519"
+			for i in ${KDUMP_SSH_IDENTITY}; do
+				[[ -f  "${i}.pub" ]] && [[ "${i}.pub" -ot "$INITRD" ]] || return 1
+			done
+			popd
+		fi
+	fi
+	return 0
+}
+
 function error()
 {
 	echo "$1" >&2
@@ -129,6 +158,54 @@ while getopts "hfqk:K:I:dF" name ; do
 done
 shift $(($OPTIND -1))
 
+# With FADUMP, we don't know which kernel will be booted after a crash.
+# Kdump initrd is embedded in all standard initrds by the zz-fadumpinit module 
+# which calls this script with -F.
+#
+# If we're called in any other way (i.e. without -F), we 
+# regenerate all initrds that are not up to date using dracut.
+# zz-fadumpinit will call us again with -F to build the kdump part of each initrd.
+if [[ "$KDUMP_FADUMP" == "true" ]] && [[ "$FADUMP_INTERNAL" != "true" ]]; then
+	DEBUG_ARG=""
+	$DEBUG && DEBUG_ARG="--debug"
+
+	# cycle through all installed kernels
+	# (based on dracut's  handling of --regenerate-all)
+	cd /lib/modules || exit 1
+	RET=0
+	for i in *; do
+		[[ -f $i/modules.dep ]] || [[ -f $i/modules.dep.bin ]] || continue
+		[[ -d $i/kernel ]] || continue
+		INITRD="/boot/initrd-$i"
+		ABS_INITRD=$(readlink -f "$INITRD") && INITRD="$ABS_INITRD"
+		
+		UPDATE=$FORCE
+		# config changed or INITRD does not exist?
+		$UPDATE || initrd_up_to_date "$INITRD" || UPDATE=true
+
+		if ! $UPDATE; then
+			# initrd up to date, nothing to do
+			$QUIET || echo "Not regenerating $INITRD. Use mkdumprd -f to force regeneration."
+			continue
+		fi
+		
+		if ! [[ -w /boot ]]; then
+			echo "/boot not writable, not regenerating initrds."
+			exit 0
+		fi
+
+		echo "Regenerating $INITRD ..." >&2
+		dracut --force --kver="$i" $DEBUG_ARG 
+		((RET += $?))
+	done
+	
+	type -P $UPDATE_BOOTLOADER &> /dev/null && $UPDATE_BOOTLOADER --refresh 
+
+	# remove the kernel symlink and $INITRD_DEFAULT, they are not used for FADUMP
+	rm -f /var/lib/kdump/kernel "$INITRD_DEFAULT"
+
+	exit "$RET"
+fi
 
 # KDUMP_KERNELVER may be an absolute path name or a kernel version
 if [[ ${KDUMP_KERNELVER:0:1} == "/" ]]; then
@@ -165,62 +242,10 @@ fi
 # check if we need to regenerate the initrd
 UPDATE=$FORCE
 
-# no initrd yet
-[[ -f "$INITRD" ]] || UPDATE=true
+# config changed or INITRD does not exist?
+$UPDATE || initrd_up_to_date "$INITRD" || UPDATE=true
 
-
-# config changed
-[[ /etc/sysconfig/kdump -ot "$INITRD" ]] || UPDATE=true
-
-# network settings changed
-if [[ $KDUMP_PROTO != file ]]; then
-	[[ /etc/hosts -ot "$INITRD" ]] || UPDATE=true
-	[[ /etc/nsswitch.conf -ot "$INITRD" ]] || UPDATE=true
-	
-	# SSH keys changed
-	if [[ $KDUMP_PROTO == ssh ]] || [[ $KDUMP_PROTO == sftp ]]; then
-		pushd ~root/.ssh >/dev/null #identity files are relative to this directory
-		[[ -z "${KDUMP_SSH_IDENTITY}" ]] && KDUMP_SSH_IDENTITY="id_rsa id_dsa id_ecdsa id_ed25519"
-		for i in ${KDUMP_SSH_IDENTITY}; do
-			[[ -f  "${i}.pub" ]] && [[ "${i}.pub" -ot "$INITRD" ]] || UPDATE=true
-		done
-		popd
-	fi
-fi
-
-# With FADUMP, we don't know which kernel will be booted after a crash.
-# Kdump initrd is embedded in all standard initrds by the zz-fadumpinit module 
-# which calls this script with -F.
-#
-# if we're called in any other way (i.e. without -F), and we now determined the
-# kdump configuration had changed, we regenerate all initrds.  zz-fadumpinit
-# will call us again to build the kdump part of each inird.
-
-if [[ "$KDUMP_FADUMP" == "true" ]] && [[ "$FADUMP_INTERNAL" != "true" ]]; then
-	if ! $UPDATE; then
-		# initrds up to date, nothing to do
-		$QUIET || echo "Not regenerating initrds. Use mkdumprd -f to force regeneration."
-		exit 0
-	fi
-	DEBUG_ARG=""
-	$DEBUG && DEBUG_ARG="--debug"
-	echo "Regenerating all initrds ..." >&2
-	dracut --force --regenerate-all $DEBUG_ARG || exit
-	type -P $UPDATE_BOOTLOADER &> /dev/null && $UPDATE_BOOTLOADER --refresh 
-
-	# create an empty initrd file, the timestamp will be used to determine
-	# if initrds need to be regenerated
-	> $INITRD
-
-	# remove the kernel symlink, it is not used for FADUMP
-	rm -f /var/lib/kdump/kernel
-
-	exit 0
-fi
-
-# more checks for the non-FADUMP case
-
-# kernel changed
+# kernel changed?
 KERNEL_CURRENT=$(realpath -qe /var/lib/kdump/kernel)
 [[ "$KERNEL_REALPATH" == "$KERNEL_CURRENT" ]] || UPDATE=true
 
@@ -228,6 +253,18 @@ if ! $UPDATE; then
 	# initrd is up to date, nothing to do
 	$QUIET || echo "Not regenerating kdump initrd. Use mkdumprd -f to force regeneration."
         exit 0
+fi
+
+INITRD_DIR=$(dirname "$INITRD") 
+if ! [[ -w "$INITRD_DIR" ]]; then
+	echo "$INITRD_DIR not writable, not regenerating initrd."
+	exit 0
+fi
+
+# transactional update has a fake /var
+if [[ -n "$TRANSACTIONAL_UPDATE" ]] && [[ "$FADUMP_INTERNAL" != "true" ]]; then
+	echo "Cannot update initrd within a transactional update."
+	exit 0
 fi
 
 # build the initrd

@@ -2,6 +2,9 @@
 -----
   * fix FADUMP initramfs when not created by mkdumprd
   * FADUMP: let dracut de-duplicate initrd by preserving modification times
+  * mkdumprd: only regenerate FADUMP initrds when needed
+  * mkdumprd: exit when destination not writable (transactional updates)
+  * mkdumprd: don't call update-bootloader
 
 1.9.3
 -----
