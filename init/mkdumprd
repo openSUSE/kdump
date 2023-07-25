@@ -20,7 +20,6 @@
 FORCE=false
 QUIET=false
 DEBUG=false
-UPDATE_BOOTLOADER=/sbin/update-bootloader
 INITRD_DEFAULT=/var/lib/kdump/initrd
 INITRD=$INITRD_DEFAULT
 
@@ -199,8 +198,6 @@ if [[ "$KDUMP_FADUMP" == "true" ]] && [[ "$FADUMP_INTERNAL" != "true" ]]; then
 		((RET += $?))
 	done
 	
-	type -P $UPDATE_BOOTLOADER &> /dev/null && $UPDATE_BOOTLOADER --refresh 
-
 	# remove the kernel symlink and $INITRD_DEFAULT, they are not used for FADUMP
 	rm -f /var/lib/kdump/kernel "$INITRD_DEFAULT"
 
