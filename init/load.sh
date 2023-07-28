@@ -370,8 +370,15 @@ fi
 # check if initrd and the kernel it was built for exist
 # return 6 if not, which is treated as success by 
 # the kdump-early service
-[[ -f "${kdump_initrd}" ]] || exit 6
-[[ -f "${kdump_kernel}" ]] || exit 6
+
+# FIXME: This is a fragile SELinux workaround: use /bin/test instead of [[ ]] 
+# because it runs with a different label which by coincidence
+# is allowed to dereference the symlink
+# see bsc#1213721
+#[[ -f "${kdump_initrd}" ]] || exit 6
+#[[ -f "${kdump_kernel}" ]] || exit 6
+/bin/test -f "${kdump_initrd}" || exit 6
+/bin/test -f "${kdump_kernel}" || exit 6
 
 if [ "$shrink" = yes ] ; then
     kdumptool calibrate --shrink > /dev/null
