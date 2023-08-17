@@ -4,7 +4,7 @@
 #  Unload the kdump kernel
 
 KEXEC=/sbin/kexec
-FADUMP_REGISTERED=/sys/kernel/fadump_registered
+FADUMP_REGISTERED=/sys/kernel/fadump/registered
 UDEV_RULES_DIR=/run/udev/rules.d
 
 . /usr/lib/kdump/kdump-read-config.sh

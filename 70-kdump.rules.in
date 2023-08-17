@@ -22,7 +22,7 @@ GOTO="kdump_end"
 LABEL="kdump_try_restart"
 PROGRAM="/bin/cat /sys/kernel/kexec_crash_loaded", RESULT!="0", RUN+="/usr/lib/kdump/load-once.sh"
 @if @ARCH@ ppc64 ppc64le
-SUBSYSTEM=="memory", TEST=="/sys/kernel/fadump_registered", PROGRAM="/bin/cat /sys/kernel/fadump_registered", RESULT!="0", RUN+="/usr/lib/kdump/load-once.sh"
+SUBSYSTEM=="memory", TEST=="/sys/kernel/fadump/registered", PROGRAM="/bin/cat /sys/kernel/fadump/registered", RESULT!="0", RUN+="/usr/lib/kdump/load-once.sh"
 @endif
 
 LABEL="kdump_end"
