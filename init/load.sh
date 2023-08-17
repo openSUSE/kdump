@@ -4,8 +4,8 @@
 #  Load the kdump kernel 
 
 KEXEC=/sbin/kexec
-FADUMP_ENABLED=/sys/kernel/fadump_enabled
-FADUMP_REGISTERED=/sys/kernel/fadump_registered
+FADUMP_ENABLED=/sys/kernel/fadump/enabled
+FADUMP_REGISTERED=/sys/kernel/fadump/registered
 UDEV_RULES_DIR=/run/udev/rules.d
 kdump_initrd=/var/lib/kdump/initrd
 kdump_kernel=/var/lib/kdump/kernel
