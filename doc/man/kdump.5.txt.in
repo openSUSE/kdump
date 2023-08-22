@@ -279,29 +279,19 @@ Bit mask of several options that set the verbosity of the dump process. To apply
 several options, you have to add their value. The options are:
 
 1::
-  kdump command line is written to system log when executing /etc/init.d/kdump.
+  Print details when loading the dump kernel.
 
 2::
   Progress is written to stdout while dumping.
 
 4::
-  kdump command line is written so standard output when executing
-  /etc/init.d/kdump.
+  (same as 1)
 
 8::
   Debugging. The kdump-save script and most of the programs it runs 
   (including makedumpfile)  are run with debugging options.
   Generates lots of output. However, it's very useful if something does not
   work.
-
-16::
-  Debugging when loading the kdump kernel. That creates lots of output to
-  stdout, so only use if you really want to debug that. It is useful if
-  kdump reports that it cannot find a suitable kernel but you think kdump
-  is wrong.
-
-So, for example, if you want to have the command line on stdout when loading the
-kernel and also in the system log, just use KDUMP_VERBOSE = 5 (i.e. 1 + 4).
 
 Default: "0".
 

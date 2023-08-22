@@ -175,38 +175,18 @@ function load_kdump_kexec()
 
     local kdump_commandline=$(build_kdump_commandline "$kdump_kernel")
 
-    KEXEC_CALL="$KEXEC -p $kdump_kernel --append=\"$kdump_commandline\" --initrd=$kdump_initrd $KEXEC_OPTIONS"
+    KEXEC_CALL="$KEXEC -p $kdump_kernel --append=\"$kdump_commandline\" --initrd=$kdump_initrd $KEXEC_OPTIONS -a"
 
-    kdump_echo "Starting load kdump kernel with kexec_file_load(2)"
-    kdump_echo "kexec cmdline: $KEXEC_CALL -s"
-
-    output=$(eval "$KEXEC_CALL -s" 2>&1)
+    $VERBOSE && echo "Starting kdump kernel load; kexec cmdline: $KEXEC_CALL"
+    eval "$KEXEC_CALL"
     result=$?
 
-    # print stderr in any case to show warnings that normally
-    # would be supressed (bnc#374185)
-    echo "$output"
-
     if [ $result -eq 0 ] ; then
-        kdump_logger "Loaded kdump kernel: $KEXEC_CALL -s, Result: $output"
+        $VERBOSE && echo "Loaded kdump kernel."
         return 0
     fi
 
-    # kexec_file_load(2) failed
-    kdump_echo "kexec_file_load(2) failed"
-    kdump_echo "Starting load kdump kernel with kexec_load(2)"
-    kdump_echo "kexec cmdline: $KEXEC_CALL"
-
-    output=$(eval "$KEXEC_CALL" 2>&1)
-    result=$?
-    echo "$output"
-
-    if [ $result -eq 0 ] ; then
-        kdump_logger "Loaded kdump kernel: $KEXEC_CALL, Result: $output"
-    else
-        kdump_logger "FAILED to load kdump kernel: $KEXEC_CALL, Result: $output"
-    fi
-
+    echo "kexec failed." >&2
     return $result
 }
 
@@ -281,9 +261,6 @@ function load_kdump_fadump()
     fi
 
     echo "$msg"
-    if [ $((${KDUMP_VERBOSE:-0} & 1)) -gt 0 ] ; then
-	logger -t kdump "$msg"
-    fi
 
     return $result
 }
@@ -308,23 +285,8 @@ function rebuild_kdumprd()
 
 . /usr/lib/kdump/kdump-read-config.sh
 
-if [ $((${KDUMP_VERBOSE:-0} & 4)) -gt 0 ] ; then
-    function kdump_echo()
-    {
-        echo "$@"
-    }
-else
-    function kdump_echo(){ :; }
-fi
-
-if [ $((${KDUMP_VERBOSE:-0} & 1)) -gt 0 ] ; then
-    function kdump_logger()
-    {
-        logger -t kdump "$@"
-    }
-else
-    function kdump_logger(){ :; }
-fi
+VERBOSE=false
+[[ $((${KDUMP_VERBOSE:-0} & 5)) -gt 0 ]] && VERBOSE=true
 
 update=
 shrink=
