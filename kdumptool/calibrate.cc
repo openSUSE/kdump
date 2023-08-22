@@ -98,10 +98,6 @@ void DEBUG(const char *msg, ...)
 
 # define align_memmap		s390_align_memmap
 
-#elif defined(__ia64__)
-# define DEF_RESERVE_KB		MB(768)
-# define CAN_REDUCE_CPUS	1
-
 #elif defined(__aarch64__)
 # define DEF_RESERVE_KB		MB(192)
 # define CAN_REDUCE_CPUS	1

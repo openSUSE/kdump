@@ -169,11 +169,6 @@ function build_kexec_options()
     local kdump_kernel="$1"
     local options="$KEXEC_OPTIONS"
 
-    # add --noio on ia64
-    if [ $(uname -i) = "ia64" ] ; then
-        options="$options --noio"
-    fi
-
     echo "$options"
 }
 

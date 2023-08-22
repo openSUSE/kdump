@@ -40,8 +40,6 @@
 # define ELF_MACHINE	EM_PPC
 #elif defined(__s390x__) || defined(__s390__)
 # define ELF_MACHINE	EM_S390
-#elif defined(__ia64__)
-# define ELF_MACHINE	EM_IA_64
 #elif defined(__aarch64__)
 # define ELF_MACHINE	EM_AARCH64
 #elif defined(__arm__)

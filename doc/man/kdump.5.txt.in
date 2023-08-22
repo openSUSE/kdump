@@ -179,7 +179,7 @@ KEXEC_OPTIONS
 
 Additional options for *kexec*(8).
 
-Default is "" except on IA64 where it is "--noio".
+Default is "".
 
 
 MAKEDUMPFILE_OPTIONS
