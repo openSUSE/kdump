@@ -162,17 +162,6 @@ function build_kdump_commandline()
 }
 
 #
-# Builds the kexec options from KEXEC_OPTIONS
-# Parameters: 1) kernel
-function build_kexec_options()
-{
-    local kdump_kernel="$1"
-    local options="$KEXEC_OPTIONS"
-
-    echo "$options"
-}
-
-#
 # Load kdump using kexec
 function load_kdump_kexec()
 {
@@ -185,10 +174,8 @@ function load_kdump_kexec()
     fi
 
     local kdump_commandline=$(build_kdump_commandline "$kdump_kernel")
-    local kexec_options=$(build_kexec_options "$kdump_kernel")
 
-    KEXEC_CALL="$KEXEC -p $kdump_kernel --append=\"$kdump_commandline\""
-    KEXEC_CALL="$KEXEC_CALL --initrd=$kdump_initrd $kexec_options"
+    KEXEC_CALL="$KEXEC -p $kdump_kernel --append=\"$kdump_commandline\" --initrd=$kdump_initrd $KEXEC_OPTIONS"
 
     kdump_echo "Starting load kdump kernel with kexec_file_load(2)"
     kdump_echo "kexec cmdline: $KEXEC_CALL -s"
