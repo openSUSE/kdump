@@ -82,9 +82,8 @@ function set_serial_console()
 
     echo "${kdump_console}"
 }
-#
+
 # Get the name of kernel parameter to limit CPUs
-# Linux 2.6.34+ has nr_cpus, older versions must use maxcpus
 function cpus_param()
 {
     # nr_cpus does not work properly on ppc/ppc64/ppc64le
@@ -95,14 +94,7 @@ function cpus_param()
 	    ;;
     esac
 
-    local version=$(get_kernel_version "$1")
-    version="${version%%-*}"
-    local verhex=$(IFS=. ; set -- $version ; printf "0x%02x%02x%02x" $1 $2 $3)
-    if [ $(( $verhex )) -ge $(( 0x020622 )) ] ; then
-	echo nr_cpus
-    else
-	echo maxcpus
-    fi
+    echo nr_cpus
 }
 
 #
