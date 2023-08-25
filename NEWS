@@ -1,6 +1,7 @@
 1.9.7
 -----
   * prevent dracut emergency shell
+  * consolidate low-level s390 network configuration with zdev
 
 1.9.6
 -----
