@@ -150,9 +150,6 @@ install() {
 	inst_hook cmdline 50 "$moddir/kdump-root.sh"
 	inst_script "$moddir"/kdump-save /kdump/kdump-save
 	if dracut_module_included "systemd" ; then
-		inst_binary "$moddir/device-timeout-generator" \
-			"$systemdutildir"/system-generators/kdump-device-timeout-generator
-
 		inst_simple "$moddir/kdump-save.service" "$systemdsystemunitdir/kdump-save.service"
 
 		mkdir -p "$initdir/$systemdsystemunitdir"/initrd.target.wants

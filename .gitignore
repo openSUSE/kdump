@@ -22,7 +22,6 @@ Testing/
 # resulting binaries
 calibrate/mkelfcorehdr
 calibrate/trackrss
-dracut/device-timeout-generator
 dracut/init-fadump
 kdumptool/calibrate
 

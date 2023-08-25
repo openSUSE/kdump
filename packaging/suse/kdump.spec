@@ -63,7 +63,6 @@ Source1:        calibrate.conf.all
 BuildRequires:  asciidoc
 BuildRequires:  cmake >= 3.7
 BuildRequires:  gcc-c++
-BuildRequires:  libblkid-devel
 BuildRequires:  pkgconfig
 BuildRequires:  systemd-sysvinit
 BuildRequires:  util-linux-systemd

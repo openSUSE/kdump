@@ -15,21 +15,6 @@
 # along with this program; if not, see <https://www.gnu.org/licenses>.
 #
 
-ADD_EXECUTABLE(device-timeout-generator
-    device-timeout-generator.c
-)
-TARGET_INCLUDE_DIRECTORIES(device-timeout-generator
-    PUBLIC ${BLKID_INCLUDE_DIRS})
-TARGET_LINK_LIBRARIES(device-timeout-generator
-    ${BLKID_LIBRARIES})
-
-INSTALL(
-    TARGETS
-        device-timeout-generator
-    DESTINATION
-        /usr/lib/dracut/modules.d/99kdump
-)
-
 INSTALL (
     FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/kdump-save

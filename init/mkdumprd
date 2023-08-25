@@ -273,6 +273,7 @@ declare -a DRACUT_ARGS
 DRACUT_ARGS=(
         "--force"
         "--hostonly"
+	"--hostonly-cmdline"
 	"--no-hostonly-default-device" 
         "--add" "kdump"
         "--omit" "plymouth resume usrmount zz-fadumpinit"

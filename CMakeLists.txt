@@ -72,11 +72,6 @@ ENDIF (asciidoc_version_string VERSION_LESS 8.3.0)
 #
 set (CMAKE_LIBRARY_PATH /usr/lib64 ${CMAKE_LIBRARY_PATH})
 
-
-# libblkid
-pkg_check_modules(BLKID REQUIRED blkid)
-
-
 #
 # Check for FADUMP
 #
