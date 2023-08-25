@@ -313,8 +313,8 @@ fi
 # see bsc#1213721
 #[[ -f "${kdump_initrd}" ]] || exit 6
 #[[ -f "${kdump_kernel}" ]] || exit 6
-/bin/test -f "${kdump_initrd}" || exit 6
-/bin/test -f "${kdump_kernel}" || exit 6
+/usr/bin/test -f "${kdump_initrd}" || exit 6
+/usr/bin/test -f "${kdump_kernel}" || exit 6
 
 if [ "$shrink" = yes ] ; then
     kdumptool calibrate --shrink > /dev/null
