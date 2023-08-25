@@ -149,16 +149,11 @@ install() {
 
 	inst_hook cmdline 50 "$moddir/kdump-root.sh"
 	inst_script "$moddir"/kdump-save /kdump/kdump-save
-	if dracut_module_included "systemd" ; then
-		inst_simple "$moddir/kdump-save.service" "$systemdsystemunitdir/kdump-save.service"
+	inst_simple "$moddir/kdump-save.service" "$systemdsystemunitdir/kdump-save.service"
 
-		mkdir -p "$initdir/$systemdsystemunitdir"/initrd.target.wants
-		ln_r "$systemdsystemunitdir"/kdump-save.service \
-			"$systemdsystemunitdir"/initrd.target.wants/kdump-save.service
-	else
-		inst_hook mount 30 "$moddir/mount-kdump.sh"
-		inst_hook pre-pivot 90 "$KDUMP_LIBDIR"/kdump-save
-	fi
+	mkdir -p "$initdir/$systemdsystemunitdir"/initrd.target.wants
+	ln_r "$systemdsystemunitdir"/kdump-save.service \
+		"$systemdsystemunitdir"/initrd.target.wants/kdump-save.service
 	
 	# per-protocol config
 	case ${KDUMP_PROTO} in
