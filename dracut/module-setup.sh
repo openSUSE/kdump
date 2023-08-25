@@ -130,28 +130,15 @@ kdump_cmdline_ip() {
 	esac
 }
 
-# Output variables:
-#	kdump_kmods  additional kernel modules updated
-#	kdump_ifmap  hardware network interface map updated
-cmdline_net() {
-	kdump_cmdline_ip
-}
-
 installkernel() {
 	[ -n "$kdump_kmods" ] || return 0
 	hostonly='' instmods $kdump_kmods
 }
 
 install() {
-	if [[ $hostonly_cmdline == "yes" ]] ; then
-		# don't call cmdline_net in a subshell, it sets global variables
-		_cmdline_f=$(mktemp) || return 1
-		cmdline_net > $_cmdline_f
-		local _cmdline=$(< $_cmdline_f)
-		rm $_cmdline_f
-
-		[ -n "$_cmdline" ] && printf "%s\n" "$_cmdline" >> "${initdir}/etc/cmdline.d/99kdump-net.conf"
-	fi
+	# generate command line for network configuration
+	kdump_cmdline_ip > "${initdir}/etc/cmdline.d/99kdump-net.conf"
+	[[ -s "${initdir}/etc/cmdline.d/99kdump-net.conf" ]] || rm "${initdir}/etc/cmdline.d/99kdump-net.conf"
 
 	# parse the configuration, check values and initialize defaults 
 	"$KDUMP_LIBDIR"/kdump-read-config.sh --print > ${initdir}/etc/kdump.conf
