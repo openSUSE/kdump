@@ -140,6 +140,9 @@ install() {
 	kdump_cmdline_ip > "${initdir}/etc/cmdline.d/99kdump-net.conf"
 	[[ -s "${initdir}/etc/cmdline.d/99kdump-net.conf" ]] || rm "${initdir}/etc/cmdline.d/99kdump-net.conf"
 
+	# prevent dracut emergency shell unless kdump-save would run a shell anyway
+	kdump_save_may_run_shell || echo "rd.emergency=reboot rd.shell=0" > "${initdir}/etc/cmdline.d/99no-emerg.conf"
+
 	# parse the configuration, check values and initialize defaults 
 	"$KDUMP_LIBDIR"/kdump-read-config.sh --print > ${initdir}/etc/kdump.conf
 	# remember the host name
@@ -243,4 +246,21 @@ function kdump_init_ssh()						   # {{{
 		echo "IdentityFile /root/.ssh/${f}" >> "${SSH_DIR}/config"
 	done
 	popd >/dev/null
+}
+
+# mimic the logic of kdump-save determining if an interactive shell may be run
+function kdump_save_may_run_shell
+{
+	# without KDUMP_CONTINUE_ON_ERROR user explicitly wants a shell on errors
+	$KDUMP_CONTINUE_ON_ERROR || return 0
+
+	$KDUMP_IMMEDIATE_REBOOT && return 1
+
+	if $KDUMP_FADUMP; then
+		$KDUMP_FADUMP_SHELL && return 0
+	else
+		return 0
+	fi
+
+	return 1
 }
