@@ -136,12 +136,17 @@ installkernel() {
 }
 
 install() {
+	local _arch=$(uname -m)
+
 	# generate command line for network configuration
 	kdump_cmdline_ip > "${initdir}/etc/cmdline.d/99kdump-net.conf"
 	[[ -s "${initdir}/etc/cmdline.d/99kdump-net.conf" ]] || rm "${initdir}/etc/cmdline.d/99kdump-net.conf"
 
 	# prevent dracut emergency shell unless kdump-save would run a shell anyway
 	kdump_save_may_run_shell || echo "rd.emergency=reboot rd.shell=0" > "${initdir}/etc/cmdline.d/99no-emerg.conf"
+
+	# S390: Explicitly request zFCP devices 
+	[ "$_arch" = "s390" -o "$_arch" = "s390x" ] && kdump_cmdline_zfcp > "${initdir}/etc/cmdline.d/99kdump-zfcp.conf"
 
 	# parse the configuration, check values and initialize defaults 
 	"$KDUMP_LIBDIR"/kdump-read-config.sh --print > ${initdir}/etc/kdump.conf
@@ -264,3 +269,23 @@ function kdump_save_may_run_shell
 
 	return 1
 }
+
+function kdump_cmdline_zfcp() {
+	is_zfcp() {
+		local _dev=$1
+		local _devpath=$(cd -P /sys/dev/block/$_dev ; echo $PWD)
+		local _sdev _lun _wwpn _ccw
+
+		[ "${_devpath#*/sd}" == "$_devpath" ] && return 1
+		_sdev="${_devpath%%/block/*}"
+		[ -e ${_sdev}/fcp_lun ] || return 1
+		_ccw=$(cat ${_sdev}/hba_id)
+		_lun=$(cat ${_sdev}/fcp_lun)
+		_wwpn=$(cat ${_sdev}/wwpn)
+		echo "rd.zfcp=${_ccw},${_wwpn},${_lun}"
+	}
+	[[ $hostonly ]] || [[ $mount_needs ]] && {
+		for_each_host_dev_and_slaves_all is_zfcp
+	} | sort -u
+}
+

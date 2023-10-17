@@ -1,7 +1,8 @@
 1.9.7
 -----
   * prevent dracut emergency shell
-  * consolidate low-level s390 network configuration with zdev
+  * s390: consolidate low-level network configuration with zdev
+  * s390: Explicitly request zFCP devices
 
 1.9.6
 -----
