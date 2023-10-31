@@ -1,3 +1,7 @@
+1.9.8
+-----
+  * drop obsolete dependency on systemd-sysvinit
+
 1.9.7
 -----
   * prevent dracut emergency shell

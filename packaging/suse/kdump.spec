@@ -64,7 +64,6 @@ BuildRequires:  asciidoc
 BuildRequires:  cmake >= 3.7
 BuildRequires:  gcc-c++
 BuildRequires:  pkgconfig
-BuildRequires:  systemd-sysvinit
 BuildRequires:  util-linux-systemd
 BuildRequires:  pkgconfig(systemd)
 BuildRequires:  pkgconfig(udev)
