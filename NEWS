@@ -1,3 +1,7 @@
+1.9.9
+-----
+  * add support for riscv64 (bsc#1204214)
+
 1.9.8
 -----
   * drop obsolete dependency on systemd-sysvinit
