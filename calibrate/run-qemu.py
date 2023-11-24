@@ -182,6 +182,9 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
     elif arch.startswith('s390'):
         console = 'sclp0'
         logdev = '229,0'        # hvc0
+    elif arch == 'riscv64':
+        console = 'ttyS1'
+        logdev = '4,66'         # ttyS2
     else:
         console = 'ttyS0'
         logdev = '4,65'         # ttyS1
@@ -202,10 +205,10 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
             )
     elif arch == 'riscv64':
         console_args = (
-            '-serial', 'null',  # one serial port is hardcoded in the virt machine
-            '-chardev', 'file,path={},id=ttyS0'.format(params['MESSAGES_LOG']),
-            '-chardev', 'file,path={},id=ttyS1'.format(params['TRACKRSS_LOG']),
-            '-device', 'pci-serial-2x,chardev1=ttyS0,chardev2=ttyS1',
+            '-serial', 'mon:stdio',  # one serial port is hardcoded in the virt machine
+            '-chardev', 'file,path={},id=ttyS1'.format(params['MESSAGES_LOG']),
+            '-chardev', 'file,path={},id=ttyS2'.format(params['TRACKRSS_LOG']),
+            '-device', 'pci-serial-2x,chardev1=ttyS1,chardev2=ttyS2',
             )
     else:
         console_args = (
