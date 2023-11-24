@@ -109,7 +109,8 @@ function initrd_up_to_date()
 			pushd ~root/.ssh >/dev/null #identity files are relative to this directory
 			[[ -z "${KDUMP_SSH_IDENTITY}" ]] && KDUMP_SSH_IDENTITY="id_rsa id_dsa id_ecdsa id_ed25519"
 			for i in ${KDUMP_SSH_IDENTITY}; do
-				[[ -f  "${i}.pub" ]] && [[ "${i}.pub" -ot "$INITRD" ]] || return 1
+				[[ -f  "${i}.pub" ]] || continue
+				[[ "${i}.pub" -ot "$INITRD" ]] || return 1
 			done
 			popd
 		fi
