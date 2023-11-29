@@ -1,6 +1,7 @@
 1.9.9
 -----
   * add support for riscv64 (bsc#1204214)
+  * mkdumprd: fix the check for updated SSH keys
 
 1.9.8
 -----
