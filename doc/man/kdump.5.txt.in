@@ -237,6 +237,8 @@ Below that directory, for each dump a directory with a time stamp in the
 following format will be created: "YYYY-MM-DD-HH-MM". That directory contains
 the vmcore dump, the dmesg and a README.txt file.
 
+Bind mounts are not supported.
+
 Default: "/var/crash".
 
 
