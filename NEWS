@@ -2,6 +2,7 @@
 -----
   * add support for riscv64 (bsc#1204214)
   * mkdumprd: fix the check for updated SSH keys
+  * prefer by-path and device-mapper aliases (bsc#1217617)
 
 1.9.8
 -----

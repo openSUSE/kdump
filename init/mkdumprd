@@ -54,6 +54,18 @@ function get_mount()
 			mkdir -p "${KDUMP_SAVEDIR_REALPATH}"
 			read -r SOURCE TARGET FS OPTIONS < <(findmnt -n -v --raw --target "${KDUMP_SAVEDIR_REALPATH}" --output=source,target,fstype,options) ||
 				error "Cannot find mount point for ${KDUMP_SAVEDIR#*://}"
+
+			# get persistent device name for SOURCE
+			local _symlink
+			for _symlink in $(udevadm info --root --query=symlink "$SOURCE")
+			do
+			    case "$_symlink" in
+				*/by-path/*|*/mapper/*)
+				    SOURCE="$_symlink"
+				    break
+			    esac
+			done
+
 			TARGET="${MOUNTPOINT}${TARGET}"
 			KDUMP_DRACUT_MOUNT_OPTION="${SOURCE} ${TARGET} ${FS} ${OPTIONS}"
 			;;
