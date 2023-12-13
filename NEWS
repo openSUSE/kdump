@@ -1,8 +1,9 @@
-1.9.9
+2.0.0
 -----
   * add support for riscv64 (bsc#1204214)
   * mkdumprd: fix the check for updated SSH keys
   * prefer by-path and device-mapper aliases (bsc#1217617)
+  * udev: don't reload kdump if kernel handles hotplug (jsc#PED-5077)
 
 1.9.8
 -----

@@ -4,13 +4,13 @@
 # no kdump udev rules are required.
 #
 @else
-#
+
+# Do nothing if kernel itself updates vmcoreinfo on hotplug 
+SUBSYSTEM=="cpu", ATTRS{crash_hotplug}=="1", GOTO="kdump_end"
+SUBSYSTEM=="memory", ATTRS{crash_hotplug}=="1", GOTO="kdump_end"
+
 # Kdump core headers needs to be regnerated if the CPUs or memory changes.
 # For this, reload kdump.
-#
-# Novell Bug #389658
-#
-
 SUBSYSTEM=="memory", ACTION=="add|remove", GOTO="kdump_try_restart"
 @if @ARCH@ ppc ppc64 ppc64le
 SUBSYSTEM=="cpu", ACTION=="online", GOTO="kdump_try_restart"
