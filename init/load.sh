@@ -160,11 +160,6 @@ function load_kdump_kexec()
     local result
     local output
 
-    if [ ! -f "$kdump_initrd" ] ; then
-        echo "No kdump initial ramdisk found. Tried to locate $kdump_initrd."
-	return 6
-    fi
-
     local kdump_commandline=$(build_kdump_commandline "$kdump_kernel")
 
     KEXEC_CALL="$KEXEC -p $kdump_kernel --append=\"$kdump_commandline\" --initrd=$kdump_initrd $KEXEC_OPTIONS -a"
@@ -303,19 +298,6 @@ if [ "$update" = yes ] ; then
     rebuild_kdumprd || exit 1
 fi
 
-# check if initrd and the kernel it was built for exist
-# return 6 if not, which is treated as success by 
-# the kdump-early service
-
-# FIXME: This is a fragile SELinux workaround: use /bin/test instead of [[ ]] 
-# because it runs with a different label which by coincidence
-# is allowed to dereference the symlink
-# see bsc#1213721
-#[[ -f "${kdump_initrd}" ]] || exit 6
-#[[ -f "${kdump_kernel}" ]] || exit 6
-/usr/bin/test -f "${kdump_initrd}" || exit 6
-/usr/bin/test -f "${kdump_kernel}" || exit 6
-
 if [ "$shrink" = yes ] ; then
     kdumptool calibrate --shrink > /dev/null
 fi
@@ -324,6 +306,19 @@ if [ "$KDUMP_FADUMP" = "true" ] ; then
     load_kdump_fadump
 else
     fadump_bootloader off
+
+    # check if initrd and the kernel it was built for exist
+    # return 6 if not, which is treated as success by 
+    # the kdump-early service
+    # FIXME: This is a fragile SELinux workaround: use /bin/test instead of [[ ]] 
+    # because it runs with a different label which by coincidence
+    # is allowed to dereference the symlink
+    # see bsc#1213721
+    #[[ -f "${kdump_initrd}" ]] || exit 6
+    #[[ -f "${kdump_kernel}" ]] || exit 6
+    /usr/bin/test -f "${kdump_initrd}" || exit 6
+    /usr/bin/test -f "${kdump_kernel}" || exit 6
+
     load_kdump_kexec
 fi
 result=$?
