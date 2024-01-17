@@ -96,6 +96,8 @@ check() {
 
     # add mount points
     if ! [[ $mount_needs ]] ; then
+        mkdir -p "$initdir/etc"
+        touch "$initdir/etc/fstab"
         kdump_get_mountpoints || return 1
 
         local _i=0
