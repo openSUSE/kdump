@@ -1,3 +1,6 @@
+2.0.1
+-----
+  * load.sh: fix fadump (bsc#1218589)
 2.0.0
 -----
   * add support for riscv64 (bsc#1204214)
