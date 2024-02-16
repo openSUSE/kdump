@@ -1,6 +1,11 @@
+SLE-15-SP6:
+-----------------
+  * always use nr_cpus, not maxcpus (bsc#1218180)
+
 2.0.1
 -----
   * load.sh: fix fadump (bsc#1218589)
+
 2.0.0
 -----
   * add support for riscv64 (bsc#1204214)

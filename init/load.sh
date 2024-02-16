@@ -83,20 +83,6 @@ function set_serial_console()
     echo "${kdump_console}"
 }
 
-# Get the name of kernel parameter to limit CPUs
-function cpus_param()
-{
-    # nr_cpus does not work properly on ppc/ppc64/ppc64le
-    case $(uname -m) in
-        ppc*)
-	    echo maxcpus
-	    return 0
-	    ;;
-    esac
-
-    echo nr_cpus
-}
-
 #
 # Builds the kdump command line from KDUMP_COMMANDLINE.
 function build_kdump_commandline()
@@ -111,7 +97,7 @@ function build_kdump_commandline()
                 'root|resume|crashkernel|splash|mem|BOOT_IMAGE|showopts|zfcp\.allow_lun_scan|hugepages|acpi_no_memhotplug|cgroup_disable|unknown_nmi_panic|rd\.udev\.children-max' \
                 < /proc/cmdline)
         if [ ${KDUMP_CPUS:-1} -ne 0 ] ; then
-            nr_cpus=$(cpus_param "$kdump_kernel")=${KDUMP_CPUS:-1}
+            nr_cpus="nr_cpus=${KDUMP_CPUS:-1}"
         fi
         commandline="$commandline sysrq=yes reset_devices acpi_no_memhotplug cgroup_disable=memory nokaslr"
         commandline="$commandline numa=off"
