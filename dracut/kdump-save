@@ -39,7 +39,11 @@ function main() {
 	case "${KDUMP_PROTO}" in
 		file)
 			# modified by dracut module to dereference symlinks
-			FILE_PATH="/kdump/mnt${KDUMP_SAVEDIR}"
+			MOUNT_POINT="/kdump/mnt"
+			FILE_PATH="${MOUNT_POINT}${KDUMP_SAVEDIR}"
+			if [[ "$KDUMP_FADUMP" == "true" ]] && [[ ! -w "$MOUNT_POINT" ]];  then
+				mount -o remount,rw  $MOUNT_POINT
+			fi
 			;;
 		ftp)
 			# split URL into host and directory parts, lftp fails when
