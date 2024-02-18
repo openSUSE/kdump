@@ -66,8 +66,11 @@ function get_mount()
 			    esac
 			done
 
-			TARGET="${MOUNTPOINT}${TARGET}"
-			KDUMP_DRACUT_MOUNT_OPTION="${SOURCE} ${TARGET} ${FS} ${OPTIONS}"
+			DUMP_TARGET="${MOUNTPOINT}${TARGET}"
+			KDUMP_DRACUT_MOUNT_OPTION="${SOURCE} ${DUMP_TARGET} ${FS} ${OPTIONS}"
+			if [[ "$KDUMP_FADUMP" == "true" ]] && [[ "$TARGET" == "/" ]]; then
+				KDUMP_DRACUT_MOUNT_OPTION="${KDUMP_DRACUT_MOUNT_OPTION},x-systemd.requires=/sysroot"
+			fi
 			;;
 		cifs)
                         # split URL into host, directory, user and password parts
