@@ -1,7 +1,7 @@
 #
 # spec file for package kdump
 #
-# Copyright (c) 2022 SUSE LLC
+# Copyright (c) 2024 SUSE LLC
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -14,6 +14,7 @@
 
 # Please submit bugfixes or comments via https://bugs.opensuse.org/
 #
+
 
 %bcond_with calibrate
 
@@ -56,7 +57,7 @@
 %define dracutlibdir %{_prefix}/lib/dracut
 
 Name:           kdump
-Version:        1.0.2+git26.gc6fab38
+Version:        2.0.1
 Release:        0
 Summary:        Kernel crash dump scripts and utilities
 License:        GPL-2.0-or-later
@@ -78,12 +79,12 @@ BuildRequires:  dhcp-client
 BuildRequires:  dracut >= 047
 BuildRequires:  iputils
 BuildRequires:  kernel-default
-BuildRequires:  makedumpfile
-BuildRequires:  procps
-BuildRequires:  pciutils
-BuildRequires:  python3
-BuildRequires:  openssh-clients
 BuildRequires:  lftp
+BuildRequires:  makedumpfile
+BuildRequires:  openssh-clients
+BuildRequires:  pciutils
+BuildRequires:  procps
+BuildRequires:  python3
 %ifnarch s390x
 BuildRequires:  qemu-ipxe
 BuildRequires:  qemu-vgabios
@@ -106,10 +107,10 @@ PreReq:         /usr/bin/mkdir
 PreReq:         /usr/bin/rm
 PreReq:         /usr/bin/touch
 Recommends:     cifs-utils
-Recommends:     nfs-client
 Recommends:     lftp
+Recommends:     nfs-client
 Recommends:     openssh-clients
-Suggests:	mailx
+Suggests:       mailx
 # update should detect the split-off from kexec-tools
 Provides:       kexec-tools:%{_initddir}/kdump
 ExcludeArch:    s390 ppc %arm32
@@ -153,7 +154,6 @@ export CXXFLAGS="%{optflags} -std=c++11"
 # fails to exit
 make VERBOSE=1
 
-
 %check
 %ctest
 
@@ -171,7 +171,7 @@ echo "no calibration data for %distro_prefix in calibrate.conf.all, see packagin
 false
 fi
 %else
-# save the distro_prefix 
+# save the distro_prefix
 echo "GENERATED_ON=%{distro_prefix}" >> %{buildroot}/usr/lib/kdump/calibrate.conf
 echo "generated calibrate.conf:"
 cat  %{buildroot}/usr/lib/kdump/calibrate.conf
