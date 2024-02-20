@@ -77,10 +77,10 @@ system. Keep in mind that this increases the stress on the I/O subsystem,
 so you probably don't get the maximum speed if you set this parameter to
 the number of CPUs in your system.
 
-This parameter modifies the _maxcpus_ parameter of the kdump kernel and
+This parameter modifies the _nr_cpus_ parameter of the kdump kernel and
 the number of *makedumpfile*(8) processes created.
 
-If the value is zero, all available CPUs are used, i.e. the _maxcpus_
+If the value is zero, all available CPUs are used, i.e. the _nr_cpus_
 parameter is not added to the kdump kernel command line.
 
 Default is 1.
