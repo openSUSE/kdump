@@ -59,24 +59,6 @@ static int chdir_failure(const char *path)
 	return -1;
 }
 
-static int check_fadump(void)
-{
-	int err;
-
-	if (mount(PROC, PROC_DIR, PROC,
-		  MS_NOSUID|MS_NOEXEC|MS_NODEV, NULL))
-		return mount_failure(PROC);
-
-	err = access(PROC_VMCORE, F_OK);
-
-	/* give a warning, but ignore errors */
-	if (umount(PROC_DIR))
-		fprintf(stderr, "Cannot unmount %s: %s\n",
-			PROC_DIR, strerror(errno));
-
-	return err;
-}
-
 static int execute(const char *prog, char *const *argv)
 {
 	execv(prog, argv);
@@ -227,7 +209,26 @@ static int check_initramfs(const char *path)
 
 static int exec_next_init(int argc, char *const *argv)
 {
-	if (check_fadump()) {
+	int fadump = 0;
+
+	/* temporarily mount /proc to:
+	 * - check for /proc/vmcore to decide if we're in a fadump environment
+	 */
+	if (mount(PROC, PROC_DIR, PROC,
+		  MS_NOSUID|MS_NOEXEC|MS_NODEV, NULL))
+		mount_failure(PROC);
+	else {
+		if (access(PROC_VMCORE, F_OK) == 0) {
+			fadump = 1;
+		}
+
+		/* give a warning, but ignore errors */
+		if (umount(PROC_DIR))
+			fprintf(stderr, "Cannot unmount %s: %s\n",
+				PROC_DIR, strerror(errno));
+	}
+
+	if (!fadump) {
                 if (rename(DRACUT_INIT, argv[0])) {
                         fprintf(stderr, "Cannot rename %s to %s: %s\n",
                                 DRACUT_INIT, argv[0], strerror(errno));
