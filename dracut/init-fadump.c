@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <ctype.h>
 #include <linux/magic.h>
 #include <sys/mount.h>
 #include <sys/stat.h>
@@ -38,6 +39,9 @@
 #define PROC_VMCORE	"/proc/vmcore"
 
 #define DRACUT_INIT	"/init.dracut"
+
+#define KERNEL_CMDLINE  (PROC_DIR "/cmdline")
+#define MAX_COMMAND_LINE_SIZE 4096
 
 static int unlink_failure(const char *path)
 {
@@ -207,12 +211,98 @@ static int check_initramfs(const char *path)
 	return 0;
 }
 
+/* copy kernel command line to the SYSTEMD_PROC_CMDLINE environment variable,
+ * replacing root=... with root=kdump rootflags=bind
+ */
+static int adjust_cmdline()
+{
+	FILE *in;
+	int c, in_quotes = 0, filter = 0;
+	const char match[] = "root=";
+	const char *match_pos = match;
+	char cmdline[MAX_COMMAND_LINE_SIZE];
+	char *cmdline_pos = cmdline;
+	char *cmdline_end = cmdline + MAX_COMMAND_LINE_SIZE - 1;
+	int truncated = 0;
+
+	in = fopen(KERNEL_CMDLINE, "r");
+	if (!in) {
+		fprintf(stderr, "Cannot open %s: %s\n",
+			KERNEL_CMDLINE, strerror(errno));
+		return -1;
+	}
+
+	/* put root=kdump rootflags=bind on the beginning of cmdline */
+	cmdline_pos = stpcpy(cmdline_pos, "root=kdump rootflags=bind ");
+
+	/* copy original command line, filtering out root= */
+	while ((c = fgetc(in)) != EOF) {
+
+		if (c == '"')
+			in_quotes = !in_quotes;
+
+		if (isspace(c) && !in_quotes)
+			/* new option, start matching */
+			match_pos = match;
+		else if (match_pos) {
+			if (c == *match_pos) {
+				/* c is still matching */
+				filter = 1;
+				++match_pos;
+				if (! *match_pos)
+					match_pos = NULL; /* matched until the end of match */
+
+			} else {
+				/* c does not match */
+				const char *m = match;
+				filter = 0;
+
+				/* output the already matched part */
+				for (m = match; m < match_pos; ++m) {
+					if (cmdline_pos >= cmdline_end) {
+						truncated = 1;
+						break;
+					}
+					*(cmdline_pos++) = *m;
+				}
+
+				/* stop filtering, stop matching until next space */
+				filter = 0;
+				match_pos = NULL;
+			}
+		}
+
+		if (!filter) {
+			if (cmdline_pos >= cmdline_end) {
+				truncated = 1;
+				break;
+			}
+			*(cmdline_pos++) = c;
+		}
+	}
+
+	fclose(in);
+
+	*cmdline_pos = 0;
+	printf("Passing modified command line to systemd: %s\n", cmdline);
+	if (truncated)
+		fprintf(stderr, "Warning, command line truncated!\n");
+
+	if (setenv("SYSTEMD_PROC_CMDLINE", cmdline, 1)) {
+		fprintf(stderr, "Failed setting SYSTEMD_PROC_CMDLINE: %s\n", strerror(errno));
+		return -1;
+	}
+
+	return 0;
+}
+
 static int exec_next_init(int argc, char *const *argv)
 {
 	int fadump = 0;
 
 	/* temporarily mount /proc to:
 	 * - check for /proc/vmcore to decide if we're in a fadump environment
+	 * - pass a modified command line to systemd, replacing root=... with root=kdump
 	 */
 	if (mount(PROC, PROC_DIR, PROC,
 		  MS_NOSUID|MS_NOEXEC|MS_NODEV, NULL))
@@ -220,6 +310,7 @@ static int exec_next_init(int argc, char *const *argv)
 	else {
 		if (access(PROC_VMCORE, F_OK) == 0) {
 			fadump = 1;
+			adjust_cmdline();
 		}
 
 		/* give a warning, but ignore errors */
