@@ -155,14 +155,20 @@ install() {
 	# filter out problematic sysctl settings
 	kdump_filter_sysctl "${initdir}" #FIXME needed?
 
+	# avoid dracut failing with root=kdump
 	inst_hook cmdline 50 "$moddir/kdump-root.sh"
+	
+	# prevent mounting, fscking and waiting for root 
+	mkdir -p "$initdir/etc/systemd/system-generators"
+	ln -s /dev/null "$initdir/etc/systemd/system-generators/dracut-rootfs-generator"
+	
 	inst_script "$moddir"/kdump-save /kdump/kdump-save
 	inst_simple "$moddir/kdump-save.service" "$systemdsystemunitdir/kdump-save.service"
 
 	mkdir -p "$initdir/$systemdsystemunitdir"/initrd.target.wants
 	ln_r "$systemdsystemunitdir"/kdump-save.service \
 		"$systemdsystemunitdir"/initrd.target.wants/kdump-save.service
-	
+
 	# per-protocol config
 	case ${KDUMP_PROTO} in
 		ssh)
