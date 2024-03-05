@@ -352,7 +352,7 @@ function main() {
 			bash
 		fi
 
-		mountpoint /kdump/mnt && umount /kdump/mnt
+		umount -q /kdump/mnt
 
 	else
 		echo "Dump saving completed. Running a shell; exit will reboot."
