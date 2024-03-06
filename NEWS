@@ -1,6 +1,7 @@
 SLE-15-SP6:
 -----------------
   * always use nr_cpus, not maxcpus (bsc#1218180)
+  * prevent mounting root in fadump (bsc#1219958)
 
 2.0.1
 -----
