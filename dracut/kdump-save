@@ -272,6 +272,7 @@ function main() {
 		[[ $((KDUMP_VERBOSE & 2)) -ne 0 ]] && MSG_LEVEL=$((MSG_LEVEL | 1)) # progress
 
 		DUMP_COMMAND="makedumpfile -F ${FORMAT} ${THREADS} --message-level $MSG_LEVEL -d ${KDUMP_DUMPLEVEL} ${MAKEDUMPFILE_OPTIONS} /proc/vmcore"
+		DUMP_INFO+=$'\n'"Note: vmcore saved in makedumpfile flattened format"
 	fi
 
 	# save the dump
