@@ -1,6 +1,7 @@
 2.0.3
 -----
-  * add a note to README.txt about the flattened format
+  * add a note to README.txt about the flattened format (bsc#1221374)
+  * use the same persistent device links as dracut (bsc#1222009, bsc#1219471)
 
 2.0.2
 -----
