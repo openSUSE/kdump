@@ -1,5 +1,11 @@
-SLE-15-SP6:
------------------
+2.0.3
+-----
+  * add a note to README.txt about the flattened format (bsc#1221374)
+  * use the same persistent device links as dracut (bsc#1222009, bsc#1219471)
+  * remove dracut parse-root.sh hook (bsc#1221288)
+
+2.0.2
+-----
   * always use nr_cpus, not maxcpus (bsc#1218180)
   * prevent mounting root in fadump (bsc#1219958)
 

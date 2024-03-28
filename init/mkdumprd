@@ -56,16 +56,9 @@ function get_mount()
 				error "Cannot find mount point for ${KDUMP_SAVEDIR#*://}"
 
 			# get persistent device name for SOURCE
-			local _symlink
-			for _symlink in $(udevadm info --root --query=symlink "$SOURCE")
-			do
-			    case "$_symlink" in
-				*/by-path/*|*/mapper/*)
-				    SOURCE="$_symlink"
-				    break
-			    esac
-			done
-
+			PSOURCE=$(get_persistent_dev "$SOURCE")
+			[[ -n $PSOURCE ]] && SOURCE=$PSOURCE
+			
 			TARGET="${MOUNTPOINT}${TARGET}"
 			KDUMP_DRACUT_MOUNT_OPTION="${SOURCE} ${TARGET} ${FS} ${OPTIONS}"
 			;;
@@ -129,6 +122,48 @@ function initrd_up_to_date()
 	fi
 	return 0
 }
+
+
+# get_persistent_dev() and get_maj_min() taken from dracut
+
+# get_maj_min <device>
+# Prints the major and minor of a device node.
+# Example:
+# $ get_maj_min /dev/sda2
+# 8:2
+get_maj_min() {
+    local _majmin
+    _majmin="$(stat -L -c '%t:%T' "$1" 2>/dev/null)"
+    printf "%s" "$((0x${_majmin%:*})):$((0x${_majmin#*:}))"
+}
+
+# get a persistent path from a device
+get_persistent_dev() {
+    local i _tmp _dev _pol
+
+    _dev=$(get_maj_min "$1")
+    [ -z "$_dev" ] && return
+
+    for i in \
+        /dev/mapper/* \
+        /dev/disk/by-uuid/* \
+        /dev/disk/by-label/* \
+        /dev/disk/by-partuuid/* \
+        /dev/disk/by-partlabel/* \
+        /dev/disk/by-id/* \
+        /dev/disk/by-path/*; do
+        [[ -e $i ]] || continue
+        [[ $i == /dev/mapper/control ]] && continue
+        [[ $i == /dev/mapper/mpath* ]] && continue
+        _tmp=$(get_maj_min "$i")
+        if [ "$_tmp" = "$_dev" ]; then
+            printf -- "%s" "$i"
+            return
+        fi
+    done
+    printf -- "%s" "$1"
+}
+
 
 function error()
 {
