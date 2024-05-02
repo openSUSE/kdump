@@ -182,6 +182,7 @@ ln -s %{_sbindir}/service %{buildroot}%{_sbindir}/rckdump
 %pre
 %service_add_pre kdump.service
 %service_add_pre kdump-early.service
+exit 0
 
 %post
 # change only permission if the file exists before /etc/sysconfig/kdump
@@ -209,6 +210,7 @@ fi
 servicelog_notify --remove --command=/usr/lib/kdump/kdump-migrate-action.sh
 servicelog_notify --add --command=/usr/lib/kdump/kdump-migrate-action.sh --match='refcode="#MIGRATE" and serviceable=0' --type=EVENT --method=pairs_stdin
 %endif
+exit 0
 
 %preun
 %ifarch ppc64 ppc64le
@@ -217,6 +219,7 @@ servicelog_notify --remove --command=/usr/lib/kdump/kdump-migrate-action.sh
 echo "Stopping kdump ..."
 %service_del_preun kdump.service
 %service_del_preun kdump-early.service
+exit 0
 
 %postun
 # force regeneration of kdumprd
@@ -225,6 +228,7 @@ touch %{_sysconfdir}/sysconfig/kdump
 rm %{_localstatedir}/log/dump >/dev/null 2>&1 || true
 %service_del_postun kdump.service
 %service_del_postun kdump-early.service
+exit 0
 
 %files
 %defattr(-,root,root)
