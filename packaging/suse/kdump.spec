@@ -89,8 +89,6 @@ BuildRequires:  python3
 BuildRequires:  qemu-ipxe
 BuildRequires:  qemu-vgabios
 %endif
-BuildRequires:  systemd-sysvinit
-BuildRequires:  util-linux-systemd
 %endif
 Requires:       /usr/bin/sed
 Requires:       dracut >= 047
