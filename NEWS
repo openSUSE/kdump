@@ -1,6 +1,6 @@
 2.0.5
 -----
-  * spec: differentiate between uninstall and upgrade in postun/preun
+  * spec: differentiate between uninstall and upgrade in postun/preun (bsc#1191410)
 
 2.0.4
 -----
