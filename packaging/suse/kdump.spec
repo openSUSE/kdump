@@ -215,7 +215,10 @@ exit 0
 
 %preun
 %ifarch ppc64 ppc64le
-servicelog_notify --remove --command=/usr/lib/kdump/kdump-migrate-action.sh
+if [ $1 -eq 0 ]; then
+	# removal, not upgrade
+	servicelog_notify --remove --command=/usr/lib/kdump/kdump-migrate-action.sh
+fi
 %endif
 echo "Stopping kdump ..."
 %service_del_preun kdump.service
@@ -224,10 +227,15 @@ echo "Stopping kdump ..."
 exit 0
 
 %postun
-# force regeneration of kdumprd
-touch %{_sysconfdir}/sysconfig/kdump
-# delete symbolic link
-rm %{_localstatedir}/log/dump >/dev/null 2>&1 || true
+if [ $1 -gt 0 ]; then
+	# upgrade
+	# force regeneration of kdumprd
+	touch %{_sysconfdir}/sysconfig/kdump
+else
+	# removal
+	# delete symbolic link
+	rm %{_localstatedir}/log/dump >/dev/null 2>&1 || true
+fi
 %service_del_postun kdump.service
 %service_del_postun kdump-early.service
 %service_del_postun kdump-notify.service
