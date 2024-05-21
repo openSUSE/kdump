@@ -187,8 +187,14 @@ function fadump_bootloader()
     # check if the old configuration is still valid
     local boot_opts=$(pbl --get-option fadump)
     if [ "$newstate" = on ] ; then
-        if [ "$boot_opts" != "fadump=on" ] ; then
-            pbl --add-option fadump=on --config
+        # if makedumpfile not configured to filter out user pages (dump level), 
+        # or makedumpfile is not used (raw format),
+        # set fadump=nocma
+        [[ $((${KDUMP_DUMPLEVEL} & 8)) -eq 0 ]] && newstate=nocma
+        [[ ${KDUMP_DUMPFORMAT} = raw ]] && newstate=nocma
+
+        if [ "$boot_opts" != "fadump=$newstate" ] ; then
+            pbl --add-option fadump=$newstate --config
         fi
     elif [ -n "$boot_opts" ] ; then
         pbl --del-option fadump --config

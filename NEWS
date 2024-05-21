@@ -1,3 +1,7 @@
+2.0.6
+-----
+  * fadump: use fadump=nocma when user data not filtered out (bsc#1224214)
+
 2.0.5
 -----
   * spec: differentiate between uninstall and upgrade in postun/preun (bsc#1191410)
