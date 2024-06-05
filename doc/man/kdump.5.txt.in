@@ -670,7 +670,7 @@ This URL type is used to specify paths on a remote server that is reachable via
 SFTP. It's important that an SFTP server must be running (which is the default
 on SUSE). 
 
-_Format:_ *sftp*://\[_user_[:__password__]@]_hostname_[:__port__]/_path_
+_Format:_ *sftp*://[__user__[:__password__]@]_hostname_[:__port__]/_path_
 
 It's possible to use "scp" as an alias for "sftp" (for backward compatibility),
 but it is a misnomer; kdump does not implement the SCP protocol and it
@@ -746,7 +746,7 @@ Secure Shell Protocol (_ssh_)
 Unlike the _sftp_ URL type, this protocol does not use SFTP, but rather
 transfers the data to a remote *cat* command.
 
-_Format:_ *ssh*://\[__user__@]_hostname_[:__port__]/_path_
+_Format:_ *ssh*://[__user__[:__password__]@]_hostname_[:__port__]/_path_
 
 Most of the notes for SFTP also apply to SSH, except:
 
