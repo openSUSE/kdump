@@ -13,17 +13,15 @@
 KDUMP_KERNELVER=""
 
 ## Type:	integer
-## Default:	1
+## Default:	0
 ## ServiceRestart:	kdump
 #
-# Number of CPUs to be used in the kdump environment. You may want to
-# increase the number if computing power is the bottleneck in your setup.
-#
-# If the value is zero, use all available CPUs.
+# Number of CPUs to be used in the kdump environment. The default value is 0,
+# which means all available CPUs will be used to collect the dump."
 #
 # See also: kdump(5).
 #
-KDUMP_CPUS=1
+KDUMP_CPUS=0
 
 ## Type:	string
 ## Default:	""
