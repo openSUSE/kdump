@@ -72,18 +72,15 @@ Default is "" which means to use the default
 KDUMP_CPUS
 ~~~~~~~~~~
 
-If dumping is CPU-bound on your system, you can parallelize it on an SMP
-system. Keep in mind that this increases the stress on the I/O subsystem,
-so you probably don't get the maximum speed if you set this parameter to
-the number of CPUs in your system.
-
-This parameter modifies the _nr_cpus_ parameter of the kdump kernel and
-the number of *makedumpfile*(8) processes created.
+This parameter can be used to limit the number of CPUs used by kdump. 
+The value is passed in the _nr_cpus_ parameter to the kdump kernel and 
+in the _--num-threads_ option to *makedumpfile*(8).
 
 If the value is zero, all available CPUs are used, i.e. the _nr_cpus_
-parameter is not added to the kdump kernel command line.
+parameter is not added to the kdump kernel command line and _--num-threads_ 
+is set to the number of CPUs.
 
-Default is 1.
+Default is 0.
 
 
 KDUMP_COMMANDLINE
