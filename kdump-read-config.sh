@@ -138,10 +138,10 @@ PRINT_ALL=false
 
 if [[ -n "$KDUMP_CONF" ]]; then
 	# source specified config file
-	. "$KDUMP_CONF"
+	. "$KDUMP_CONF" || return 1
 else
-	# source the default config file
-	. /etc/sysconfig/kdump
+	# source the default config file, if it exists
+	[[ -f /etc/sysconfig/kdump ]] && . /etc/sysconfig/kdump
 fi
 
 kdump_read_config_main
