@@ -252,25 +252,28 @@ if [[ "$KDUMP_FADUMP" == "true" ]] && [[ "$FADUMP_INTERNAL" != "true" ]]; then
 	exit "$RET"
 fi
 
-# KDUMP_KERNELVER may be an absolute path name or a kernel version
-if [[ ${KDUMP_KERNELVER:0:1} == "/" ]]; then
-	# absolute path
-	KERNEL=${KDUMP_KERNELVER}
-	if ! [ -f "$KERNEL" ] ; then
-	    echo "Kernel $KERNEL does not exist."
-	    exit 1
-	fi
+if [[ -z "${KDUMP_KERNELVER}" ]]; then
+	# no kernel specified, get the default from pbl
+	while IFS="=" read key value; do 
+		[[ ${key} == "kernel" ]] && KERNEL="$value"
+	done <<<"$(pbl --default-settings)"
 else
-	# if a specific version is requested, look for it 
-	# in /boot/$IMAGE-$KDUMP_KERNELVER
-	# otherwise use the default kernel symlink /boot/$IMAGE
-	# IMAGE names are different for different architectures
-	
-	[[ -n "${KDUMP_KERNELVER}" ]] && KDUMP_KERNELVER="-${KDUMP_KERNELVER}"
-	for i in vmlinuz image Image vmlinux; do
-		KERNEL="/boot/${i}${KDUMP_KERNELVER}"
-		[[ -f $KERNEL ]] && break
-	done
+	# KDUMP_KERNELVER may be an absolute path name or a kernel version
+	if [[ ${KDUMP_KERNELVER:0:1} == "/" ]]; then
+		# absolute path
+		KERNEL=${KDUMP_KERNELVER}
+		if ! [ -f "$KERNEL" ] ; then
+		    echo "Kernel $KERNEL does not exist."
+		    exit 1
+		fi
+	else
+		# look for the specified version in 
+		# /usr/lib/modules/$KDUMP_KERNELVER/
+		for i in vmlinuz image Image vmlinux; do
+			KERNEL="/usr/lib/modules/$KDUMP_KERNELVER/${i}"
+			[[ -f $KERNEL ]] && break
+		done
+	fi
 fi
 
 if ! [ -f "$KERNEL" ] ; then
