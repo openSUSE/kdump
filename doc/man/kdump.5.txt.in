@@ -65,8 +65,7 @@ KDUMP_KERNELVER
 Kernel Version string (such as "6.3.1-2-default") or an absolute path to a kernel 
 image that should be used for kdump.
 
-Default is "" which means to use the default
-/boot/{vmlinuz,image,Image,vmlinux} symlink
+Default is "" which means to use the default kernel reported by the *pbl*(8) tool.
 
 
 KDUMP_CPUS
