@@ -1,6 +1,7 @@
 2.0.8
 -----
   * fadump: avoid re-registration if kernel is hotplug ready
+  * mkdumprd: use pbl to get default kernel version (boo#1226676)
 
 2.0.7
 -----
