@@ -1,6 +1,7 @@
 [Unit]
 Description=Load kdump kernel early on startup
 After=local-fs.target
+DefaultDependencies=no
 
 [Service]
 Type=oneshot
