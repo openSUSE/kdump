@@ -42,7 +42,7 @@ KDUMP_COMMANDLINE=""
 ## ServiceRestart:     kdump
 #
 # Set this variable if you only want to _append_ values to the default
-# command line string. The string gets also appended if KDUMP_COMMANDLINE
+# command line string. The string also gets appended if KDUMP_COMMANDLINE
 # is set.
 #
 # For network based dumps, you may have to add a "net_delay" parameter
@@ -112,7 +112,7 @@ KDUMP_IMMEDIATE_REBOOT="true"
 ## Default:	""
 ## ServiceRestart:	kdump
 #
-# A script or command executed to process and transfer the dump image.
+# A script or command to be executed to process and transfer the dump image.
 # It can read the dump image either via /proc/vmcore or /dev/oldmem.
 #
 # WARNING: Setting that option will make most of the other configuration
@@ -153,7 +153,7 @@ KDUMP_SAVEDIR="/var/crash"
 # exceeds this number, older dumps are removed.
 #
 # You can prevent the automatic removal by setting zero to this.
-# Set KDUMP_KEEP_OLD_DUMPS to "-1" is you want to delete all old
+# Set KDUMP_KEEP_OLD_DUMPS to "-1" if you want to delete all old
 # dumps before saving the new dump.
 #
 # See also: kdump(5).
@@ -183,7 +183,7 @@ KDUMP_FREE_DISK_SIZE=64
 # 1: kdump command line is written to system log when executing
 #    /etc/init.d/kdump
 # 2: progress is written to stdout while dumping
-# 4: kdump command line is written so standard output when executing
+# 4: kdump command line is written to standard output when executing
 #    /etc/init.d/kdump
 # 8: Debugging while saving dump.
 # 16: Debugging when loading (and detecting) the kdump kernel.
