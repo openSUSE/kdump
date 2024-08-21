@@ -86,6 +86,20 @@ KDUMP_FADUMP="false"
 #
 KDUMP_FADUMP_SHELL="false"
 
+## Type:        string
+## Default:     "nr_cpus=16 numa=off cgroup_disable=memory cma=0 kvm_cma_resv_ratio=0 hugetlb_cma=0 transparent_hugepage=never novmcoredd udev.children-max=2"
+## ServiceRestart:     kdump
+#
+# Set this variable if you want to _append_ values to the default
+# command line string during dump capture.
+#
+# For network based dumps, you may have to add a "net_delay" parameter
+# here. Consult the man page for details.
+#
+# See also: kdump(5).
+#
+FADUMP_COMMANDLINE_APPEND="nr_cpus=16 numa=off cgroup_disable=memory cma=0 kvm_cma_resv_ratio=0 hugetlb_cma=0 transparent_hugepage=never novmcoredd udev.children-max=2"
+
 @endif
 ## Type:	string
 ## Default:	""

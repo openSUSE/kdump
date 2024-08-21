@@ -6,6 +6,7 @@
 KEXEC=/sbin/kexec
 FADUMP_ENABLED=/sys/kernel/fadump/enabled
 FADUMP_REGISTERED=/sys/kernel/fadump/registered
+FADUMP_BOOTARGS_APPEND=/sys/kernel/fadump/bootargs_append
 UDEV_RULES_DIR=/run/udev/rules.d
 kdump_initrd=/var/lib/kdump/initrd
 kdump_kernel=/var/lib/kdump/kernel
@@ -202,6 +203,21 @@ function fadump_bootloader()
 }
 
 #
+# Pass additional parameters to FADump capture kernel.
+function fadump_append_params()
+{
+    if [ -f $FADUMP_BOOTARGS_APPEND ]; then
+	output=$( { echo $FADUMP_COMMANDLINE_APPEND > "$FADUMP_BOOTARGS_APPEND" ; } 2>&1)
+	if [ $? -eq 0 ]; then
+            output=$(cat "$FADUMP_BOOTARGS_APPEND")
+            msg="Additional parameters for fadump kernel: '$output'"
+        else
+            msg="WARNING: Failed to setup additional parameters for fadump capture kernel: $output"
+        fi
+    fi
+}
+
+#
 # Update fadump configuration
 function load_kdump_fadump()
 {
@@ -215,6 +231,9 @@ function load_kdump_fadump()
     local msg
     local result=0
     local output
+
+    # Pass additional parameters to FADump capture kernel.
+    fadump_append_params
 
     # Re-registering of FADump is supported in kernel (see bsc#1108170).
     # So, don't bother about whether FADump was registered already
