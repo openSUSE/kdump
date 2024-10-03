@@ -1,3 +1,7 @@
+2.0.10
+------
+  * calibrate: don't add percentage margin on top of LUKS memory (bsc#1229207)
+
 2.0.9
 -----
   * start kdump-early earlier using DefaultDependencies=no

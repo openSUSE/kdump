@@ -1065,7 +1065,10 @@ int main(int argc, char* argv[])
 	    required = bootsize;
 
         // Reserve a fixed percentage on top of the calculation
+		// Don't include the LUKS reservation in this
+		required -= KDUMP_LUKS_MEMORY;
         required = (required * (100 + ADD_RESERVE_PCT)) / 100 + ADD_RESERVE_KB;
+		required += KDUMP_LUKS_MEMORY;
 
     } catch(std::runtime_error &e) {
 	cerr << "Error calculating required reservation, using default: " << e.what() << endl;
