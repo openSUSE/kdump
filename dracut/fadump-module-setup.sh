@@ -22,11 +22,13 @@ depends() {
 
 install() {
     local _fadumpdir="$initdir/fadumproot"
+    local debug_arg=""
+    [[ -n "$debug" ]] && debug_arg="-d"
 
     mkdir -p "$_fadumpdir" || return 1
 
     dinfo "****** Generating FADUMP initrd *******"
-    mkdumprd -F -I "$_fadumpdir/initrd" -K "$kernel" || return 1
+    mkdumprd $debug_arg -F -I "$_fadumpdir/initrd" -K "$kernel" || return 1
     pushd "$_fadumpdir" || return 1
     cpio -id --preserve-modification-time --quiet < initrd || return 1
     rm -f initrd
