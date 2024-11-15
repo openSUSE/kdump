@@ -15,7 +15,7 @@ function kdump_read_config_main()
 	option int 	 KDUMP_DUMPLEVEL 31
 	option bool 	 KDUMP_FADUMP false
 	option bool 	 KDUMP_FADUMP_SHELL false
-	option string 	 FADUMP_COMMANDLINE_APPEND "nr_cpus=16 numa=off cgroup_disable=memory cma=0 kvm_cma_resv_ratio=0 hugetlb_cma=0 transparent_hugepage=never novmcoredd udev.children-max=2"
+	option string 	 FADUMP_COMMANDLINE_APPEND "numa=off cgroup_disable=memory cma=0 kvm_cma_resv_ratio=0 hugetlb_cma=0 transparent_hugepage=never novmcoredd udev.children-max=2"
 	option int 	 KDUMP_FREE_DISK_SIZE 64
 	option string 	 KDUMP_HOST_KEY ""
 	option bool 	 KDUMP_IMMEDIATE_REBOOT true

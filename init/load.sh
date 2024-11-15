@@ -206,15 +206,19 @@ function fadump_bootloader()
 # Pass additional parameters to FADump capture kernel.
 function fadump_append_params()
 {
-    if [ -f $FADUMP_BOOTARGS_APPEND ]; then
-	output=$(echo $FADUMP_COMMANDLINE_APPEND > "$FADUMP_BOOTARGS_APPEND")
-	if [ $? -eq 0 ]; then
-            output=$(cat "$FADUMP_BOOTARGS_APPEND")
-            msg="Additional parameters for fadump kernel: '$output'"
-        else
-            msg="WARNING: Failed to setup additional parameters for fadump capture kernel: $output"
+	local nr_cpus
+        if [ ${KDUMP_CPUS:-1} -ne 0 ] ; then
+            nr_cpus="nr_cpus=${KDUMP_CPUS:-1}"
         fi
-    fi
+	
+	FADUMP_COMMANDLINE_APPEND="$nr_cpus $FADUMP_COMMANDLINE_APPEND"
+
+	if [[ -f $FADUMP_BOOTARGS_APPEND ]] &&
+	   echo "$FADUMP_COMMANDLINE_APPEND" > "$FADUMP_BOOTARGS_APPEND"; then
+        	echo "Additional parameters for fadump kernel: $FADUMP_COMMANDLINE_APPEND"
+	else
+        	echo "WARNING: Failed to setup additional parameters for fadump capture kernel: $FADUMP_COMMANDLINE_APPEND"
+	fi
 }
 
 #

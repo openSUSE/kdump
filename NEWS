@@ -1,3 +1,7 @@
+2.0.12
+------
+ * fadump: pass additional parameters for capture kernel (jsc#PED-9889)
+
 2.0.11
 ------
  * fadump mkinitrd: propagate --debug to the inner dracut call

@@ -72,7 +72,7 @@ KDUMP_CPUS
 ~~~~~~~~~~
 
 This parameter can be used to limit the number of CPUs used by kdump. 
-The value is passed in the _nr_cpus_ parameter to the kdump kernel and 
+The value is passed in the _nr_cpus_ parameter to the kdump / fadump kernel and 
 in the _--num-threads_ option to *makedumpfile*(8).
 
 If the value is zero, all available CPUs are used, i.e. the _nr_cpus_
@@ -172,7 +172,7 @@ FADUMP_COMMANDLINE_APPEND
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 This variable describes all additional command line parameters that are passed
-to fadump capture kernel other than the default parameters (/proc/cmdline).
+to fadump capture kernel other than the default parameters passed by the bootloader.
 These additional parameters are typically those that optimize resources, reduce
 memory footprint and disable complex and/or troublesome components that have
 no significance for dump capture environment.
@@ -183,8 +183,11 @@ to become fully operational, e.g. _net_delay=20_ will wait 20 seconds before
 continuing after the network device is configured. This parameter is used by
 the network setup code in the resulting initrd.
 
-Default is "nr_cpus=16 numa=off cgroup_disable=memory cma=0 kvm_cma_resv_ratio=0
+Default is "numa=off cgroup_disable=memory cma=0 kvm_cma_resv_ratio=0
  hugetlb_cma=0 transparent_hugepage=never novmcoredd udev.children-max=2".
+
+In addition to FADUMP_COMMANDLINE_APPEND kdump will add the nr_cpus parameter based on 
+the value of KDUMP_CPUS.
 
 endif::[]
 

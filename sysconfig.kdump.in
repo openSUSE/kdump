@@ -87,7 +87,7 @@ KDUMP_FADUMP="false"
 KDUMP_FADUMP_SHELL="false"
 
 ## Type:        string
-## Default:     "nr_cpus=16 numa=off cgroup_disable=memory cma=0 kvm_cma_resv_ratio=0 hugetlb_cma=0 transparent_hugepage=never novmcoredd udev.children-max=2"
+## Default:     "numa=off cgroup_disable=memory cma=0 kvm_cma_resv_ratio=0 hugetlb_cma=0 transparent_hugepage=never novmcoredd udev.children-max=2"
 ## ServiceRestart:     kdump
 #
 # Set this variable if you want to _append_ values to the default
@@ -98,7 +98,7 @@ KDUMP_FADUMP_SHELL="false"
 #
 # See also: kdump(5).
 #
-FADUMP_COMMANDLINE_APPEND="nr_cpus=16 numa=off cgroup_disable=memory cma=0 kvm_cma_resv_ratio=0 hugetlb_cma=0 transparent_hugepage=never novmcoredd udev.children-max=2"
+FADUMP_COMMANDLINE_APPEND="numa=off cgroup_disable=memory cma=0 kvm_cma_resv_ratio=0 hugetlb_cma=0 transparent_hugepage=never novmcoredd udev.children-max=2"
 
 @endif
 ## Type:	string
