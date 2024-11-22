@@ -183,6 +183,10 @@ to become fully operational, e.g. _net_delay=20_ will wait 20 seconds before
 continuing after the network device is configured. This parameter is used by
 the network setup code in the resulting initrd.
 
+Not all kernel and hardware combinations support this feature.
+The parameters are passed through the /sys/kernel/fadump/bootargs_append file.
+If this interface is not present the variable will be ignored.
+
 Default is "numa=off cgroup_disable=memory cma=0 kvm_cma_resv_ratio=0
  hugetlb_cma=0 transparent_hugepage=never novmcoredd udev.children-max=2".
 
