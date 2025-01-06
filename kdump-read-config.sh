@@ -107,7 +107,7 @@ function option() {
 				;;
 			int)
 				# check that the value is a number
-				if ! [[ "${OPTION}" =~ ^[0-9]+$ ]]; then
+				if ! [[ "${OPTION}" =~ ^-?[0-9]+$ ]]; then
 						echo "config option ${NAME} has invalid value '$OPTION', must be a number; ignoring'" >&2
 						OPTION=${DEFAULT}
 				fi
