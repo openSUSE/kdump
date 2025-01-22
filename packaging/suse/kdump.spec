@@ -94,6 +94,7 @@ Requires:       /usr/bin/sed
 Requires:       dracut >= 047
 Requires:       kexec-tools
 Requires:       makedumpfile
+Requires:	ethtool
 %ifarch ppc64 ppc64le
 Requires:       servicelog
 BuildRequires:  servicelog
