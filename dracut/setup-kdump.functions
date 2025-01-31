@@ -381,13 +381,14 @@ function kdump_bond_config()						   # {{{
 
 	local ro_keys=(
 	    ad_actor_key
+	    ad_actor_system
 	    ad_aggregator
 	    ad_num_ports
 	    ad_partner_key
 	    ad_partner_mac
 	)
 	local ro_sed="s/,\(${ro_keys[@]}\)=[^,]*//g"
-	ro_sed="${ro_sed// /\|}"
+	ro_sed="${ro_sed// /\\|}"
 
 	opts=$(ip -d link show "$bond" | \
 	    sed -n '3{s/^ *bond//;s/ \([^ ]*\) \([^ ]*\)/,\1=\2/g;'"$ro_sed"';p}')
