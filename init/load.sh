@@ -313,7 +313,7 @@ if [ "$update" = yes ] ; then
     rebuild_kdumprd || exit 1
 fi
 
-if [ "$shrink" = yes ] ; then
+if [ "$shrink" = true ] ; then
     kdumptool calibrate --shrink > /dev/null
 fi
 
