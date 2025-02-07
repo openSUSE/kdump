@@ -1147,6 +1147,12 @@ int main(int argc, char* argv[])
 #endif
 
     if (m_shrink)
-        shrink_crash_size(required << 10);
+	try {
+		shrink_crash_size(required << 10);
+	}
+	catch(std::runtime_error &e) {
+		cerr << "Error shrinking reserved memory: " << e.what() << endl;
+		exit(1);
+	}
 }
 
