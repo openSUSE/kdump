@@ -124,6 +124,7 @@ function main() {
 				error "Host not responding"
 				break
 			fi
+			sleep 1
 		done
 	fi
 
