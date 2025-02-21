@@ -151,19 +151,20 @@ function main() {
 	case ${KDUMP_PROTO} in 
 		file|nfs|cifs)
 			DIR="${FILE_PATH}/${SUBDIR}"
+			umask 077
 			SAVE_COMMAND='mkdir -p "${DIR}" && cat ${SOURCE} > "${DIR}/${FILENAME}"'
 			;;
 		ssh)
 			DIR="${URL_DIR}/${SUBDIR}"
 			SSH_DEBUG=""
 			${VERBOSE} && SSH_DEBUG="-vvv "
-			SAVE_COMMAND='ssh ${SSH_DEBUG} "${URL}" "mkdir -p ${DIR} && cat > ${DIR}/${FILENAME}" < ${SOURCE}'
+			SAVE_COMMAND='ssh ${SSH_DEBUG} "${URL}" "umask 077; mkdir -p ${DIR} && cat > ${DIR}/${FILENAME}" < ${SOURCE}'
 			;;
 		sftp|ftp)
 			DIR="${URL_DIR}/${SUBDIR}"
 			LFTP_DEBUG=""
 			${VERBOSE} && LFTP_DEBUG="-d "
-			SAVE_COMMAND='lftp ${LFTP_DEBUG} -c "set net:timeout 5; set net:max-retries 2; open --env-password ${URL} || exit 1; mkdir -pf ${DIR};  put ${SOURCE} -o ${DIR}/${FILENAME}"'
+			SAVE_COMMAND='lftp ${LFTP_DEBUG} -c "set net:timeout 5; set net:max-retries 2; open --env-password ${URL} || exit 1; mkdir -pf ${DIR}; chmod 700 ${DIR}; put ${SOURCE} -o ${DIR}/${FILENAME}"'
 			# NOTE: --env-password is a hack for sftp not to ask for password if keys are used
 			# the password can still be part of the URL
 	esac
