@@ -250,16 +250,7 @@ function kdump_bridge_config()						   # {{{
     local if slaves
     local curslaves
 
-    # use wicked to read VLAN configuration, if possible
-    if [ "$(kdump_net_manager)" = "wicked" ]
-    then
-	curslaves=$( kdump_wicked_conf "$bridge" "%{bridge/ports/port/device}" )
-    fi
-    # fall back to current configuration
-    if [ -z "$curslaves" ]
-    then
-	curslaves=$( kdump_list_slaves "$bridge" )
-    fi
+    curslaves=$( kdump_list_slaves "$bridge" )
 
     for if in $curslaves
     do
@@ -289,77 +280,6 @@ function kdump_bond_config()						   # {{{
     local if slaves
     local curslaves opts
 
-    # use wicked to read bonding settings, if possible
-    if [ "$(kdump_net_manager)" = "wicked" ]
-    then
-	local -a optvars=(
-		mode arp_interval arp_validate arp_all_targets arp_ip_target
-		miimon updelay downdelay use_carrier primary active_slave
-		xmit_hash_policy packets_per_slave tlb_dynamic_lb lacp_rate
-		ad_select min_links primary_reselect fail_over_mac num_grat_arp
-		num_unsol_na lp_interval resend_igmp all_slaves_active
-	)
-	eval $( kdump_wicked_conf "$bond" \
-		"curslaves=\"\$curslaves %{bond/slaves/slave/device}\"" \
-		"mode=%{bond/mode}" \
-		"arp_interval=%{bond/arpmon/interval}" \
-		"arp_validate=%{bond/arpmon/validate}" \
-		"arp_all_targets=%{bond/arpmon/validate-targets}" \
-		"arp_ip_target=%{bond/arpmon/targets/ipv4-address}" \
-		"miimon=%{bond/miimon/frequency}" \
-		"updelay=%{bond/miimon/updelay}" \
-		"downdelay=%{bond/miimon/downdelay}" \
-		"use_carrier=%{bond/miimon/carrier-detect}" \
-		"primary=%{bond/slaves/slave[primary=true]/device}" \
-		"active_slave=%{bond/slaves/slave[active=true]/device}" \
-		"xmit_hash_policy=%{bond/xmit-hash-policy}" \
-		"packets_per_slave=%{bond/packets-per-slave}" \
-		"tlb_dynamic_lb=%{bond/tlb-dynamic-lb}" \
-		"lacp_rate=%{bond/lacp-rate}" \
-		"ad_select=%{bond/ad-select}" \
-		"min_links=%{bond/min-links}" \
-		"primary_reselect=%{bond/primary-reselect}" \
-		"fail_over_mac=%{bond/fail-over-mac}" \
-		"num_grat_arp=%{bond/num-grat-arp}" \
-		"num_unsol_na=%{bond/num-unsol-na}" \
-		"lp_interval=%{bond/lp-interval}" \
-		"resend_igmp=%{bond/resend-igmp}" \
-		"all_slaves_active=%{bond/all-slaves-active}"
-	      )
-
-	# translate incompatible option values
-	case "$mode" in
-	    ieee802-3ad) mode="802.3ad" ;;
-	esac
-	case "$use_carrier" in
-	    ioctl)	use_carrier=0 ;;
-	    netif)	use_carrier=1  ;;
-	esac
-	case "$xmit_hash_policy" in
-	    layer23)	xmit_hash_policy="layer2+3" ;;
-	    layer34)	xmit_hash_policy="layer3+4" ;;
-	    encap23)	xmit_hash_policy="encap2+3" ;;
-	    encap34)	xmit_hash_policy="encap3+4" ;;
-	esac
-	case "$tlb_dynamic_lb" in
-	    false)	tlb_dynamic_lb=0 ;;
-	    true)	tlb_dynamic_lb=1  ;;
-	esac
-	case "$all_slaves_active" in
-	    false)	all_slaves_active=0 ;;
-	    true)	all_slaves_active=1 ;;
-	esac
-
-	local var
-	for var in "${optvars[@]}"
-	do
-	    [ -n "${!var}" ] && opts="$opts,${var}=${!var}"
-	done
-    fi
-
-    # fall back to current configuration
-    if [ -z "$curslaves" ]
-    then
 	curslaves=$(kdump_list_slaves "$bond")
 
 	local ro_keys=(
@@ -375,7 +295,6 @@ function kdump_bond_config()						   # {{{
 
 	opts=$(ip -d link show "$bond" | \
 	    sed -n '3{s/^ *bond//;s/ \([^ ]*\) \([^ ]*\)/,\1=\2/g;'"$ro_sed"';p}')
-    fi
 
     for if in $curslaves
     do
