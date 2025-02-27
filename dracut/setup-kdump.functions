@@ -282,25 +282,107 @@ function kdump_bond_config()						   # {{{
 
 	curslaves=$(kdump_list_slaves "$bond")
 
-	local ro_keys=(
-	    ad_actor_key
-	    ad_actor_system
-	    ad_aggregator
-	    ad_num_ports
-	    ad_partner_key
-	    ad_partner_mac
+	local bonding="/sys/class/net/$bond/bonding"
+	local mode value value2
+	read mode value2 < "${bonding}/mode"
+
+	# set the valid options based on the mode
+	case "${mode}" in
+		balance-rr) local options=(
+			mode all_slaves_active arp_interval arp_ip_target ns_ip6_target
+			arp_validate downdelay miimon num_grat_arp num_unsol_na
+			packets_per_slave primary primary_reselect updelay use_carrier
+			resend_igmp
+		) ;;
+		active-backup) local options=(
+			mode all_slaves_active arp_interval arp_ip_target ns_ip6_target arp_validate
+			arp_all_targets downdelay fail_over_mac miimon num_grat_arp
+			num_unsol_na primary primary_reselect updelay use_carrier resend_igmp
+		) ;;
+		balance-xor) local options=(
+			mode all_slaves_active arp_interval arp_ip_target ns_ip6_target arp_validate
+			downdelay miimon num_grat_arp num_unsol_na primary primary_reselect
+			updelay use_carrier xmit_hash_policy
+		) ;;
+		broadcast) local options=(
+			mode all_slaves_active arp_interval arp_ip_target ns_ip6_target arp_validate
+			downdelay miimon num_grat_arp num_unsol_na primary primary_reselect
+			updelay use_carrier
+		) ;;
+		802.3ad) local options=(
+			mode ad_select all_slaves_active arp_interval arp_ip_target ns_ip6_target
+			arp_validate downdelay lacp_active lacp_rate miimon min_links
+			num_grat_arp num_unsol_na primary primary_reselect updelay use_carrier
+			xmit_hash_policy
+		) ;;
+		balance-tlb) local options=(
+			mode all_slaves_active arp_interval arp_ip_target ns_ip6_target arp_validate
+			downdelay miimon num_grat_arp num_unsol_na primary primary_reselect
+			tlb_dynamic_lb updelay use_carrier xmit_hash_policy resend_igmp lp_interval
+		) ;;
+		balance-alb) local options=(
+			mode all_slaves_active arp_interval arp_ip_target ns_ip6_target arp_validate
+			downdelay miimon num_grat_arp num_unsol_na primary primary_reselect
+			tlb_dynamic_lb updelay use_carrier resend_igmp lp_interval
+		) ;;
+	esac
+
+	declare -A option_defaults
+	option_defaults=(
+		[ad_select]=stable
+		[all_slaves_active]=0
+		[arp_interval]=0
+		[arp_validate]=none
+		[arp_all_targets]=any
+		[downdelay]=0
+		[fail_over_mac]=none
+		[lacp_active]=on
+		[lacp_rate]=slow
+		[lp_interval]=1
+		[miimon]=100
+		[min_links]=0
+		[mode]=balance-rr
+		[num_grat_arp]=1
+		[num_unsol_na]=1
+		[packets_per_slave]=1
+		[peer_notif_delay]=0
+		[primary_reselect]=always
+		[resend_igmp]=1
+		[tlb_dynamic_lb]=1
+		[updelay]=0
+		[use_carrier]=1
+		[xmit_hash_policy]=layer2
 	)
-	local ro_sed="s/,\(${ro_keys[@]}\)=[^,]*//g"
-	ro_sed="${ro_sed// /\\|}"
+	for if in $curslaves; do
+		kdump_ifname_config "$if" || continue
+		slaves="$slaves $kdump_iface"
+	done
 
-	opts=$(ip -d link show "$bond" | \
-	    sed -n '3{s/^ *bond//;s/ \([^ ]*\) \([^ ]*\)/,\1=\2/g;'"$ro_sed"';p}')
+	for key in ${options[@]}; do
+		value=
+		[[ -f ${bonding}/${key} ]] && read value value2 < "${bonding}/${key}"
+		[[ -z "${value}" ]] && continue
+		[[ "${value}" == "${option_defaults[${key}]}" ]] && continue
+		case ${key} in
+			primary)
+				#find the kdump slave name in kdump_ifmap
+				local _spec _iface _bootif
+				for _spec in $kdump_ifmap
+				do
+				    _iface="${_spec%:*}"
+				    _bootif="${_spec##*:}"
+				    [[ ${value} == ${_iface} ]] && value=${_bootif}
+				done
+				;;
+			arp_ip_target|ns_ip6_target)
+				value="$value $value2"
+				value=${value// /;}
+				value=${value%;}
+				;;
+		esac
+		opts="${opts},${key}=${value}"
+	done
 
-    for if in $curslaves
-    do
-	kdump_ifname_config "$if" || continue
-	slaves="$slaves $kdump_iface"
-    done
     kdump_iface="$bond"
     [ -n "$slaves" ] || return 1
     slaves="${slaves# }"
