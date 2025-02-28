@@ -1,3 +1,10 @@
+2.0.17
+------
+* fix bonding options (bsc#1235933)
+* don't use wicked to read bond and bridge config
+* prevent KDUMP_NET_TIMEOUT busy loop when DNS fails
+* limit dump file permissions (bsc#1237497, bsc#1237529)
+
 2.0.16
 ------
 * fix KDUMP_AUTO_RESIZE
