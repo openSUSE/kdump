@@ -10,58 +10,66 @@
 function usage()
 {
 	cat  >&2 <<-__END
-	Usage: kdumptool [--configfile f] calibrate [-s | --shrink] [-d]
-	Outputs possible and suggested memory reservation values.
-	Options:
-	    --configfile f	use f as alternative configfile
-	    -d			turn on debugging
-	    -s or --shrink	shrink the current reservation to the calculated value
+	Usage:
+	kdumptool [--configfile f] calibrate [-s | --shrink] [-d]
+	    Outputs possible and suggested memory reservation values.
+	    Options:
+	        --configfile f    use f as alternative configfile
+	        -d                turn on debugging
+	        -s or --shrink    shrink the current reservation to the calculated value
 	__END
 	exit 1
 }
 
+function do_calibrate()
+{
+	. /usr/lib/kdump/calibrate.conf
+
+	# find possible LUKS memory requirement
+	# and export it in KDUMP_LUKS_MEMORY
+	KDUMP_LUKS_MEMORY=0
+	if [[ "${KDUMP_PROTO}" == "file" ]]; then
+		KDUMP_SAVEDIR_REALPATH=$(realpath -m "${KDUMP_SAVEDIR#*://}")
+		mkdir -p "$KDUMP_SAVEDIR_REALPATH"
+		MOUNT_SOURCE=$(findmnt -nvr -o SOURCE --target "${KDUMP_SAVEDIR_REALPATH}")
+
+
+		# find which device is the encrypted device for MOUNT_SOURCE
+		CRYPTO_SOURCE=""
+		while read SOURCE FSTYPE; do
+			[[ "${FSTYPE}" == crypto_LUKS ]] && CRYPTO_SOURCE="${SOURCE}"
+		done < <(lsblk -n -l -s -o PATH,FSTYPE "${MOUNT_SOURCE}")
+
+		if [[ -n "${CRYPTO_SOURCE}" ]]; then
+			while read KEY VALUE; do
+				[[ "$KEY" == "Memory:" ]] && KDUMP_LUKS_MEMORY=$((KDUMP_LUKS_MEMORY + VALUE))
+			done < <(cryptsetup luksDump "${CRYPTO_SOURCE}")
+		fi
+	fi
+
+	# skip over the "calibrate" argument and pass the rest to the binary
+	shift
+	/usr/lib/kdump/calibrate "$@"
+	RET=$?
+	# exit code 2 means bad arguments
+	[[ $RET -eq 2 ]] && usage
+	exit $RET
+}
+
 if [[ "$1" == "--configfile" ]]; then
-       	export KDUMP_CONF="$2"
+	export KDUMP_CONF="$2"
 	shift 2
 fi
-
-[[ "$1" == "calibrate" ]] || usage
 
 # export all config values to the binary
 set -a
 . /usr/lib/kdump/kdump-read-config.sh
-. /usr/lib/kdump/calibrate.conf
 
-# find possible LUKS memory requirement
-# and export it in KDUMP_LUKS_MEMORY
-KDUMP_LUKS_MEMORY=0
-if [[ "${KDUMP_PROTO}" == "file" ]]; then
-	KDUMP_SAVEDIR_REALPATH=$(realpath -m "${KDUMP_SAVEDIR#*://}")
-	mkdir -p "$KDUMP_SAVEDIR_REALPATH"
-	MOUNT_SOURCE=$(findmnt -nvr -o SOURCE --target "${KDUMP_SAVEDIR_REALPATH}")
-
-
-	# find which device is the encrypted device for MOUNT_SOURCE
-	CRYPTO_SOURCE=""
-	while read SOURCE FSTYPE; do
-		[[ "${FSTYPE}" == crypto_LUKS ]] && CRYPTO_SOURCE="${SOURCE}"
-	done < <(lsblk -n -l -s -o PATH,FSTYPE "${MOUNT_SOURCE}")
-
-	if [[ -n "${CRYPTO_SOURCE}" ]]; then
-		while read KEY VALUE; do
-			[[ "$KEY" == "Memory:" ]] && KDUMP_LUKS_MEMORY=$((KDUMP_LUKS_MEMORY + VALUE))
-		done < <(cryptsetup luksDump "${CRYPTO_SOURCE}")
-	fi
-fi
-
-# skip over the "calibrate" argument and pass the rest to the binary
-shift
-/usr/lib/kdump/calibrate "$@"
-RET=$?
-# exit code 2 means bad arguments
-[[ $RET -eq 2 ]] && usage
-exit $RET
-
-
-
-
+case $1 in
+	calibrate)
+		do_calibrate "$@"
+		;;
+	*)
+		usage
+		;;
+esac
