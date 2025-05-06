@@ -62,7 +62,7 @@ kdump_ip_set_explicitly() {
 	local opts
 
 	if [ "$KDUMP_FADUMP" = true ]; then
-		_opts="`cat /proc/cmdline`"
+		_opts="$FADUMP_COMMANDLINE_APPEND"
 	else
 		_opts="$KDUMP_COMMANDLINE $KDUMP_COMMANDLINE_APPEND"
 	fi
