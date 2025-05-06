@@ -505,8 +505,10 @@ because of limitations in the implementation of the _ip=_ initrd command line
 option.
 
 *Note:* If an _ip=_ option is found in KDUMP_COMMANDLINE or
-KDUMP_COMMANDLINE_APPEND, kdump does not add any other _ip=_ or _ifname=_
-options. In other words, the value of KDUMP_NETCONFIG is effectively ignored.
+KDUMP_COMMANDLINE_APPEND (or FADUMP_COMMANDLINE_APPEND in case of FADUMP) kdump
+will assume networking is being configured manually. No network configuration
+will be done by kdump and the value of KDUMP_NETCONFIG will not be taken into
+account.
 
 Setting KDUMP_NETCONFIG to "" disables network completely. In this case, kdump
 does not even add the _network_ dracut module to the initrd.
