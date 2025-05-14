@@ -881,7 +881,7 @@ static unsigned long runtimeSize(SizeConstants const &sizes,
     }
 
     // Add memory based on CPU count
-    unsigned long cpus = 0;
+    unsigned long cpus = 0, percpu;
     if (CAN_REDUCE_CPUS) {
 	cpus = KDUMP_CPUS;
     }
@@ -893,9 +893,16 @@ static unsigned long runtimeSize(SizeConstants const &sizes,
         cpus = online + offline;
     }
     DEBUG("Total assumed CPUs: %lu", cpus);
-    cpus *= sizes.percpu_kb();
-    DEBUG("Total per-cpu requirements: %lu KiB", cpus);
-    required += cpus;
+    percpu = sizes.percpu_kb(); // kernel percpu from calibrate.conf
+    percpu += 50 * 2; // generic ~50k thread footprint (measured) * 2 for safety
+    percpu += 3 * sizes.pagesize() / 1024; // makedumpfile BUF_PARALLEL and BUF_OUT_PARALLEL
+    percpu += 128; // makedumpfile WRKMEM_PARALLEL
+    percpu += 5;   // makedumpfile ZSTD_CCTX_PARALLEL
+
+    DEBUG("Per-cpu requirements: %lu KiB", percpu);
+    percpu *= cpus;
+    DEBUG("Total per-cpu requirements: %lu KiB", percpu);
+    required += percpu;
 
     // User-space requirements
     unsigned long user = sizes.user_base_kb();
