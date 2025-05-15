@@ -2,6 +2,25 @@
 ## Description: Crash Dump Configuration
 
 ## Type:	string
+## Default:	"auto"
+## ServiceRestart:	kdump
+#
+# KDUMP_CRASHKERNEL is used by "kdumptool commandline" to determine
+# the value of the kernel "crashkernel=" command-line options.
+#
+# Possible values are "auto" or one or more "crashkernel=..." values.
+#
+# KDUMP_CRASHKERNEL="auto" makes "kdumptool commandline" use the default
+# values as proposed by "kdumptool calibrate".
+#
+# If the default values are not adequate you may provide a manual setting,
+# e.g., KDUMP_CRASHKERNEL="crashkernel=72M,low crashkernel=300M,high"
+#
+# See also: kdump(5).
+#
+KDUMP_CRASHKERNEL="auto"
+
+## Type:	string
 ## Default:	""
 ## ServiceRestart:	kdump
 #

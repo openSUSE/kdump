@@ -58,6 +58,22 @@ file is actually parsed by a *sh*(1) compatible shell) that are described below.
 It's recommended to use a pair of double quotes to assign values to that
 variables.
 
+KDUMP_CRASHKERNEL
+~~~~~~~~~~~~~~~~~
+
+Used by _kdumptool commandline_ to determine the value of
+the kernel _crashkernel=_ command-line options.
+
+Possible values are "auto" or one or more "crashkernel=..." values.
+
+KDUMP_CRASHKERNEL="auto" makes _kdumptool commandline_ use the default
+values as proposed by _kdumptool calibrate_.
+
+If the default values are not adequate you may provide a manual setting,
+e.g., KDUMP_CRASHKERNEL="crashkernel=72M,low crashkernel=300M,high"
+
+Default is "auto".
+
 
 KDUMP_KERNELVER
 ~~~~~~~~~~~~~~~

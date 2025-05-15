@@ -17,6 +17,15 @@ function usage()
 	        --configfile f    use f as alternative configfile
 	        -d                turn on debugging
 	        -s or --shrink    shrink the current reservation to the calculated value
+	kdumptool commandline [-c] [-u] [-d]
+	    Output the expected kernel command line options based on the
+	    values of KDUMP_FADUMP and KDUMP_CRASHKERNEL and/or the calibrate result
+	    Options:
+	        -c    check if the current options found in /proc/cmdline are equal to the
+	              expected values; print warnings if not
+	        -u    call pbl to update the options to the expected values
+	              (when used togerger with -c only update when needed)
+	        -d    call pbl to delete kdump-related kernel command line options
 	__END
 	exit 1
 }
@@ -53,8 +62,202 @@ function do_calibrate()
 	RET=$?
 	# exit code 2 means bad arguments
 	[[ $RET -eq 2 ]] && usage
-	exit $RET
+	return $RET
 }
+
+# exit codes:
+# 2 - pbl failed
+# 1 - config problem
+function do_commandline()
+{
+	DELETE=false
+	UPDATE=false
+	CHECK=false
+	shift
+	while getopts "cud" name ; do
+		case $name in
+			c)
+				CHECK=true
+				;;
+			u)
+				UPDATE=true
+				;;
+			d)
+				DELETE=true
+				;;
+			*)
+				usage
+				;;
+		esac
+	done
+	shift $((OPTIND-1))
+	[[ -n $1 ]] && usage
+
+	if $DELETE; then
+		if $UPDATE || $CHECK; then
+			echo "Option -d is mutually exclusive with options -c and -u" >&2
+			return 1
+		fi
+		pbl --del-option "crashkernel" --del-option "fadump" --config
+		return 2
+	fi
+	
+	
+	# sanitize the value in KDUMP_CRASHKERNEL
+	read -ra KDUMP_CRASHKERNEL_ITEMS <<<"$KDUMP_CRASHKERNEL"
+
+	FADUMP=
+	CRASHKERNEL=
+	if [[ "${KDUMP_CRASHKERNEL_ITEMS[*]}" == "auto" ]]; then
+		CALIBRATE_LOW=
+		CALIBRATE_HIGH=
+		CALIBRATE_FADUMP=
+		while read -r KEY VALUE; do
+			case "${KEY}" in
+				"Low:") CALIBRATE_LOW=${VALUE};;
+				"High:") CALIBRATE_HIGH=${VALUE};;
+				"Fadump:") CALIBRATE_FADUMP=${VALUE};;
+			esac
+		done <<<"$(do_calibrate)"
+
+		if ${KDUMP_FADUMP}; then
+			if [[ -z ${CALIBRATE_FADUMP} ]]; then
+				echo "KDUMP_FADUMP set to true but Fadump is not supported on this machine" >&2
+				return 1
+			fi
+			CRASHKERNEL="crashkernel=${CALIBRATE_FADUMP}M"
+		else
+			if [[ -z ${CALIBRATE_LOW} ]] || [[ -z ${CALIBRATE_HIGH} ]]; then
+				echo "Error parsing calibrate output" >&2
+				return 1
+			fi
+
+			if [[ ${CALIBRATE_HIGH} -gt 0 ]]; then
+				if [[ ${CALIBRATE_LOW} -gt 0 ]]; then
+					CRASHKERNEL="crashkernel=${CALIBRATE_LOW}M,low crashkernel=${CALIBRATE_HIGH}M,high"
+				else
+					CRASHKERNEL="crashkernel=${CALIBRATE_HIGH}M,high"
+				fi
+			else
+				CRASHKERNEL="crashkernel=${CALIBRATE_LOW}M"
+			fi
+		fi
+		CRASHKERNEL_SOURCE="the output of 'kdumptool calibrate'"
+	else
+		CRASHKERNEL=
+		for i in "${KDUMP_CRASHKERNEL_ITEMS[@]}"; do
+			case "${i}" in
+				crashkernel=*)
+					CRASHKERNEL="$CRASHKERNEL $i"
+					;;
+				*)
+					echo "Ignoring unsupported \"$i\" found in KDUMP_CRASHKERNEL" >&2
+					;;
+			esac
+		done
+		CRASHKERNEL="${CRASHKERNEL# }"
+		if [[ -z $CRASHKERNEL ]]; then
+			echo "Invalid value of KDUMP_CRASHKERNEL"
+			return 1
+		fi
+		CRASHKERNEL_SOURCE="the value of KDUMP_CRASHKERNEL"
+	fi
+
+	if $KDUMP_FADUMP; then
+		FADUMP="fadump=on"
+		# if makedumpfile not configured to filter out user pages (dump level), 
+		# or makedumpfile is not used (raw format),
+		# set fadump=nocma
+		[[ $((KDUMP_DUMPLEVEL & 8)) -eq 0 ]] && FADUMP="fadump=nocma"
+		[[ "${KDUMP_DUMPFORMAT}" = "raw" ]] && FADUMP="fadump=nocma"
+	fi
+
+	if ! $CHECK && ! $UPDATE; then
+		[[ -n "$CRASHKERNEL" ]] && echo -n "$CRASHKERNEL"
+		[[ -n "$FADUMP" ]] && echo -n " $FADUMP"
+		echo
+		return 0
+	fi
+
+	if $CHECK; then
+		# get the running kernel's kdump arguments
+		CMDLINE_CRASHKERNEL=
+		CMDLINE_FADUMP=
+		# shellcheck disable=SC2046
+		read -ra CMDLINE < /proc/cmdline
+		for x in "${CMDLINE[@]}"; do
+			case "$x" in
+				crashkernel=*)
+					CMDLINE_CRASHKERNEL="${CMDLINE_CRASHKERNEL} $x"
+				;;
+				fadump=*)
+					CMDLINE_FADUMP="${CMDLINE_FADUMP} $x"
+				;;
+			esac
+		done
+		CMDLINE_CRASHKERNEL="${CMDLINE_CRASHKERNEL# }"
+		CMDLINE_FADUMP="${CMDLINE_FADUMP# }"
+
+		#compare to expected command line
+		CHECK_FAILED=false
+
+		if [[ "${CRASHKERNEL}" != "${CMDLINE_CRASHKERNEL}" ]]; then
+			CHECK_FAILED=true
+			echo "Kdump expects these crashkernel= values on the kernel command line:"
+			echo "    ${CRASHKERNEL}"
+			echo "(based on ${CRASHKERNEL_SOURCE})"
+
+			if [[ -z "${CMDLINE_CRASHKERNEL}" ]]; then
+				echo "No crashkernel= found in /proc/cmdline. Kdump can't be started."
+			else
+				echo "/proc/cmdline contains:"
+				echo "    ${CMDLINE_CRASHKERNEL}"
+				echo "Kdump may not work correctly"
+			fi
+		fi
+
+		if [[ "${FADUMP}" != "${CMDLINE_FADUMP}" ]]; then
+			CHECK_FAILED=true
+			if [[ -n "${FADUMP}" ]]; then
+				echo "Kdump expects this fadump= value on the kernel command line:"
+				echo "    ${FADUMP}"
+
+				if [[ -z "${CMDLINE_FADUMP}" ]]; then
+					echo "No fadump= found in /proc/cmdline. Kdump can't be started."
+				else
+					echo "/proc/cmdline contains:"
+					echo "    ${CMDLINE_FADUMP}"
+					echo "Kdump may not work correctly"
+				fi
+			else
+				echo "Kdump does not expect fadump= on the kernel command line"
+				echo "/proc/cmdline contains:"
+				echo "    ${CMDLINE_FADUMP}"
+			fi
+		fi
+
+		if ! $UPDATE; then
+			$CHECK_FAILED && return 1
+			return 0
+		fi
+	fi
+
+	if $UPDATE; then
+		$CHECK && ! $CHECK_FAILED && return 0
+		if [[ -n "${FADUMP}" ]]; then
+			pbl --add-option "${CRASHKERNEL}" --add-option "${FADUMP}" --config || return 2
+		else
+			pbl --add-option "${CRASHKERNEL}" --del-option "fadump"  --config || return 2
+		fi
+
+		if $CHECK; then
+			echo "Updated the command line options in the bootloader."
+			echo "Changes will take effect on next boot."
+		fi
+		return 0
+	fi
+}
+
 
 if [[ "$1" == "--configfile" ]]; then
 	export KDUMP_CONF="$2"
@@ -68,6 +271,11 @@ set -a
 case $1 in
 	calibrate)
 		do_calibrate "$@"
+		exit
+		;;
+	commandline)
+		do_commandline "$@"
+		exit
 		;;
 	*)
 		usage
