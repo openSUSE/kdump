@@ -74,6 +74,20 @@ e.g., KDUMP_CRASHKERNEL="crashkernel=72M,low crashkernel=300M,high"
 
 Default is "auto".
 
+KDUMP_UPDATE_BOOTLOADER
+~~~~~~~~~~~~~~~~~~~~~~~
+
+When set to "true" the _kdumptool commandline -c -U_ called from the
+kdump-commandline.service will check if the expected kernel command-line
+options are present and update the bootloader using *pbl*(8) if not.
+Also the kdump options are removed from the command line when kdump is
+uninstalled.
+
+When set to false _kdumptool commandline -c -U_ will be called to only check
+the options and report possible warnings but bootloader will not be updated.
+
+Default is "true".
+
 
 KDUMP_KERNELVER
 ~~~~~~~~~~~~~~~

@@ -20,6 +20,22 @@
 #
 KDUMP_CRASHKERNEL="auto"
 
+
+## Type:	string ## Default:	"true" ## ServiceRestart:	kdump
+#
+# When KDUMP_UPDATE_BOOTLOADER is set to "true" "kdumptool commandline -c -U"
+# called from the kdump-commandline.service  will check if the expected kernel
+# command-line options are present and update the bootloader using *pbl*(8) if
+# not.
+#
+# Also the kdump options are removed from the command line when kdump is
+# uninstalled.
+#
+# When set to false "kdumptool commandline -c -U" will only check the options
+# and report possible warnings but bootloader will not be updated.
+#
+KDUMP_UPDATE_BOOTLOADER="true"
+
 ## Type:	string
 ## Default:	""
 ## ServiceRestart:	kdump

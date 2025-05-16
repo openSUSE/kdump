@@ -20,6 +20,7 @@ INSTALL(
         ${CMAKE_CURRENT_SOURCE_DIR}/kdump.service
         ${CMAKE_CURRENT_SOURCE_DIR}/kdump-early.service
         ${CMAKE_CURRENT_SOURCE_DIR}/kdump-notify.service
+        ${CMAKE_CURRENT_SOURCE_DIR}/kdump-commandline.service
     DESTINATION
         /usr/lib/systemd/system
     PERMISSIONS

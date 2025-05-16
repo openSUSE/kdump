@@ -175,34 +175,6 @@ function fadump_enabled()
 }
 
 #
-# Update the bootloader options for fadump
-function fadump_bootloader()
-{
-    case $(uname -m) in
-	ppc*) ;;
-	*) return 0 ;;
-    esac
-
-    local newstate="$1"
-
-    # check if the old configuration is still valid
-    local boot_opts=$(pbl --get-option fadump)
-    if [ "$newstate" = on ] ; then
-        # if makedumpfile not configured to filter out user pages (dump level), 
-        # or makedumpfile is not used (raw format),
-        # set fadump=nocma
-        [[ $((${KDUMP_DUMPLEVEL} & 8)) -eq 0 ]] && newstate=nocma
-        [[ ${KDUMP_DUMPFORMAT} = raw ]] && newstate=nocma
-
-        if [ "$boot_opts" != "fadump=$newstate" ] ; then
-            pbl --add-option fadump=$newstate --config
-        fi
-    elif [ -n "$boot_opts" ] ; then
-        pbl --del-option fadump --config
-    fi
-}
-
-#
 # Pass additional parameters to FADump capture kernel.
 function fadump_append_params()
 {
@@ -225,8 +197,6 @@ function fadump_append_params()
 # Update fadump configuration
 function load_kdump_fadump()
 {
-    fadump_bootloader on
-
     if ! fadump_enabled ; then
         echo "fadump is not enabled in the kernel."
 	return 5
@@ -308,7 +278,6 @@ while [ $# -gt 0 ] ; do
     shift
 done
 
-
 if [ "$update" = yes ] ; then
     rebuild_kdumprd || exit 1
 fi
@@ -320,8 +289,6 @@ fi
 if [ "$KDUMP_FADUMP" = "true" ] ; then
     load_kdump_fadump
 else
-    fadump_bootloader off
-
     # check if initrd and the kernel it was built for exist
     # return 6 if not, which is treated as success by 
     # the kdump-early service

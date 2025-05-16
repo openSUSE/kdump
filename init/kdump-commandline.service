@@ -1,0 +1,10 @@
+[Unit]
+Description=Check and update kdump options on the kernel command line
+After=local-fs.target kdump-early.service
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/kdumptool commandline -c -U
+
+[Install]
+WantedBy=multi-user.target

@@ -1,6 +1,7 @@
 [Unit]
 Description=Load kdump kernel and initrd
 After=local-fs.target network.service YaST2-Second-Stage.service YaST2-Firstboot.service kdump-early.service
+Wants=kdump-commandline.service
 
 [Service]
 Type=oneshot
@@ -12,3 +13,4 @@ RemainAfterExit=true
 WantedBy=multi-user.target
 Also=kdump-early.service
 Also=kdump-notify.service
+Also=kdump-commandline.service
