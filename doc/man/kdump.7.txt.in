@@ -46,8 +46,7 @@ Synopsis
 
 Description
 -----------
-This manual page gives an overview about kdump configuration on SUSE. This
-version applies to SUSE LINUX Enterprise 11 and openSUSE 11.1.
+This manual page gives an overview about kdump configuration on SUSE.
 
 Kdump is a technology to save the memory contents of a crashed system and save
 it to disk or network to analyse it later and find the cause of the crash.
@@ -58,61 +57,42 @@ to the old memory contents via _/proc/vmcore_ interface and can save that away.
 After the memory has been saved, the system reboots (without kexec).
 
 As mentioned above, that _panic kernel_ has to be loaded into the system. That
-is accomplished via *kexec*(8) in an init script at system bootup. To have
-memory for that panic kernel and also have RAM for the execution of that panic
-kernel, one has to reserve kernel memory with a special boot parameter
-(_crashkernel_).
+is accomplished via *kexec*(8) called by the kdump service at system bootup. To
+have memory for that panic kernel and also have RAM for the execution of that
+panic kernel, one has to reserve kernel memory with a special kernel command
+line option (_crashkernel_). The option is added to the kernel command line by
+the kdump-commandline service, but any change will only have effect for the next
+boot.
 
-While it's possible in theory to boot the full system by that panic kernel, on
-SUSE we use the approach of having a special _initramfs_ that saves the dump to
-disk or network and then reboots. That has the advantage that less memory
-is necessary and the root file system also must not be intact if you save to
-another file system or to network.
+Automatic Configuration
+-----------------------
 
-
-Automatic Configuration with YaST
----------------------------------
-
-A simple method to use kdump on SUSE is to use the YaST kdump module. Just
-install the package _yast2-kdump_ (for example with
+A simple method to use kdump on SUSE is to install
+the kdump package and enable the kdum.service:
 
 ----------------------------------
 # zypper install yast2-kdump
+# systemctl enable kdump
 ----------------------------------
 
-and start the YaST2 module with
+To update the bootloader with the default kdump commandline options
+and generate the kdump initrd, you can call
 
 ----------------------------------
-# yast2 kdump
+# systemctl start kdump
 ----------------------------------
 
-Everything should be self-explanatory there.
+This will fail, because the currently running kernel has not been
+started with the _crashkernel_ commandline option. However
+the service will by default update the bootloader to provide the
+option on the next boot.
+
+If you don't perform this step, the service will fail during the
+next boot and kdump should be available on the second-next boot.
+
 
 Manual Setup
 ------------
-
-Following steps are needed to setup kdump manually (the description of the steps
-will follow):
-
-. Install the required software packages,
-. add the _crashkernel_ parameter to bootloader configuration,
-. enable the _kdump_ service,
-. configure kdump (/etc/sysconfig/kdump) and
-. load the kdump kernel.
-
-Required software
-~~~~~~~~~~~~~~~~~
-
-Following software packages are required for kdump:
-
-* kexec-tools
-* kdump
-* makedumpfile
-
-There is no special _kernel-kdump_ required like in earlier versions of SUSE
-LINUX Enterprise. The technical reason is that the normal kernel is relocatable
-now and can be used as kdump kernel, i.e. it's possible to load and execute the
-normal kernel at any address, not only the compiled-in address as before.
 
 Bootloader configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -137,16 +117,20 @@ Example: +crashkernel=256M+ (on a normal PC system)
 There's also a more advanced syntax that makes the amount of memory dependent on
 system RAM. See <<crashkernel_exteded>>.
 
+You can either supply the a hand-crafted crashkernel option to the
+kdump-commandline.service via the KDUMP_CRASHKERNEL config option and leave the job of
+updating the bootloader to the service.
+
+Or you can disable automatic bootloader updates by setting
+KDUMP_UPDATE_BOOTLOADER to "false" and managing the bootloader config yourself.
+
 Enable kdump service
 ~~~~~~~~~~~~~~~~~~~~
-The kdump systemd service just loads the kdump kernel at boot. To enable it, use
-yast2 kdump or simply
+The kdump systemd service loads the kdump kernel at boot. To enable it, run
 
 --------------------------
 # systemctl enable kdump
 --------------------------
-
-on a shell. You can also execute it manually with +systemctl start kdump+.
 
 Configure kdump
 ~~~~~~~~~~~~~~~
@@ -155,31 +139,11 @@ configuration options in the _/etc/sysconfig/kdump_ configuration file.
 
 [IMPORTANT]
 If you make changes in that configuration file, you always have to execute
-_rckdump restart_ manually to make that changes apply. If you don't, that
+_systemctl restart kdump_ manually to make that changes apply. If you don't, that
 changes will only apply after system reboot.
 
 See the section “CONFIGURATION” later and/or *kdump*(5) for a description of
 the configuration options.
-
-Load the kdump kernel
-~~~~~~~~~~~~~~~~~~~~~
-As mentioned above, the kdump service takes the part of
-loading the kdump kernel. As kdump kernel, the normal system kernel is used, no
-special kernel image is required.
-
-However, as initramfs, a special initramfs is built by *mkdumprd*(8). Normally,
-you don't have to take care about that step since the init script checks if the
-initramfs is up to date (reading the configuration file modification time) and
-rebuilds it if necessary.
-
-To manually load the kdump kernel (i.e, without the SUSE init script), you have
-to use the *kexec*(8) tool with the _-p_ (panic kernel) parameter like:
-
---------------------------------------------------------------------
-# kexec -p /boot/vmlinuz-version --initrd=/boot/initrd-version-kdump
---reuse-cmdline
---------------------------------------------------------------------
-
 
 Testing
 -------
@@ -195,119 +159,61 @@ perform that, use the SysRq mechanism, i.e. just execute
 
 After that, the panic kernel should boot and the dump should be saved.
 
+The most common problem is that the panic kernel will fail because the
+default amount of memory reserved by the crashkernel option is not sufficient.
+This typically demonstrates by either the panic kernel failing early at boot
+or running out of memory when running the kdump userspace processes 
+(systemd, makedumpfile, ...). In that case you will want to manually
+set the KDUMP_CRASHKERNEL config option.
+
+The default value is provided by the _kdumptool_calibrate_ command
+and set in the bootloader by the _kdumptool_commandline_ command.
+
+You can use the values suggested by _kdumptool_calibrate_ as a starting point
+for finding a correct value and setting KDUMP_CRASHKERNEL manually.
+
+
 Configuration
 -------------
 
 The configuration file is _/etc/sysconfig/kdump_. Just edit this file with a
-plain text editor to adjust the settings. You can also use the YaST2 sysconfig
-editor. All variables are described in *kdump*(5). Here's a brief overview about
-some variables that are worth tweaking.
+plain text editor to adjust the settings. All variables are described in
+*kdump*(5). Here's a brief overview about some variables that are worth
+tweaking.
 
 Save Directory
 ~~~~~~~~~~~~~~
-The most important setting is where the dump should be saved. Following methods
-are available:
-
-* local file,
-* FTP,
-* SFTP (SSH),
-* NFS,
-* CIFS.
+The most important setting is where the dump should be saved. Different methods
+are available: local file, FTP, SFTP (SSH), NFS, CIFS.
 
 The configuration variable _KDUMP_SAVEDIR_ has to be filled with a URL to
 where the dump should be saved. The syntax is described in *kdump*(5).
-
-If you would like to use a special network interface, see
-the _KDUMP_NETCONFIG_ setting.
-
-Example:
-
-* +/var/log/dump+
-* +ftp://user@host:server/incoming/dumps+
 
 [NOTE]
 If you want to use SSH or SFTP with public key authentication, make sure to read the
 "Secure File Transfer Protocol" section in *kdump*(5).
 
-Deletion of old dumps
-~~~~~~~~~~~~~~~~~~~~~
-If you save the dumps to your local file system, you may want that kdump deletes
-automatically old dumps. Set _KDUMP_KEEP_OLD_DUMPS_ to the value how much old
-dumps should be preserved. To disable deletion of old dumps, set it to _0_, and
-to delete all old dumps, set it to _-1_.
+Preventing running out of disk space
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+If you save the dumps to your local file system, you may want kdump to delete
+old dumps automatically. See the _KDUMP_KEEP_OLD_DUMPS_ option.
 
 If the partition has less than _KDUMP_FREE_DISK_SIZE_ megabytes free disk space
-after saving the dump, the dump is not copied at all.
+after saving the dump, the dump is not saved at all.
 
 [IMPORTANT]
 That two options don't apply to network dump targets.
 
 Dump Filtering and Compression
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The size of kernel dumps is uncompressed and unfiltered as large as your system
-has RAM. To get smaller files (for example, to send it to support), you can
-compress the whole dump file afterwards. However, the drawback is that the dump
-has to be uncompressed afterwards before opening, so the disk space needs to be
-there in any case.
 
-To use page compression which compresses every page and allows dynamic
-uncompression with the *crash*(8) debugging tool, set _KDUMP_DUMPFORMAT_ to
-_compressed_ (which is actually the default).
+Dump size can be reduced by 
 
-To filter the dump, you have to set the _KDUMP_DUMPLEVEL_. Then not all memory
-is saved to disk but only memory that does not fulfil some criteria. I.e. you
-may want to leave out pages that are completely filled by zeroes as they don't
-contain any useful information. The following table lists for each
-_KDUMP_DUMPLEVEL_ the pages that are *skipped*, i.e. _0_ produces a full dump
-and _31_ is the smallest dump.
+- using different compresison algorithms
 
-'------------.----------.----------.-------------.---------.----------
-dump level   zero page  cache page cache private user data free page
-----------------------------------------------------------------------
- 0
- 1           X
- 2                      X
- 3           X          X
- 4                      X          X
- 5           X          X          X
- 6                      X          X
- 7           X          X          X
- 8                                               X
- 9           X                                   X
-10                      X                        X
-11           X          X                        X
-12                      X          X             X
-13           X          X          X             X
-14                      X          X             X
-15           X          X          X             X
-16                                                         X
-17           X                                             X
-18                      X                                  X
-19           X          X                                  X
-20                      X          X                       X
-21           X          X          X                       X
-22                      X          X                       X
-23           X          X          X                       X
-24                                               X         X
-25           X                                   X         X
-26                      X                        X         X
-27           X          X                        X         X
-28                      X          X             X         X
-29           X          X          X             X         X
-30                      X          X             X         X
-31           X          X          X             X         X
-----------------------------------------------------------------------
+- filtering unnecessary pages from the dump
 
-Automatic Reboot and Error handling
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-If you want to have your machine rebooted automatically after the dump has been
-copied, set _KDUMP_IMMEDIATE_REBOOT_ to _true_. The variable
-_KDUMP_CONTINUE_ON_ERROR_ controls if a shell should be opened if something goes
-wrong while saving the dump to be able to fixup manually. This is mostly for
-debugging. 
-
-In production, use that only if you have a serial console since VGA console and
-keyboard is not reliable in kdump environment.
+see _KDUMP_DUMPFORMAT_ and _KDUMP_DUMPLEVEL_ in *kdump*(5)
 
 Notification
 ~~~~~~~~~~~~
@@ -317,15 +223,14 @@ See _KDUMP_NOTIFICATION_TO_ in *kdump*(5).
 
 Debugging options
 ~~~~~~~~~~~~~~~~~
-If something goes wrong and you possibly opened a bug report, you may be asked
-to increase verbosity to report what's going wrong. Also, this is useful if you
-would like to find the cause yourself.
+Normally the machine is rebooted when kdump finishes and all errors are ignored
+to get the production system runnigng as soon as possible,
 
-First, you can increase _KDUMP_VERBOSE_. The maximum log level is _15_. That
-gives both information when loading the dump kernel (i.e. the _rckdump start_
-command) and also when copying the dump in initrd. Log levels of 8 or above
-print a lot of debugging information and also turn on debugging 
-in subcommands being executed, such as ssh or makedumpfile.
+To get a shell for debugging kdump itself, see the
+_KDUMP_IMMEDIATE_REBOOT_ and _KDUMP_CONTINUE_ON_ERROR_ options.
+
+Also see the _KDUMP_VERBOSE_ option to turn on
+more logging during kdump service start and during the dump itself.
 
 To debug the creation of the kdump initrd, you may want to run
 _mkdumprd -d_.
@@ -385,26 +290,6 @@ This would mean:
 . If the RAM size is between 512M and 2G (exclusive), then reserve 64M.
 . If the RAM size is larger than 2G, then reserve 128M.
 
-Bugs
-----
-
-Known Problems
-~~~~~~~~~~~~~~
-There are known problems when using Kdump on Xen.
-
-. Dump filtering does not work. Use a _KDUMP_DUMPLEVEL_ of _0_ and set
-  _KDUMP_DUMPFORMAT_ to _ELF_. That are *not* the default settings, so you
-  have to change that settings if you're using Xen.
-
-New Bugs
-~~~~~~~~
-Please report bugs and enhancement requests at https://bugzilla.novell.com[].
-
-Copying
--------
-Copyright (c) 2008 Bernhard Walle <bwalle@suse.de>. Free use of this software is
-granted under the terms of the GNU General Public License (GPL), version 2 or
-later.
 
 See also
 --------
