@@ -1,3 +1,12 @@
+2.0.19
+------
+* man: update kdump(7)
+* add kdump-commandline.service (jsc#PED-12454)
+* kdumptool: introduce the commandline subcommand (jsc#PED-12454)
+* kdumptool calibrate: add per-cpu userspace requirements
+* Use FADUMP_COMMANDLINE_APPEND to detect explicit ip= configuration 
+  (bsc#1242134)
+
 2.0.18
 ------
 * set KDUMP_CPUs to 32 (all CPUs) by default (bsc#1240769, jsc#PED-9894, 
