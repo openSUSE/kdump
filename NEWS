@@ -1,3 +1,7 @@
+2.0.20
+------
+* fix calibrate (no run-time changes)
+
 2.0.19
 ------
 * man: update kdump(7)
