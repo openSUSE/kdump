@@ -258,6 +258,10 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
             '-cpu', 'max',
             '-bios', '/usr/share/qemu/qemu-uefi-aarch64.bin',
         ))
+    if arch == 'x86_64':
+        extra_qemu_args.extend((
+            '-cpu', 'max',
+        ))
     if arch == 'riscv64':
         extra_qemu_args.extend((
             '-machine', 'virt',
