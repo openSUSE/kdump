@@ -289,6 +289,14 @@ fi
 if [ "$KDUMP_FADUMP" = "true" ] ; then
     load_kdump_fadump
 else
+    read RESERVED < /sys/kernel/kexec_crash_size
+    [[ ${RESERVED} -eq 0 ]] && {
+        echo "No crashkernel memory reserved, Kdump cannot start." >&2
+	echo "Normally the crashkernel= option is handled by kdump-commandline.service" >&2
+	echo "See the status of kdump-commandline.service or man 7 kdump for details." >&2
+	exit 1
+    }
+
     # check if initrd and the kernel it was built for exist
     # return 6 if not, which is treated as success by 
     # the kdump-early service
