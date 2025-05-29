@@ -68,7 +68,7 @@ Automatic Configuration
 -----------------------
 
 A simple method to use kdump on SUSE is to install
-the kdump package and enable the kdum.service:
+the kdump package and enable the kdump.service:
 
 ----------------------------------
 # zypper install yast2-kdump
@@ -84,7 +84,8 @@ and generate the kdump initrd, you can call
 
 This will fail, because the currently running kernel has not been
 started with the _crashkernel_ commandline option. However
-the service will by default update the bootloader to provide the
+the service will also start the kdump-commandline.service,
+which will by default update the bootloader to provide the
 option on the next boot.
 
 If you don't perform this step, the service will fail during the
