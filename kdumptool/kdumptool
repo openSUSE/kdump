@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# kdumptool used be a swiss-army knife program with lots of subcommands.
+# kdumptool used to be a swiss-army knife program with lots of subcommands.
 # Now the only remaining functionality is "kdumptool calibrate" used by YaST 
 # and possibly other tools to get crashkernel reservation info.
 # So this is now a wrapper for the calibrate binary, carved out of the
@@ -24,7 +24,7 @@ function usage()
 	        -c    check if the current options found in /proc/cmdline are equal to the
 	              expected values; print warnings if not
 	        -u    call pbl to update the options to the expected values
-	              (when used togerger with -c only update when needed)
+	              (when used together with -c only update when needed)
 	        -U    same as -u but only if KDUMP_UPDATE_BOOTLOADER is true
 	        -d    call pbl to delete kdump-related kernel command line options
 	        -D    same as -d but only if KDUMP_UPDATE_BOOTLOADER is true
