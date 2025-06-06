@@ -109,6 +109,8 @@ If the value is zero, all available CPUs are used, i.e. the _nr_cpus_
 parameter is not added to the kdump kernel command line and _--num-threads_ 
 is set to the number of CPUs.
 
+Decreasing the number of CPUs will lower the memory required by kdump.
+
 Default is 32.
 
 

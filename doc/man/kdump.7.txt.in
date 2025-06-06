@@ -102,12 +102,10 @@ boot time which will be used by *kexec*(8) to load the panic kernel. To achieve
 that, you have to add a parameter called _crashkernel_ in bootloader
 configuration. The syntax is:
 
-  crashkernel=size@offset
+  crashkernel=size[@offset]
 
-The _offset_ is the load offset, i.e. the physical base address on which the
-memory reservation area starts. Starting with version 2.6.27, it's not necessary
-to specify that _offset_ manually since the kernel chooses a suitable base
-address automatically.
+The optional _offset_ is the load offset, i.e. the physical base address on
+which the memory reservation area starts.
 
 To find a suggested value for _size_, us the _kdumptool calibrate_ command.
 The suggested value is the sum of the Low and High values in its output.
@@ -172,6 +170,10 @@ and set in the bootloader by the _kdumptool_commandline_ command.
 
 You can use the values suggested by _kdumptool_calibrate_ as a starting point
 for finding a correct value and setting KDUMP_CRASHKERNEL manually.
+
+The value of KDUMP_CPUS influences the amount of memory required by kdump.
+You may want to decrease the default value to limit the memory required.
+Note that previously the default was to use a single CPU.
 
 
 Configuration
