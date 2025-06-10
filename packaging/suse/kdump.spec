@@ -78,7 +78,6 @@ BuildRequires:  pkgconfig(udev)
 # so turn them on unconditionally
 # %if %{with calibrate}
 BuildRequires:  %qemu
-BuildRequires:  dhcp-client
 BuildRequires:  dracut >= 047
 BuildRequires:  iputils
 BuildRequires:  kernel-default
