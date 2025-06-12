@@ -97,6 +97,8 @@ function build_kdump_commandline()
             remove_from_commandline \
                 'root|resume|crashkernel|splash|mem|BOOT_IMAGE|showopts|zfcp\.allow_lun_scan|hugepages|acpi_no_memhotplug|cgroup_disable|unknown_nmi_panic|rd\.udev\.children-max' \
                 < /proc/cmdline)
+
+	[[ -e /proc/xen ]] && KDUMP_CPUS=1	# makedumpfile does not support --num-threads on XEN
         if [ ${KDUMP_CPUS:-1} -ne 0 ] ; then
             nr_cpus="nr_cpus=${KDUMP_CPUS:-1}"
         fi
