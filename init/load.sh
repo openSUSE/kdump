@@ -120,13 +120,6 @@ function build_kdump_commandline()
 	    commandline="$commandline zfcp.allow_lun_scan=0"
 	    ;;
         esac
-
-        # Xen does not include the kernel release in VMCOREINFO_XEN
-        # so we have to pass it via the command line
-        if [[ $(uname -r) =~ -xen$ ]] ; then
-            kernelrelease=$(uname -r)
-            commandline="$commandline kernelversion=$kernelrelease"
-        fi
     fi
 
     commandline="$commandline $(set_serial_console)"
