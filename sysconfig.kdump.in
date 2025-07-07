@@ -56,6 +56,13 @@ KDUMP_KERNELVER=""
 #
 # If the value is zero, use all available CPUs.
 #
+# Caution:
+# Increasing KDUMP_CPUS to a very high number can significantly raise memory
+# requirements in the kdump kernel. This may cause memory pressure, which in
+# extreme cases can lead to kdump kernel boot failure and ultimately result
+# in dump capture failure. Carefully evaluate the memory availability and
+# crashkernel reservation before increasing this value.
+#
 # See also: kdump(5).
 #
 KDUMP_CPUS=32
