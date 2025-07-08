@@ -53,7 +53,20 @@ function main() {
 			# the directory part of URL does not exist yet
 			URL=${KDUMP_SAVEDIR#*://}
 			URL_DIR="/${URL#*/}"
+			HOST="${URL%%/*}"
 			URL="sftp://${URL%%/*}"
+			# when no PW present in URL we assume key-based authentication;
+			# prevent lftp prompting for a password by setting LFTP_PASSWORD
+			# otherwise let LFTP parse the password from the URL
+			UPW="${HOST%%@*}"
+			HOST="${HOST#*@}"
+			USER=
+			PW=
+			if ! [[ ${UPW} == ${HOST} ]]; then
+				PW="${UPW#*:}"
+				[[ ${PW} == ${UPW} ]] && PW=""
+			fi
+			[[ -z "${PW}" ]] && export LFTP_PASSWORD=
 			;;
 		ssh)
 			# split URL into host and directory parts, ssh can't
@@ -166,8 +179,7 @@ function main() {
 			LFTP_DEBUG=""
 			${VERBOSE} && LFTP_DEBUG="-d "
 			SAVE_COMMAND='lftp ${LFTP_DEBUG} -c "set net:timeout 5; set net:max-retries 2; open --env-password ${URL} || exit 1; mkdir -pf ${DIR}; chmod 700 ${DIR}; put ${SOURCE} -o ${DIR}/${FILENAME}"'
-			# NOTE: --env-password is a hack for sftp not to ask for password if keys are used
-			# the password can still be part of the URL
+			# NOTE: --env-password/LFTP_PASSWORD is a hack for sftp not to ask for password if keys are used
 	esac
 
 	# use a FIFO; lftp can upload files from a fifo (unlike sftp) but not from stdin
