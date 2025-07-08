@@ -17,7 +17,7 @@ function main() {
 
 	# KDUMP_TRANSFER may specify a custom command to do all the work
 	if [[ -n ${KDUMP_TRANSFER} ]]; then
-		${KDUMP_TRANSFER}
+		eval "${KDUMP_TRANSFER}"
 		RET=$?
 		if [[ ${RET} -ne 0 ]]; then
 			echo "Transfer exit code: ${RET}"
@@ -29,7 +29,7 @@ function main() {
 	# KDUMP_PRESCRIPT
 	if [[ -n ${KDUMP_PRESCRIPT} ]]; then
 		echo "Running KDUMP_PRESCRIPT (${KDUMP_PRESCRIPT})"
-		${KDUMP_PRESCRIPT}
+		eval "${KDUMP_PRESCRIPT}"
 		RES=$?
 		[[ ${RES} -ne 0 ]] && error "Pre-script failed (${RES})"
 	fi
@@ -331,7 +331,7 @@ function main() {
 	# KDUMP_POSTSCRIPT
 	if [[ -n ${KDUMP_POSTSCRIPT} ]]; then
 		echo "Running KDUMP_POSTSCRIPT (${KDUMP_POSTSCRIPT})"
-		${KDUMP_POSTSCRIPT}
+		eval "${KDUMP_POSTSCRIPT}"
 		RES=$?
 		[[ ${RES} -ne 0 ]] && error "Post-script failed (${RES})"
 	fi
