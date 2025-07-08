@@ -1,4 +1,14 @@
-2.0.20
+2.1.1
+-----
+* check for reserved memory on load for better error reporting
+* update man page
+* set KDUMP_CPUS to 1 on XEN (bsc#1244289)
+* load.sh clean up
+* use eval for PRESCRIPT, POSTSCRIPT and TRANSFER
+* sftp: fix key-based authentication
+* fix and improve calibrate build
+
+2.1.0
 ------
 * fix calibrate (no run-time changes)
 
