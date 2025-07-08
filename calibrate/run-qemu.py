@@ -83,8 +83,7 @@ def init_local_dracut(params):
         else:
             os.symlink(os.path.join(basedir, name), name)
 
-class build_initrd(object):
-    def __init__(self, bindir, params, config, path='test-initrd'):
+def build_initrd(bindir, params, config, path):
         # First, create the base initrd using dracut:
         env = os.environ.copy()
         env['KDUMP_LIBDIR'] = os.path.abspath(params['SCRIPTDIR'] + "/..")
@@ -95,15 +94,19 @@ class build_initrd(object):
             '/usr/sbin',
             '/usr/bin'))
 
+        drivers = []
         if params['NET']:
-            netdrivers = [ 'af_packet' ]
+            drivers.append('af_packet')
             if params['ARCH'].startswith('s390'):
-                netdrivers.append('virtio-net')
+                drivers.append('virtio-net')
             else:
-                netdrivers.append('e1000e')
-            extra_args = ('--add-drivers', ' '.join(netdrivers))
+                drivers.append('e1000e')
+            extra_args = []
         else:
-            extra_args = ()
+            drivers.append('sd_mod')
+            drivers.append('virtio_blk')
+            drivers.append('ext4')
+            extra_args = ('--mount', '/dev/disk/by-label/calib-disk /kdump/mnt ext3')
         args = (
             os.path.abspath('dracut'),
             '--local',
@@ -117,7 +120,7 @@ class build_initrd(object):
             # Create a simple uncompressed CPIO archive:
             '--no-compress',
             '--no-early-microcode',
-
+            '--add-drivers', ' '+' '.join(drivers),
             # Additional options:
             *extra_args,
 
@@ -140,7 +143,7 @@ class build_initrd(object):
 
         # Compress the result:
         subprocess.call(('xz', '-f', '-0', '--check=crc32', path))
-        self.path = path + os.path.extsep + 'xz'
+        return path + os.path.extsep + 'xz'
 
 class build_elfcorehdr(object):
     def __init__(self, bindir, addr, path='elfcorehdr.bin'):
@@ -221,8 +224,11 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
     if arch.startswith('s390'):
         S390_OLDMEM_BASE = 0x10418 # cf. struct parmarea
         oldmem = 'oldmem.bin'
-        oldmem_size = 0
-        oldmem_base = 0
+        # memory size for the crash kernel is defined by oldmem_size;
+        # put it in the middle of a doubled qemu memory
+        oldmem_size = qemu_ram * 1024;
+        oldmem_base = int(qemu_ram * 1024 / 2)
+        qemu_ram *= 2
         with open(oldmem, 'wb') as f:
             f.write(oldmem_base.to_bytes(8, 'big'))
             f.write(oldmem_size.to_bytes(8, 'big'))
@@ -247,8 +253,12 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
         ))
         extra_kernel_args.extend((
             'ifname=kdump0:{}'.format(mac),
-            'bootdev=kdump0',
-            'ip=192.168.0.2::192.168.0.1:255.255.255.0::kdump0:none'
+            'ip=kdump0:dhcp',
+            'rd.neednet=1'
+        ))
+    else:
+        extra_qemu_args.extend((
+            '-drive', 'file=disk.raw,index=0,media=disk,if=virtio',
         ))
 
     # Other arch-specific arguments
@@ -266,14 +276,15 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
         extra_qemu_args.extend((
             '-machine', 'virt',
         ))
+
     kernel_args = (
         'panic=1',
         'nokaslr',
         'console={}'.format(console),
         'root=kdump',
         'rootflags=bind',
-	'rd.shell=0',
-	'rd.emergency=poweroff',
+        'rd.shell=0',
+        'rd.emergency=poweroff',
         *extra_kernel_args,
         '--',
         'trackrss={}'.format(logdev),
@@ -286,7 +297,7 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
         '-display', 'none',
         *console_args,
         '-kernel', params['KERNEL'],
-        '-initrd', initrd.path,
+        '-initrd', initrd,
         '-append', ' '.join(kernel_args),
         '-device', 'loader,file={},force-raw=on,addr=0x{:x}'.format(
             elfcorehdr.path, elfcorehdr.address),
@@ -302,15 +313,14 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
     
     f = open(params['TRACKRSS_LOG'], "w")
     f.close()
-    tail_trackrss = subprocess.Popen(["tail", "-f", params['TRACKRSS_LOG']], stdout=2)
 
-    
-    result = subprocess.run(qemu_args, stdout=sys.stderr, stderr=sys.stderr, check=True)
-    if not result.returncode:
-        print("qemu result: ", result, file=sys.stderr)
+    subprocess.run(qemu_args, stdout=sys.stderr, stderr=sys.stderr, check=True)
 
     tail_messages.kill()
-    tail_trackrss.kill()
+    
+    print("trackrss output:", file=sys.stderr)
+    subprocess.run(['cat', params['TRACKRSS_LOG']], stdout=2)
+    print("(end of trackrss output)", file=sys.stderr)
 
     results = dict()
 
@@ -350,6 +360,36 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
 def calc_diff(src, dst, key, diffkey):
     src[diffkey] = max(0, dst[key] - src[key])
 
+def dump_ok(crashdir):
+    if not os.path.isdir(crashdir):
+        print(crashdir + " does not exist", file=sys.stderr)
+        return False
+
+    with os.scandir(crashdir) as it:
+        for entry in it:
+            if not entry.name.startswith('.') and entry.is_dir():
+                print("found dump directory: " + entry.path, file=sys.stderr)
+                if not os.path.isfile(os.path.join(entry.path, 'vmcore')):
+                    print("vmcore not found", file=sys.stderr)
+                    return False
+                
+                if not os.path.isfile(os.path.join(entry.path, 'README.txt')):
+                    print("README.txt not found", file=sys.stderr)
+                    return False
+
+                try:
+                    f = open(os.path.join(entry.path, 'README.txt'),"r")
+                    readme = f.read()
+                    if not 'vmcore status: saved successfully' in readme:
+                        print("README.txt does not contain vmcore success status", file=sys.stderr)
+                        return False
+                except:
+                    print("can't read README.txt", file=sys.stderr)
+                    return False 
+                print("vmcore and README.txt check OK", file=sys.stderr)
+                return True
+    return False
+
 with subprocess.Popen(('get_kernel_version', params['KERNEL']),
                       stdout=subprocess.PIPE) as p:
     params['KERNELVER'] = p.communicate()[0].decode().strip()
@@ -359,16 +399,46 @@ with tempfile.TemporaryDirectory() as tmpdir:
     os.chdir(tmpdir)
     elfcorehdr = build_elfcorehdr(oldcwd, ADDR_ELFCOREHDR)
 
+    # clean up after previous runs
+    if os.path.exists('/root/.ssh/id_ed25519'):
+        os.remove('/root/.ssh/id_ed25519')
+    if os.path.exists('/root/.ssh/id_ed25519.pub'):
+        os.remove('/root/.ssh/id_ed25519.pub')
+    subprocess.run(('rm', '-rf', '/tmp/netdump'), stdout=sys.stderr, stderr=sys.stderr, check=False)
+
+    # prepare disk image for saving the non-network dump
+    subprocess.run(('dd', 'if=/dev/zero', 'of=disk.raw', 'bs=1', 'seek=200M', 'count=1'), stdout=sys.stderr, stderr=sys.stderr, check=True)
+    subprocess.run(('/usr/sbin/mkfs.ext3', '-L', 'calib-disk', 'disk.raw'), stdout=sys.stderr, stderr=sys.stderr, check=True)
+
+    # configure and start ssh server for the network dump
+    subprocess.run(('ssh-keygen', '-A'), stdout=sys.stderr, stderr=sys.stderr, check=True)
+    subprocess.run(('/usr/sbin/sshd', '-p', '40022'), stdout=sys.stderr, stderr=sys.stderr, check=True)
+    subprocess.run(('ssh-keygen', '-f', '/root/.ssh/id_ed25519', '-N', ''), stdout=sys.stderr, stderr=sys.stderr, check=True)
+    shutil.copy("/root/.ssh/id_ed25519.pub", "/root/.ssh/authorized_keys")
+
     install_kdump_init(oldcwd)
     init_local_dracut(params)
-
+    
     params['NET'] = False
-    initrd = build_initrd(oldcwd, params, 'dummy.conf')
+    initrd = build_initrd(oldcwd, params, 'dummy.conf', "test-initrd")
     results = run_qemu(oldcwd, params, initrd, elfcorehdr)
-
+    # verify that the dump completed successfully
+    os.mkdir('mount')
+    subprocess.run(('mount', '-o', 'loop', 'disk.raw', 'mount'), stdout=sys.stderr, stderr=sys.stderr, check=True)
+    ret = dump_ok('mount/var/crash')
+    subprocess.run(('umount', 'mount'), stdout=sys.stderr, stderr=sys.stderr, check=True)
+    if not ret:
+        print("non-network dump failed; calibration failed", file=sys.stderr)
+        exit(1)
+		  	
     params['NET'] = True
-    initrd = build_initrd(oldcwd, params, 'dummy-net.conf')
+    initrd = build_initrd(oldcwd, params, 'dummy-net.conf', "test-initrd-net")
+    os.mkdir('/tmp/netdump')
     netresults = run_qemu(oldcwd, params, initrd, elfcorehdr)
+    if not dump_ok('/tmp/netdump'):
+        print("network dump failed; calibration failed", file=sys.stderr)
+        exit(1)
+
     os.chdir(oldcwd)
 
 calc_diff(results, netresults, 'KERNEL_INIT', 'INIT_NET')
@@ -389,3 +459,5 @@ keys = (
 )
 for key in keys:
     print('{}={:d}'.format(key, results[key]))
+
+# vim: set et ts=4 sw=4 :

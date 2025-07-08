@@ -9,8 +9,8 @@ parser.add_argument('-d', '--debug', action='store_true',
                     help='print debugging messages on stderr')
 cmdline = parser.parse_args()
 
-re_memory = re.compile('Memory: (\d+)K/(\d+)K available')
-re_freeing = re.compile('Freeing (.*) memory: (\d+)K$')
+re_memory = re.compile('Memory: (\\d+)K/(\\d+)K available')
+re_freeing = re.compile('Freeing (.*) memory: (\\d+)K$')
 
 available = 0
 freed = 0

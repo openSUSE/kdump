@@ -14,7 +14,7 @@
 
 # Please submit bugfixes or comments via https://bugs.opensuse.org/
 #
-
+#needsrootforbuild
 
 %bcond_with calibrate
 
@@ -78,16 +78,23 @@ BuildRequires:  pkgconfig(udev)
 # so turn them on unconditionally
 # %if %{with calibrate}
 BuildRequires:  %qemu
-BuildRequires:  dhcp-client
+BuildRequires:  udev
+BuildRequires:  systemd
+BuildRequires:  NetworkManager
+BuildRequires:  iproute2
+BuildRequires:  dbus-1
+BuildRequires:  hostname
 BuildRequires:  dracut >= 047
 BuildRequires:  iputils
 BuildRequires:  kernel-default
 BuildRequires:  lftp
 BuildRequires:  makedumpfile
 BuildRequires:  openssh-clients
+BuildRequires:  openssh-server
 BuildRequires:  pciutils
 BuildRequires:  procps
 BuildRequires:  python3
+BuildRequires:  e2fsprogs
 %ifnarch s390x
 BuildRequires:  qemu-ipxe
 BuildRequires:  qemu-vgabios
