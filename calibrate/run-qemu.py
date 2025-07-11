@@ -294,7 +294,7 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
         '-smp', str(params['NUMCPUS']),
         '-no-reboot',
         '-m', '{:d}K'.format(qemu_ram),
-        '-display', 'none',
+        '-nographic',
         *console_args,
         '-kernel', params['KERNEL'],
         '-initrd', initrd,
