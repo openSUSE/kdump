@@ -265,7 +265,7 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
     if arch == 'aarch64':
         extra_qemu_args.extend((
             '-machine', 'virt',
-            '-cpu', 'max',
+            '-cpu', 'cortex-a57',
             '-bios', '/usr/share/qemu/qemu-uefi-aarch64.bin',
         ))
     if arch == 'x86_64':
