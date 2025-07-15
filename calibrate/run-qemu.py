@@ -8,56 +8,6 @@ import shutil
 
 params = dict()
 
-# Directory with scripts and other data
-params['SCRIPTDIR'] = os.path.abspath(os.path.dirname(sys.argv[0]))
-
-# System dracut base directory
-params['DRACUTDIR'] = '/usr/lib/dracut'
-
-# Total VM memory in KiB:
-params['TOTAL_RAM'] = 1024 * 1024
-
-# Number of CPUs for the VM
-params['NUMCPUS'] = 2
-
-# Where kernel messages should go
-params['MESSAGES_LOG'] = 'messages.log'
-
-# Where trackrss log should go
-params['TRACKRSS_LOG'] = 'trackrss.log'
-
-# Store the system architecture for convenience
-arch = os.uname()[4]
-params['ARCH'] = os.uname()[4]
-
-if arch == "i386" or arch == "i586" or arch == "i686" or arch == "x86_64":
-    image="vmlinuz"
-elif arch.startswith("s390"):
-    image="image"
-elif arch == "aarch64" or arch == "riscv64":
-    image="Image"
-else:
-    image="vmlinux"
-
-params['KERNEL'] = "/boot/" + image
-
-# Physical address where elfcorehdr should be loaded.
-# This is tricky. The elfcorehdr memory range is removed from the kernel
-# memory map with a command line option, but the kernel boot code runs
-# before the command line is parsed, and it may overwrite the data.
-if params['ARCH'] == 'aarch64':
-    # QEMU defines all RAM at 1G physical for AArch64
-    ADDR_ELFCOREHDR = (1024 * 1024 * 1024) + (256 * 1024 * 1024)
-elif params['ARCH'] == 'riscv64':
-    # QEMU defines all RAM at 2G physical for RISC-V
-    ADDR_ELFCOREHDR = 0x80000000 + (256 * 1024 * 1024)
-else:
-    # For other platforms, the region at 768M should be reasonably safe,
-    # because it is high enough to avoid conflicts with special-purpose
-    # regions and low enough to avoid conflicts with allocations at the
-    # end of RAM.
-    ADDR_ELFCOREHDR = 768 * 1024 * 1024
-
 def install_kdump_init(bindir):
     env = os.environ.copy()
     env['DESTDIR'] = os.path.abspath('.')
@@ -390,74 +340,130 @@ def dump_ok(crashdir):
                 return True
     return False
 
-with subprocess.Popen(('get_kernel_version', params['KERNEL']),
-                      stdout=subprocess.PIPE) as p:
-    params['KERNELVER'] = p.communicate()[0].decode().strip()
+def calibrate_kernel(image):
+    params['KERNEL'] = image
 
-with tempfile.TemporaryDirectory() as tmpdir:
-    oldcwd = os.getcwd()
-    os.chdir(tmpdir)
-    elfcorehdr = build_elfcorehdr(oldcwd, ADDR_ELFCOREHDR)
+    # Physical address where elfcorehdr should be loaded.
+    # This is tricky. The elfcorehdr memory range is removed from the kernel
+    # memory map with a command line option, but the kernel boot code runs
+    # before the command line is parsed, and it may overwrite the data.
+    if params['ARCH'] == 'aarch64':
+        # QEMU defines all RAM at 1G physical for AArch64
+        ADDR_ELFCOREHDR = (1024 * 1024 * 1024) + (256 * 1024 * 1024)
+    elif params['ARCH'] == 'riscv64':
+        # QEMU defines all RAM at 2G physical for RISC-V
+        ADDR_ELFCOREHDR = 0x80000000 + (256 * 1024 * 1024)
+    else:
+        # For other platforms, the region at 768M should be reasonably safe,
+        # because it is high enough to avoid conflicts with special-purpose
+        # regions and low enough to avoid conflicts with allocations at the
+        # end of RAM.
+        ADDR_ELFCOREHDR = 768 * 1024 * 1024
 
-    # clean up after previous runs
-    if os.path.exists('/root/.ssh/id_ed25519'):
-        os.remove('/root/.ssh/id_ed25519')
-    if os.path.exists('/root/.ssh/id_ed25519.pub'):
-        os.remove('/root/.ssh/id_ed25519.pub')
-    subprocess.run(('rm', '-rf', '/tmp/netdump'), stdout=sys.stderr, stderr=sys.stderr, check=False)
+    with subprocess.Popen(('get_kernel_version', params['KERNEL']),
+                          stdout=subprocess.PIPE) as p:
+        params['KERNELVER'] = p.communicate()[0].decode().strip()
 
-    # prepare disk image for saving the non-network dump
-    subprocess.run(('dd', 'if=/dev/zero', 'of=disk.raw', 'bs=1', 'seek=200M', 'count=1'), stdout=sys.stderr, stderr=sys.stderr, check=True)
-    subprocess.run(('/usr/sbin/mkfs.ext3', '-L', 'calib-disk', 'disk.raw'), stdout=sys.stderr, stderr=sys.stderr, check=True)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        oldcwd = os.getcwd()
+        os.chdir(tmpdir)
+        elfcorehdr = build_elfcorehdr(oldcwd, ADDR_ELFCOREHDR)
 
-    # configure and start ssh server for the network dump
-    subprocess.run(('ssh-keygen', '-A'), stdout=sys.stderr, stderr=sys.stderr, check=True)
-    subprocess.run(('/usr/sbin/sshd', '-p', '40022'), stdout=sys.stderr, stderr=sys.stderr, check=True)
-    subprocess.run(('ssh-keygen', '-f', '/root/.ssh/id_ed25519', '-N', ''), stdout=sys.stderr, stderr=sys.stderr, check=True)
-    shutil.copy("/root/.ssh/id_ed25519.pub", "/root/.ssh/authorized_keys")
+        # clean up after previous runs
+        if os.path.exists('/root/.ssh/id_ed25519'):
+            os.remove('/root/.ssh/id_ed25519')
+        if os.path.exists('/root/.ssh/id_ed25519.pub'):
+            os.remove('/root/.ssh/id_ed25519.pub')
+        subprocess.run(('rm', '-rf', '/tmp/netdump'), stdout=sys.stderr, stderr=sys.stderr, check=False)
 
-    install_kdump_init(oldcwd)
-    init_local_dracut(params)
-    
-    params['NET'] = False
-    initrd = build_initrd(oldcwd, params, 'dummy.conf', "test-initrd")
-    results = run_qemu(oldcwd, params, initrd, elfcorehdr)
-    # verify that the dump completed successfully
-    os.mkdir('mount')
-    subprocess.run(('mount', '-o', 'loop', 'disk.raw', 'mount'), stdout=sys.stderr, stderr=sys.stderr, check=True)
-    ret = dump_ok('mount/var/crash')
-    subprocess.run(('umount', 'mount'), stdout=sys.stderr, stderr=sys.stderr, check=True)
-    if not ret:
-        print("non-network dump failed; calibration failed", file=sys.stderr)
-        exit(1)
-		  	
-    params['NET'] = True
-    initrd = build_initrd(oldcwd, params, 'dummy-net.conf', "test-initrd-net")
-    os.mkdir('/tmp/netdump')
-    netresults = run_qemu(oldcwd, params, initrd, elfcorehdr)
-    if not dump_ok('/tmp/netdump'):
-        print("network dump failed; calibration failed", file=sys.stderr)
-        exit(1)
+        # prepare disk image for saving the non-network dump
+        subprocess.run(('dd', 'if=/dev/zero', 'of=disk.raw', 'bs=1', 'seek=200M', 'count=1'), stdout=sys.stderr, stderr=sys.stderr, check=True)
+        subprocess.run(('/usr/sbin/mkfs.ext3', '-L', 'calib-disk', 'disk.raw'), stdout=sys.stderr, stderr=sys.stderr, check=True)
 
-    os.chdir(oldcwd)
+        # configure and start ssh server for the network dump
+        subprocess.run(('ssh-keygen', '-A'), stdout=sys.stderr, stderr=sys.stderr, check=True)
+        subprocess.run(('/usr/sbin/sshd', '-p', '40022'), stdout=sys.stderr, stderr=sys.stderr, check=True)
+        subprocess.run(('ssh-keygen', '-f', '/root/.ssh/id_ed25519', '-N', ''), stdout=sys.stderr, stderr=sys.stderr, check=True)
+        shutil.copy("/root/.ssh/id_ed25519.pub", "/root/.ssh/authorized_keys")
 
-calc_diff(results, netresults, 'KERNEL_INIT', 'INIT_NET')
-calc_diff(results, netresults, 'INIT_CACHED', 'INIT_CACHED_NET')
-calc_diff(results, netresults, 'USER_BASE', 'USER_NET')
+        install_kdump_init(oldcwd)
+        init_local_dracut(params)
+        
+        params['NET'] = False
+        initrd = build_initrd(oldcwd, params, 'dummy.conf', "test-initrd")
+        results = run_qemu(oldcwd, params, initrd, elfcorehdr)
+        # verify that the dump completed successfully
+        os.mkdir('mount')
+        subprocess.run(('mount', '-o', 'loop', 'disk.raw', 'mount'), stdout=sys.stderr, stderr=sys.stderr, check=True)
+        ret = dump_ok('mount/var/crash')
+        subprocess.run(('umount', 'mount'), stdout=sys.stderr, stderr=sys.stderr, check=True)
+        if not ret:
+            print("non-network dump failed; calibration failed", file=sys.stderr)
+            exit(1)
+                
+        params['NET'] = True
+        initrd = build_initrd(oldcwd, params, 'dummy-net.conf', "test-initrd-net")
+        os.mkdir('/tmp/netdump')
+        netresults = run_qemu(oldcwd, params, initrd, elfcorehdr)
+        if not dump_ok('/tmp/netdump'):
+            print("network dump failed; calibration failed", file=sys.stderr)
+            exit(1)
 
-keys = (
-    'KERNEL_BASE',
-    'KERNEL_INIT',
-    'INIT_CACHED',
-    'PAGESIZE',
-    'SIZEOFPAGE',
-    'PERCPU',
-    'USER_BASE',
-    'INIT_NET',
-    'INIT_CACHED_NET',
-    'USER_NET',
-)
-for key in keys:
-    print('{}={:d}'.format(key, results[key]))
+        os.chdir(oldcwd)
+
+    calc_diff(results, netresults, 'KERNEL_INIT', 'INIT_NET')
+    calc_diff(results, netresults, 'INIT_CACHED', 'INIT_CACHED_NET')
+    calc_diff(results, netresults, 'USER_BASE', 'USER_NET')
+
+    keys = (
+        'KERNEL_BASE',
+        'KERNEL_INIT',
+        'INIT_CACHED',
+        'PAGESIZE',
+        'SIZEOFPAGE',
+        'PERCPU',
+        'USER_BASE',
+        'INIT_NET',
+        'INIT_CACHED_NET',
+        'USER_NET',
+    )
+    for key in keys:
+        print('{}={:d}'.format(key, results[key]))
+
+################################################
+# main program
+
+# Directory with scripts and other data
+params['SCRIPTDIR'] = os.path.abspath(os.path.dirname(sys.argv[0]))
+
+# System dracut base directory
+params['DRACUTDIR'] = '/usr/lib/dracut'
+
+# Total VM memory in KiB:
+params['TOTAL_RAM'] = 1024 * 1024
+
+# Number of CPUs for the VM
+params['NUMCPUS'] = 2
+
+# Where kernel messages should go
+params['MESSAGES_LOG'] = 'messages.log'
+
+# Where trackrss log should go
+params['TRACKRSS_LOG'] = 'trackrss.log'
+
+# Store the system architecture for convenience
+arch = os.uname()[4]
+params['ARCH'] = os.uname()[4]
+
+if arch == "i386" or arch == "i586" or arch == "i686" or arch == "x86_64":
+    image="vmlinuz"
+elif arch.startswith("s390"):
+    image="image"
+elif arch == "aarch64" or arch == "riscv64":
+    image="Image"
+else:
+    image="vmlinux"
+
+calibrate_kernel("/boot/"+image)
 
 # vim: set et ts=4 sw=4 :
