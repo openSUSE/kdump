@@ -87,6 +87,9 @@ BuildRequires:  hostname
 BuildRequires:  dracut >= 047
 BuildRequires:  iputils
 BuildRequires:  kernel-default
+%ifarch aarch64
+BuildRequires:  kernel-64kb
+%endif
 BuildRequires:  lftp
 BuildRequires:  makedumpfile
 BuildRequires:  openssh-clients
