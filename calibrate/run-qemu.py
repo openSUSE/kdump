@@ -5,6 +5,7 @@ import os
 import subprocess
 import tempfile
 import shutil
+import glob
 
 params = dict()
 
@@ -340,7 +341,7 @@ def dump_ok(crashdir):
                 return True
     return False
 
-def calibrate_kernel(image):
+def calibrate_kernel(image, flavour):
     params['KERNEL'] = image
 
     # Physical address where elfcorehdr should be loaded.
@@ -428,7 +429,11 @@ def calibrate_kernel(image):
         'USER_NET',
     )
     for key in keys:
-        print('{}={:d}'.format(key, results[key]))
+        if flavour:
+           print('{}_{}={:d}'.format(key, flavour, results[key]))
+        else:
+           print('{}={:d}'.format(key, results[key]))
+
 
 ################################################
 # main program
@@ -464,6 +469,13 @@ elif arch == "aarch64" or arch == "riscv64":
 else:
     image="vmlinux"
 
-calibrate_kernel("/boot/"+image)
+kernels = glob.glob("/boot/"+image+"-*")
+print("Kernels to calibrate: ", kernels, file=sys.stderr)
+for k in kernels:
+    flavour=k.split("-")[-1]
+    if flavour == "default":
+        flavour = None
+    print("Calibrating {} (flavour: {})".format(k, flavour), file=sys.stderr)
+    calibrate_kernel(k, flavour)
 
 # vim: set et ts=4 sw=4 :
