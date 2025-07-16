@@ -33,6 +33,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/utsname.h>
 #include <getopt.h>
 
 
@@ -298,9 +299,37 @@ SizeConstants::SizeConstants(void)
         { "USER_NET", &SizeConstants::m_user_net },
         { nullptr, nullptr }
     };
+    /* get the running kernel flavour
+       if not default, try looking for the flavour-suffixed variable,
+       falling back to the defaul unsuffixed variable */
+    struct utsname uts;
+    char *flavour;
+
+    if (uname(&uts) >= 0 &&
+        (flavour = strrchr(uts.release, '-')) &&
+	*(++flavour) &&
+	strcmp(flavour, "default")) {
+        DEBUG("Kernel flavour: %s", flavour);
+    }
+    else {
+        flavour = NULL;
+        DEBUG("Default kernel flavour");
+    }
+
     for (auto p = &vars[0]; p->name; ++p) {
-		char *val = std::getenv(p->name);
-		char *end;
+	char *val = NULL;
+        char *end;
+	if (flavour) {
+	    std::string flavoured_name(p->name);
+	    flavoured_name.append("_");
+	    flavoured_name.append(flavour);
+	    val = std::getenv(flavoured_name.c_str());
+            if (!val || !*val)
+                DEBUG("No value configured for %s, using %s", flavoured_name.c_str(), p->name);
+	}
+	if (!val || !*val)
+	    val = std::getenv(p->name);
+
         if (!val || !*val)
             throw std::runtime_error(std::string("No value configured for ") + p->name);
         this->*p->var = strtoll(val, &end, 10);
