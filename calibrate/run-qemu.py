@@ -378,7 +378,7 @@ def calibrate_kernel(image, flavour):
         subprocess.run(('rm', '-rf', '/tmp/netdump'), stdout=sys.stderr, stderr=sys.stderr, check=False)
 
         # prepare disk image for saving the non-network dump
-        subprocess.run(('dd', 'if=/dev/zero', 'of=disk.raw', 'bs=1', 'seek=200M', 'count=1'), stdout=sys.stderr, stderr=sys.stderr, check=True)
+        subprocess.run(('dd', 'if=/dev/zero', 'of=disk.raw', 'bs=1', 'seek=300M', 'count=1'), stdout=sys.stderr, stderr=sys.stderr, check=True)
         subprocess.run(('/usr/sbin/mkfs.ext3', '-L', 'calib-disk', 'disk.raw'), stdout=sys.stderr, stderr=sys.stderr, check=True)
 
         # configure and start ssh server for the network dump
