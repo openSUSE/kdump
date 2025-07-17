@@ -1,3 +1,9 @@
+2.1.2
+-----
+* work around failing calibration on aarch64
+* support for kernel flavour-specific calibration 
+* specific calibration for aarch64 -64kb kernels (jsc#PED-12971)
+
 2.1.1
 -----
 * check for reserved memory on load for better error reporting
