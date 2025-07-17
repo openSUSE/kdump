@@ -52,6 +52,7 @@ this, the maintainer needs to:
 
    To make this task easier, you can use the update_calibrate.py script.
    Run it in the directory with your branched osc package working copy.
+   Make sure to wipe old binaries of the package (osc wipebinaries --all).
 
    It will extract calibrate.conf from all the built kdump binaries in the project
    and update calibrate.conf.all with the extracted values.
