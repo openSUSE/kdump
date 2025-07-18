@@ -178,7 +178,9 @@ function main() {
 			DIR="${URL_DIR}/${SUBDIR}"
 			LFTP_DEBUG=""
 			${VERBOSE} && LFTP_DEBUG="-d "
-			SAVE_COMMAND='lftp ${LFTP_DEBUG} -c "set net:timeout 5; set net:max-retries 2; open --env-password ${URL} || exit 1; mkdir -pf ${DIR}; chmod 700 ${DIR}; put ${SOURCE} -o ${DIR}/${FILENAME}"'
+			LFTP_TIMEOUT=5
+			[[ ${KDUMP_NET_TIMEOUT} -gt 5 ]] && LFTP_TIMEOUT=${KDUMP_NET_TIMEOUT}
+			SAVE_COMMAND='lftp ${LFTP_DEBUG} -c "set net:timeout '${LFTP_TIMEOUT}'; set net:max-retries 2; open --env-password ${URL} || exit 1; mkdir -pf ${DIR}; chmod 700 ${DIR}; put ${SOURCE} -o ${DIR}/${FILENAME}"'
 			# NOTE: --env-password/LFTP_PASSWORD is a hack for sftp not to ask for password if keys are used
 	esac
 

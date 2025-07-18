@@ -556,6 +556,9 @@ You may need to do this if the machine does not respond to ping and
 KDUMP_CONTINUE_ON_ERROR is set to "false" to avoid being dropped to a
 debug shell. 
 
+This value, if larger than 5 seconds, is also used as a timeout for _ftp_ and
+_sftp_ transfers. Otherwise 5 seconds is used for _ftp_ and _sftp_.
+
 Default: "30"
 
 KDUMP_SMTP_SERVER
