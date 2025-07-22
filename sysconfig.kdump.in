@@ -56,6 +56,10 @@ KDUMP_KERNELVER=""
 #
 # If the value is zero, use all available CPUs.
 #
+# Decreasing the number of CPUs lowers the memory required by kdump.
+# Increasing it raises memory usage and may cause failures if crashkernel
+# memory is insufficient.
+#
 # See also: kdump(5).
 #
 KDUMP_CPUS=32
