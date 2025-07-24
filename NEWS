@@ -1,3 +1,7 @@
+2.1.5
+-----
+* kdumptool calibrate: use kernel flavour from the kdump kerne
+
 2.1.4
 -----
 * use KDUMP_NET_TIMEOUT as sftp/ftp timeout

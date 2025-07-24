@@ -50,7 +50,7 @@ function do_calibrate()
 			done < <(cryptsetup luksDump "${CRYPTO_SOURCE}")
 		fi
 	fi
-
+	[[ -f /var/lib/kdump/kernel-version ]] && read KDUMP_KERNEL_VERSION < /var/lib/kdump/kernel-version
 	# skip over the "calibrate" argument and pass the rest to the binary
 	shift
 	/usr/lib/kdump/calibrate "$@"

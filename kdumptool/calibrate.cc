@@ -40,6 +40,7 @@
 bool needsNetwork;
 bool needsMakedumpfile;
 long long KDUMP_CPUS, KDUMP_LUKS_MEMORY;
+char *kernel_version = NULL;
 bool m_shrink = false;
 bool debug = false;
 
@@ -299,16 +300,20 @@ SizeConstants::SizeConstants(void)
         { "USER_NET", &SizeConstants::m_user_net },
         { nullptr, nullptr }
     };
-    /* get the running kernel flavour
+    /* get the kernel flavour from KDUMP_KERNEL_VERSION or uname;
        if not default, try looking for the flavour-suffixed variable,
-       falling back to the defaul unsuffixed variable */
-    struct utsname uts;
-    char *flavour;
+       falling back to the default unsuffixed variable */
+    if (!kernel_version) {
+        struct utsname uts;
+        if (uname(&uts))
+            kernel_version = uts.release;
+    }
 
-    if (uname(&uts) >= 0 &&
-        (flavour = strrchr(uts.release, '-')) &&
-	*(++flavour) &&
-	strcmp(flavour, "default")) {
+    char *flavour;
+    if (kernel_version &&
+        (flavour = strrchr(kernel_version, '-')) &&
+        *(++flavour) &&
+	    strcmp(flavour, "default")) {
         DEBUG("Kernel flavour: %s", flavour);
     }
     else {
@@ -1056,6 +1061,10 @@ int main(int argc, char* argv[])
 		if (!val || !*val)
 			throw std::runtime_error("KDUMP_DUMPFORMAT not defined");
 		needsMakedumpfile = strcmp(val, "none") && strcmp(val, "raw");
+
+		val = std::getenv("KDUMP_KERNEL_VERSION");
+		if (val && *val)
+            kernel_version = val;
 	}
 	catch(std::runtime_error &e) {
 		cerr << "Error parsing config from environment variables: " << e.what() << endl;
@@ -1194,4 +1203,4 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 }
-
+// vim: set et ts=4 sw=4 :

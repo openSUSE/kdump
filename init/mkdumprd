@@ -247,7 +247,7 @@ if [[ "$KDUMP_FADUMP" == "true" ]] && [[ "$FADUMP_INTERNAL" != "true" ]]; then
 	done
 	
 	# remove the kernel symlink and $INITRD_DEFAULT, they are not used for FADUMP
-	rm -f /var/lib/kdump/kernel "$INITRD_DEFAULT"
+	rm -f /var/lib/kdump/kernel "$INITRD_DEFAULT" /var/lib/kdump/kernel-version
 
 	exit "$RET"
 fi
@@ -353,5 +353,9 @@ dracut "${DRACUT_ARGS[@]}" "$INITRD" "$KERNELVERSION" || exit
 
 # if we're rebuilding the default INITRD, update the kernel symlink
 # to point to the kernel image the initrd was just built for
-[[ "$INITRD" == "$INITRD_DEFAULT" ]] && ln -sf "$KERNEL_REALPATH" /var/lib/kdump/kernel
+if [[ "$INITRD" == "$INITRD_DEFAULT" ]]; then
+	ln -sf "$KERNEL_REALPATH" /var/lib/kdump/kernel
+	echo "${KERNELVERSION}" > /var/lib/kdump/kernel-version
+fi
+
 exit 0
