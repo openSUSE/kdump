@@ -1,6 +1,8 @@
 2.1.5
 -----
-* kdumptool calibrate: use kernel flavour from the kdump kerne
+* kdumptool calibrate: use kernel flavour from the kdump kernel (jsc#PED-12971)
+* order kdump-commandline.service after kdump.service
+* updated documentation (bsc#1246908)
 
 2.1.4
 -----
