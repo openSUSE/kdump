@@ -719,6 +719,9 @@ function kdump_filter_sysctl()						   # {{{
 	"$root"/etc/sysctl.conf
     do
 	sed -i -e '/^[ \t]*vm\./d' "$f"
+	sed -i -e '/^[ \t]*kernel\.panic_on_warn/d' "$f"
+	sed -i -e '/^[ \t]*kernel\.softlockup_panic/d' "$f"
+	sed -i -e '/^[ \t]*kernel\.panic_on_rcu_stall/d' "$f"
     done
 
     eval "$restoreopt"
