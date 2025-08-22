@@ -1,3 +1,10 @@
+2.1.6
+-----
+* drop broken option KDUMP_NETCONFIG="" from manpage
+* prevent NetworkManager from overwriting resolv.conf (bsc#1247848)
+* fix KDUMP_NETCONFIG=auto for NetworkManager (bsc#1247848)
+* Exclude kernel.panic_on_warn sysctl from capture kernel initrd (bsc#1247355)
+
 2.1.5
 -----
 * kdumptool calibrate: use kernel flavour from the kdump kernel (jsc#PED-12971)
