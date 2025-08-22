@@ -210,6 +210,16 @@ install() {
 		# is resolved first to install directly the target file if it is a symlink.
 		local resolv=$(realpath /etc/resolv.conf)
 		inst_simple "$resolv" /etc/resolv.conf
+
+		# for static or auto6 network config mode, prevent NM from
+		# replacing the installed resolv.conf with an empty one
+		case "$kdump_net_mode" in
+			static|auto6)
+				mkdir -p $initdir/etc/NetworkManager/conf.d
+				echo -e "[main]\ndns=none" > $initdir/etc/NetworkManager/conf.d/99kdump.conf
+				;;
+		esac
+
 		inst_simple /etc/hosts
 		# set up hardware interfaces
 		kdump_setup_hwif "${initdir}"
