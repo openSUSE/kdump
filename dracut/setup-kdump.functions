@@ -109,9 +109,27 @@ function kdump_netdev_mode()						   # {{{
     local inffile="/etc/install.inf"
     local BOOTPROTO
 
-    # get mode using wicked if possible
-    if [ "$(kdump_net_manager)" = "wicked" ]
-    then
+    # get mode using NM/wicked if possible
+    if [[ "$(kdump_net_manager)" = "NetworkManager" ]]; then
+		local nm_con method_v4 method_v6
+		nm_con=$(nmcli -t -f GENERAL.CONNECTION device show "${ifname}")
+		nm_con="${nm_con#*:}"
+		if [[ -n "${nm_con}" ]]; then
+			method_v4=$(nmcli -t -f ipv4.method connection show "${nm_con}")
+			method_v4="${method_v4#*:}"
+			method_v6=$(nmcli -t -f ipv6.method connection show "${nm_con}")
+			method_v6="${method_v6#*:}"
+
+			BOOTPROTO=dhcp
+			if [[ "$method_v4" == "disabled" ]] || [[ "$method_v4" == "link-local" ]]; then
+				# when IPv4 is disabled or LL, use possible static IPv6
+				[[ "$method_v6" == "manual"  ]] && BOOTPROTO=static
+			else
+				# use IPv4 - static or DHCP
+				[[ "$method_v4" == "manual"  ]] && BOOTPROTO=static
+			fi
+		fi
+    elif [[ "$(kdump_net_manager)" = "wicked" ]]; then
 	if [ "$(kdump_wicked_conf "$ifname" "%{name}")" = "$ifname" ]
 	then
 	    local dhcpv4 dhcpv6
