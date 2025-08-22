@@ -21,15 +21,12 @@ check() {
 	   [[ "$KDUMP_POSTSCRIPT" =~ "$FENCE_KDUMP_SEND" ]] ; then
 		# add fence_kdump_send to initrd automatically
 		KDUMP_REQUIRED_PROGRAMS="$KDUMP_REQUIRED_PROGRAMS $FENCE_KDUMP_SEND"
-		# set up network (unless explicitly disabled by KDUMP_NETCONFIG)
+		# set up network
 		kdump_neednet=y
 	fi
 
 	# check if network is needed
-	if [ -z "$KDUMP_NETCONFIG" ]; then
-		# network explicitly disabled in configuration
-		kdump_neednet=
-	elif [ "${KDUMP_NETCONFIG%:force}" != "$KDUMP_NETCONFIG" ]; then
+	if [ "${KDUMP_NETCONFIG%:force}" != "$KDUMP_NETCONFIG" ]; then
 		# always set up network
 		kdump_neednet=y
 	else

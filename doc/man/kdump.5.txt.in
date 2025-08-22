@@ -544,9 +544,6 @@ will assume networking is being configured manually. No network configuration
 will be done by kdump and the value of KDUMP_NETCONFIG will not be taken into
 account.
 
-Setting KDUMP_NETCONFIG to "" disables network completely. In this case, kdump
-does not even add the _network_ dracut module to the initrd.
-
 Default: "auto"
 
 KDUMP_NET_TIMEOUT
