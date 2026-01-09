@@ -430,6 +430,7 @@ function kdump_link2vlan()                                                # {{{{
 #   kdump_netif  corresponding vlan= initrd parameter added
 #   kdump_iface  device name in initrd
 #   kdump_kmods  additional kernel modules updated
+#   kdump_ifmap  hardware network interface map updated
 #
 # Because of dracut limitations for vlan interface naming, the initrd
 # interface name may be different from the original name.
@@ -437,6 +438,7 @@ function kdump_vlan_config()						   # {{{
 {
     local if="$1"
     local vid
+    local orig_if="$if"
 
     # use wicked to read VLAN configuration, if possible
     if [ "$(kdump_net_manager)" = "wicked" ]
@@ -455,6 +457,22 @@ function kdump_vlan_config()						   # {{{
 
     kdump_kmods="$kdump_kmods 8021q"
     kdump_ifname_config "$if"
+
+    # The vlan "physdevice" might be an interface that is going to be
+    # identified as `kdumpX`. Therefore, we have to use that one here, and
+    # create an interface map entry, that translates the original vlan device
+    # name to the updated one.
+    local _spec _iface _bootif
+    for _spec in $kdump_ifmap
+    do
+        _iface="${_spec%:*}"
+        _bootif="${_spec##*:}"
+        if [[ ${if} == ${_iface} ]]; then
+            if=${_bootif}
+            kdump_ifmap="$kdump_ifmap ${orig_if}:${if}.${vid}"
+        fi
+    done
+
     kdump_iface="$if.$vid"
     kdump_netif="$kdump_netif vlan=$kdump_iface:$if"
 }									   # }}}
