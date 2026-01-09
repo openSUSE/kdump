@@ -455,6 +455,7 @@ function kdump_vlan_config()						   # {{{
 
     kdump_kmods="$kdump_kmods 8021q"
     kdump_ifname_config "$if"
+    if="$kdump_iface"
     kdump_iface="$if.$vid"
     kdump_netif="$kdump_netif vlan=$kdump_iface:$if"
 }									   # }}}
