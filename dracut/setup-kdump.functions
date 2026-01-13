@@ -430,6 +430,7 @@ function kdump_link2vlan()                                                # {{{{
 #   kdump_netif  corresponding vlan= initrd parameter added
 #   kdump_iface  device name in initrd
 #   kdump_kmods  additional kernel modules updated
+#   kdump_ifmap  hardware network interface map updated
 #
 # Because of dracut limitations for vlan interface naming, the initrd
 # interface name may be different from the original name.
@@ -458,6 +459,7 @@ function kdump_vlan_config()						   # {{{
     kdump_ifname_config "$slave"
     slave="$kdump_iface"
     kdump_iface="$slave.$vid"
+    kdump_ifmap="$kdump_ifmap $if:$kdump_iface"
     kdump_netif="$kdump_netif vlan=$kdump_iface:$slave"
 }									   # }}}
 
