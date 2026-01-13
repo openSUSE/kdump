@@ -436,13 +436,14 @@ function kdump_link2vlan()                                                # {{{{
 function kdump_vlan_config()						   # {{{
 {
     local if="$1"
+    local slave
     local vid
 
     # use wicked to read VLAN configuration, if possible
     if [ "$(kdump_net_manager)" = "wicked" ]
     then
 	eval $( kdump_wicked_conf "$if" \
-		"vid=%{vlan/tag}; if=%{vlan/device}" )
+		"vid=%{vlan/tag}; slave=%{vlan/device}" )
     fi
 
     # fall back to sysfs
@@ -450,14 +451,14 @@ function kdump_vlan_config()						   # {{{
     then
 	vid=$(ip -d link show "$if" | kdump_link2vlan)
 	local slaves=$(kdump_list_slaves "$if")
-	if="${slaves# }"
+	slave="${slaves# }"
     fi
 
     kdump_kmods="$kdump_kmods 8021q"
-    kdump_ifname_config "$if"
-    if="$kdump_iface"
-    kdump_iface="$if.$vid"
-    kdump_netif="$kdump_netif vlan=$kdump_iface:$if"
+    kdump_ifname_config "$slave"
+    slave="$kdump_iface"
+    kdump_iface="$slave.$vid"
+    kdump_netif="$kdump_netif vlan=$kdump_iface:$slave"
 }									   # }}}
 
 # Get the ifname parameter for a given device
