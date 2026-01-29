@@ -99,8 +99,8 @@ function do_commandline()
 			echo "Options -d / -D are mutually exclusive with options -c and -u / -U" >&2
 			return 1
 		fi
-		pbl --del-option "crashkernel" --del-option "fadump" --config
-		return 2
+		pbl --del-option "crashkernel" --del-option "fadump" --config || return 2
+		return 0
 	fi
 	
 	
