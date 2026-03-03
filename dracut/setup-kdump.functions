@@ -626,7 +626,7 @@ function kdump_ip_config()						   # {{{
         fi
 	netmask=$( kdump_prefix2netmask "${prefix:1}" )
 
-    done < <(ip -4 address show dev "$iface")
+    done < <(ip -4 address show dev "$iface" primary)
 
     gwaddr=$(ip route show 0/0 | sed -n 's/.* via \([^ ]*\).*/\1/p')
     hostname=$(hostname)
