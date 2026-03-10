@@ -155,11 +155,13 @@ install() {
 	# avoid dracut failing with root=kdump
 	inst_hook cmdline 50 "$moddir/kdump-root.sh"
 	
-	# prevent mounting, fscking and waiting for root 
+	# prevent mounting, fscking and waiting for root
+	# dracut-110 moved hooks from /lib to /var/lib, check both locations
 	mkdir -p "$initdir/etc/systemd/system-generators"
 	ln -s /dev/null "$initdir/etc/systemd/system-generators/dracut-rootfs-generator"
-	rm -f "$initdir/lib/dracut/hooks/cmdline/00-parse-root.sh"
-	
+	rm -f "$initdir/lib/dracut/hooks/cmdline/00-parse-root.sh" \
+		"$initdir/var/lib/dracut/hooks/cmdline/00-parse-root.sh"
+
 	inst_script "$moddir"/kdump-save /kdump/kdump-save
 	inst_simple "$moddir/kdump-save.service" "$systemdsystemunitdir/kdump-save.service"
 
