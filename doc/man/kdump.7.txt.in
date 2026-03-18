@@ -67,11 +67,13 @@ boot.
 Automatic Configuration
 -----------------------
 
-A simple method to use kdump on SUSE is to install
-the kdump package and enable the kdump.service:
+Non-transactional systems
+~~~~~~~~~~~~~~~~~~~~~~~~~
+An easy method to configure kdump on SUSE non-transactional systems is
+to install the kdump package and enable the kdump.service:
 
 ----------------------------------
-# zypper install yast2-kdump
+# zypper install kdump
 # systemctl enable kdump
 ----------------------------------
 
@@ -90,6 +92,19 @@ option on the next boot.
 
 If you don't perform this step, the service will fail during the
 next boot and kdump should be available on the second-next boot.
+
+Transactional systems
+~~~~~~~~~~~~~~~~~~~~~
+On a transactional system the kdump-commandline.service won't be able
+to update the bootloader. Use the transactional-update tool instead:
+
+----------------------------------
+# transactional-update setup-kdump
+----------------------------------
+
+This will install kdump, set KDUMP_UPDATE_BOOTLOADER to false and run
+_kdumptool calibrate_ and _kdumptool commandline_ to update the
+bootloader.
 
 
 Manual Setup
