@@ -104,6 +104,9 @@ function do_commandline()
 	fi
 	
 	
+	TOLERANCE_UP=0
+	TOLERANCE_DOWN=0
+
 	# sanitize the value in KDUMP_CRASHKERNEL
 	read -ra KDUMP_CRASHKERNEL_ITEMS <<<"$KDUMP_CRASHKERNEL"
 
@@ -144,6 +147,11 @@ function do_commandline()
 			fi
 		fi
 		CRASHKERNEL_SOURCE="the output of 'kdumptool calibrate'"
+
+		# kdumptool calibrate is not stable
+		# avoid unnecessary minor adjustments to the bootloader
+		TOLERANCE_UP=16
+		TOLERANCE_DOWN=4
 	else
 		for i in "${KDUMP_CRASHKERNEL_ITEMS[@]}"; do
 			case "${i}" in
@@ -199,17 +207,55 @@ function do_commandline()
 		CHECK_FAILED=false
 
 		if [[ "${CRASHKERNEL[*]}" != "${CMDLINE_CRASHKERNEL[*]}" ]]; then
-			CHECK_FAILED=true
 			echo "Kdump expects these crashkernel= values on the kernel command line:"
 			echo "    ${CRASHKERNEL[*]}"
 			echo "(based on ${CRASHKERNEL_SOURCE})"
 
 			if [[ -z "${CMDLINE_CRASHKERNEL[*]}" ]]; then
 				echo "No crashkernel= found in /proc/cmdline. Kdump can't be started."
+				CHECK_FAILED=true
 			else
 				echo "/proc/cmdline contains:"
 				echo "    ${CMDLINE_CRASHKERNEL[*]}"
-				echo "Kdump may not work correctly"
+
+				# check if differences are within tolerance
+				if [[ $TOLERANCE_UP -eq 0 ]] && [[ $TOLERANCE_DOWN -eq 0 ]]; then
+					# no tolerance allowed
+					CHECK_FAILED=true
+				elif [[ "${#CRASHKERNEL[*]}" -ne "${#CMDLINE_CRASHKERNEL[*]}" ]]; then
+					# different number of crashkernel= parameters
+					CHECK_FAILED=true
+				else
+					# check individual elements
+					for ((i=0; i<${#CRASHKERNEL[*]}; ++i)); do
+						A=${CRASHKERNEL[i]}
+						B=${CMDLINE_CRASHKERNEL[i]}
+
+						# extract numeric values
+						AN=${A//[^0-9]/}
+						BN=${B//[^0-9]/}
+
+						# no numeric value found
+						[[ -z $AN ]] && CHECK_FAILED=true
+						[[ -z $BN ]] && CHECK_FAILED=true
+						$CHECK_FAILED && break
+
+						# A with B's numeric value differs from B
+						[[ "${A/$AN/$BN}" != "$B" ]] && CHECK_FAILED=true
+						$CHECK_FAILED && break
+
+						# value not within tolerance
+						[[ $((AN)) -gt $((BN + TOLERANCE_DOWN)) ]] && CHECK_FAILED=true
+						[[ $((AN)) -lt $((BN - TOLERANCE_UP)) ]] && CHECK_FAILED=true
+						$CHECK_FAILED && break
+					done
+				fi
+
+				if $CHECK_FAILED; then
+					echo "Kdump may not work correctly."
+				else
+					echo "Ignoring minor differencies in crashkernel sizes."
+				fi
 			fi
 		fi
 
