@@ -1,3 +1,8 @@
+2.1.8
+-----
+* man: fix install instructions in kdump(7)
+* kdumptool commandline: ignore minor differencies (bsc#1260535)
+
 2.1.7
 -----
 * fix VLAN interface naming (bsc#1255300)
