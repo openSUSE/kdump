@@ -21,7 +21,9 @@
 KDUMP_CRASHKERNEL="auto"
 
 
-## Type:	string ## Default:	"true" ## ServiceRestart:	kdump
+## Type:        boolean
+## Default:	"true"
+## ServiceRestart:	kdump
 #
 # When KDUMP_UPDATE_BOOTLOADER is set to "true" "kdumptool commandline -c -U"
 # called from the kdump-commandline.service  will check if the expected kernel
@@ -196,7 +198,6 @@ KDUMP_TRANSFER=""
 # manual page for more details on setting it up.
 #
 # See also: kdump(5) which contains an exact specification for the URL format.
-# Consider using the "yast2 kdump" module if you are unsure.
 #
 KDUMP_SAVEDIR="/var/crash"
 
