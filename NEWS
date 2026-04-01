@@ -1,3 +1,12 @@
+Maintenance updates:
+--------------------
+* fix VLAN interface naming (bsc#1255300)
+* fix bonding options for VLAN slaves (bsc#1255300)
+* fix return value of kdumptool commandline -d (bsc#1257471)
+* man: fix install instructions in kdump(7)
+* kdumptool commandline: ignore minor differencies (bsc#1260535)
+* fix sysconfig syntax
+
 2.1.6
 -----
 * drop broken option KDUMP_NETCONFIG="" from manpage
