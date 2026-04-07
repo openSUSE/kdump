@@ -97,6 +97,9 @@ function build_kdump_commandline()
             remove_from_commandline \
                 'root|resume|crashkernel|splash|mem|BOOT_IMAGE|showopts|zfcp\.allow_lun_scan|hugepages|acpi_no_memhotplug|cgroup_disable|unknown_nmi_panic|rd\.udev\.children-max' \
                 < /proc/cmdline)
+	if $DEBUG; then
+            commandline=$(echo "$commandline" | remove_from_commandline 'quiet')
+	fi
 
 	[[ -e /proc/xen ]] && KDUMP_CPUS=1	# makedumpfile does not support --num-threads on XEN
         if [ ${KDUMP_CPUS:-1} -ne 0 ] ; then
@@ -253,7 +256,9 @@ function rebuild_kdumprd()
 . /usr/lib/kdump/kdump-read-config.sh
 
 VERBOSE=false
+DEBUG=false
 [[ $((${KDUMP_VERBOSE:-0} & 5)) -gt 0 ]] && VERBOSE=true
+[[ $((${KDUMP_VERBOSE:-0} & 8)) -gt 0 ]] && DEBUG=true
 
 update=
 shrink=
