@@ -1,3 +1,8 @@
+2.1.9
+-----
+* fix syntax in sysconfig
+* drop quiet from commandline when KDUMP_VERBOSE=8
+
 2.1.8
 -----
 * man: fix install instructions in kdump(7)
