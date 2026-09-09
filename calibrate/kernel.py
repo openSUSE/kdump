@@ -9,10 +9,8 @@ parser.add_argument('-d', '--debug', action='store_true',
                     help='print debugging messages on stderr')
 cmdline = parser.parse_args()
 
-re_memory = re.compile('Memory: (\\d+)K/(\\d+)K available')
 re_freeing = re.compile('Freeing (.*) memory: (\\d+)K$')
 
-available = 0
 freed = 0
 unpack = False
 for line in sys.stdin:
@@ -29,13 +27,5 @@ for line in sys.stdin:
                   file=sys.stderr)
     elif 'Trying to unpack rootfs image' in line:
         unpack = True
-    else:
-        match = re_memory.search(line)
-        if match:
-            available = int(match[2])
-            if cmdline.debug:
-                print('Memory {}K/{}K'.format(match[1], match[2]),
-                      file=sys.stderr)
 
-print('AVAILABLE={:d}'.format(available))
 print('KERNEL_INIT={:d}'.format(freed))
