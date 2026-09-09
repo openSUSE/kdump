@@ -302,9 +302,7 @@ def run_qemu(bindir, params, initrd, elfcorehdr):
     numpages = (params['TOTAL_RAM'] + pagesize_kb - 1) // pagesize_kb
     memmap_pages = (numpages * results['SIZEOFPAGE'] + pagesize - 1) // pagesize
     kernel_base -= memmap_pages * pagesize_kb
-    results['KERNEL_BASE'] = kernel_base - results['PERCPU']
-
-    results['PERCPU'] = results['PERCPU'] // params['NUMCPUS']
+    results['KERNEL_BASE'] = kernel_base
 
     return results
 
@@ -390,7 +388,16 @@ def calibrate_kernel(image, flavour):
         install_kdump_init(oldcwd)
         init_local_dracut(params)
         
+        # qemu will be run three times:
+        #   with BASE_CPUS cpus, no network to get base requirements
+        #   with MANY_CPUS cpus, no network, to calculate the extra per-cpu requirements
+        #   with 2 cpus and network, to calculate the extra network requirements
+
+        BASE_CPUS = 2
+        MANY_CPUS = 64
+
         params['NET'] = False
+        params['NUMCPUS'] = BASE_CPUS
         initrd = build_initrd(oldcwd, params, 'dummy.conf', "test-initrd")
         results = run_qemu(oldcwd, params, initrd, elfcorehdr)
         # verify that the dump completed successfully
@@ -401,20 +408,32 @@ def calibrate_kernel(image, flavour):
         if not ret:
             print("non-network dump failed; calibration failed", file=sys.stderr)
             exit(1)
+
+        params['NUMCPUS'] = MANY_CPUS
+        results_many = run_qemu(oldcwd, params, initrd, elfcorehdr)
+        # we don't need to check the dump result, we're only interested in KERNEL_BASE
+        if not results_many['KERNEL_BASE']:
+            print("kernel failed with larger number of cpus; calibration failed", file=sys.stderr)
+            exit(1)
+
                 
         params['NET'] = True
+        params['NUMCPUS'] = BASE_CPUS
         initrd = build_initrd(oldcwd, params, 'dummy-net.conf', "test-initrd-net")
         os.mkdir('/tmp/netdump')
-        netresults = run_qemu(oldcwd, params, initrd, elfcorehdr)
+        results_net = run_qemu(oldcwd, params, initrd, elfcorehdr)
         if not dump_ok('/tmp/netdump'):
             print("network dump failed; calibration failed", file=sys.stderr)
             exit(1)
 
         os.chdir(oldcwd)
 
-    calc_diff(results, netresults, 'KERNEL_INIT', 'INIT_NET')
-    calc_diff(results, netresults, 'INIT_CACHED', 'INIT_CACHED_NET')
-    calc_diff(results, netresults, 'USER_BASE', 'USER_NET')
+    calc_diff(results, results_net, 'KERNEL_INIT', 'INIT_NET')
+    calc_diff(results, results_net, 'INIT_CACHED', 'INIT_CACHED_NET')
+    calc_diff(results, results_net, 'USER_BASE', 'USER_NET')
+
+    results['PERCPU'] = (results_many['KERNEL_BASE'] - results['KERNEL_BASE']) // (MANY_CPUS - BASE_CPUS)
+    results['KERNEL_BASE'] -= results['PERCPU'] * BASE_CPUS
 
     keys = (
         'KERNEL_BASE',
@@ -446,9 +465,6 @@ params['DRACUTDIR'] = '/usr/lib/dracut'
 
 # Total VM memory in KiB:
 params['TOTAL_RAM'] = 1024 * 1024
-
-# Number of CPUs for the VM
-params['NUMCPUS'] = 2
 
 # Where kernel messages should go
 params['MESSAGES_LOG'] = 'messages.log'
