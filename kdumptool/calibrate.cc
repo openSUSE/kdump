@@ -68,49 +68,37 @@ void DEBUG(const char *msg, ...)
 // The following macros are defined:
 //
 //    DEF_RESERVE_KB	default reservation size
-//    CAN_REDUCE_CPUS   non-zero if the architecture can reduce kernel
-//                      memory requirements with nr_cpus=
-//
 
 #if defined(__x86_64__)
 # define DEF_RESERVE_KB		MB(192)
-# define CAN_REDUCE_CPUS	1
 
 #elif defined(__i386__)
 # define DEF_RESERVE_KB		MB(192)
-# define CAN_REDUCE_CPUS	1
 
 #elif defined(__powerpc64__)
 # define DEF_RESERVE_KB		MB(384)
-# define CAN_REDUCE_CPUS	0
 
 #elif defined(__powerpc__)
 # define DEF_RESERVE_KB		MB(192)
-# define CAN_REDUCE_CPUS	0
 
 #elif defined(__s390x__)
 # define DEF_RESERVE_KB		MB(192)
-# define CAN_REDUCE_CPUS	1
 
 # define align_memmap		s390x_align_memmap
 
 #elif defined(__s390__)
 # define DEF_RESERVE_KB		MB(192)
-# define CAN_REDUCE_CPUS	1
 
 # define align_memmap		s390_align_memmap
 
 #elif defined(__aarch64__)
 # define DEF_RESERVE_KB		MB(192)
-# define CAN_REDUCE_CPUS	1
 
 #elif defined(__arm__)
 # define DEF_RESERVE_KB		MB(192)
-# define CAN_REDUCE_CPUS	1
 
 #elif defined(__riscv)
 # define DEF_RESERVE_KB		MB(192)
-# define CAN_REDUCE_CPUS	1
 
 #else
 # error "No default crashkernel reservation for your architecture!"
@@ -916,9 +904,8 @@ static unsigned long runtimeSize(SizeConstants const &sizes,
 
     // Add memory based on CPU count
     unsigned long cpus = 0, percpu;
-    if (CAN_REDUCE_CPUS) {
 	cpus = KDUMP_CPUS;
-    }
+
     if (!cpus) {
         unsigned long online = SystemCPU_count("/sys/devices/system/cpu/online");
         unsigned long offline = SystemCPU_count("/sys/devices/system/cpu/offline");
