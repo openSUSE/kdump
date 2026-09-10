@@ -43,6 +43,7 @@ long long KDUMP_CPUS, KDUMP_LUKS_MEMORY;
 char *kernel_version = NULL;
 bool m_shrink = false;
 bool debug = false;
+unsigned long cpus = 0;
 
 void read_str(std::string &str, const char* path);
 
@@ -903,17 +904,7 @@ static unsigned long runtimeSize(SizeConstants const &sizes,
     }
 
     // Add memory based on CPU count
-    unsigned long cpus = 0, percpu;
-	cpus = KDUMP_CPUS;
-
-    if (!cpus) {
-        unsigned long online = SystemCPU_count("/sys/devices/system/cpu/online");
-        unsigned long offline = SystemCPU_count("/sys/devices/system/cpu/offline");
-        DEBUG("CPUs online: %lu, offline: %lu",
-                            online, offline);
-        cpus = online + offline;
-    }
-    DEBUG("Total assumed CPUs: %lu", cpus);
+    unsigned long percpu;
     percpu = sizes.percpu_kb(); // kernel percpu from calibrate.conf
     percpu += 50 * 2; // generic ~50k thread footprint (measured) * 2 for safety
     percpu += 3 * sizes.pagesize() / 1024; // makedumpfile BUF_PARALLEL and BUF_OUT_PARALLEL
@@ -1082,9 +1073,19 @@ int main(int argc, char* argv[])
     // Get total RAM size
     DEBUG("Expected total RAM: %lu KiB", memtotal);
 
+    cpus = KDUMP_CPUS;
+    if (!cpus) {
+        unsigned long online = SystemCPU_count("/sys/devices/system/cpu/online");
+        unsigned long offline = SystemCPU_count("/sys/devices/system/cpu/offline");
+        DEBUG("CPUs online: %lu, offline: %lu",
+                            online, offline);
+        cpus = online + offline;
+    }
+    DEBUG("Total assumed CPUs: %lu", cpus);
+
     // Calculate boot requirements
     unsigned long bootsize = sizes.kernel_base_kb() +
-        sizes.kernel_init_kb() + sizes.initramfs_kb();
+        sizes.kernel_init_kb() + sizes.initramfs_kb() + cpus * sizes.percpu_kb();
     if (needsNetwork)
         bootsize += sizes.kernel_init_net_kb() + sizes.initramfs_net_kb();
     DEBUG("Memory needed at boot: %lu KiB", bootsize);
