@@ -311,6 +311,15 @@ fi
 set -a
 . /usr/lib/kdump/kdump-read-config.sh
 
+# KDUMP_CPUS tweaks
+# round up to nearest threads-per-core on ppc64/SMT systems
+if SMT=$(ppc64_cpu --smt -n 2>/dev/null); then
+	SMT=${SMT##SMT=}
+	KDUMP_CPUS=$((KDUMP_CPUS+SMT-1-(KDUMP_CPUS+SMT-1)%SMT))
+fi
+# makedumpfile does not support --num-threads on XEN
+[[ -e /proc/xen ]] && KDUMP_CPUS=1
+
 case $1 in
 	calibrate)
 		do_calibrate "$@"

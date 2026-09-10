@@ -102,12 +102,16 @@ KDUMP_CPUS
 ~~~~~~~~~~
 
 This parameter can be used to limit the number of CPUs used by kdump. 
-The value is passed in the _nr_cpus_ parameter to the kdump / fadump kernel and 
-in the _--num-threads_ option to *makedumpfile*(8).
+The value is passed in the _nr_cpus_ parameter to the kdump / fadump kernel.
 
 If the value is zero, all available CPUs are used, i.e. the _nr_cpus_
 parameter is not added to the kdump kernel command line and _--num-threads_ 
 is set to the number of CPUs.
+
+On ppc64, when SMT is active, KDUMP_CPUS is rounded up to the nearest
+number of threads-per-core.
+
+On XEN the KDUMP_CPUS is set to 1.
 
 Decreasing the number of CPUs will lower the memory required by kdump,
 while increasing it can raise memory usage and may cause kdump failure

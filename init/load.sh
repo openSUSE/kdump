@@ -101,7 +101,15 @@ function build_kdump_commandline()
             commandline=$(echo "$commandline" | remove_from_commandline 'quiet')
 	fi
 
-	[[ -e /proc/xen ]] && KDUMP_CPUS=1	# makedumpfile does not support --num-threads on XEN
+	# KDUMP_CPUS tweaks
+	# round up to nearest threads-per-core on ppc64/SMT systems
+	if SMT=$(ppc64_cpu --smt -n 2>/dev/null); then
+		SMT=${SMT##SMT=}
+		KDUMP_CPUS=$((KDUMP_CPUS+SMT-1-(KDUMP_CPUS+SMT-1)%SMT))
+	fi
+	# makedumpfile does not support --num-threads on XEN
+	[[ -e /proc/xen ]] && KDUMP_CPUS=1
+
         if [ ${KDUMP_CPUS:-1} -ne 0 ] ; then
             nr_cpus="nr_cpus=${KDUMP_CPUS:-1}"
         fi
