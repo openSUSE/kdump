@@ -117,7 +117,7 @@ Decreasing the number of CPUs will lower the memory required by kdump,
 while increasing it can raise memory usage and may cause kdump failure
 if crashkernel memory is insufficient.
 
-Default is 32.
+Default is 4.
 
 
 KDUMP_COMMANDLINE

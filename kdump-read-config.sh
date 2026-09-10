@@ -10,7 +10,7 @@ function kdump_read_config_main()
 	option string 	 KDUMP_COMMANDLINE ""
 	option string 	 KDUMP_COMMANDLINE_APPEND ""
 	option bool 	 KDUMP_CONTINUE_ON_ERROR true
-	option int 	 KDUMP_CPUS 32
+	option int 	 KDUMP_CPUS 4
 	option string	 KDUMP_CRASHKERNEL "auto"
 	option string 	 KDUMP_DUMPFORMAT "compressed"
 	option int 	 KDUMP_DUMPLEVEL 31

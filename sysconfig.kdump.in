@@ -64,7 +64,7 @@ KDUMP_KERNELVER=""
 #
 # See also: kdump(5).
 #
-KDUMP_CPUS=32
+KDUMP_CPUS=4
 
 ## Type:	string
 ## Default:	""
