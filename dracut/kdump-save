@@ -278,7 +278,6 @@ function main() {
 		# number of threads
 		THREADS=""
 		CPUS=$(nproc)	
-		[[ ${KDUMP_CPUS} -gt 0 ]] && [[ ${KDUMP_CPUS} -lt ${CPUS} ]] && CPUS=${KDUMP_CPUS}
 		[[ ${KDUMP_DUMPFORMAT} == ELF ]] && CPUS=1
 		[[ ${CPUS} -ne 1 ]] && THREADS="--num-threads ${CPUS}"
 
