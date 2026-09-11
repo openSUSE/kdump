@@ -305,6 +305,12 @@ else
 	exit 1
     }
 
+    if [[ $((KDUMP_DUMPLEVEL & 8)) -eq 0 ]] && read < /sys/kernel/kexec_crash_cma_ranges 2>/dev/null; then
+	echo "KDUMP_DUMPLEVEL must be configured to filter user data when" >&2
+	echo "crashkernel CMA reservation is used." >&2
+	exit 1
+    fi
+
     # check if initrd and the kernel it was built for exist
     # return 6 if not, which is treated as success by 
     # the kdump-early service

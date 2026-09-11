@@ -116,11 +116,15 @@ function do_commandline()
 		CALIBRATE_LOW=
 		CALIBRATE_HIGH=
 		CALIBRATE_FADUMP=
+		CALIBRATE_NONCMA=
+		CALIBRATE_CMA=
 		while read -r KEY VALUE; do
 			case "${KEY}" in
 				"Low:") CALIBRATE_LOW=${VALUE};;
 				"High:") CALIBRATE_HIGH=${VALUE};;
 				"Fadump:") CALIBRATE_FADUMP=${VALUE};;
+				"NonCMA:") CALIBRATE_NONCMA=${VALUE};;
+				"CMA:") CALIBRATE_CMA=${VALUE};;
 			esac
 		done <<<"$(do_calibrate)"
 
@@ -130,6 +134,13 @@ function do_commandline()
 				return 1
 			fi
 			CRASHKERNEL=("crashkernel=${CALIBRATE_FADUMP}M")
+		elif ${KDUMP_USE_CMA} && [[ ${CALIBRATE_CMA} -gt 0 ]] && [[ ${CALIBRATE_NONCMA} -gt 0 ]]; then
+			if [[ $((KDUMP_DUMPLEVEL & 8)) -eq 0 ]]; then
+				echo "KDUMP_DUMPLEVEL must be configured to filter user data when" >&2
+				echo "KDUMP_USE_CMA is used." >&2
+				return 1
+			fi
+			CRASHKERNEL=("crashkernel=${CALIBRATE_NONCMA}M" "crashkernel=${CALIBRATE_CMA}M,cma")
 		else
 			if [[ -z ${CALIBRATE_LOW} ]] || [[ -z ${CALIBRATE_HIGH} ]]; then
 				echo "Error parsing calibrate output" >&2

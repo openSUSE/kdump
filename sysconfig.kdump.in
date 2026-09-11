@@ -428,3 +428,30 @@ KDUMP_HOST_KEY=""
 #
 # See also: kdump(5)
 KDUMP_SSH_IDENTITY=""
+
+## Type:        boolean ## Default:	"false" ## ServiceRestart:	kdump
+#
+# Experimental!
+#
+# Make _kdumptool commandline_ use the ,cma crashkernel suffix, instructing the
+# kernel to use CMA for part of the crashkernel reservation. Memory reserved
+# from the CMA remains available to the production system's user space. More
+# memory can be used by kdump (making it less likely that kdump fails because
+# not enough memory has been reserved), while more memory also remains usable
+# for production.
+#
+# KDUMP_USE_CMA is an experimental feature. Kdump may become less reliable
+# because the DMA transfers configured by the production kernel may end up
+# corrupting the kdump kernel's memory. It is intended for systems that can't
+# afford to sacrifice enough memory for standard crashkernel reservation and
+# where less reliable and possibly incomplete kdump is preferable to no kdump
+# at all.
+#
+# KDUMP_USE_CMA cannot be used when KDUMP_DUMPLEVEL is configured to dump user space
+# pages.
+#
+# CMA crashkernel reservation is not supported by all architectures.
+#
+# See also: kdump(5)
+
+KDUMP_USE_CMA="false"

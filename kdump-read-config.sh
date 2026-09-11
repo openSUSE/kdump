@@ -38,6 +38,7 @@ function kdump_read_config_main()
 	option int 	 KDUMP_VERBOSE 0
 	option string 	 KEXEC_OPTIONS ""
 	option string 	 MAKEDUMPFILE_OPTIONS ""
+	option bool	 KDUMP_USE_CMA false
 	
 	option deprecated KDUMPTOOL_FLAGS ""
 	option deprecated KDUMP_COPY_KERNEL ""
