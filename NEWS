@@ -1,3 +1,11 @@
+2.1.10
+------
+* calibrate: measure per-cpu requirements 
+* kdumptool calibrate: take KDUMP_CPUS into account for PPC
+* PPC: round up KDUMP_CPUS on SMT systems to nearest threads-per-cpu 
+* Set default KDUMP_CPUs to 4 (jsc#PED-16732, bsc#1239999)
+* add KDUMP_USE_CMA: experimental support for CMA reservation (jsc#PED-14553)
+
 2.1.9
 -----
 * fix syntax in sysconfig
