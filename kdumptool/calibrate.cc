@@ -1062,6 +1062,8 @@ int main(int argc, char* argv[])
         cout << "MaxLow: 0" << endl;
         cout << "MinHigh: 0 " << endl;
         cout << "MaxHigh: 0 " << endl;
+        cout << "NonCMA: 0" << endl;
+        cout << "CMA: 0" << endl;
         return 0;
     }
 
@@ -1110,6 +1112,22 @@ int main(int argc, char* argv[])
 
     unsigned long low, minlow, maxlow;
     unsigned long high, minhigh, maxhigh;
+    unsigned long cma, noncma;
+
+    /* simplified generous calculation for KDUMP_USE_CMA case */
+    noncma = bootsize;
+    noncma = noncma * 5 / 4;
+    noncma += MB(64);
+    cma = 0;
+    cma += sizes.initramfs_kb();
+    cma += sizes.user_base_kb();
+    cma += needsNetwork ? sizes.user_net_kb() : 0;
+    cma *= 4;                           // increase 4 times
+    cma += MB(256);                     // add 256 MB
+    cma += cpus * MB(16);               // add 16 MB per CPU
+    cma += memtotal >> 10;              // add 1/1024 of total RAM
+    cma += KDUMP_LUKS_MEMORY * 5 / 4;   // add LUKS memory + 25%
+    cma = shr_round_up(cma, 16) << 16;  // round up to nearest 64 MB
 
 #if defined(__x86_64__)
 
@@ -1161,6 +1179,8 @@ int main(int argc, char* argv[])
     cout << "MaxLow: " << (maxlow >> 10) << endl;
     cout << "MinHigh: " << shr_round_up(minhigh, 10) << endl;
     cout << "MaxHigh: " << (maxhigh >> 10) << endl;
+    cout << "NonCMA: " << shr_round_up(noncma, 10) << endl;
+    cout << "CMA: " << shr_round_up(cma, 10) << endl;
 
 #if HAVE_FADUMP
     unsigned long fadump, minfadump, maxfadump;
