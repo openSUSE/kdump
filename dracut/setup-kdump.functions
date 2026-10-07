@@ -740,6 +740,7 @@ function kdump_filter_sysctl()						   # {{{
 	"$root"/lib/sysctl.d/*.conf \
 	"$root"/etc/sysctl.conf
     do
+	[ -e "$f" ] || continue
 	sed -i -e '/^[ \t]*vm\./d' "$f"
 	sed -i -e '/^[ \t]*kernel\.panic_on_warn/d' "$f"
     done
