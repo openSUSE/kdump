@@ -88,9 +88,6 @@ KDUMP_COMMANDLINE=""
 # command line string. The string also gets appended if KDUMP_COMMANDLINE
 # is set.
 #
-# For network based dumps, you may have to add a "net_delay" parameter
-# here. Consult the man page for details.
-#
 # See also: kdump(5).
 #
 KDUMP_COMMANDLINE_APPEND=""
@@ -135,9 +132,6 @@ KDUMP_FADUMP_SHELL="false"
 #
 # Set this variable if you want to _append_ values to the default
 # command line string during dump capture.
-#
-# For network based dumps, you may have to add a "net_delay" parameter
-# here. Consult the man page for details.
 #
 # See also: kdump(5).
 #

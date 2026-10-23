@@ -148,12 +148,6 @@ KDUMP_COMMANDLINE_APPEND
 This variable describes all command line parameters that are passed to the kdump
 kernel additionally to the default parameters.
 
-For network based dumping, you may have to add a _net_delay_ parameter to
-specify the extra delay in seconds that is needed for the network device
-to become fully operational, e.g. _net_delay=20_ will wait 20 seconds before
-continuing after the network device is configured. This parameter is used by
-the network setup code in the resulting initrd.
-
 See also KDUMP_COMMANDLINE.
 
 Default is "".
@@ -214,12 +208,6 @@ to fadump capture kernel other than the default parameters passed by the bootloa
 These additional parameters are typically those that optimize resources, reduce
 memory footprint and disable complex and/or troublesome components that have
 no significance for dump capture environment.
-
-For network based dumping, you may have to add a _net_delay_ parameter to
-specify the extra delay in seconds that is needed for the network device
-to become fully operational, e.g. _net_delay=20_ will wait 20 seconds before
-continuing after the network device is configured. This parameter is used by
-the network setup code in the resulting initrd.
 
 Not all kernel and hardware combinations support this feature.
 The parameters are passed through the /sys/kernel/fadump/bootargs_append file.
