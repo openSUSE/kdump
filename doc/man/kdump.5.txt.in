@@ -431,7 +431,7 @@ This variable specifies the dump format.
 *zstd*::
   _zstd_ is again similar to _compressed_, but it uses the Zstandard
   compression algorithm. While slightly slower, it can produce smaller
-  files than _lzo_ or _snapy_.
+  files than _lzo_ or _snappy_.
 
 *raw*::
   _raw_ creates a verbatim copy of /proc/vmcore without any processing
